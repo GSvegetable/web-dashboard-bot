@@ -1,9 +1,18 @@
 import os, requests
 from flask import Flask, request, render_template_string
+from telegram import Update, filters
+from telegram.ext import Application, MessageHandler, ContextTypes
+from threading import Thread
 
 app = Flask(__name__)
 
-# ================= 网页前端界面 (HTML + CSS + JS) =================
+# ================= 内存数据存储 =================
+# 记录用户机器人的指令规则
+ACTIVE_CMDS = {}
+# 记录已经启动的用户机器人实例，防止重复启动
+ACTIVE_BOTS = {}
+
+# ================= 网页前端界面 (新增了绑定指令的输入框) =================
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -19,50 +28,58 @@ HTML_TEMPLATE = """
         input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0d15; color: #fff; box-sizing: border-box; margin-bottom: 10px; }
         button { width: 100%; padding: 14px; background: #6c5ce7; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:active { transform: scale(0.98); }
+        .btn-secondary { background: #2d3436; margin-top: 5px; }
         #status { margin-top: 15px; text-align: center; font-size: 14px; padding: 10px; border-radius: 6px; }
         .success { background: #2ed573; }
         .error { background: #ff4757; }
+        .info { background: #6c5ce7; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>🎛️ 宫水配置后台</h2>
+        
         <label>输入你的机器人 Token</label>
         <input type="text" id="bot_token" placeholder="例如: 8506542682:AAH..." />
 
-        <label>设置左下角紫色菜单按钮</label>
-        <input type="text" id="menu_button_name" placeholder="按钮名字：打开宫水程序" />
-        <button onclick="setMenuButton()">👉 立即生效：添加菜单按钮</button>
+        <label>绑定指令</label>
+        <input type="text" id="command" placeholder="例如: /gs" value="/gs" />
+
+        <label>绑定的内容</label>
+        <input type="text" id="content" placeholder="例如: 你好" value="你好" />
+        
+        <button onclick="setCustomCommand()">🚀 运行绑定</button>
 
         <div id="status">等待操作...</div>
     </div>
 
     <script>
-        async function setMenuButton() {
+        async function setCustomCommand() {
             const token = document.getElementById('bot_token').value.trim();
-            const text = document.getElementById('menu_button_name').value.trim();
+            const cmd = document.getElementById('command').value.trim();
+            const resp = document.getElementById('content').value.trim();
             const status = document.getElementById('status');
 
             if(!token) { status.innerHTML = "❌ 请先填入 Token！"; status.className = "error"; return; }
-            if(!text) { status.innerHTML = "❌ 请输入菜单按钮的文字！"; status.className = "error"; return; }
+            if(!cmd) { status.innerHTML = "❌ 请输入绑定指令！"; status.className = "error"; return; }
+            if(!resp) { status.innerHTML = "❌ 请输入绑定的内容！"; status.className = "error"; return; }
 
-            status.innerHTML = "⏳ 正在向 Telegram 发送指令...";
+            status.innerHTML = "⏳ 正在尝试绑定指令并启动机器人...";
             status.className = "";
 
             try {
-                // 调用后端的接口
-                const res = await fetch('/api/set_menu', {
+                const res = await fetch('/api/set_custom_command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: token, text: text })
+                    body: JSON.stringify({ token: token, command: cmd, response: resp })
                 });
                 const data = await res.json();
                 
                 if(data.ok) {
-                    status.innerHTML = "✅ 设置成功！退出此网页，去 Telegram 看看左下角吧！";
+                    status.innerHTML = "✅ " + data.desc;
                     status.className = "success";
                 } else {
-                    status.innerHTML = "❌ 设置失败：" + data.desc;
+                    status.innerHTML = "❌ " + data.desc;
                     status.className = "error";
                 }
             } catch(e) {
@@ -75,36 +92,54 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# ================= 后端逻辑 (接收网页命令，发给 Telegram) =================
+# ================= 后端逻辑 =================
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE)
 
-@app.route('/api/set_menu', methods=['POST'])
-def api_set_menu():
+# 处理用户发来的 /gs 命令
+async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    bot_token = context.bot.token
+    # 检查这个 Token 有没有配置指令
+    cmd_map = ACTIVE_CMDS.get(bot_token, {})
+    # 获取用户发送的指令文字（例如 /gs）
+    cmd_text = update.message.text.split()[0]
+    
+    # 如果配置了回复内容，就回复
+    if cmd_text in cmd_map:
+        await update.message.reply_text(cmd_map[cmd_text])
+
+@app.route('/api/set_custom_command', methods=['POST'])
+def set_custom_command():
     data = request.get_json()
     token = data.get('token')
-    text = data.get('text')
+    command = data.get('command')
+    response = data.get('response')
     
-    if not token or not text:
-        return {"ok": False, "desc": "缺少 Token 或按钮名字"}
+    if not token or not command or not response:
+        return {"ok": False, "desc": "缺少参数，请将内容全部填满。"}
 
     try:
-        # 调用 Telegram API 直接给用户的机器人添加左下角菜单
-        url = f"https://api.telegram.org/bot{token}/setChatMenuButton"
-        payload = {
-            "menu_button": {
-                "type": "web_app",
-                "text": text,
-                "web_app": {
-                    "url": "https://t.me"  # 因为还没部署你的项目，暂时放个无害的链接
-                }
-            }
-        }
-        resp = requests.post(url, json=payload, timeout=10)
-        return resp.json()
+        # 1. 如果这个 Token 的机器人还没启动，我们在后台偷偷帮它启动
+        if token not in ACTIVE_BOTS:
+            bot_app = Application.builder().token(token).build()
+            # 监听所有的斜杠指令，发给我们的通用处理函数
+            bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
+            
+            # 单独开一个线程跑这个用户机器人，不影响网页响应
+            thread = Thread(target=bot_app.run_polling, daemon=True)
+            thread.start()
+            ACTIVE_BOTS[token] = bot_app
+
+        # 2. 把用户设定的 指令->内容 存进内存字典里
+        if token not in ACTIVE_CMDS:
+            ACTIVE_CMDS[token] = {}
+        ACTIVE_CMDS[token][command] = response
+        
+        return {"ok": True, "desc": f"指令「{command}」绑定成功！去电报给机器人发 {command} 试试吧。"}
+        
     except Exception as e:
-        return {"ok": False, "desc": str(e)}
+        return {"ok": False, "desc": f"操作失败：{str(e)}"}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
