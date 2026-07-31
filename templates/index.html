@@ -66,10 +66,16 @@
             display: flex; justify-content: center; align-items: flex-start;
         }
 
+        /* 初始状态提示 */
+        #welcome-message {
+            color: #8b949e; text-align: center; margin-top: 80px; font-size: 16px;
+            width: 100%; max-width: 500px;
+        }
+
         /* 默认配置卡片 */
         .config-card {
             background-color: #161b22; border: 1px solid #30363d; border-radius: 6px;
-            padding: 24px; width: 100%; max-width: 500px;
+            padding: 24px; width: 100%; max-width: 500px; display: none;
         }
         .config-card label { display: block; margin: 16px 0 6px; font-size: 14px; font-weight: 500; color: #f0f6fc; }
         .config-card input {
@@ -105,7 +111,6 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏 -->
     <nav class="navbar">
         <div class="navbar-left">gsbot编辑器</div>
         <div class="navbar-right">
@@ -117,9 +122,7 @@
         </div>
     </nav>
 
-    <!-- 主体布局 -->
     <div class="main-layout">
-        <!-- 左栏 (1/3) - 机器人管理器 -->
         <div class="sidebar">
             <button class="sidebar-btn" id="new-robot-btn">+ 新建机器人</button>
             
@@ -135,9 +138,12 @@
             <ul id="robot-list"></ul>
         </div>
 
-        <!-- 右栏 (2/3) - 详情/配置区 -->
+        <!-- 右栏 -->
         <div class="main-content">
-            <!-- 卡片 A：默认配置面板 -->
+            <!-- 1. 初始空白提示 -->
+            <div id="welcome-message">请点击左侧「+ 新建机器人」以开始</div>
+
+            <!-- 2. 默认配置面板 -->
             <div class="config-card" id="default-panel">
                 <label>绑定指令</label>
                 <input type="text" id="command" placeholder="例如: /gs" value="/gs" />
@@ -149,7 +155,7 @@
                 <div id="status" style="margin-top:16px; font-size:13px; text-align:center; padding:8px; border-radius:6px; background-color:#21262d; color:#8b949e;">等待配置...</div>
             </div>
 
-            <!-- 卡片 B：新建机器人的黑色框 -->
+            <!-- 3. 新建机器人的纯黑卡片 -->
             <div id="new-robot-panel">
                 <h1 id="robot-name-display">未命名机器人</h1>
                 <p id="robot-token-display">Token：未绑定</p>
@@ -158,7 +164,7 @@
     </div>
 
     <script>
-        // 页面元素绑定
+        const welcomeMsg = document.getElementById('welcome-message');
         const defaultPanel = document.getElementById('default-panel');
         const newRobotPanel = document.getElementById('new-robot-panel');
         const newRobotBtn = document.getElementById('new-robot-btn');
@@ -169,17 +175,17 @@
         const robotTokenDisplay = document.getElementById('robot-token-display');
         const robotList = document.getElementById('robot-list');
 
-        // 1. 点击“新建机器人” -> 右侧切换到黑色卡片
+        // 1. 点击“新建机器人” -> 右边切换到黑色卡片
         newRobotBtn.addEventListener('click', function() {
+            welcomeMsg.style.display = 'none';
             defaultPanel.style.display = 'none';
             newRobotPanel.style.display = 'block';
             
-            // 如果是新创建的，重置为默认状态
             robotNameDisplay.innerText = '未命名机器人';
             robotTokenDisplay.innerText = 'Token：未绑定';
         });
 
-        // 2. 点击“确定绑定” -> 更新右侧，并添加到左侧列表
+        // 2. 点击“确定绑定” -> 右边更新并自动切换到配置面板
         confirmBtn.addEventListener('click', function() {
             const name = nameInput.value.trim() || '未命名机器人';
             const token = tokenInput.value.trim();
@@ -189,26 +195,29 @@
                 return;
             }
 
-            // 更新右侧的黑色卡片
+            // 更新卡片内容
             robotNameDisplay.innerText = name;
-            robotTokenDisplay.innerText = 'Token：已绑定 (当前Token)';
+            robotTokenDisplay.innerText = 'Token：已绑定';
 
-            // 向左侧机器人列表插入新条目
+            // 添加到左侧列表
             const li = document.createElement('li');
             li.innerText = name;
             li.onclick = function() {
-                // 点击左侧列表项，让右侧显示这个机器人的信息
-                robotNameDisplay.innerText = name;
-                robotTokenDisplay.innerText = 'Token：已绑定 (当前Token)';
-                defaultPanel.style.display = 'none';
-                newRobotPanel.style.display = 'block';
+                // 后续点击列表项查看机器人时，可以显示配置面板（预留接口）
+                defaultPanel.style.display = 'block';
+                newRobotPanel.style.display = 'none';
+                welcomeMsg.style.display = 'none';
             };
             robotList.appendChild(li);
 
-            // 清空左侧输入框，并给出反馈
+            // 清空左侧输入框并给出反馈
             nameInput.value = '';
             tokenInput.value = '';
             alert(`✅ 机器人「${name}」绑定并添加成功！`);
+
+            // 【重要】绑定成功后，自动隐藏黑色卡片，显示配置面板
+            newRobotPanel.style.display = 'none';
+            defaultPanel.style.display = 'block';
         });
 
         // 3. 运行绑定按钮（点击无效果）
