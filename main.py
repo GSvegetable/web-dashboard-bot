@@ -1,153 +1,64 @@
-import os, requests, asyncio, threading
-from flask import Flask, request, render_template_string
-from telegram import Update
-from telegram.ext import Application, MessageHandler, filters, ContextTypes
+进口操作系统、请求、异步、线程
+从……起烧瓶进口烧瓶，渲染模板(_T)
+从……起电报进口更新
+从……起电报。ext进口应用程序、MessageHandler、筛选器、ContextTypes
 
-app = Flask(__name__)
+app= flask (__name__)
 
 # ================= 内存数据存储 =================
 ACTIVE_CMDS = {}
 ACTIVE_BOTS = {}
 
-# ================= 网页前端界面 =================
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>宫水机器人配置器</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background: #0b0d15; color: #fff; padding: 20px; }
-        .container { max-width: 450px; margin: 0 auto; background: #1a1c22; padding: 20px; border-radius: 12px; }
-        h2 { text-align: center; margin-bottom: 20px; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0d15; color: #fff; box-sizing: border-box; margin-bottom: 10px; }
-        button { width: 100%; padding: 14px; background: #6c5ce7; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:active { transform: scale(0.98); }
-        #status { margin-top: 15px; text-align: center; font-size: 14px; padding: 10px; border-radius: 6px; }
-        .success { background: #2ed573; }
-        .error { background: #ff4757; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>🎛️ 宫水配置后台</h2>
-        
-        <label>输入你的机器人 Token</label>
-        <input type="text" id="bot_token" placeholder="例如: 8506542682:AAH..." />
-
-        <label>绑定指令</label>
-        <input type="text" id="command" placeholder="例如: /gs" value="/gs" />
-
-        <label>绑定的内容</label>
-        <input type="text" id="content" placeholder="例如: 你好" value="你好" />
-        
-        <button onclick="setCustomCommand()">🚀 运行绑定</button>
-
-        <div id="status">等待操作...</div>
-    </div>
-
-    <script>
-        async function setCustomCommand() {
-            const token = document.getElementById('bot_token').value.trim();
-            const cmd = document.getElementById('command').value.trim();
-            const resp = document.getElementById('content').value.trim();
-            const status = document.getElementById('status');
-
-            if(!token) { status.innerHTML = "❌ 请先填入 Token！"; status.className = "error"; return; }
-            if(!cmd) { status.innerHTML = "❌ 请输入绑定指令！"; status.className = "error"; return; }
-            if(!resp) { status.innerHTML = "❌ 请输入绑定的内容！"; status.className = "error"; return; }
-
-            status.innerHTML = "⏳ 正在尝试绑定指令并启动机器人...";
-            status.className = "";
-
-            try {
-                const res = await fetch('/api/set_custom_command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: token, command: cmd, response: resp })
-                });
-                const data = await res.json();
-                
-                if(data.ok) {
-                    status.innerHTML = "✅ " + data.desc;
-                    status.className = "success";
-                } else {
-                    status.innerHTML = "❌ " + data.desc;
-                    status.className = "error";
-                }
-            } catch(e) {
-                status.innerHTML = "❌ 网络请求异常：" + e.message;
-                status.className = "error";
-            }
-        }
-    </script>
-</body>
-</html>
-"""
-
 # ================= 后台核心逻辑 =================
 @app.route('/')
-def index():
-    return render_template_string(HTML_TEMPLATE)
+定义指数():
+    # 这里会自动去读取 templates/index.html
+返回渲染模板(_T)('index.html')
 
-def delete_webhook(token):
-    """强制清除用户机器人可能存在的旧 Webhook 冲突"""
-    try:
-        url = f"https://api.telegram.org/bot{token}/deleteWebhook?drop_pending_updates=true"
-        requests.get(url, timeout=5)
-        return True
-    except Exception:
-        return False
+定义删除网钩(_W)( token ):
+    尝试:
+        url = f"https://api.telegram.org/bot{ token }/deleteWebhook?drop_pending_updates=true"
+请求。得到(url, timeout=5)
+        返回 正确
+    除……之外例外：
+        返回 假的
 
-async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    bot_token = context.bot.token
-    cmd_map = ACTIVE_CMDS.get(bot_token, {})
-    cmd_text = update.message.text.split()[0]
-    
-    if cmd_text in cmd_map:
-        await update.message.reply_text(cmd_map[cmd_text])
+异步定义通用命令处理程序(更新：更新，上下文：ContextTypes。default_TYPE):
+bot_token=上下文。网上机器人. token 
+CMD_map=ACTIVE_CMDS。得到(bot_token, {})
+CMD_text=更新。消息.text.split()[0]
+    如果CMD_text在...内CMD映射(_M)：
+        等候更新。消息.回复文本(_T)(cmd_map[ cmd_text ])
 
-def start_bot_thread(bot_app):
-    """核心修复：加上 stop_signals=None，彻底解决多线程连接不上电报的问题"""
-    def run_async():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        # 禁用信号处理器，防止报错 set_wakeup_fd only works in main thread
-        bot_app.run_polling(stop_signals=None)
-    
-    thread = threading.Thread(target=run_async, daemon=True)
-    thread.start()
+定义start_bot_thread(bot_app):
+定义运行异步(_A)():
+循环=异步。new_event_loop()
+异步。set_event_loop(loop)
+bot_app。运行轮询(_P)(stop_signals=没有一个)
+thread=螺纹。线(目标=run_async，守护程序=正确)
+线。开始()
 
-@app.route('/api/set_custom_command', methods=['POST'])
-def set_custom_command():
-    data = request.get_json()
-    token = data.get('token')
-    command = data.get('command')
-    response = data.get('response')
-    
-    if not token or not command or not response:
-        return {"ok": False, "desc": "缺少参数，请将内容全部填满。"}
-
-    try:
-        if token not in ACTIVE_BOTS:
-            delete_webhook(token)
-            bot_app = Application.builder().token(token).build()
-            bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
-            
-            # 使用修复后的启动函数
+@app.route('/api/set_custom_command'，方法=['POST'])
+定义 set_custom_command():
+数据=请求。get_json()
+令牌=数据。得到('令牌')
+命令=数据。得到('命令')
+响应=数据。得到(“响应”)
+    如果 不令牌或 不命令或 不响应：
+        返回 {"确定": 假的, "描述": "缺少参数，请将内容全部填满。"}
+    尝试:
+        如果令牌不 在……内active_BOTS：
+            删除Webhook(_W)(令牌)
+bot_app=应用程序。建造者().令牌(令牌).建立()
+bot_app。add_handler(MessageHandler(过滤器。命令，通用命令处理程序))
             start_bot_thread(bot_app)
-            ACTIVE_BOTS[token] = bot_app
+            ACTIVE_BOTS[令牌]=bot_app
+        如果令牌不 在……内active_CMDS：
+active_CMDS[令牌]={}
+active_CMDS[令牌][命令]=响应
+        返回 {"确定": 正确, "描述": F"指令"{命令}」绑定成功！"}
+    除……之外例外作为e：
+        返回 {"确定": 假的, "描述": F"操作失败：{str(e)}"}
 
-        if token not in ACTIVE_CMDS:
-            ACTIVE_CMDS[token] = {}
-        ACTIVE_CMDS[token][command] = response
-        
-        return {"ok": True, "desc": f"指令「{command}」绑定成功！去电报给机器人发 {command} 试试吧。"}
-        
-    except Exception as e:
-        return {"ok": False, "desc": f"操作失败：{str(e)}"}
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+如果__名称__=='__main__'：
+应用程序。跑(主办='0.0.0.0'，端口=8080)
