@@ -1,7 +1,7 @@
 import os, requests
 from flask import Flask, request, render_template_string
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, MessageHandler, filters, ContextTypes
 from threading import Thread
 
 app = Flask(__name__)
@@ -93,6 +93,15 @@ HTML_TEMPLATE = """
 def index():
     return render_template_string(HTML_TEMPLATE)
 
+def delete_webhook(token):
+    """关键修复：强制清除用户机器人可能存在的旧 Webhook 冲突"""
+    try:
+        url = f"https://api.telegram.org/bot{token}/deleteWebhook?drop_pending_updates=true"
+        requests.get(url, timeout=5)
+        return True
+    except Exception:
+        return False
+
 async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot_token = context.bot.token
     cmd_map = ACTIVE_CMDS.get(bot_token, {})
@@ -113,6 +122,9 @@ def set_custom_command():
 
     try:
         if token not in ACTIVE_BOTS:
+            # 先强制清理掉 Telegram 那边的旧挂钩
+            delete_webhook(token)
+            
             bot_app = Application.builder().token(token).build()
             bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
             
