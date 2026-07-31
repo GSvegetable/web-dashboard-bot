@@ -1,18 +1,16 @@
 import os, requests
 from flask import Flask, request, render_template_string
-from telegram import Update, filters
-from telegram.ext import Application, MessageHandler, ContextTypes
+from telegram import Update
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from threading import Thread
 
 app = Flask(__name__)
 
 # ================= 内存数据存储 =================
-# 记录用户机器人的指令规则
 ACTIVE_CMDS = {}
-# 记录已经启动的用户机器人实例，防止重复启动
 ACTIVE_BOTS = {}
 
-# ================= 网页前端界面 (新增了绑定指令的输入框) =================
+# ================= 网页前端界面 =================
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -28,11 +26,9 @@ HTML_TEMPLATE = """
         input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0d15; color: #fff; box-sizing: border-box; margin-bottom: 10px; }
         button { width: 100%; padding: 14px; background: #6c5ce7; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:active { transform: scale(0.98); }
-        .btn-secondary { background: #2d3436; margin-top: 5px; }
         #status { margin-top: 15px; text-align: center; font-size: 14px; padding: 10px; border-radius: 6px; }
         .success { background: #2ed573; }
         .error { background: #ff4757; }
-        .info { background: #6c5ce7; }
     </style>
 </head>
 <body>
@@ -97,15 +93,11 @@ HTML_TEMPLATE = """
 def index():
     return render_template_string(HTML_TEMPLATE)
 
-# 处理用户发来的 /gs 命令
 async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot_token = context.bot.token
-    # 检查这个 Token 有没有配置指令
     cmd_map = ACTIVE_CMDS.get(bot_token, {})
-    # 获取用户发送的指令文字（例如 /gs）
     cmd_text = update.message.text.split()[0]
     
-    # 如果配置了回复内容，就回复
     if cmd_text in cmd_map:
         await update.message.reply_text(cmd_map[cmd_text])
 
@@ -120,18 +112,14 @@ def set_custom_command():
         return {"ok": False, "desc": "缺少参数，请将内容全部填满。"}
 
     try:
-        # 1. 如果这个 Token 的机器人还没启动，我们在后台偷偷帮它启动
         if token not in ACTIVE_BOTS:
             bot_app = Application.builder().token(token).build()
-            # 监听所有的斜杠指令，发给我们的通用处理函数
             bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
             
-            # 单独开一个线程跑这个用户机器人，不影响网页响应
             thread = Thread(target=bot_app.run_polling, daemon=True)
             thread.start()
             ACTIVE_BOTS[token] = bot_app
 
-        # 2. 把用户设定的 指令->内容 存进内存字典里
         if token not in ACTIVE_CMDS:
             ACTIVE_CMDS[token] = {}
         ACTIVE_CMDS[token][command] = response
