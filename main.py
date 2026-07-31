@@ -9,10 +9,8 @@ app = Flask(__name__)
 ACTIVE_CMDS = {}
 ACTIVE_BOTS = {}
 
-# ================= 后台核心逻辑 =================
 @app.route('/')
 def index():
-    # 这里会自动去读取 templates/index.html
     return render_template('index.html')
 
 def delete_webhook(token):
