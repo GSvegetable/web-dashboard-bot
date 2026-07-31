@@ -1,8 +1,7 @@
-import os, requests
+import os, requests, asyncio, threading
 from flask import Flask, request, render_template_string
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
-from threading import Thread
 
 app = Flask(__name__)
 
@@ -88,13 +87,13 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# ================= 后端逻辑 =================
+# ================= 后台核心逻辑 =================
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE)
 
 def delete_webhook(token):
-    """关键修复：强制清除用户机器人可能存在的旧 Webhook 冲突"""
+    """强制清除用户机器人可能存在的旧 Webhook 冲突"""
     try:
         url = f"https://api.telegram.org/bot{token}/deleteWebhook?drop_pending_updates=true"
         requests.get(url, timeout=5)
@@ -110,6 +109,16 @@ async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_
     if cmd_text in cmd_map:
         await update.message.reply_text(cmd_map[cmd_text])
 
+def start_bot_thread(bot_app):
+    """核心修复：给机器人分配独立的异步事件循环，解决空壳问题"""
+    def run_async():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        bot_app.run_polling()
+    
+    thread = threading.Thread(target=run_async, daemon=True)
+    thread.start()
+
 @app.route('/api/set_custom_command', methods=['POST'])
 def set_custom_command():
     data = request.get_json()
@@ -122,21 +131,22 @@ def set_custom_command():
 
     try:
         if token not in ACTIVE_BOTS:
-            # 先强制清理掉 Telegram 那边的旧挂钩
+            # 1. 先切断 Telegram 可能存在的旧连接
             delete_webhook(token)
             
+            # 2. 构建机器人实例
             bot_app = Application.builder().token(token).build()
             bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
             
-            thread = Thread(target=bot_app.run_polling, daemon=True)
-            thread.start()
+            # 3. 用新写的独立循环线程启动
+            start_bot_thread(bot_app)
             ACTIVE_BOTS[token] = bot_app
 
         if token not in ACTIVE_CMDS:
             ACTIVE_CMDS[token] = {}
         ACTIVE_CMDS[token][command] = response
         
-        return {"ok": True, "desc": f"指令「{command}」绑定成功！去电报给机器人发 {command} 试试吧。"}
+        return {"ok": True, "desc": f"指令「{command}」绑定成功！请去电报给机器人发送 {command} 测试。"}
         
     except Exception as e:
         return {"ok": False, "desc": f"操作失败：{str(e)}"}
