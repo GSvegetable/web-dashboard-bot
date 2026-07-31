@@ -11,7 +11,7 @@
             background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* --- 顶部导航 --- */
+        /* --- 顶部主导航 --- */
         .navbar {
             background-color: #161b22; display: flex; justify-content: space-between; align-items: center;
             padding: 16px 24px; border-bottom: 1px solid #30363d; flex-shrink: 0;
@@ -22,49 +22,52 @@
         .nav-item:hover { color: #ffffff; }
         .nav-item.active { color: #58a6ff; }
 
-        /* --- 页面容器 --- */
-        #app-content { display: none; flex: 1; overflow: hidden; position: relative; }
+        /* --- 主应用容器 --- */
+        #app-content { display: none; flex: 1; overflow: hidden; position: relative; flex-direction: column; }
 
-        /* === 1. 仓库页面 (卡片网格) === */
+        /* ================= 仓库页面 ================= */
         #repo-page {
-            display: flex; flex-direction: column; height: 100%;
-            position: absolute; inset: 0; background: #0d1117; overflow-y: auto;
+            display: none; flex-direction: column; height: 100%; width: 100%;
+            background: #0d1117; overflow-y: auto; position: absolute; inset: 0;
         }
+        /* 二级工具栏（比主导航窄） */
         .repo-toolbar {
-            background: #161b22; padding: 12px 24px; border-bottom: 1px solid #30363d;
-            display: flex; align-items: center;
+            background: #161b22; padding: 6px 40px; border-bottom: 1px solid #30363d;
+            display: flex; justify-content: flex-end; align-items: center; height: 48px;
+            flex-shrink: 0;
         }
         .repo-toolbar button {
-            padding: 8px 16px; background: #238636; border: 1px solid #238636;
-            border-radius: 6px; color: white; font-weight: 600; cursor: pointer;
+            padding: 6px 16px; background: #238636; border: none; border-radius: 6px;
+            color: white; font-weight: 600; font-size: 14px; cursor: pointer;
         }
         .repo-toolbar button:active { transform: scale(0.98); }
-        
+
         .repo-grid {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
-            padding: 24px; width: 100%;
+            padding: 24px; width: 100%; flex: 1; align-content: start;
         }
         .repo-card {
-            border: 2px solid #58a6ff; /* 蓝色包裹 */
-            border-radius: 16px; padding: 16px; background: #161b22;
-            text-align: left; cursor: pointer; transition: transform 0.1s;
+            border: 2px solid #58a6ff; border-radius: 16px; padding: 16px;
+            background: #161b22; text-align: left; cursor: pointer;
+            transition: transform 0.1s; min-height: 80px;
         }
         .repo-card:active { transform: scale(0.96); }
         .repo-card h3 { font-size: 16px; color: #f0f6fc; margin-bottom: 4px; }
-        .repo-card p { font-size: 12px; color: #8b949e; }
-        
-        /* 移动端适配：卡片自动变为一行 2 个 */
+        .repo-card p { font-size: 12px; color: #8b949e; word-break: break-all; }
+
+        /* 移动端适配：仓库卡片每行 2 个 */
         @media (max-width: 768px) {
             .repo-grid { grid-template-columns: repeat(2, 1fr); }
+            .repo-toolbar { padding: 6px 16px; }
         }
 
-        /* === 2. 详情页面 (1/3 和 2/3 布局) === */
+        /* ================= 详情配置页 ================= */
         #detail-page {
             display: none; height: 100%; width: 100%;
-            background: #0d1117; flex-direction: row; overflow: hidden;
+            background: #0d1117; flex-direction: row; overflow: hidden; position: absolute; inset: 0;
         }
 
-        /* --- 左侧 1/3 (固定) --- */
+        /* --- 左侧 1/3（固定） --- */
         .sidebar {
             width: 33.33%; min-width: 280px; height: 100%;
             background-color: #161b22; border-right: 1px solid #30363d;
@@ -74,7 +77,6 @@
         .sidebar input {
             width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d;
             background-color: #0d1117; color: #c9d1d9; margin-bottom: 12px; outline: none;
-            /* 输入框取消 placeholder 样式，让它彻底干净 */
         }
         .sidebar input:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
         .sidebar-confirm {
@@ -83,31 +85,35 @@
         }
         .sidebar-confirm:active { background: #30363d; }
 
-        /* 隐藏了之前的 新建机器人和机器人列表，因为你移到仓库了 */
-
-        /* --- 右侧 2/3 (可滚动、可拖拽、可缩放) --- */
+        /* --- 右侧 2/3（无限大画布） --- */
         .main-content {
-            flex: 1; height: 100%; overflow-y: auto; /* 2/3 区域无限滚动 */
-            background-color: #0d1117; position: relative;
+            flex: 1; height: 100%; overflow: auto; position: relative;
+            background-color: #0d1117;
         }
+        /* 内部画布容器，给予超大尺寸，模拟无限空间 */
+        .canvas {
+            width: 3000px; height: 3000px; position: relative;
+            background: radial-gradient(circle at 20% 30%, #161b22 0%, #0d1117 100%);
+        }
+        /* 空状态占位提示（画布内，不占滚动空间） */
         #placeholder-msg {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: #8b949e; font-size: 16px; text-align: center; pointer-events: none;
         }
 
-        /* 悬浮可拖拽卡片 */
-        #floating-card-container {
-            position: absolute; top: 20px; left: 20px;
+        /* 可拖拽卡片（在画布上绝对定位） */
+        #floating-card {
+            position: absolute; top: 200px; left: 200px;
             width: 260px; min-width: 220px; min-height: 100px;
             background: #161b22; border: 1px solid #30363d; border-radius: 16px;
             padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            display: none; touch-action: none;
-            resize: both; overflow: auto; text-align: left;
+            display: none; touch-action: none; text-align: left;
+            resize: both; overflow: auto;
         }
         #card-bot-name { font-size: 18px; font-weight: 600; color: #f0f6fc; margin-bottom: 8px; }
-        #card-bot-token { font-size: 13px; color: #8b949e; word-wrap: break-word; }
+        #card-bot-api { font-size: 13px; color: #8b949e; word-wrap: break-word; }
 
-        /* --- 自定义 Toast 提示 --- */
+        /* --- 自定义通知条 --- */
         #custom-toast {
             display: none; position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             background: #161b22; border: 1px solid #30363d; border-radius: 8px;
@@ -117,13 +123,16 @@
         }
         #custom-toast.error { border-left: 4px solid #da3633; }
 
+        /* 移动端适配 */
         @media (max-width: 768px) {
             .sidebar { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid #30363d; }
+            .main-content { height: 60vh; }
+            .canvas { width: 2000px; height: 2000px; }
         }
     </style>
 </head>
 <body>
-    <!-- 顶部导航 -->
+    <!-- 主导航 -->
     <nav class="navbar">
         <div class="navbar-left">gsbot编辑器</div>
         <div class="navbar-right">
@@ -135,130 +144,272 @@
         </div>
     </nav>
 
-    <!-- 核心应用内容 -->
+    <!-- 主应用 -->
     <div id="app-content">
-        
-        <!-- ================= 仓库页面 (卡片网格) ================= -->
+        <!-- ===== 仓库页面 ===== -->
         <div id="repo-page">
             <div class="repo-toolbar">
                 <button id="create-card-btn">+ 创建卡片</button>
             </div>
             <div class="repo-grid" id="repoGrid">
-                <!-- 初始样稿卡片（方便你理解布局，点击可进入详情页） -->
-                <div class="repo-card" onclick="openRobotDetail('测试Bot-1', 'Token绑定')">
-                    <h3>测试Bot-1</h3>
-                    <p>Token: 已绑定</p>
-                </div>
-                <div class="repo-card" onclick="openRobotDetail('宫水助手', '无状态')">
-                    <h3>宫水助手</h3>
-                    <p>Token: 未绑定</p>
-                </div>
+                <!-- 初始为空，卡片通过 js 动态添加 -->
             </div>
         </div>
 
-        <!-- ================= 详情配置页面 (1/3 与 2/3) ================= -->
+        <!-- ===== 详情页面 ===== -->
         <div id="detail-page">
-            <!-- 左侧 1/3 -->
+            <!-- 左侧 -->
             <div class="sidebar">
                 <label>机器人名字</label>
                 <input type="text" id="bot-name-input">
-
                 <label>机器人简介</label>
                 <input type="text" id="bot-desc-input">
-                
-                <label>机器人 Token</label>
-                <input type="text" id="bot-token-input">
-                
+                <label>机器人 API</label>
+                <input type="text" id="bot-api-input">
                 <button class="sidebar-confirm" id="confirm-btn">确定绑定</button>
             </div>
 
-            <!-- 右侧 2/3 (无限滚动区域) -->
+            <!-- 右侧无限大画布 -->
             <div class="main-content" id="mainContent">
-                <div id="placeholder-msg">请点击仓库里的卡片以开始配置</div>
-                
-                <!-- 可拖拽、可缩放的卡片 -->
-                <div id="floating-card-container">
-                    <div id="card-bot-name">未命名机器人</div>
-                    <div id="card-bot-token">未绑定 Token</div>
+                <div class="canvas" id="canvas">
+                    <div id="placeholder-msg">请先输入机器人名字和 API</div>
+                    <div id="floating-card">
+                        <div id="card-bot-name">未命名机器人</div>
+                        <div id="card-bot-api">API: 未绑定</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 自定义 Toast 提示组件 -->
+    <!-- 自定义通知条 -->
     <div id="custom-toast"></div>
 
     <script>
+        // ==================================================
+        //  全局状态
+        // ==================================================
         const appContent = document.getElementById('app-content');
         const repoPage = document.getElementById('repo-page');
         const detailPage = document.getElementById('detail-page');
+        const repoGrid = document.getElementById('repoGrid');
+        const createBtn = document.getElementById('create-card-btn');
         const mainContent = document.getElementById('mainContent');
+        const canvas = document.getElementById('canvas');
         const placeholderMsg = document.getElementById('placeholder-msg');
-        const floatingCard = document.getElementById('floating-card-container');
+        const floatingCard = document.getElementById('floating-card');
+        const cardName = document.getElementById('card-bot-name');
+        const cardApi = document.getElementById('card-bot-api');
+        const nameInput = document.getElementById('bot-name-input');
+        const apiInput = document.getElementById('bot-api-input');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const toast = document.getElementById('custom-toast');
 
-        // === 1. 顶部菜单切换 ===
+        // 记录当前打开的卡片数据（用于返回仓库时状态同步）
+        let currentRepoCard = null; // 对应仓库中点击的那个 DOM 元素
+
+        // ==================================================
+        //  1. 菜单切换
+        // ==================================================
         function switchMenu(menu) {
             appContent.style.display = 'flex';
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(el => el.classList.remove('active'));
-
-            if(menu === 'repo') {
+            // 高亮 active
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (menu === 'repo') {
                 repoPage.style.display = 'flex';
                 detailPage.style.display = 'none';
-                const activeNav = Array.from(navItems).find(el => el.innerText === '仓库');
-                if(activeNav) activeNav.classList.add('active');
+                const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText === '仓库');
+                if (activeNav) activeNav.classList.add('active');
             } else {
                 repoPage.style.display = 'none';
                 detailPage.style.display = 'none';
-                const clickedNav = Array.from(navItems).find(el => el.innerText === menu);
-                if(clickedNav) clickedNav.classList.add('active');
+                const clickedNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText === menu);
+                if (clickedNav) clickedNav.classList.add('active');
             }
         }
-        // 初始自动进入仓库页面
+        // 默认直接显示仓库
         switchMenu('repo');
 
-        // === 2. 仓库卡片 -> 进入详情 ===
-        function openRobotDetail(name, status) {
-            repoPage.style.display = 'none';
-            detailPage.style.display = 'flex';
-            
-            // 更新右侧可拖动卡片的文字
-            document.getElementById('card-bot-name').innerText = name;
-            document.getElementById('card-bot-token').innerText = status;
-            placeholderMsg.style.display = 'none';
-            floatingCard.style.display = 'block';
-            
-            // 加载详情时，把名字顺便填入左侧输入框
-            document.getElementById('bot-name-input').value = name;
+        // ==================================================
+        //  2. 仓库卡片管理
+        // ==================================================
+        function createRepoCard(name, api) {
+            const card = document.createElement('div');
+            card.className = 'repo-card';
+            card.innerHTML = `
+                <h3>${name}</h3>
+                <p>API: ${api}</p>
+            `;
+            // 点击卡片进入详情页
+            card.addEventListener('click', function() {
+                openDetailPage(name, api, card);
+            });
+            repoGrid.appendChild(card);
+            return card;
         }
 
-        // === 3. 输入框实时联动 ===
-        const nameInput = document.getElementById('bot-name-input');
-        const tokenInput = document.getElementById('bot-token-input');
-        const cardName = document.getElementById('card-bot-name');
-        const cardToken = document.getElementById('card-bot-token');
-
-        nameInput.addEventListener('input', function() {
-            cardName.innerText = this.value.trim() || '未命名机器人';
+        // ==================================================
+        //  3. 点击“创建卡片” => 新增一个卡片到仓库
+        // ==================================================
+        createBtn.addEventListener('click', function() {
+            // 创建默认卡片（未命名api，未绑定）
+            const name = '未命名api';
+            const api = '未绑定';
+            createRepoCard(name, api);
+            showToast('已创建新卡片');
         });
-        tokenInput.addEventListener('input', function() {
+
+        // ==================================================
+        //  4. 打开详情页
+        // ==================================================
+        function openDetailPage(name, api, repoCardElement) {
+            currentRepoCard = repoCardElement;
+            repoPage.style.display = 'none';
+            detailPage.style.display = 'flex';
+
+            // 将仓库卡片的资料填入左侧
+            nameInput.value = name;
+            apiInput.value = (api === '未绑定' || api === '') ? '' : api;
+            // 简介留空（暂不处理）
+
+            // 清空右侧卡片（初始无卡片）
+            floatingCard.style.display = 'none';
+            placeholderMsg.style.display = 'block';
+
+            // 如果仓库卡片有已绑定的真实 API，则自动显示卡片
+            if (api !== '未绑定' && api !== '') {
+                // 但因为左侧输入框可能未填完整，我们按输入框逻辑来
+                // 下面由输入框监听触发
+            }
+
+            // 确保画布滚动回到左上角（可选）
+            mainContent.scrollTop = 0;
+            mainContent.scrollLeft = 0;
+        }
+
+        // ==================================================
+        //  5. 左侧输入框监听 => 控制右侧卡片显示
+        // ==================================================
+        function updateCardFromInputs() {
+            const name = nameInput.value.trim();
+            const api = apiInput.value.trim();
+
+            if (name !== '' && api !== '') {
+                // 显示卡片并更新内容
+                floatingCard.style.display = 'block';
+                placeholderMsg.style.display = 'none';
+                cardName.innerText = name;
+                cardApi.innerText = `API: ${api}`;
+            } else {
+                // 任一为空，隐藏卡片
+                floatingCard.style.display = 'none';
+                placeholderMsg.style.display = 'block';
+            }
+        }
+
+        nameInput.addEventListener('input', updateCardFromInputs);
+        apiInput.addEventListener('input', function() {
+            // API 格式校验（可选）
             const val = this.value.trim();
-            cardToken.innerText = val ? `Token: ${val}` : '未绑定 Token';
-            
-            // 自动校验 Token 格式：必须是 数字+冒号+字母数字
             const regex = /^\d+:[A-Za-z0-9_]+$/;
-            if(val.length > 0 && !regex.test(val)){
-                this.style.borderColor = '#f85149'; // 红色
+            if (val.length > 0 && !regex.test(val)) {
+                this.style.borderColor = '#f85149';
                 this.style.boxShadow = '0 0 0 3px rgba(248, 81, 73, 0.3)';
             } else {
-                this.style.borderColor = '#30363d'; // 恢复默认灰色，如果 focus 会自动蓝
+                this.style.borderColor = '#30363d';
                 this.style.boxShadow = 'none';
             }
+            updateCardFromInputs();
         });
 
-        // === 4. 自定义 Toast 提示 (替换 alert) ===
+        // ==================================================
+        //  6. 确认绑定按钮 => 更新仓库卡片数据并保存
+        // ==================================================
+        confirmBtn.addEventListener('click', function() {
+            const name = nameInput.value.trim() || '未命名api';
+            const api = apiInput.value.trim();
+            if (!api) {
+                showToast('请填写机器人的 API', true);
+                return;
+            }
+            const regex = /^\d+:[A-Za-z0-9_]+$/;
+            if (!regex.test(api)) {
+                showToast('API 格式不正确', true);
+                return;
+            }
+
+            // 更新仓库对应的卡片信息
+            if (currentRepoCard) {
+                currentRepoCard.querySelector('h3').innerText = name;
+                currentRepoCard.querySelector('p').innerText = `API: ${api}`;
+            }
+
+            showToast(`✅ 机器人「${name}」配置保存成功！`);
+        });
+
+        // ==================================================
+        //  7. 右侧卡片拖拽（无限画布内自由移动）
+        // ==================================================
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        function dragStart(e) {
+            e = e || window.event;
+            e.preventDefault();
+            if (e.type === 'touchstart') {
+                pos3 = e.touches[0].clientX;
+                pos4 = e.touches[0].clientY;
+            } else {
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+            }
+            document.onmouseup = dragEnd;
+            document.onmousemove = dragMove;
+            document.ontouchend = dragEnd;
+            document.ontouchmove = dragMove;
+        }
+        function dragMove(e) {
+            e = e || window.event;
+            e.preventDefault();
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            pos1 = pos3 - clientX;
+            pos2 = pos4 - clientY;
+            pos3 = clientX;
+            pos4 = clientY;
+            let newTop = floatingCard.offsetTop - pos2;
+            let newLeft = floatingCard.offsetLeft - pos1;
+            // 限定在画布内
+            const canvasRect = canvas.getBoundingClientRect();
+            const cardRect = floatingCard.getBoundingClientRect();
+            // 需要转换到画布坐标，简单起见不限制边界，但为防丢失，限制在0到画布尺寸-卡片尺寸
+            const maxTop = canvas.clientHeight - floatingCard.clientHeight;
+            const maxLeft = canvas.clientWidth - floatingCard.clientWidth;
+            if (newTop < 0) newTop = 0;
+            if (newLeft < 0) newLeft = 0;
+            if (newTop > maxTop) newTop = maxTop;
+            if (newLeft > maxLeft) newLeft = maxLeft;
+            floatingCard.style.top = newTop + 'px';
+            floatingCard.style.left = newLeft + 'px';
+        }
+        function dragEnd() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+            document.ontouchend = null;
+            document.ontouchmove = null;
+        }
+        // 给卡片绑定拖拽事件
+        floatingCard.addEventListener('mousedown', dragStart);
+        floatingCard.addEventListener('touchstart', dragStart);
+
+        // ==================================================
+        //  8. 自定义提示
+        // ==================================================
         function showToast(msg, isError = false) {
-            const toast = document.getElementById('custom-toast');
             toast.innerText = msg;
             toast.className = isError ? 'error' : '';
             toast.style.display = 'block';
@@ -266,73 +417,10 @@
             toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
         }
 
-        document.getElementById('confirm-btn').addEventListener('click', function() {
-            const name = nameInput.value.trim() || '未命名机器人';
-            const token = tokenInput.value.trim();
-            if(!token) { 
-                showToast('请先填写机器人的 Token', true); 
-                return; 
-            }
-            const regex = /^\d+:[A-Za-z0-9_]+$/;
-            if(!regex.test(token)) { 
-                showToast('Token 格式不合法，请检查输入', true);
-                return;
-            }
-            showToast(`✅ 机器人「${name}」绑定配置成功！`);
-        });
-
-        // === 5. 卡片拖拽和缩放 (平移) ===
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-        function dragMouseDown(e) {
-            e = e || window.event; e.preventDefault();
-            if(e.type === 'touchstart') { pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; } 
-            else { pos3 = e.clientX; pos4 = e.clientY; }
-            document.onmouseup = closeDragElement; document.onmousemove = elementDrag;
-            document.ontouchend = closeDragElement; document.ontouchmove = elementDrag;
-        }
-
-        function elementDrag(e) {
-            e = e || window.event; e.preventDefault();
-            let clientX, clientY;
-            if(e.type === 'touchmove') { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
-            else { clientX = e.clientX; clientY = e.clientY; }
-            pos1 = pos3 - clientX; pos2 = pos4 - clientY;
-            pos3 = clientX; pos4 = clientY;
-            
-            let newTop = floatingCard.offsetTop - pos2;
-            let newLeft = floatingCard.offsetLeft - pos1;
-            
-            // 限制在 2/3 容器内
-            const mHeight = mainContent.clientHeight;
-            const mWidth = mainContent.clientWidth;
-            if(newTop < 0) newTop = 0;
-            if(newLeft < 0) newLeft = 0;
-            if(newTop > mHeight - floatingCard.clientHeight) newTop = mHeight - floatingCard.clientHeight;
-            if(newLeft > mWidth - floatingCard.clientWidth) newLeft = mWidth - floatingCard.clientWidth;
-            
-            floatingCard.style.top = newTop + "px";
-            floatingCard.style.left = newLeft + "px";
-        }
-
-        function closeDragElement() {
-            document.onmouseup = null; document.onmousemove = null;
-            document.ontouchend = null; document.ontouchmove = null;
-        }
-        floatingCard.addEventListener('mousedown', dragMouseDown);
-        floatingCard.addEventListener('touchstart', dragMouseDown);
-
-        // === 6. “创建卡片”目前没有任何效果 (按要求) ===
-        document.getElementById('create-card-btn').addEventListener('click', function() {
-            showToast('点击创建卡片 (目前无任何效果)');
-        });
-
-        // 让空白的区域点击不显示任何东西
-        document.addEventListener('click', function(e) {
-            if(e.target === mainContent || e.target === placeholderMsg) {
-                // 点了右边空白，不做任何响应（保持当前状态）
-            }
-        });
+        // ==================================================
+        //  9. 空白区域点击无任何效果（默认行为保持）
+        // ==================================================
+        // 所有用户交互都已完成
     </script>
 </body>
 </html>
