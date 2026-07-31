@@ -110,11 +110,12 @@ async def generic_command_handler(update: Update, context: ContextTypes.DEFAULT_
         await update.message.reply_text(cmd_map[cmd_text])
 
 def start_bot_thread(bot_app):
-    """核心修复：给机器人分配独立的异步事件循环，解决空壳问题"""
+    """核心修复：加上 stop_signals=None，彻底解决多线程连接不上电报的问题"""
     def run_async():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        bot_app.run_polling()
+        # 禁用信号处理器，防止报错 set_wakeup_fd only works in main thread
+        bot_app.run_polling(stop_signals=None)
     
     thread = threading.Thread(target=run_async, daemon=True)
     thread.start()
@@ -131,14 +132,11 @@ def set_custom_command():
 
     try:
         if token not in ACTIVE_BOTS:
-            # 1. 先切断 Telegram 可能存在的旧连接
             delete_webhook(token)
-            
-            # 2. 构建机器人实例
             bot_app = Application.builder().token(token).build()
             bot_app.add_handler(MessageHandler(filters.COMMAND, generic_command_handler))
             
-            # 3. 用新写的独立循环线程启动
+            # 使用修复后的启动函数
             start_bot_thread(bot_app)
             ACTIVE_BOTS[token] = bot_app
 
@@ -146,7 +144,7 @@ def set_custom_command():
             ACTIVE_CMDS[token] = {}
         ACTIVE_CMDS[token][command] = response
         
-        return {"ok": True, "desc": f"指令「{command}」绑定成功！请去电报给机器人发送 {command} 测试。"}
+        return {"ok": True, "desc": f"指令「{command}」绑定成功！去电报给机器人发 {command} 试试吧。"}
         
     except Exception as e:
         return {"ok": False, "desc": f"操作失败：{str(e)}"}
