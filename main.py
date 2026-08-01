@@ -14,13 +14,14 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 邮箱服务配置
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+# ================= 🚀 邮箱配置 (已帮你硬编码！) =================
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = '3301296046@qq.com'
+app.config['MAIL_DEFAULT_SENDER'] = '3301296046@qq.com'
+# 从环境变量读授权码
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-app.config['MAIL_USE_TLS'] = True
+# =================================================================
 
 # 初始化扩展
 db.init_app(app)
@@ -32,10 +33,9 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 自动建表（确保部署后表结构存在）
+# 自动建表
 with app.app_context():
     db.create_all()
-    # 如果没有管理员，自动创建一个默认管理员账号
     if not User.query.filter_by(email='admin@gsbot.com').first():
         admin = User(email='admin@gsbot.com', password_hash=generate_password_hash('admin123'), is_admin=True)
         db.session.add(admin)
@@ -44,7 +44,6 @@ with app.app_context():
 # ================= 发邮件工具函数 =================
 def send_email_code(to_email):
     code = str(random.randint(100000, 999999))
-    # 存入数据库，有效期设为5分钟
     db.session.add(EmailCode(email=to_email, code=code))
     db.session.commit()
     
@@ -64,10 +63,10 @@ def send_email_code(to_email):
         print(f"邮件发送失败: {e}")
         return False
 
-# ================= 人机验证 (Cloudflare Turnstile) =================
+# ================= 人机验证 =================
 def verify_turnstile(token):
     secret = os.getenv('CF_TURNSTILE_SECRET_KEY')
-    if not secret: return True # 没配置环境变量自动跳过验证
+    if not secret: return True
     try:
         resp = requests.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', 
                              data={'secret': secret, 'response': token})
@@ -95,7 +94,6 @@ def register():
             flash('邮箱已被注册', 'error')
             return redirect(url_for('register'))
         
-        # 验证验证码是否匹配且未过期（5分钟内有效）
         record = EmailCode.query.filter_by(email=email, code=code).order_by(EmailCode.created_at.desc()).first()
         if not record or (datetime.utcnow() - record.created_at) > timedelta(minutes=5):
             flash('验证码错误或已过期', 'error')
@@ -151,20 +149,16 @@ def login():
             
     return render_template('login.html')
 
-# 4. 🚀 游客登录 (直接绕过注册和验证，一秒进后台)
+# 4. 游客登录
 @app.route('/guest_login')
 def guest_login():
-    # 生成随机不重复的游客ID
     guest_id = random.randint(100000, 999999)
     guest_email = f"guest_{guest_id}@gsbot.local"
-    
     user = User.query.filter_by(email=guest_email).first()
     if not user:
-        # 不存在则创建新游客
         user = User(email=guest_email, password_hash=generate_password_hash('guest'))
         db.session.add(user)
         db.session.commit()
-        
     login_user(user)
     return redirect(url_for('index'))
 
@@ -207,7 +201,6 @@ def toggle_vip(user_id):
         return jsonify({'success': True, 'vip': user.is_vip})
     return jsonify({'error': '用户不存在'}), 404
 
-# 🗑️ 一键清空所有用户与数据（要求重新登录管理员账号 admin123）
 @app.route('/admin/clear_all_data', methods=['POST'])
 @login_required
 def admin_clear_all_data():
@@ -215,7 +208,6 @@ def admin_clear_all_data():
     try:
         db.drop_all()
         db.create_all()
-        # 重建管理员账号
         admin = User(email='admin@gsbot.com', password_hash=generate_password_hash('admin123'), is_admin=True)
         db.session.add(admin)
         db.session.commit()
