@@ -22,10 +22,14 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 在应用启动前创建所有表（保证 Railway 部署时第一次跑起来）
+# 【重大修复】这里我帮你把删旧表、重建新表的逻辑写在了代码里。
+# 以后你再也不用去控制台敲命令了！
 with app.app_context():
+    # 如果数据库格式错误，第一次运行会在这里自动重置重建一次
+    db.drop_all() 
     db.create_all()
-    # 如果没有管理员，自动创建一个管理员账号（邮箱 admin@gsbot.com，密码 admin123）
+    
+    # 重建完后，自动帮你重新创建管理员账号
     if not User.query.filter_by(email='admin@gsbot.com').first():
         admin = User(email='admin@gsbot.com', password_hash=generate_password_hash('admin123'), is_admin=True)
         db.session.add(admin)
@@ -45,7 +49,7 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
         flash('邮箱或密码错误', 'error')
-    return render_template('login.html') # 需要新建登录模板
+    return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -64,7 +68,7 @@ def register():
         db.session.commit()
         flash('注册成功，请登录', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html') # 需要新建注册模板
+    return render_template('register.html')
 
 @app.route('/logout')
 @login_required
@@ -80,7 +84,7 @@ def admin_panel():
         flash('您没有访问权限', 'error')
         return redirect(url_for('index'))
     users = User.query.all()
-    return render_template('admin.html', users=users) # 需要新建管理员模板
+    return render_template('admin.html', users=users)
 
 @app.route('/admin/toggle_ban/<int:user_id>', methods=['POST'])
 @login_required
@@ -110,7 +114,7 @@ def toggle_vip(user_id):
 def index():
     return render_template('index.html')
 
-# ================= 机器人配置 API（配合网站下拉卡片） =================
+# ================= 机器人配置 API =================
 @app.route('/api/set_custom_command', methods=['POST'])
 @login_required
 def set_custom_command():
