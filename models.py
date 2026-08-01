@@ -8,7 +8,8 @@ db = SQLAlchemy()
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    # 【修复重点】这里长度改成了 512，足够存放加密后的密码
+    password_hash = db.Column(db.String(512), nullable=False) 
     is_admin = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_vip = db.Column(db.Boolean, default=False)
