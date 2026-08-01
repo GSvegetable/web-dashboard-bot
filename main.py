@@ -1,4 +1,4 @@
-import os, requests, smtplib, random
+import os, requests, smtplib, random, socket
 from email.mime.text import MIMEText
 from email.header import Header
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
@@ -14,14 +14,13 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================= 🚀 邮箱配置 (已帮你硬编码！) =================
+# ================= 🚀 邮箱配置 =================
 app.config['MAIL_SERVER'] = 'smtp.qq.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = '3301296046@qq.com'
 app.config['MAIL_DEFAULT_SENDER'] = '3301296046@qq.com'
-# 从环境变量读授权码
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-# =================================================================
+# ================================================
 
 # 初始化扩展
 db.init_app(app)
@@ -41,7 +40,7 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-# ================= 发邮件工具函数 =================
+# ================= 发邮件工具函数 (加了超时防卡死) =================
 def send_email_code(to_email):
     code = str(random.randint(100000, 999999))
     db.session.add(EmailCode(email=to_email, code=code))
@@ -52,16 +51,25 @@ def send_email_code(to_email):
     msg['From'] = app.config['MAIL_DEFAULT_SENDER']
     msg['To'] = to_email
     
+    server = None
     try:
-        server = smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT'])
+        # 强制设置全局套接字超时 10 秒，绝不会卡死无限等待
+        socket.setdefaulttimeout(10)
+        
+        server = smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT'], timeout=10)
         server.starttls()
         server.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
         server.sendmail(app.config['MAIL_DEFAULT_SENDER'], [to_email], msg.as_string())
-        server.quit()
         return True
     except Exception as e:
-        print(f"邮件发送失败: {e}")
+        print(f"❗ 发送邮件失败具体原因: {e}") # 这行会打印在 Railway 的 Deploy Logs 里
         return False
+    finally:
+        if server:
+            try:
+                server.quit()
+            except:
+                pass
 
 # ================= 人机验证 =================
 def verify_turnstile(token):
@@ -69,7 +77,7 @@ def verify_turnstile(token):
     if not secret: return True
     try:
         resp = requests.post('https://challenges.cloudflare.com/turnstile/v0/siteverify', 
-                             data={'secret': secret, 'response': token})
+                             data={'secret': secret, 'response': token}, timeout=5)
         return resp.json().get('success', False)
     except Exception:
         return False
@@ -113,7 +121,7 @@ def api_send_code():
     if not email: return jsonify({'ok': False, 'msg': '邮箱不能为空'})
     if send_email_code(email):
         return jsonify({'ok': True, 'msg': '验证码已发送到您的邮箱'})
-    return jsonify({'ok': False, 'msg': '邮件发送失败，请检查邮箱是否正确'})
+    return jsonify({'ok': False, 'msg': '连接邮箱服务器超时或失败，请稍后重试！'})
 
 # 3. 登录
 @app.route('/login', methods=['GET', 'POST'])
@@ -149,7 +157,7 @@ def login():
             
     return render_template('login.html')
 
-# 4. 游客登录
+# 4. 游客登录 (绕过所有注册，直接使用！)
 @app.route('/guest_login')
 def guest_login():
     guest_id = random.randint(100000, 999999)
