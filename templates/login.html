@@ -26,13 +26,7 @@
         .link a { color: #58a6ff; text-decoration: none; }
         #error-msg { background: #da3633; padding: 8px; border-radius: 6px; color: white; display: none; margin-bottom: 16px; text-align: center; }
         .hidden { display: none; }
-        
-        /* 新增：游客登录样式 */
-        .guest-login-btn {
-            display: block; text-align: center; margin-top: 20px; padding-top: 20px;
-            border-top: 1px solid #30363d; color: #8b949e; font-size: 14px; cursor: pointer;
-            transition: color 0.2s;
-        }
+        .guest-login-btn { display: block; text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e; font-size: 14px; cursor: pointer; transition: color 0.2s; }
         .guest-login-btn:hover { color: #58a6ff; }
         .guest-login-btn a { color: #58a6ff; text-decoration: none; font-weight: 600; }
     </style>
@@ -70,7 +64,6 @@
         </form>
         <div class="link">没有账号？<a href="/register">去注册</a></div>
         
-        <!-- 🚀 新增的游客登录入口 -->
         <div class="guest-login-btn">
             <a href="/guest_login">点击以【游客身份】直接进入后台</a>
         </div>
@@ -90,18 +83,41 @@
                 document.getElementById('code_group').classList.remove('hidden');
             }
         }
+
+        // 🔧 修复后的发验证码逻辑（加了 try-catch，确保报错时会弹窗提示）
         document.getElementById('loginSendCodeBtn').addEventListener('click', async function() {
             const email = document.querySelector('input[name="email"]').value;
             if(!email) { alert('请输入邮箱'); return; }
-            const btn = this; btn.innerText = '发送中'; btn.disabled = true;
-            const res = await fetch('/api/send_code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: email})
-            });
-            const data = await res.json();
-            if(data.ok) alert(data.msg); else alert(data.msg);
-            btn.innerText = '重新发送'; btn.disabled = false;
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.innerText = '发送中...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch('/api/send_code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email})
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`服务器返回错误: ${res.status}`);
+                }
+                
+                const data = await res.json();
+                if(data.ok) {
+                    alert(data.msg);
+                    btn.innerText = '已发送';
+                } else {
+                    alert('发送失败: ' + data.msg);
+                    btn.innerText = '重新发送';
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert('系统请求异常: ' + e.message + '\n请检查 Railway 环境变量中 MAIL_PASSWORD 是否为 QQ邮箱的授权码。');
+                btn.innerText = '重新发送';
+                btn.disabled = false;
+            }
         });
     </script>
 </body>
