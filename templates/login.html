@@ -26,6 +26,15 @@
         .link a { color: #58a6ff; text-decoration: none; }
         #error-msg { background: #da3633; padding: 8px; border-radius: 6px; color: white; display: none; margin-bottom: 16px; text-align: center; }
         .hidden { display: none; }
+        
+        /* 新增：游客登录样式 */
+        .guest-login-btn {
+            display: block; text-align: center; margin-top: 20px; padding-top: 20px;
+            border-top: 1px solid #30363d; color: #8b949e; font-size: 14px; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .guest-login-btn:hover { color: #58a6ff; }
+        .guest-login-btn a { color: #58a6ff; text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -60,6 +69,11 @@
             <button type="submit" class="full-btn">登 录</button>
         </form>
         <div class="link">没有账号？<a href="/register">去注册</a></div>
+        
+        <!-- 🚀 新增的游客登录入口 -->
+        <div class="guest-login-btn">
+            <a href="/guest_login">点击以【游客身份】直接进入后台</a>
+        </div>
     </div>
     <script>
         function switchLogin(type) {
