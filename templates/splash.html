@@ -23,39 +23,40 @@
         .text-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 6px;
         }
 
-        /* 同一套光源效果：左上角打下来的淡灰色渐变 */
+        /* 同一套光源效果：左上角打下来的极淡灰色渐变 */
         .gradient-text {
-            font-weight: 900; /* 加粗 */
-            background: linear-gradient(135deg, #ffffff 20%, #d9d9d9 100%); /* 光效减弱，渐变末端偏浅灰 */
+            font-weight: 900;
+            /* 将底部的灰色大幅调亮，保证绝大部分区域是纯白 */
+            background: linear-gradient(145deg, #ffffff 0%, #ffffff 70%, #f0f0f0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            text-shadow: none; /* 外部阴影去掉，只靠内部渐变 */
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* 极小阴影，增加字体的厚度和光感 */
             letter-spacing: 8px;
         }
 
-        /* 主标题：放大 */
+        /* 主标题 */
         .main-title {
-            font-size: 64px; /* 字再放大 */
+            font-size: 64px;
         }
 
-        /* 副标题：继承同样的光效，字号小所以光自然更淡 */
+        /* 副标题 */
         .sub-title {
             font-size: 22px;
             letter-spacing: 2px;
             font-weight: 500;
         }
 
-        /* 按钮组：离字体稍微近一点 */
+        /* 按钮组：离字体更近 */
         .btn-group {
             display: flex;
             gap: 24px;
-            margin-top: 30px; /* 稍微往上移 */
+            margin-top: 20px; /* 往上移 */
         }
 
         /* 纯透明玻璃效果按钮 */
