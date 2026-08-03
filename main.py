@@ -14,13 +14,11 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================= 🚀 邮箱配置 =================
 app.config['MAIL_SERVER'] = 'smtp.qq.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = '3301296046@qq.com'
 app.config['MAIL_DEFAULT_SENDER'] = '3301296046@qq.com'
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-# ================================================
 
 # 初始化扩展
 db.init_app(app)
@@ -40,7 +38,7 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-# ================= 发邮件工具函数 (加了超时防卡死) =================
+# ================= 发邮件工具函数 =================
 def send_email_code(to_email):
     code = str(random.randint(100000, 999999))
     db.session.add(EmailCode(email=to_email, code=code))
@@ -53,23 +51,19 @@ def send_email_code(to_email):
     
     server = None
     try:
-        # 强制设置全局套接字超时 10 秒，绝不会卡死无限等待
         socket.setdefaulttimeout(10)
-        
         server = smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT'], timeout=10)
         server.starttls()
         server.login(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD'])
         server.sendmail(app.config['MAIL_DEFAULT_SENDER'], [to_email], msg.as_string())
         return True
     except Exception as e:
-        print(f"❗ 发送邮件失败具体原因: {e}") # 这行会打印在 Railway 的 Deploy Logs 里
+        print(f"❗ 发送邮件失败具体原因: {e}")
         return False
     finally:
         if server:
-            try:
-                server.quit()
-            except:
-                pass
+            try: server.quit()
+            except: pass
 
 # ================= 人机验证 =================
 def verify_turnstile(token):
@@ -84,7 +78,12 @@ def verify_turnstile(token):
 
 # ================= 路由与逻辑 =================
 
-# 1. 注册
+# 🚀【关键修改】打开网站首页，直接展示纯图片，无需登录
+@app.route('/')
+def splash():
+    return render_template('splash.html')
+
+# 注册
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -114,7 +113,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# 2. 发送邮件验证码接口
+# 发送邮件验证码接口
 @app.route('/api/send_code', methods=['POST'])
 def api_send_code():
     email = request.json.get('email')
@@ -123,7 +122,7 @@ def api_send_code():
         return jsonify({'ok': True, 'msg': '验证码已发送到您的邮箱'})
     return jsonify({'ok': False, 'msg': '连接邮箱服务器超时或失败，请稍后重试！'})
 
-# 3. 登录
+# 登录
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -157,7 +156,7 @@ def login():
             
     return render_template('login.html')
 
-# 4. 游客登录 (绕过所有注册，直接使用！)
+# 游客登录
 @app.route('/guest_login')
 def guest_login():
     guest_id = random.randint(100000, 999999)
@@ -170,7 +169,7 @@ def guest_login():
     login_user(user)
     return redirect(url_for('index'))
 
-# 5. 登出
+# 登出
 @app.route('/logout')
 @login_required
 def logout():
@@ -223,13 +222,13 @@ def admin_clear_all_data():
     except Exception as e:
         return jsonify({'ok': False, 'msg': str(e)})
 
-# ================= 前台主页 =================
-@app.route('/')
+# ================= 内部核心工作台 =================
+@app.route('/dashboard')
 @login_required
 def index():
     return render_template('index.html')
 
-# ================= 机器人配置 API =================
+# 机器人配置 API
 @app.route('/api/set_custom_command', methods=['POST'])
 @login_required
 def set_custom_command():
