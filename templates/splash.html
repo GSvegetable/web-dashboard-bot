@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
+    <!-- 引入 GSAP 动画库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 扩散/收缩遮罩层 */
+        /* ================= 扩散/收缩遮罩层 (强制重绘，修复无动画) ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -38,10 +39,10 @@
             background-image: var(--bg-img);
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
-            will-change: clip-path, background-image;
+            will-change: clip-path;
         }
 
-        /* 顶部三连排 */
+        /* ================= 顶部三连排容器 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -52,6 +53,7 @@
             gap: 12px;
         }
         .top-btn {
+            position: relative; /* 为下拉面板提供相对定位基准 */
             padding: 8px 20px;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
@@ -66,6 +68,7 @@
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-decoration: none;
             display: flex; align-items: center; justify-content: center;
+            border: none;
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -85,46 +88,51 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
+        /* ================= 新的下拉登录面板 ================= */
+        #login-dropdown {
+            position: absolute;
+            top: 110%; /* 位于按钮正下方一段距离 */
+            left: 50%;
+            transform: translateX(-50%) scaleY(0); /* 默认隐藏 */
+            transform-origin: top center;
+            /* 宽度略窄于按钮（按钮是固定宽度的，这里直接设置百分比） */
+            width: 80%; 
+            margin-top: 8px; /* 与按钮的距离，绝对不接触 */
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            padding: 16px;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1000;
+        }
+        /* 展开时的状态 */
+        #login-dropdown.active {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translateX(-50%) scaleY(1);
+        }
+
         /* ================= 背景模糊 (6px) ================= */
-        .modal-overlay {
+        /* (由于不再使用原弹窗，这里只保留下层的模糊) */
+        .bg-blur {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.5); 
+            background: rgba(0, 0, 0, 0); 
+            backdrop-filter: blur(0px);
+            pointer-events: none;
+            z-index: 50;
+            transition: all 0.3s ease;
+        }
+        .bg-blur.active {
+            background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            z-index: 999; display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
-
-        /* ================= 纹理玻璃卡片 ================= */
-        .modal-card {
-            position: relative;
-            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
-            background-size: cover; background-position: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 32px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            width: 80%; max-width: 380px;
-            min-height: 280px;
-            position: relative;
-            overflow: hidden;
-            transform: translateY(-110vh); 
-        }
-        .modal-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-            border-radius: inherit; pointer-events: none; z-index: 1;
-        }
-        .modal-card > * { position: relative; z-index: 2; }
-
-        /* ================= 两根白绳子 ================= */
-        #ropes-svg {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 1000;
-            opacity: 0;
         }
 
+        /* ================= 文本与按钮 ================= */
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
@@ -160,15 +168,29 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
+            /* 手机端下拉面板宽度 */
+            #login-dropdown { width: 90%; padding: 12px; }
         }
     </style>
 </head>
 <body>
+    <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
+    <!-- 背景模糊层（独立出来控制登录下拉时的背景效果） -->
+    <div class="bg-blur" id="bg-blur"></div>
+
+    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" onclick="openLoginModal()">Log in</button>
+        <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
+        
+        <!-- 下拉展开的面板 -->
+        <div id="login-dropdown">
+            <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
+            <!-- 后续你可以在这里放输入框和登录按钮 -->
+        </div>
+
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -177,16 +199,7 @@
         </button>
     </div>
 
-    <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
-        <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
-    </svg>
-
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-card" id="modal-card">
-        </div>
-    </div>
-
+    <!-- 文字和主页按钮 -->
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
         <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
@@ -205,86 +218,80 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 强制双向动画触发 =================
+        // ================= 1. 修复主题切换动画 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 关闭动画过渡，准备重置渲染
+            isExpanded = !isExpanded;
+
+            // 绝杀重绘：先重置样式，再切换图片
             themeRing.style.transition = 'none';
+            themeRing.style.backgroundImage = `url("${isExpanded ? newBgUrl : defaultBgUrl}")`;
+            themeRing.style.clipPath = isExpanded ? `circle(0% at ${x}px ${y}px)` : `circle(150% at ${x}px ${y}px)`;
+            
+            // 强制页面立刻重绘刷新状态
+            void themeRing.offsetHeight; 
 
-            if (!isExpanded) {
-                // ✅ 展开逻辑（切到新图）
-                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-            } else {
-                // ✅ 收缩逻辑（切回原图，反向执行）
-                themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
-                themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-            }
-
-            // 强制浏览器立刻应用上面设置的无动画状态（解决首次和反向无动画的 Bug）
-            void themeRing.offsetHeight;
-
-            // 开启过渡并执行动画
             requestAnimationFrame(() => {
                 themeRing.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                if (!isExpanded) {
-                    // 展开：0 -> 150
-                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-                } else {
-                    // 收缩：150 -> 0
-                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-                }
+                themeRing.style.clipPath = isExpanded ? `circle(150% at ${x}px ${y}px)` : `circle(0% at ${x}px ${y}px)`;
             });
-
-            isExpanded = !isExpanded;
         }
 
-        // ================= 登录弹窗逻辑（绳子下坠 GSAP）=================
-        function openLoginModal() {
-            const overlay = document.getElementById('loginModal');
-            const card = document.getElementById('modal-card');
-            const ropeL = document.getElementById('rope-l');
-            const ropeR = document.getElementById('rope-r');
-            const ropesContainer = document.getElementById('ropes-svg');
+        // ================= 2. 面板下拉分离动画 =================
+        let isLoginOpen = false;
+        let loginTl = null;
 
-            const leftX = 10;
-            const rightX = 90;
-            const targetY = 15; 
+        function toggleLogin() {
+            const panel = document.getElementById('login-dropdown');
+            const blurBg = document.getElementById('bg-blur');
 
-            const curvedL = `M ${leftX} 0 Q ${leftX - 10} ${targetY * 0.8}, ${leftX} ${targetY}`;
-            const curvedR = `M ${rightX} 0 Q ${rightX + 10} ${targetY * 0.8}, ${rightX} ${targetY}`;
-            const straightL = `M ${leftX} 0 L ${leftX} ${targetY}`;
-            const straightR = `M ${rightX} 0 L ${rightX} ${targetY}`;
-
-            overlay.classList.add('active');
-            ropesContainer.style.opacity = '1';
+            if (loginTl) {
+                loginTl.kill(); // 杀掉上一次未完成的动画，防止重叠
+            }
             
-            gsap.set(card, { y: '-100vh', rotation: 0, x: 0 });
-            gsap.set(ropeL, { attr: { d: curvedL } });
-            gsap.set(ropeR, { attr: { d: curvedR } });
+            if (isLoginOpen) {
+                // 关闭面板
+                loginTl = gsap.timeline();
+                loginTl.to(panel, { scaleY: 0, opacity: 0, duration: 0.3, ease: "power2.in", transformOrigin: "top center" });
+                loginTl.to(blurBg, { backdropFilter: "blur(0px)", background: "rgba(0,0,0,0)", duration: 0.3 }, 0);
+                panel.classList.remove('active');
+                blurBg.classList.remove('active');
+                isLoginOpen = false;
+                return;
+            }
 
-            const tl = gsap.timeline();
-            tl.to(card, { y: 0, x: 15, rotation: 3, duration: 1.2, ease: "bounce.out" }, 0)
-            .to(card, { x: -10, rotation: -2, duration: 0.6, ease: "power2.out" }, 1.2)
-            .to(card, { x: 0, rotation: 0, duration: 0.4, ease: "power2.out" }, 1.8);
+            // 开启面板
+            panel.classList.add('active');
+            blurBg.classList.add('active');
+            isLoginOpen = true;
 
-            tl.to(ropeL, { attr: { d: straightL }, duration: 1.6, ease: "power2.inOut" }, 0)
-            .to(ropeR, { attr: { d: straightR }, duration: 1.6, ease: "power2.inOut" }, 0);
+            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center", y: 0 });
+            gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
+
+            // 0.8 秒分离动画
+            loginTl = gsap.timeline();
+            // 阶段1：按钮向下延伸展开 (0.2秒)
+            loginTl.to(panel, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out", transformOrigin: "top center" });
+            // 阶段2：脱离按钮，下拉并回弹停止 (0.6秒)
+            loginTl.fromTo(panel, { y: -8 }, { y: 0, duration: 0.6, ease: "bounce.out" });
+            // 同时背景模糊同步展开
+            loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.8 }, 0);
         }
 
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.remove('active');
-            document.getElementById('ropes-svg').style.opacity = '0';
+        // ================= 3. 全屏显示 =================
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+            }
         }
 
-        document.getElementById('loginModal').addEventListener('click', function(e) { 
-            if (e.target === this) { closeLoginModal(); } 
-        });
-
+        // 背景预加载
         document.addEventListener("DOMContentLoaded", function() {
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
@@ -294,14 +301,6 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
         });
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-            }
-        }
     </script>
 </body>
 </html>
