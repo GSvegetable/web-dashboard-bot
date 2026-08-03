@@ -51,9 +51,9 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 整体往上移：减小顶部内边距 */
+            /* ✅ 大幅往上移：减小顶部留白 */
             padding-left: 12%;
-            padding-top: 10vh;
+            padding-top: 5vh;
             padding-bottom: 15vh;
             display: flex;
             flex-direction: column;
@@ -118,8 +118,8 @@
         .btn-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
             width: 100%; max-width: 320px;
-            /* 整体往上移：稍微减小按钮与文字的距离 */
-            margin-top: 20px;
+            /* ✅ 整体往上移：进一步减小按钮与文字的距离 */
+            margin-top: 10px;
             justify-items: center;
             opacity: 0;
             transform: translateY(60px);
@@ -131,7 +131,7 @@
         .top-actions {
             position: fixed;
             top: 20px;
-            right: 24px; /* 整体靠右一点 */
+            right: 24px; 
             z-index: 9999; 
             display: flex;
             align-items: center;
@@ -152,10 +152,7 @@
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-        /* 将 Log in 按钮往右推远一点，填满切换按钮空出来的位置 */
-        #loginBtn {
-            margin-left: 16px; 
-        }
+        #loginBtn { margin-left: 16px; }
 
         /* 底部按钮统一玻璃质感 */
         .glass-btn {
@@ -173,7 +170,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { padding-left: 6%; padding-top: 8vh; min-height: 100vh; }
+            .content-area { padding-left: 6%; padding-top: 3vh; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -193,7 +190,6 @@
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
 
-        <!-- 固定在第二张图片右上角的切换按钮 -->
         <button class="theme-btn-absolute" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -214,7 +210,7 @@
         </div>
     </div>
 
-    <!-- 整个网页顶部悬浮的按钮（只保留全屏和 Log in） -->
+    <!-- 整个网页顶部悬浮的按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
@@ -279,6 +275,18 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
+            // ✅ 核心修复：第一次点击卡顿的“预热”逻辑
+            // 在页面加载完成后，预先在后台渲染一次切换动画（看不见的 0% 到 150%）
+            // 浏览器会提前把 GPU 计算和遮罩路径编译好，第一次点击就不会卡了。
+            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+            setTimeout(() => {
+                gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
+                setTimeout(() => {
+                    gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+                }, 100);
+            }, 200);
+
+            // 滚动动画
             gsap.fromTo(".text-group", 
                 { opacity: 0, y: 80 }, 
                 {
