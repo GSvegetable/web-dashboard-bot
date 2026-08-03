@@ -21,21 +21,18 @@
             display: none;
         }
 
-        /* 左侧超大的悬浮面板 */
-        .left-panel {
+        /* 悬浮面板：完美等距定位 */
+        .center-panel {
             position: fixed;
-            /* 放到画面左边，留出大概 5% 的左间距 */
+            /* 核心思路：上下左右留出 5% 的相同距离，自动撑满中间 90% 的区域 */
+            top: 5vh;
+            bottom: 5vh;
             left: 5vw;
-            /* 垂直绝对居中 */
-            top: 50%;
-            transform: translateY(-50%);
-            /* 放大现在的三倍：宽度占满左侧 85%，高度占满 90% */
-            width: 120vw;
-            height: 190vh;
+            right: 5vw;
             /* 黑偏蓝的颜色 */
             background-color: #0b111b;
-            /* 保持极致的圆润感 */
-            border-radius: 80px;
+            /* 配合大尺寸放大圆角，更加圆润 */
+            border-radius: 60px;
             /* 悬浮阴影 */
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             z-index: 10;
@@ -44,8 +41,8 @@
     </style>
 </head>
 <body>
-    <!-- 左侧超大悬浮面板 -->
-    <div class="left-panel"></div>
+    <!-- 完美居中且等距的巨大黑蓝面板 -->
+    <div class="center-panel"></div>
 
     <script>
         window.addEventListener('load', function() {
