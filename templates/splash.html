@@ -15,26 +15,30 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            /* 比之前稍微下移了一点点 */
             padding-left: 12%;
-            padding-top: 12vh; 
-            font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+            padding-top: 14vh; 
+            /* 明确指定圆润的字体族 */
+            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
         }
 
         .text-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
+        /* 主标题：更圆润，明显放大 */
         .main-title {
-            font-size: 44px;
-            font-weight: 700;
+            font-size: 56px;   /* 字号明显放大 */
+            font-weight: 600;  /* 适当加粗，但保持圆润质感 */
             letter-spacing: 3px;
             color: #ffffff;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-            margin-bottom: 6px;
+            -webkit-font-smoothing: antialiased;
         }
 
+        /* 副标题保持不变 */
         .sub-title {
             font-size: 22px;
             font-weight: 400;
@@ -43,22 +47,20 @@
             text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
         }
 
+        /* 按钮组 */
         .btn-group {
             display: flex;
             gap: 24px;
             margin-top: 50px;
         }
 
-        /* 加了一点点高光折射的玻璃按钮 */
+        /* 纯透明玻璃效果按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
-            /* 底透底色 + 左上角极细微的白色光晕折射 */
-            background: rgba(255, 255, 255, 0.03);
-            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 30%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            /* 内发光外发光，强化玻璃边缘反光 */
-            box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             color: #ffffff;
@@ -71,14 +73,16 @@
             display: inline-block;
         }
 
+        /* 微小的果冻回弹按压反馈 */
         .glass-btn:active {
             transform: scale(0.94);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
+        /* 手机端适配 */
         @media (max-width: 600px) {
-            body { padding-left: 6%; padding-top: 10vh; }
-            .main-title { font-size: 34px; letter-spacing: 2px; }
+            body { padding-left: 6%; padding-top: 12vh; }
+            .main-title { font-size: 40px; letter-spacing: 2px; }
             .sub-title { font-size: 16px; }
             .glass-btn { padding: 12px 20px; font-size: 15px; }
             .btn-group { gap: 16px; }
