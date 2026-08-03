@@ -22,32 +22,36 @@
             min-height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
-            background-color: #0d1117; 
+            background-color: #000000; /* 兜底黑色 */
             display: flex;
             flex-direction: column;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 顶部图片占位（完美贴顶，无留白） ================= */
+        /* ================= 第一屏：顶部图片（绝对独立） ================= */
         .top-image {
             width: 100vw;
-            height: 100vh; /* 强制占满一整个屏幕高度 */
+            height: 100vh; 
             background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
-            /* 核心修复：改成 cover 强制填满，绝对不会留顶部空白 */
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
             flex-shrink: 0;
-            z-index: 0;
+            z-index: 1;
+            position: relative;
         }
 
-        /* ================= 核心内容区（撑满第二屏） ================= */
+        /* ================= 第二屏：文字与按钮区域 ================= */
         .content-area {
             position: relative;
-            z-index: 1;
             width: 100%;
-            min-height: 100vh; /* 撑满整整一个屏幕，让下方内容显得完整 */
+            min-height: 100vh; 
+            /* 默认基础底图，作为切换回退时的底板 */
+            background-image: var(--bg-img);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             padding-left: 12%;
             padding-top: 15vh;
             padding-bottom: 15vh;
@@ -55,6 +59,22 @@
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
+            z-index: 1;
+            overflow: hidden; /* 防止内部遮罩层溢出 */
+        }
+
+        /* ================= 内部遮罩层（负责主题切换） ================= */
+        #theme-ring {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-color: transparent;
+            background-image: var(--bg-img);
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            clip-path: circle(0% at 0 0);
+            will-change: clip-path, background-image;
         }
 
         .text-group {
@@ -64,10 +84,14 @@
             gap: 6px;
             opacity: 0; 
             transform: translateY(60px); 
+            position: relative;
+            z-index: 1;
         }
 
         .text-pattern {
-            color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
+            color: #ffffff; 
+            background-image: url("{{ url_for('static', filename='texture.jpg') }}"); 
+            background-size: cover; background-position: center;
             -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
             font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
             text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
@@ -82,6 +106,8 @@
             justify-items: center;
             opacity: 0;
             transform: translateY(60px);
+            position: relative;
+            z-index: 1;
         }
 
         /* ================= 顶部固定悬浮的三连按钮 ================= */
@@ -122,18 +148,7 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
-        /* ================= 扩散遮罩层 ================= */
-        #theme-ring {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 0;
-            background-color: transparent;
-            background-image: var(--bg-img);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            clip-path: circle(0% at 0 0);
-            will-change: clip-path, background-image;
-        }
-
-        /* 最底部按钮统一玻璃质感 */
+        /* 底部按钮统一玻璃质感 */
         .glass-btn {
             position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
@@ -161,25 +176,15 @@
     </style>
 </head>
 <body>
-    <div id="theme-ring"></div>
-
-    <!-- 顶部图片（绝对满屏贴顶） -->
+    <!-- 第一屏：顶部图片 -->
     <div class="top-image"></div>
 
-    <!-- 固定悬浮的三连按钮 -->
-    <div class="top-actions">
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
-        <button class="theme-btn" onclick="toggleTheme(event)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-        </button>
-    </div>
+    <!-- 第二屏：文字与按钮区域 -->
+    <div class="content-area" id="contentArea">
+        <!-- 内部遮罩层，负责切换该区域的背景 -->
+        <div id="theme-ring"></div>
 
-    <!-- 第二屏（内容区占据整屏高度） -->
-    <div class="content-area">
+        <!-- 文字与按钮（浮在遮罩层之上） -->
         <div class="text-group">
             <h1 class="text-pattern main-title">宫水大世界</h1>
             <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
@@ -191,6 +196,18 @@
             <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
         </div>
+    </div>
+
+    <!-- 顶部悬浮按钮 -->
+    <div class="top-actions">
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
+        <button class="theme-btn" onclick="toggleTheme(event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+        </button>
     </div>
 
     <script>
@@ -207,6 +224,7 @@
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
+        // ================= 1. 主题切换动画（限定在第二屏内） =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -217,6 +235,7 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
+                // 【展开】
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
@@ -229,6 +248,7 @@
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
+                // 【收缩，原路退回】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
                 gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
@@ -237,13 +257,16 @@
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
+                        // 彻底缩回后，清除遮罩图，露出下层的默认底图
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
             }
         }
 
+        // ================= 2. 滚动触发入场动画 =================
         document.addEventListener("DOMContentLoaded", function() {
+            // 预加载
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
@@ -252,7 +275,7 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 稍微提前触发动画，让第二屏看起来更完整
+            // 滚动触发文字和按钮动画
             gsap.fromTo(".text-group", 
                 { opacity: 0, y: 80 }, 
                 {
@@ -282,6 +305,7 @@
             );
         });
 
+        // ================= 3. 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
