@@ -101,7 +101,7 @@
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .theme-btn:nth-child(3) { animation-delay: 0.6s; }
 
-        /* ================= 登录下拉面板 ================= */
+        /* ================= 登录下拉面板 (HTML 保留但动画已被禁用) ================= */
         #login-dropdown {
             position: absolute;
             top: 110%;
@@ -153,7 +153,6 @@
             z-index: var(--i);
             margin-bottom: -6px; /* 产生层叠的关键 */
         }
-        /* 输入框与按钮的公共样式 */
         .wrapper li .input, 
         .wrapper li .button {
             width: 100%;
@@ -204,26 +203,22 @@
         }
 
         /* 中世纪暗黑图配色（4层递进） */
-        /* 第1层：邮箱 */
         .wrapper li:nth-child(1) { background: #3a3f44; }
         .wrapper li:nth-child(1)::before { background: #2a2e32; }
         .wrapper li:nth-child(1)::after { background: #2a2e32; }
 
-        /* 第2层：输入密码 */
         .wrapper li:nth-child(2) { background: #2d3236; }
         .wrapper li:nth-child(2)::before { background: #1f2225; }
         .wrapper li:nth-child(2)::after { background: #1f2225; }
 
-        /* 第3层：确定密码 */
         .wrapper li:nth-child(3) { background: #212428; }
         .wrapper li:nth-child(3)::before { background: #141619; }
         .wrapper li:nth-child(3)::after { background: #141619; }
 
-        /* 第4层：注册（暖黄火光） */
         .wrapper li:nth-child(4) { background: #db7c45; }
         .wrapper li:nth-child(4)::before { background: #bd6535; }
         .wrapper li:nth-child(4)::after { background: #bd6535; }
-        .wrapper li:nth-child(4) .button { color: #23140c; } /* 深棕字 */
+        .wrapper li:nth-child(4) .button { color: #23140c; }
 
         /* ================= 背景模糊层 ================= */
         .bg-blur {
@@ -298,7 +293,6 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <!-- 完全照着 Uiverse 骨架搭出来的 3D 暗黑表单 -->
             <form class="form">
                 <ul class="wrapper">
                     <li style="--i:4;">
@@ -383,45 +377,17 @@
             }
         }
 
-        // ================= 2. 登录面板下拉与全局点击关闭 =================
+        // ================= 2. 登录面板全局点击处理（已彻底清空） =================
         let isLoginOpen = false;
         let loginTl = null;
 
         function toggleLogin() {
-            const panel = document.getElementById('login-dropdown');
-            const blurBg = document.getElementById('bg-blur');
-
-            if (loginTl) loginTl.kill();
-            
-            if (isLoginOpen) {
-                loginTl = gsap.timeline();
-                loginTl.to(panel, { scaleY: 0, opacity: 0, duration: 0.3, ease: "power2.in", transformOrigin: "top center" });
-                loginTl.to(blurBg, { backdropFilter: "blur(0px)", background: "rgba(0,0,0,0)", duration: 0.3 }, 0);
-                panel.classList.remove('active');
-                blurBg.classList.remove('active');
-                isLoginOpen = false;
-                return;
-            }
-
-            panel.classList.add('active');
-            blurBg.classList.add('active');
-            isLoginOpen = true;
-
-            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center" });
-            gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
-
-            loginTl = gsap.timeline();
-            loginTl.to(panel, { 
-                scaleY: 1, 
-                opacity: 1, 
-                duration: 0.9, 
-                ease: "bounce.out",
-                transformOrigin: "top center" 
-            });
-            loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.9 }, 0);
+            // ✅ 按用户要求：点击 Log in 后彻底没有任何反应
+            return; 
         }
 
         document.addEventListener('click', function(e) {
+            // 因为 toggleLogin 已经失效，所以这个监听器永远到不了这里
             const panel = document.getElementById('login-dropdown');
             const btn = document.getElementById('loginBtn');
             if (isLoginOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
