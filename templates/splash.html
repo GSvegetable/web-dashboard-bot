@@ -101,7 +101,7 @@
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .theme-btn:nth-child(3) { animation-delay: 0.6s; }
 
-        /* ================= 登录下拉面板 (HTML 保留但动画已被禁用) ================= */
+        /* ================= 登录下拉面板 (无反应) ================= */
         #login-dropdown {
             position: absolute;
             top: 110%;
@@ -340,7 +340,13 @@
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
 
-        // ================= 1. 双向切换动画 =================
+        // ⏱️ ================= 自定义文字纹理切换时机 =================
+        // 动画总时长为 0.8 秒。你修改下面两个数字就能控制文字纹理切换的时间点。
+        // 例如：0.4 表示动画进行到一半的时候切换，0.2 表示刚开始就切换。
+        const EXPAND_TEXT_DELAY = 0.4; // 展开时，文字纹理在动画开始后第 0.4 秒切换
+        const CONTRACT_TEXT_DELAY = 0.2; // 收缩时，文字纹理在动画倒计时开始时第 0.2 秒切换（你可以自己调）
+        // ==============================================================
+
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -351,11 +357,17 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
+                // 【展开】
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
+                
+                // 按照你规定的时间延迟切换文字
+                gsap.delayedCall(EXPAND_TEXT_DELAY, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
+                });
+
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
@@ -363,39 +375,38 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
+                // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                
+                // 按照你规定的时间延迟切换回默认文字
+                gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+                });
+
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
                     clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
+                        // 背景图切换依然保留在动画最末尾执行，以保证视觉绝对无缝
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                     }
                 });
             }
         }
 
-        // ================= 2. 登录面板全局点击处理（已彻底清空） =================
+        // ================= 登录面板点击无反应 =================
         let isLoginOpen = false;
         let loginTl = null;
-
         function toggleLogin() {
-            // ✅ 按用户要求：点击 Log in 后彻底没有任何反应
-            return; 
+            return; // 已按你的要求彻底移除登录反应
         }
-
         document.addEventListener('click', function(e) {
-            // 因为 toggleLogin 已经失效，所以这个监听器永远到不了这里
-            const panel = document.getElementById('login-dropdown');
-            const btn = document.getElementById('loginBtn');
-            if (isLoginOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
-                toggleLogin();
-            }
+            if (isLoginOpen) return; // 确保不会意外触发
         });
 
-        // ================= 3. 全屏显示 =================
+        // ================= 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
