@@ -27,7 +27,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 扩散波纹层（用于覆盖或显露出背景） */
+        /* 扩散波纹层 */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -38,7 +38,7 @@
             transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ================= 顶部三连排按钮容器 ================= */
+        /* 顶部三连排 */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -66,7 +66,6 @@
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* 圆形主题切换按钮 */
         .theme-btn {
             width: 34px; height: 34px;
             padding: 0;
@@ -116,7 +115,7 @@
         }
         .modal-card > * { position: relative; z-index: 2; }
 
-        /* ================= 两根白绳子 (默认隐藏) ================= */
+        /* ================= 两根白绳子 ================= */
         #ropes-svg {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none; z-index: 1000;
@@ -162,10 +161,8 @@
     </style>
 </head>
 <body>
-    <!-- 扩散波纹圆环层 -->
     <div id="theme-ring"></div>
 
-    <!-- 顶部三连排按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
@@ -203,34 +200,29 @@
         let isDarkMode = false;
         const themeRing = document.getElementById('theme-ring');
 
+        // ================= 核心修复：双重刷新机制保证收回动画绝对丝滑 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
-            // 获取按钮的中心点坐标
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 1. 瞬间重置圆环为 0 (不带动画)
+            // 1. 立即重置圆环为 0（取消动画）
             themeRing.style.transition = 'none';
             themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
 
-            // 2. 强制浏览器重绘，让上面的重置生效
+            // 2. 强制浏览器完成重置
             requestAnimationFrame(() => {
-                // 3. 打开过渡动画
-                themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                
-                // 4. 切换状态，并设置对应的背景色
+                // 3. 在下一帧切换颜色和状态
                 isDarkMode = !isDarkMode;
-                if (isDarkMode) {
-                    // 如果变成深色，圆环内容为黑色，盖住图片
-                    themeRing.style.backgroundColor = '#000000';
-                } else {
-                    // 如果变回浅色，圆环内容变透明，原图“自然显露”出来
-                    themeRing.style.backgroundColor = 'transparent';
-                }
+                themeRing.style.backgroundColor = isDarkMode ? '#000000' : 'transparent';
 
-                // 5. 执行扩散动画 (放大到 150% 覆盖全屏)
-                themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                // 4. 再度请求一帧，确保上一帧的颜色切换完成
+                requestAnimationFrame(() => {
+                    // 5. 重新开启过渡动画，并执行放大
+                    themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                });
             });
         }
 
