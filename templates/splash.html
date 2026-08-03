@@ -51,14 +51,15 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔽 大幅往上移：把顶部留白压到最低 */
-            padding-left: 12%;
+            /* 🔥 核心修复：移除了导致居中的 justify-content，改用负 margin 强制整体上提 */
+            margin-top: -12vh;
             padding-top: 2vh;
+            padding-left: 12%;
             padding-bottom: 15vh;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            justify-content: center;
+            justify-content: flex-start;
             z-index: 1;
             overflow: hidden;
         }
@@ -86,7 +87,7 @@
             gap: 12px;
             position: relative;
             z-index: 1;
-            margin-bottom: 6px; /* 和下方按钮紧密连接 */
+            margin-bottom: 4px; 
         }
 
         .text-group {
@@ -98,9 +99,9 @@
             transform: translateY(60px); 
         }
 
-        /* 固定在“宫水大世界”右上角的切换按钮 */
+        /* 🔽 切换到右侧尺寸从 34px 缩小到 30px */
         .theme-btn-title {
-            width: 34px; height: 34px; padding: 0; border-radius: 50%;
+            width: 30px; height: 30px; padding: 0; border-radius: 50%;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -110,7 +111,7 @@
             opacity: 0;
             transform: translateY(60px);
             flex-shrink: 0;
-            margin-top: 4px; /* 与“宫”字头部对齐 */
+            margin-top: 6px; /* 与“宫”字头部对齐 */
         }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -128,7 +129,6 @@
         .btn-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
             width: 100%; max-width: 320px;
-            /* 🔽 按钮紧密跟随文字 */
             margin-top: 0;
             justify-items: center;
             opacity: 0;
@@ -180,7 +180,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { padding-left: 6%; padding-top: 1vh; min-height: 100vh; }
+            .content-area { margin-top: -5vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -188,7 +188,7 @@
             .top-actions { top: 16px; right: 16px; gap: 6px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             #loginBtn { margin-left: 8px; }
-            .theme-btn-title { width: 30px; height: 30px; margin-top: 2px; }
+            .theme-btn-title { width: 28px; height: 28px; margin-top: 3px; }
         }
     </style>
 </head>
@@ -207,9 +207,9 @@
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
             
-            <!-- 固定在“宫水大世界”右侧的切换按钮 -->
+            <!-- 固定在“宫水大世界”右侧的缩小版切换按钮 -->
             <button class="theme-btn-title" onclick="toggleTheme(event)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="23 4 23 10 17 10"/>
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                 </svg>
@@ -246,8 +246,8 @@
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
+            // 每次点击都实时获取按钮在屏幕上的位置（完美解决滑动后的位置偏差问题）
             const rect = btn.getBoundingClientRect();
-            // 计算当前按钮在浏览器窗口中的精确中心点
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
@@ -290,7 +290,7 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 预渲染切换动画（解决第一次卡顿）
+            // 预渲染切换动画（解决第一次点击卡顿）
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
