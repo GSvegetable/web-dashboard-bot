@@ -68,6 +68,7 @@
             text-decoration: none;
             display: flex; align-items: center; justify-content: center;
             border: none;
+            touch-action: manipulation;
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -84,6 +85,7 @@
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             display: flex; align-items: center; justify-content: center;
             color: #ffffff;
+            touch-action: manipulation;
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -127,6 +129,7 @@
             color: #ffffff; font-size: 18px; font-weight: 600;
             cursor: pointer; letter-spacing: 1px; text-decoration: none;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; z-index: 1;
+            touch-action: manipulation;
         }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
@@ -178,7 +181,6 @@
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
 
-        // ⏱️ 自定义文字纹理切换时机
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
@@ -218,7 +220,6 @@
             }
         }
 
-        // ================= 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -227,7 +228,6 @@
             }
         }
 
-        // 背景预加载
         document.addEventListener("DOMContentLoaded", function() {
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
