@@ -9,14 +9,14 @@
         body {
             width: 100vw; height: 100vh;
             background-color: #000000;
-            /* 点的大小从 1.5px 改成了 2px，白色更纯更亮 */
-            background-image: radial-gradient(#ffffff 2px, transparent 2px);
-            background-size: 25px 25px; 
+            /* 关键修改：点的大小从 2px 加大到了 4px，并且加了 circle，确保是绝对实心的纯白高亮点 */
+            background-image: radial-gradient(circle, #ffffff 4px, transparent 4px);
+            background-size: 28px 28px; 
             overflow: hidden;
         }
     </style>
 </head>
 <body>
-    <!-- 黑色背景 + 明亮白点 -->
+    <!-- 黑色背景 + 清晰明亮的白色实心大点 -->
 </body>
 </html>
