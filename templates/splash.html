@@ -26,17 +26,21 @@
             gap: 6px;
         }
 
-        /* 核心优化：直接使用纯白色，彻底告别黑色/深灰色 */
-        .text-white {
-            color: #ffffff;
+        /* 质感核心：极浅的高级银灰，去掉了刺眼的纯白 */
+        .text-premium {
+            color: #ecf0f5; /* 哑光银灰色 */
             font-weight: 900;
-            /* 渲染圆润化 */
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            /* 模拟左上方打下来的光线 */
+            
+            /* 通过多层堆叠阴影模拟玻璃/金属质感：
+               1. 顶部白边高光（模拟光照）
+               2. 底部柔和深影（模拟立体重力）
+               3. 隐约的背光泛蓝（增加通透感） */
             text-shadow: 
-                0 1px 0 rgba(255, 255, 255, 0.3),  /* 顶部受光面 */
-                0 4px 20px rgba(0, 0, 0, 0.7);    /* 底部阴影，让字完全浮在图上 */
+                0 1px 0 rgba(255, 255, 255, 0.4),
+                0 2px 15px rgba(255, 255, 255, 0.05),
+                0 4px 20px rgba(0, 0, 0, 0.5);
             letter-spacing: 8px;
         }
 
@@ -77,12 +81,12 @@
             transform: scale(0.94);
         }
 
-        /* 按钮里的文字，同样使用纯白色加光影 */
+        /* 按钮文字统一使用同样的质感 */
         .btn-text {
-            color: #ffffff;
+            color: #ecf0f5;
             font-size: 18px;
             font-weight: 600;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         @media (max-width: 600px) {
@@ -97,8 +101,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="text-white main-title">宫水大世界</h1>
-        <h2 class="text-white sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-premium main-title">宫水大世界</h1>
+        <h2 class="text-premium sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
