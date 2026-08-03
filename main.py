@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# 环境配置
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -20,7 +19,6 @@ app.config['MAIL_USERNAME'] = '3301296046@qq.com'
 app.config['MAIL_DEFAULT_SENDER'] = '3301296046@qq.com'
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 
-# 初始化扩展
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -30,7 +28,6 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 自动建表
 with app.app_context():
     db.create_all()
     if not User.query.filter_by(email='admin@gsbot.com').first():
@@ -38,7 +35,6 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-# ================= 发邮件工具函数 =================
 def send_email_code(to_email):
     code = str(random.randint(100000, 999999))
     db.session.add(EmailCode(email=to_email, code=code))
@@ -65,7 +61,6 @@ def send_email_code(to_email):
             try: server.quit()
             except: pass
 
-# ================= 人机验证 =================
 def verify_turnstile(token):
     secret = os.getenv('CF_TURNSTILE_SECRET_KEY')
     if not secret: return True
@@ -76,14 +71,10 @@ def verify_turnstile(token):
     except Exception:
         return False
 
-# ================= 路由与逻辑 =================
-
-# 🚀【打开首页，直接展示纯图启动页】
 @app.route('/')
 def splash():
     return render_template('splash.html')
 
-# 注册
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -113,7 +104,6 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# 发送邮件验证码接口
 @app.route('/api/send_code', methods=['POST'])
 def api_send_code():
     email = request.json.get('email')
@@ -122,7 +112,6 @@ def api_send_code():
         return jsonify({'ok': True, 'msg': '验证码已发送到您的邮箱'})
     return jsonify({'ok': False, 'msg': '连接邮箱服务器超时或失败，请稍后重试！'})
 
-# 登录
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -156,7 +145,6 @@ def login():
             
     return render_template('login.html')
 
-# 游客登录
 @app.route('/guest_login')
 def guest_login():
     guest_id = random.randint(100000, 999999)
@@ -169,14 +157,12 @@ def guest_login():
     login_user(user)
     return redirect(url_for('index'))
 
-# 登出
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# ================= 管理员后台 =================
 @app.route('/admin')
 @login_required
 def admin_panel():
@@ -222,13 +208,11 @@ def admin_clear_all_data():
     except Exception as e:
         return jsonify({'ok': False, 'msg': str(e)})
 
-# ================= 内部核心工作台 =================
 @app.route('/dashboard')
 @login_required
 def index():
     return render_template('index.html')
 
-# 机器人配置 API
 @app.route('/api/set_custom_command', methods=['POST'])
 @login_required
 def set_custom_command():
