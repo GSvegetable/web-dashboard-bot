@@ -28,19 +28,17 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 扩散/收缩 遮罩层 */
+        /* 扩散/收缩遮罩层 */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none;
             z-index: 0;
             background-color: transparent;
-            background-image: var(--bg-img); /* 默认和背景图一致 */
+            background-image: var(--bg-img);
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
-            /* 开启硬件加速，防止动画闪烁 */
-            will-change: clip-path;
-            transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1); /* 速度调整为 0.8s */
         }
 
         /* 顶部三连排 */
@@ -202,43 +200,44 @@
     </div>
 
     <script>
-        let isDefaultBg = true; // 当前是否是 bg.png
+        let isDefaultBg = true;
         const themeRing = document.getElementById('theme-ring');
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 丝滑双方向扩散/收缩切换 =================
+        // ================= 完美拆分的扩出与收回动画 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 切换状态
-            isDefaultBg = !isDefaultBg;
+            if (isDefaultBg) {
+                // 1. 扩出去（切到新图）
+                themeRing.style.transition = 'none';
+                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
 
-            // 根据状态决定动画是“扩散出去”还是“原路收回”
-            // 切到新图 (0 -> 150)
-            // 切回原图 (150 -> 0)
-            const startClip = isDefaultBg ? '150%' : '0%';    // 起点
-            const endClip = isDefaultBg ? '0%' : '150%';      // 终点
-
-            // 关闭过渡，瞬间重置圆心和起点
-            themeRing.style.transition = 'none';
-            themeRing.style.backgroundImage = `url("${isDefaultBg ? defaultBgUrl : newBgUrl}")`;
-            themeRing.style.clipPath = `circle(${startClip} at ${x}px ${y}px)`;
-
-            // 让浏览器强制刷新上面的重置
-            requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
-                    // 开启过渡，移动到终点
-                    themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    themeRing.style.clipPath = `circle(${endClip} at ${x}px ${y}px)`;
+                    themeRing.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
                 });
-            });
+                isDefaultBg = false;
+            } else {
+                // 2. 收回来（切回原图，动画反向执行）
+                themeRing.style.transition = 'none';
+                themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+
+                requestAnimationFrame(() => {
+                    themeRing.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                });
+                isDefaultBg = true;
+            }
         }
 
-        // ================= 登录弹窗逻辑（绳子下坠 GSAP）=================
+        // ================= 登录弹窗逻辑（原封不动） =================
         function openLoginModal() {
             const overlay = document.getElementById('loginModal');
             const card = document.getElementById('modal-card');
