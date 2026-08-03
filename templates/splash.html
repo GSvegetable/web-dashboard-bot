@@ -119,11 +119,11 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 登录面板输入框（拉长、左对齐修正） ================= */
+        /* 登录面板输入框（拉长、左对齐） */
         .InputGroup {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0.6em 0;
-            max-width: 380px; /* 两边拉长 */
+            max-width: 380px; 
             width: 100%;
             position: relative;
             display: flex;
@@ -191,7 +191,6 @@
             text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
         }
         .main-title { font-size: 64px; }
-        /* 修改文字内容，样式完全保留 */
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
@@ -232,7 +231,6 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <!-- 拉长且左对齐的输入框 -->
             <div class="InputGroup">
                 <input type="text" id="login-email" required>
                 <label for="login-email">邮箱</label>
@@ -253,7 +251,6 @@
 
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
-        <!-- 已按要求修改为 Telegram Bot Editor，其他全部不变 -->
         <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
     </div>
     
@@ -267,10 +264,15 @@
     <script>
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
+        // 背景图
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+        // 文字纹理图
+        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+        const textElements = document.querySelectorAll('.text-pattern');
 
-        // ================= 1. 双向动画 =================
+        // ================= 1. 双向动画 + 文字纹理同步换 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -281,9 +283,13 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
+                // 【展开】背景和文字纹理瞬间同步切换为新图
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
+                });
+                textElements.forEach(el => {
+                    el.style.backgroundImage = `url("${newTextUrl}")`;
                 });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
@@ -292,6 +298,7 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
+                // 【收缩】保持原图不换，直到动画彻底消失才瞬间替换
                 gsap.set(themeRing, { 
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
@@ -301,7 +308,11 @@
                     ease: "power2.inOut", 
                     clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
+                        // 动画缩到0%的瞬间，同时切换背景和文字纹理
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                        textElements.forEach(el => {
+                            el.style.backgroundImage = `url("${defaultTextUrl}")`;
+                        });
                     }
                 });
             }
