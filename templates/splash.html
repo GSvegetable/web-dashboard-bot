@@ -18,42 +18,43 @@
         }
 
         body {
-            /* 取消锁定，改为可上下滚动 */
             width: 100vw;
             min-height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
-            background-color: #0d1117; /* 纯黑偏深灰底色 */
+            background-color: #0d1117; 
             display: flex;
             flex-direction: column;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 顶部图片占位 ================= */
+        /* ================= 顶部图片占位（完美贴顶，无留白） ================= */
         .top-image {
             width: 100vw;
-            height: 100vh; /* 撑满整个屏幕高度，确保完整显示整张图片 */
+            height: 100vh; /* 强制占满一整个屏幕高度 */
             background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
-            /* 改为 contain，绝不裁切图片，完整展示全部内容 */
-            background-size: contain;
+            /* 核心修复：改成 cover 强制填满，绝对不会留顶部空白 */
+            background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
             flex-shrink: 0;
             z-index: 0;
         }
 
-        /* ================= 核心内容区（将被动画触发） ================= */
+        /* ================= 核心内容区（撑满第二屏） ================= */
         .content-area {
             position: relative;
             z-index: 1;
             width: 100%;
+            min-height: 100vh; /* 撑满整整一个屏幕，让下方内容显得完整 */
             padding-left: 12%;
-            padding-top: 8vh; /* 稍微往上提一点，让文字出现时更靠上 */
+            padding-top: 15vh;
             padding-bottom: 15vh;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
+            justify-content: center;
         }
 
         .text-group {
@@ -61,7 +62,6 @@
             flex-direction: column;
             align-items: flex-start; 
             gap: 6px;
-            /* 初始隐藏，交由 ScrollTrigger 控制 */
             opacity: 0; 
             transform: translateY(60px); 
         }
@@ -80,7 +80,6 @@
             width: 100%; max-width: 320px;
             margin-top: 30px;
             justify-items: center;
-            /* 初始隐藏 */
             opacity: 0;
             transform: translateY(60px);
         }
@@ -90,7 +89,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999; /* 绝对高于一切 */
+            z-index: 9999; 
             display: flex;
             align-items: center;
             gap: 12px;
@@ -118,7 +117,6 @@
             color: #ffffff; touch-action: manipulation;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        /* 全员果冻按压反馈 */
         .top-btn:active, .theme-btn:active, .glass-btn:active {
             transform: scale(0.94);
             background: rgba(255, 255, 255, 0.15);
@@ -150,8 +148,8 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            .top-image { height: 90vh; /* 手机端留一点点距离给下拉提示，也可以保持 100vh */ }
-            .content-area { padding-left: 6%; padding-top: 5vh; }
+            .top-image { height: 100vh; }
+            .content-area { padding-left: 6%; padding-top: 10vh; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -163,16 +161,14 @@
     </style>
 </head>
 <body>
-    <!-- 扩散/收缩遮罩层 -->
     <div id="theme-ring"></div>
 
-    <!-- 顶部图片 (高度撑满) -->
+    <!-- 顶部图片（绝对满屏贴顶） -->
     <div class="top-image"></div>
 
     <!-- 固定悬浮的三连按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <!-- 恢复 Log in 按钮 -->
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -182,7 +178,7 @@
         </button>
     </div>
 
-    <!-- 向下滑动才会触发的核心内容区 -->
+    <!-- 第二屏（内容区占据整屏高度） -->
     <div class="content-area">
         <div class="text-group">
             <h1 class="text-pattern main-title">宫水大世界</h1>
@@ -198,7 +194,6 @@
     </div>
 
     <script>
-        // 注册 GSAP 滚动触发器插件
         gsap.registerPlugin(ScrollTrigger);
 
         let isExpanded = false;
@@ -212,7 +207,6 @@
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
-        // ================= 1. 双向切换动画 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -249,9 +243,7 @@
             }
         }
 
-        // ================= 2. 滚动触发入场动画 =================
         document.addEventListener("DOMContentLoaded", function() {
-            // 页面打开时，先加载背景图
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
@@ -260,7 +252,7 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 监听滚动，让文字和按钮在滑到屏幕时播放动画
+            // 稍微提前触发动画，让第二屏看起来更完整
             gsap.fromTo(".text-group", 
                 { opacity: 0, y: 80 }, 
                 {
@@ -269,7 +261,7 @@
                     ease: "power3.out",
                     scrollTrigger: {
                         trigger: ".content-area",
-                        start: "top 70%",
+                        start: "top 85%", 
                         toggleActions: "play none none none"
                     }
                 }
@@ -283,14 +275,13 @@
                     ease: "power3.out",
                     scrollTrigger: {
                         trigger: ".content-area",
-                        start: "top 70%",
+                        start: "top 85%",
                         toggleActions: "play none none none"
                     }
                 }
             );
         });
 
-        // ================= 3. 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
