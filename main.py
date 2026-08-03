@@ -78,7 +78,7 @@ def verify_turnstile(token):
 
 # ================= 路由与逻辑 =================
 
-# 🚀【关键修改】打开网站首页，直接展示纯图片，无需登录
+# 🚀【打开首页，直接展示纯图启动页】
 @app.route('/')
 def splash():
     return render_template('splash.html')
