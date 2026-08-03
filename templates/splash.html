@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- 引入 GSAP 动画库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,14 +27,26 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 新增：顶部双按钮容器 ================= */
+        /* ================= 扩散波纹层（仅在背景与文字之间） ================= */
+        #theme-ring {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0; /* 文字和按钮拥有更高的 z-index */
+            background-color: #000000;
+            clip-path: circle(0% at 0 0);
+            transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ================= 顶部三连排按钮容器 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 100;
             display: flex;
-            gap: 12px; /* 两个按钮之间的间距 */
+            align-items: center;
+            gap: 12px;
         }
         .top-btn {
             padding: 8px 20px;
@@ -51,9 +62,26 @@
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-decoration: none;
-            display: inline-block;
+            display: flex; align-items: center; justify-content: center;
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+
+        /* 圆形主题切换按钮 */
+        .theme-btn {
+            width: 34px; height: 34px;
+            padding: 0;
+            border-radius: 50%; /* 圆形 */
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; align-items: center; justify-content: center;
+            color: #ffffff;
+        }
+        .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
         /* ================= 背景模糊 (6px) ================= */
         .modal-overlay {
@@ -96,7 +124,7 @@
         }
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
-        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .text-pattern {
             color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
@@ -107,7 +135,7 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
 
         .glass-btn {
             position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
@@ -127,16 +155,27 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 10px; }
-            .top-btn { font-size: 13px; padding: 6px 16px; }
+            .top-actions { top: 16px; right: 16px; gap: 8px; }
+            .top-btn { font-size: 12px; padding: 6px 14px; }
+            .theme-btn { width: 30px; height: 30px; }
         }
     </style>
 </head>
 <body>
-    <!-- ================= 新增：顶部双按钮 ================= -->
+    <!-- 扩散波纹圆环层（位于底层，绝对盖不住上面的字和按钮） -->
+    <div id="theme-ring"></div>
+
+    <!-- 顶部三连排按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
+        <!-- 主题切换圆形按钮 -->
+        <button class="theme-btn" onclick="toggleTheme(event)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+        </button>
     </div>
 
     <!-- 两根白绳的 SVG -->
@@ -148,7 +187,6 @@
     <!-- 登录卡片弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
-            <!-- 弹窗内部留空，供你后续添加 -->
         </div>
     </div>
 
@@ -160,18 +198,43 @@
     <div class="btn-grid">
         <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
         <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
-        
-        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank">
-            <span class="btn-text">联系开发者</span>
-        </a>
-        
-        <!-- 👇 原来的全屏显示按钮已改为加入社区 -->
-        <a href="javascript:void(0);" class="glass-btn">
-            <span class="btn-text">加入社区</span>
-        </a>
+        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
+        <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
     </div>
 
     <script>
+        let isDarkMode = false;
+        const themeRing = document.getElementById('theme-ring');
+
+        function toggleTheme(event) {
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            // 获取按钮的中心点坐标
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            // 重置圆环位置并设置中心点
+            themeRing.style.transformOrigin = `${x}px ${y}px`;
+
+            if (!isDarkMode) {
+                // 切到深色模式：圆环从0开始扩散
+                themeRing.style.transition = 'none';
+                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                // 触发浏览器重绘，让上面那句立即生效
+                requestAnimationFrame(() => {
+                    themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                });
+                isDarkMode = true;
+            } else {
+                // 切回浅色模式：圆环收缩消失
+                themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                isDarkMode = false;
+            }
+        }
+
+        // 登录弹窗逻辑
         function openLoginModal() {
             const overlay = document.getElementById('loginModal');
             const card = document.getElementById('modal-card');
@@ -196,25 +259,9 @@
             gsap.set(ropeR, { attr: { d: curvedR } });
 
             const tl = gsap.timeline();
-            tl.to(card, { 
-                y: 0, 
-                x: 15, 
-                rotation: 3, 
-                duration: 1.2, 
-                ease: "bounce.out" 
-            }, 0)
-            .to(card, { 
-                x: -10, 
-                rotation: -2,
-                duration: 0.6, 
-                ease: "power2.out" 
-            }, 1.2)
-            .to(card, { 
-                x: 0, 
-                rotation: 0,
-                duration: 0.4, 
-                ease: "power2.out" 
-            }, 1.8);
+            tl.to(card, { y: 0, x: 15, rotation: 3, duration: 1.2, ease: "bounce.out" }, 0)
+            .to(card, { x: -10, rotation: -2, duration: 0.6, ease: "power2.out" }, 1.2)
+            .to(card, { x: 0, rotation: 0, duration: 0.4, ease: "power2.out" }, 1.8);
 
             tl.to(ropeL, { attr: { d: straightL }, duration: 1.6, ease: "power2.inOut" }, 0)
             .to(ropeR, { attr: { d: straightR }, duration: 1.6, ease: "power2.inOut" }, 0);
