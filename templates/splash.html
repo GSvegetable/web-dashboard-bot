@@ -34,7 +34,8 @@
         .top-image {
             width: 100vw;
             height: 60vh; /* 占据屏幕上半部分 */
-            background-image: url("{{ url_for('static', filename='Screenshot_20260804_070126.jpg') }}");
+            /* 已替换为你最新上传的图片名 */
+            background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -171,7 +172,7 @@
     <!-- 固定悬浮的三连按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <!-- 恢复 Log in 按钮（目前无反应，但有果冻动画） -->
+        <!-- 恢复 Log in 按钮 -->
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -268,7 +269,7 @@
                     ease: "power3.out",
                     scrollTrigger: {
                         trigger: ".content-area",
-                        start: "top 70%", // 当 content-area 的顶部进入视口 70% 位置时触发
+                        start: "top 70%",
                         toggleActions: "play none none none"
                     }
                 }
@@ -278,11 +279,11 @@
                 {
                     opacity: 1, y: 0,
                     duration: 1.2,
-                    delay: 0.2, // 比文字稍微晚一点点
+                    delay: 0.2,
                     ease: "power3.out",
                     scrollTrigger: {
                         trigger: ".content-area",
-                        start: "top 70%", // 同步触发
+                        start: "top 70%",
                         toggleActions: "play none none none"
                     }
                 }
