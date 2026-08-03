@@ -26,21 +26,17 @@
             gap: 6px;
         }
 
-        /* 核心修复：极白底色，微弱的斜向渐变模拟右上往下打的光 */
-        .text-gradient {
+        /* 核心优化：直接使用纯白色，彻底告别黑色/深灰色 */
+        .text-white {
+            color: #ffffff;
             font-weight: 900;
-            /* 绝大部分是纯白，只在左下角有一点点极其微弱的浅灰折射 */
-            background: linear-gradient(150deg, #ffffff 0%, #ffffff 85%, #f2f2f2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            
-            /* 增加一层极其柔和的阴影，让字体有厚度，仿佛光打在凸起的字上 */
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-            
-            /* 保持圆润渲染 */
+            /* 渲染圆润化 */
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
+            /* 模拟左上方打下来的光线 */
+            text-shadow: 
+                0 1px 0 rgba(255, 255, 255, 0.3),  /* 顶部受光面 */
+                0 4px 20px rgba(0, 0, 0, 0.7);    /* 底部阴影，让字完全浮在图上 */
             letter-spacing: 8px;
         }
 
@@ -61,12 +57,12 @@
             margin-top: 20px;
         }
 
-        /* 纯透明玻璃效果按钮 + 按钮字体也加上光效 */
+        /* 纯透明玻璃效果按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
@@ -81,15 +77,12 @@
             transform: scale(0.94);
         }
 
-        /* 按钮里的文字应用同款光效 */
+        /* 按钮里的文字，同样使用纯白色加光影 */
         .btn-text {
+            color: #ffffff;
             font-size: 18px;
             font-weight: 600;
-            background: linear-gradient(150deg, #ffffff 0%, #ffffff 85%, #f2f2f2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
         @media (max-width: 600px) {
@@ -104,8 +97,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="text-gradient main-title">宫水大世界</h1>
-        <h2 class="text-gradient sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-white main-title">宫水大世界</h1>
+        <h2 class="text-white sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
