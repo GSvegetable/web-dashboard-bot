@@ -42,7 +42,7 @@
             will-change: clip-path, background-image;
         }
 
-        /* ================= 顶部三连排容器 ================= */
+        /* ================= 顶部按钮容器 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -53,7 +53,6 @@
             gap: 12px;
         }
         .top-btn {
-            position: relative;
             padding: 8px 20px;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
@@ -98,144 +97,9 @@
             animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
-        .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
-        .top-actions .theme-btn:nth-child(3) { animation-delay: 0.6s; }
+        .top-actions .theme-btn:nth-child(2) { animation-delay: 0.6s; }
 
-        /* ================= 登录下拉面板 (无反应) ================= */
-        #login-dropdown {
-            position: absolute;
-            top: 110%;
-            left: 50%;
-            transform: translateX(-50%) scaleY(0);
-            transform-origin: top center;
-            width: 80%; 
-            margin-top: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            padding: 16px;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 1000;
-        }
-        #login-dropdown.active {
-            pointer-events: auto;
-            opacity: 1;
-            transform: translateX(-50%) scaleY(1);
-        }
-
-        /* ================= 精确复刻的 3D 斜切堆叠表单 ================= */
-        .form {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-        .wrapper {
-            position: relative;
-            transform: skewY(-4deg);
-            list-style: none;
-            padding: 0; margin: 0;
-            width: 80%;
-        }
-        .wrapper li {
-            position: relative;
-            list-style: none;
-            width: 100%;
-            height: 40px;
-            z-index: var(--i);
-            margin-bottom: -6px; /* 产生层叠的关键 */
-        }
-        .wrapper li .input, 
-        .wrapper li .button {
-            width: 100%;
-            height: 40px;
-            border: none;
-            padding: 0 16px;
-            position: relative;
-            z-index: 2;
-            font-size: 15px;
-            color: #f0f0f0;
-        }
-        .wrapper li .input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        .wrapper li .input:focus {
-            outline: none;
-            border-bottom: 2px solid rgba(255, 200, 150, 0.6); /* 中世纪暖光 */
-            background: rgba(255, 255, 255, 0.02);
-        }
-        .wrapper li .button {
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        .wrapper li .button:active {
-            transform: scale(0.94);
-        }
-
-        /* 3D 厚度两侧与底部斜切伪元素 */
-        .wrapper li::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -40px;
-            width: 40px; height: 100%;
-            transform-origin: right;
-            transform: skewY(45deg);
-            z-index: 1;
-        }
-        .wrapper li::after {
-            content: '';
-            position: absolute;
-            top: -40px; left: 0;
-            width: 100%; height: 40px;
-            transform-origin: bottom;
-            transform: skewX(45deg);
-            z-index: 1;
-        }
-
-        /* 中世纪暗黑图配色（4层递进） */
-        .wrapper li:nth-child(1) { background: #3a3f44; }
-        .wrapper li:nth-child(1)::before { background: #2a2e32; }
-        .wrapper li:nth-child(1)::after { background: #2a2e32; }
-
-        .wrapper li:nth-child(2) { background: #2d3236; }
-        .wrapper li:nth-child(2)::before { background: #1f2225; }
-        .wrapper li:nth-child(2)::after { background: #1f2225; }
-
-        .wrapper li:nth-child(3) { background: #212428; }
-        .wrapper li:nth-child(3)::before { background: #141619; }
-        .wrapper li:nth-child(3)::after { background: #141619; }
-
-        .wrapper li:nth-child(4) { background: #db7c45; }
-        .wrapper li:nth-child(4)::before { background: #bd6535; }
-        .wrapper li:nth-child(4)::after { background: #bd6535; }
-        .wrapper li:nth-child(4) .button { color: #23140c; }
-
-        /* ================= 背景模糊层 ================= */
-        .bg-blur {
-            position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0); 
-            backdrop-filter: blur(0px);
-            pointer-events: none;
-            z-index: 50;
-            transition: all 0.3s ease;
-        }
-        .bg-blur.active {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-        }
-
-        /* ================= 文本与底部按钮 ================= */
+        /* ================= 文字与底部按钮 ================= */
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
@@ -276,41 +140,15 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
-            #login-dropdown { width: 90%; padding: 12px; min-height: 150px; }
-            .wrapper { width: 90%; }
-            .wrapper li { height: 36px; }
-            .wrapper li .input, .wrapper li .button { font-size: 14px; }
         }
     </style>
 </head>
 <body>
     <div id="theme-ring"></div>
 
-    <div class="bg-blur" id="bg-blur"></div>
-
+    <!-- 顶部按钮（仅保留全屏与主题切换） -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
-        
-        <div id="login-dropdown">
-            <form class="form">
-                <ul class="wrapper">
-                    <li style="--i:4;">
-                        <input class="input" type="text" placeholder="邮箱" required>
-                    </li>
-                    <li style="--i:3;">
-                        <input class="input" type="password" placeholder="输入密码" required>
-                    </li>
-                    <li style="--i:2;">
-                        <input class="input" type="password" placeholder="确定密码" required>
-                    </li>
-                    <li style="--i:1;">
-                        <button class="button">注册</button>
-                    </li>
-                </ul>
-            </form>
-        </div>
-
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -340,12 +178,9 @@
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
 
-        // ⏱️ ================= 自定义文字纹理切换时机 =================
-        // 动画总时长为 0.8 秒。你修改下面两个数字就能控制文字纹理切换的时间点。
-        // 例如：0.4 表示动画进行到一半的时候切换，0.2 表示刚开始就切换。
-        const EXPAND_TEXT_DELAY = 0.4; // 展开时，文字纹理在动画开始后第 0.4 秒切换
-        const CONTRACT_TEXT_DELAY = 0.2; // 收缩时，文字纹理在动画倒计时开始时第 0.2 秒切换（你可以自己调）
-        // ==============================================================
+        // ⏱️ 自定义文字纹理切换时机
+        const EXPAND_TEXT_DELAY = 0.4; // 展开时 0.4 秒后换
+        const CONTRACT_TEXT_DELAY = 0.3; // 收缩时 0.3 秒后换（比原来 0.2 稍慢一点点）
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
@@ -363,7 +198,6 @@
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
                 
-                // 按照你规定的时间延迟切换文字
                 gsap.delayedCall(EXPAND_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
@@ -378,7 +212,6 @@
                 // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
                 
-                // 按照你规定的时间延迟切换回默认文字
                 gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
@@ -389,22 +222,11 @@
                     ease: "power2.inOut", 
                     clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
-                        // 背景图切换依然保留在动画最末尾执行，以保证视觉绝对无缝
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
             }
         }
-
-        // ================= 登录面板点击无反应 =================
-        let isLoginOpen = false;
-        let loginTl = null;
-        function toggleLogin() {
-            return; // 已按你的要求彻底移除登录反应
-        }
-        document.addEventListener('click', function(e) {
-            if (isLoginOpen) return; // 确保不会意外触发
-        });
 
         // ================= 全屏显示 =================
         function toggleFullScreen() {
