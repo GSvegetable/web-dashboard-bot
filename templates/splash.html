@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
+    <!-- 引入 GSAP 动画库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
@@ -21,8 +23,7 @@
             opacity: 0;
             transition: opacity 0.4s ease;
             display: flex; flex-direction: column; align-items: flex-start;
-            padding-left: 12%; 
-            padding-top: 14vh; 
+            padding-left: 12%; padding-top: 14vh; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
@@ -38,50 +39,49 @@
         }
         .top-login-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 核心：带纹理背景的玻璃弹窗 ================= */
+        /* ================= 玻璃背景模糊减到一半 (6px) ================= */
         .modal-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.6); 
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(6px); /* 修改：从 15px 降至 6px */
+            -webkit-backdrop-filter: blur(6px);
             z-index: 999; display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
+        /* ================= 动画绳子和卡片容器 ================= */
         .modal-card {
-            /* 替换为纹理背景，而非纯透明 */
+            position: relative;
+            /* 使用你的那张褶皱纹理图 */
             background-image: url("{{ url_for('static', filename='texture.jpg') }}");
-            background-size: cover;
-            background-position: center;
+            background-size: cover; background-position: center;
             
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 32px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             
             width: 80%; max-width: 380px;
-            min-height: 260px;
-            transform: scale(0.9) translateY(20px);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            min-height: 280px;
             position: relative;
             overflow: hidden;
+            /* 卡片初始位置在屏幕外上方，用于动画 */
+            transform: translateY(-110vh); 
         }
-        /* 覆盖一层半透明白色蒙版，让其依然保持高级玻璃的通透感 */
+        /* 覆盖一层极浅的白色蒙版保持透亮感 */
         .modal-card::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: rgba(255, 255, 255, 0.08); /* 极浅的白色 */
-            backdrop-filter: blur(2px); /* 让纹理微微模糊，产生玻璃折射感 */
-            -webkit-backdrop-filter: blur(2px);
-            border-radius: inherit;
-            pointer-events: none;
-            z-index: 1;
+            content: ''; position: absolute; inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+            border-radius: inherit; pointer-events: none; z-index: 1;
         }
-        /* 确保未来卡片内部加的内容在玻璃蒙版之上 */
-        .modal-card > * {
-            position: relative; z-index: 2;
+        .modal-card > * { position: relative; z-index: 2; }
+
+        /* ================= 全局的白色绳子 SVG ================= */
+        #ropes-svg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 1000;
         }
-        /* ======================================================= */
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -95,31 +95,16 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        .btn-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            width: 100%; max-width: 320px;
-            opacity: 0; margin-top: 20px;
-            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-            justify-items: center;
-        }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
 
         .glass-btn {
-            position: relative;
-            padding: 14px 0; 
-            width: 90%; 
-            text-align: center;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            font-size: 18px; font-weight: 600;
+            color: #ffffff; font-size: 18px; font-weight: 600;
             cursor: pointer; letter-spacing: 1px; text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: inline-block;
-            z-index: 1;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; z-index: 1;
         }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
@@ -137,10 +122,18 @@
 <body>
     <button class="top-login-btn" onclick="openLoginModal()">Log in</button>
 
+    <!-- 两根白绳的 SVG 布局 -->
+    <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <!-- 左侧白绳 -->
+        <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
+        <!-- 右侧白绳 -->
+        <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
+    </svg>
+
     <!-- 纹理玻璃弹窗 -->
     <div class="modal-overlay" id="loginModal">
-        <div class="modal-card">
-            <!-- 里面目前是空的，后续你想加文字或按钮直接放在这里 -->
+        <div class="modal-card" id="modal-card">
+            <!-- 卡片的内部，目前留空等你填充 -->
         </div>
     </div>
 
@@ -150,23 +143,66 @@
     </div>
     
     <div class="btn-grid">
-        <a href="/create" class="glass-btn">
-            <span class="btn-text">创建作品</span>
-        </a>
-        <a href="javascript:void(0);" class="glass-btn">
-            <span class="btn-text">查看仓库</span>
-        </a>
-        <a href="tg://resolve?domain=gsyxyc" class="glass-btn">
-            <span class="btn-text">联系开发者</span>
-        </a>
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn">
-            <span class="btn-text">全屏显示</span>
-        </a>
+        <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
+        <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
+        <a href="tg://resolve?domain=gsyxyc" class="glass-btn"><span class="btn-text">联系开发者</span></a>
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn"><span class="btn-text">全屏显示</span></a>
     </div>
 
     <script>
-        function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
-        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+        function openLoginModal() {
+            const overlay = document.getElementById('loginModal');
+            const card = document.getElementById('modal-card');
+            const ropeL = document.getElementById('rope-l');
+            const ropeR = document.getElementById('rope-r');
+
+            // 获取屏幕和卡片的精确尺寸，计算绳子的落点
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            // 卡片占宽 80%，左边距 10%，右边距 90%
+            const leftX = 10; 
+            const rightX = 90;
+            // 卡片上下最终停在垂直中间附近（假设落下停稳后顶部约在 15% 的位置）
+            const targetY = 15; 
+
+            // 绳子在空中的弯曲路径 (起点: 屏幕顶部 0, 终点: 卡片顶角 50%)
+            const curvedL = `M ${leftX} 0 Q ${leftX - 10} ${targetY * 0.8}, ${leftX} ${targetY}`;
+            const curvedR = `M ${rightX} 0 Q ${rightX + 10} ${targetY * 0.8}, ${rightX} ${targetY}`;
+            // 绳子被拉直时的路径
+            const straightL = `M ${leftX} 0 L ${leftX} ${targetY}`;
+            const straightR = `M ${rightX} 0 L ${rightX} ${targetY}`;
+
+            // 1. 显示弹窗并重置卡片与绳子的初始状态
+            overlay.classList.add('active');
+            gsap.set(card, { y: '-100vh' });      // 卡片从屏幕外落下
+            gsap.set(ropeL, { attr: { d: curvedL } }); // 绳子随机弯曲
+            gsap.set(ropeR, { attr: { d: curvedR } });
+
+            // 2. 构建物理动画时间线 (GSAP 核心)
+            const tl = gsap.timeline();
+            // 卡片向下坠落，并带有 bounce.out 的物理回弹效果（弹两到三下）
+            tl.to(card, { 
+                y: 0, 
+                duration: 1.6, 
+                ease: "bounce.out" 
+            }, 0)
+            // 同时，绳子从弯曲变为拉直，跟着卡片下落
+            .to(ropeL, { 
+                attr: { d: straightL }, 
+                duration: 1.6, 
+                ease: "power2.inOut" 
+            }, 0)
+            .to(ropeR, { 
+                attr: { d: straightR }, 
+                duration: 1.6, 
+                ease: "power2.inOut" 
+            }, 0);
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
         document.getElementById('loginModal').addEventListener('click', function(e) { 
             if (e.target === this) { closeLoginModal(); } 
         });
@@ -176,7 +212,7 @@
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(function() {
+            setTimeout(() => {
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
         });
@@ -185,9 +221,7 @@
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                if (document.exitFullscreen) { document.exitFullscreen(); }
             }
         }
     </script>
