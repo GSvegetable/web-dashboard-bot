@@ -7,23 +7,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            /* 设置成屏幕的 3 倍宽高，制造无限空间的感觉 */
-            width: 300vw;
-            height: 300vh;
-            overflow: auto; /* 允许自由上下左右滑动 */
+            /* 设置成一个超大尺寸的容器，让滑动永远摸不到边 */
+            width: 5000px;
+            height: 5000px;
+            overflow: auto;  /* 允许上下左右自由滑动 */
             background-color: #000000;
-            /* 
-               点缩小到 1.5px 
-               颜色改为浅灰色 #d0d0d0 
-               背景网格改为 30px * 30px 
-            */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Crect width='1.5' height='1.5' fill='%23d0d0d0'/%3E%3C/svg%3E");
-            /* 强制平铺整个巨大空间 */
+            
+            /* 核心图案：使用绝对均匀的 SVG 铺满 */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='1.5' height='1.5' fill='%23d0d0d0'/%3E%3C/svg%3E");
             background-repeat: repeat;
+            
+            /* 防止触碰到边缘时产生不顺畅的拉拽效果 */
+            overscroll-behavior: none;
         }
     </style>
 </head>
 <body>
-    <!-- 这是一个可以无限上下左右滑动的浅灰色点阵空间 -->
+    <!-- 巨大的画布空间，所有角落的点阵绝对一致且距离均匀 -->
 </body>
 </html>
