@@ -88,6 +88,28 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
+        /* ================= 新增：右上角按钮的入场动画 ================= */
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-280px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* 给三个按钮统一应用动画，初始隐藏 */
+        .top-actions .top-btn,
+        .top-actions .theme-btn {
+            opacity: 0;
+            animation: slideInFromLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* 依次错开延迟：全屏(0.2s)、登录(0.4s)、主题(0.6s) */
+        .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
+        .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
+        .top-actions .theme-btn:nth-child(3) { animation-delay: 0.6s; }
+
         /* ================= 登录下拉面板 ================= */
         #login-dropdown {
             position: absolute;
@@ -119,7 +141,7 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* 登录面板输入框（拉长、左对齐） */
+        /* ================= 登录面板输入框（拉长、左对齐） ================= */
         .InputGroup {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0.6em 0;
