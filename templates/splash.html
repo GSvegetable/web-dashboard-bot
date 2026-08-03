@@ -75,22 +75,24 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
+        /* 2x2 Grid 网格布局，稍微缩小整体容器宽度 */
         .btn-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            width: 100%; max-width: 350px;
+            width: 100%; max-width: 320px; /* 从 350px 缩小到 320px */
             opacity: 0; margin-top: 20px;
             animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+            justify-items: center; /* 让网格内的子元素居中对齐 */
         }
 
-        /* ================= 核心：恢复为干净的基础透明毛玻璃按钮 ================= */
+        /* 干净的基础透明毛玻璃按钮 */
         .glass-btn {
             position: relative;
-            padding: 14px 0; width: 100%; text-align: center;
+            padding: 14px 0; 
+            width: 90%; /* 【核心修改】按钮宽度变为 90%，自动缩短，留出两边的宽松空隙 */
+            text-align: center;
             border-radius: 40px;
-            /* 基础的半透明玻璃背景 */
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.35);
-            /* 基础的毛玻璃模糊 */
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -108,17 +110,15 @@
             position: relative;
             z-index: 2;
             color: #ffffff;
-            /* 轻微的文字发光，让它在玻璃上显得干净高级 */
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
         }
-        /* ================================================================ */
 
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 20vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; }
-            .btn-grid { gap: 12px; max-width: 280px; }
+            .btn-grid { gap: 12px; max-width: 260px; } /* 手机端也对应调整缩短 */
             .top-login-btn { top: 16px; right: 16px; padding: 6px 16px; font-size: 13px; }
         }
     </style>
