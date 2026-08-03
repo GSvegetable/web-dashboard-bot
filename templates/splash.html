@@ -27,11 +27,10 @@
             gap: 6px;
         }
 
-        /* 核心修改：使用你上传的真实纹理图片 */
+        /* 核心修改：更换为刚才重命名好的 texture.jpg */
         .text-pattern {
             color: #ffffff; /* 兜底：如果纹理图片加载失败，显示纯白色 */
-            /* 引入你上传的那张长名字的纹理图片作为文字的填充背景 */
-            background-image: url("{{ url_for('static', filename='mmexport1785753385948.jpg') }}");
+            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
             background-size: cover;
             background-position: center;
             -webkit-background-clip: text;
@@ -117,4 +116,5 @@
         </a>
     </div>
 </body>
+</html>
 </html>
