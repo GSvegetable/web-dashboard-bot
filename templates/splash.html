@@ -29,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层 (彻底移除 CSS transition) ================= */
+        /* ================= 扩散/收缩遮罩层 (彻底移除 CSS transition，防止抢占控制权) ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -40,20 +40,20 @@
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
             will-change: clip-path, background-image;
-            /* 完全交由 GSAP 控制，这里不写任何 transition */
         }
 
-        /* ================= 顶部其余按钮 (会被虚化层覆盖) ================= */
+        /* ================= 顶部三连排容器 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 50; /* 放在模糊层下面 */
+            z-index: 100;
             display: flex;
             align-items: center;
             gap: 12px;
         }
         .top-btn {
+            position: relative; /* 为下拉面板提供相对定位基准 */
             padding: 8px 20px;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
@@ -71,6 +71,7 @@
             border: none;
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+
         .theme-btn {
             width: 34px; height: 34px;
             padding: 0;
@@ -87,26 +88,15 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 专属登录容器 (悬浮在虚化层之上) ================= */
-        #login-wrapper {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100; /* 确保高于虚化层 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            pointer-events: none; /* 容器本身不拦截点击 */
-        }
-        /* Log in 按钮本身可点击 */
-        #login-wrapper > .top-btn {
-            pointer-events: auto;
-        }
-
+        /* ================= 新的下拉登录面板 ================= */
         #login-dropdown {
-            pointer-events: auto;
+            position: absolute;
+            top: 110%;
+            left: 50%;
+            transform: translateX(-50%) scaleY(0);
+            transform-origin: top center;
             width: 80%; 
+            margin-top: 8px;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
@@ -119,32 +109,32 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            pointer-events: none;
             opacity: 0;
-            transform-origin: top center;
-            transform: scaleY(0);
+            z-index: 1000;
         }
         #login-dropdown.active {
+            pointer-events: auto;
             opacity: 1;
-            transform: scaleY(1);
+            transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 背景虚化模糊层 (覆盖全屏和主题按钮) ================= */
+        /* ================= 背景模糊层 ================= */
         .bg-blur {
             position: fixed; inset: 0;
             background: rgba(0, 0, 0, 0); 
             backdrop-filter: blur(0px);
             pointer-events: none;
-            z-index: 60; /* 高于顶部基础按钮，低于登录容器 */
+            z-index: 50;
             transition: all 0.3s ease;
         }
         .bg-blur.active {
-            pointer-events: auto; /* 激活时接收点击，用于关闭面板 */
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
         }
 
-        /* ================= 文本与主页按钮 ================= */
+        /* ================= 文本与按钮 ================= */
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
@@ -178,7 +168,6 @@
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
             .top-actions { top: 16px; right: 16px; gap: 8px; }
-            #login-wrapper { top: 16px; right: 16px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
             #login-dropdown { width: 90%; padding: 16px; min-height: 200px; }
@@ -186,15 +175,18 @@
     </style>
 </head>
 <body>
-    <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
-    <!-- 背景虚化模糊层 -->
     <div class="bg-blur" id="bg-blur"></div>
 
-    <!-- 会被虚化的按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
+        
+        <div id="login-dropdown">
+            <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
+        </div>
+
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -203,16 +195,6 @@
         </button>
     </div>
 
-    <!-- 高亮的登录容器 -->
-    <div id="login-wrapper">
-        <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
-        
-        <div id="login-dropdown">
-            <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
-        </div>
-    </div>
-
-    <!-- 文字和主页按钮 -->
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
         <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
@@ -231,7 +213,7 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 1. 绝对强制双向动画 =================
+        // ================= 1. 强制双向动画（彻底移除底层 CSS transition 干扰） =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -239,27 +221,30 @@
             const y = rect.top + rect.height / 2;
 
             isExpanded = !isExpanded;
+
+            // 先杀掉当前任何正在运行的动画，防止抢跑
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】
+                // 【展开】切新图：0% -> 150%
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                void themeRing.offsetHeight; // 强制重绘
+                // 强制浏览器立刻执行重绘（这是解决"收回没动画"的核心物理手段）
+                void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】
+                // 【收缩】切回原图：150% -> 0%
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${defaultBgUrl}")`,
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
-                void themeRing.offsetHeight; // 强制重绘
+                void themeRing.offsetHeight; // 强制执行重绘
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
@@ -268,7 +253,7 @@
             }
         }
 
-        // ================= 2. 登录面板纯拉伸 + 果冻回弹 =================
+        // ================= 2. 面板下拉分离动画（大幅加大回弹力度） =================
         let isLoginOpen = false;
         let loginTl = null;
 
@@ -294,27 +279,20 @@
             blurBg.classList.add('active');
             isLoginOpen = true;
 
-            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center" });
+            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center", y: 0 });
             gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
 
-            // 0.8 秒直接拉开 + 果冻回弹 (去掉了位移粘稠感)
+            // 0.8 秒分离动画（增加下拉距离，让回弹超级明显）
             loginTl = gsap.timeline();
-            loginTl.to(panel, { 
-                scaleY: 1, 
-                opacity: 1, 
-                duration: 0.8, 
-                ease: "bounce.out", /* 明显的回弹 */
-                transformOrigin: "top center" 
-            });
+            // 阶段1：向下延伸展开
+            loginTl.to(panel, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out", transformOrigin: "top center" });
+            // 阶段2：大幅回弹：从 -20px 高度掉下，回弹幅度明显加倍
+            loginTl.fromTo(panel, { y: -20 }, { y: 0, duration: 0.8, ease: "bounce.out" });
+            // 背景模糊同步展开
             loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.8 }, 0);
         }
 
-        // ================= 3. 点击背景任意位置关闭 =================
-        document.getElementById('bg-blur').addEventListener('click', function(e) {
-            if (isLoginOpen) toggleLogin();
-        });
-
-        // ================= 4. 全屏显示 =================
+        // ================= 3. 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
