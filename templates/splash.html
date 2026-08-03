@@ -9,7 +9,6 @@
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
 
-        /* 黑屏预加载处理 */
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background-color: #000000;
@@ -17,7 +16,6 @@
             opacity: 0;
             transition: opacity 0.4s ease;
             display: flex; flex-direction: column; align-items: flex-start;
-            /* 默认平板/电脑的间距 */
             padding-left: 12%; 
             padding-top: 14vh; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
@@ -27,6 +25,16 @@
             background-size: cover; background-position: center; background-repeat: no-repeat;
             opacity: 1;
         }
+
+        /* 模拟电脑版排版的样式（点击后生效） */
+        body.pc-mode {
+            padding-left: 20%;
+            padding-top: 15vh;
+            align-items: center; /* 电脑版居中显示 */
+        }
+        body.pc-mode .main-title { font-size: 80px; }
+        body.pc-mode .sub-title { font-size: 28px; }
+        body.pc-mode .btn-group { gap: 40px; margin-top: 30px; }
 
         .top-login-btn {
             position: fixed; top: 20px; right: 20px; z-index: 100;
@@ -77,7 +85,7 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* 苹果高级玻璃折射按钮 */
+        /* 苹果高级玻璃折射按钮（内联样式时统一规格） */
         .glass-btn {
             position: relative;
             padding: 14px 32px; border-radius: 40px;
@@ -87,25 +95,21 @@
             cursor: pointer; letter-spacing: 1px; text-decoration: none;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block;
             overflow: hidden; z-index: 1;
+            font-size: 18px;
         }
         .glass-btn::before {
             content: ''; position: absolute; inset: -10px; background: inherit; border-radius: inherit;
             transform: scale(1.1); filter: blur(25px) saturate(220%) contrast(150%); z-index: -1;
         }
         .glass-btn:active { transform: scale(0.94); }
-        .btn-text { font-size: 18px; font-weight: 600; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); position: relative; z-index: 2; }
+        .btn-text { font-weight: 600; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); position: relative; z-index: 2; }
 
-        /* 手机端特殊适配（修复距离贴边的问题） */
+        /* 手机端间距适配 */
         @media (max-width: 600px) {
-            body { 
-                /* 手机窄长屏幕下，增加顶部距离，防止贴边 */
-                padding-left: 6%; 
-                padding-top: 20vh; 
-            }
+            body { padding-left: 6%; padding-top: 20vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
-            .glass-btn { padding: 12px 20px; }
-            .btn-text { font-size: 15px; }
+            .glass-btn { font-size: 15px; padding: 12px 20px; }
             .btn-group { gap: 16px; }
             .top-login-btn { top: 16px; right: 16px; padding: 6px 16px; font-size: 13px; }
         }
@@ -143,18 +147,23 @@
         </a>
     </div>
 
-    <!-- 👇 新增全屏显示按钮，自动左对齐排列在“创建作品”下方，风格完全一致 -->
-    <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn" style="padding: 8px 20px; font-size: 14px; margin-top: 12px; display: inline-block; border-radius: 30px;">
-        <span class="btn-text">⛶ 全屏显示</span>
+    <!-- 全屏按钮：已去除符号，大小和粗细与上面完全一致 -->
+    <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn" style="margin-top: 12px; display: inline-block; font-size: 18px; padding: 14px 32px;">
+        <span class="btn-text">全屏显示</span>
+    </a>
+
+    <!-- 新增：模拟电脑版排版按钮 -->
+    <a href="javascript:void(0)" onclick="togglePCMode()" class="glass-btn" style="margin-top: 12px; display: inline-block; font-size: 18px; padding: 14px 32px;">
+        <span class="btn-text">电脑版排版</span>
     </a>
 
     <script>
-        // 打开/关闭登录弹窗
+        // 登录弹窗
         function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
         document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) { closeLoginModal(); } });
 
-        // 解决图片从上到下加载的黑屏预加载逻辑
+        // 图片黑屏预加载
         document.addEventListener("DOMContentLoaded", function() {
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
@@ -165,7 +174,7 @@
             }, 3000);
         });
 
-        // 👇 全屏切换逻辑（点击后全屏，再次点击退出全屏）
+        // 全屏切换
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -174,6 +183,11 @@
                     document.exitFullscreen();
                 }
             }
+        }
+
+        // 模拟电脑版排版切换（点按切换）
+        function togglePCMode() {
+            document.body.classList.toggle('pc-mode');
         }
     </script>
 </body>
