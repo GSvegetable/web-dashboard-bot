@@ -7,11 +7,24 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            /* 修改背景为图片，并让图片覆盖全屏 */
+            background-image: url("{{ url_for('static', filename='bg.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: transparent; /* 底色变为透明，让图片完全呈现 */
+            height: 100vh;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .card {
+            background: rgba(22, 27, 34, 0.85); /* 卡片半透明，更有质感 */
+            border: 1px solid #30363d; border-radius: 8px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+        }
         h2 { text-align: center; margin-bottom: 24px; color: #f0f6fc; font-weight: 600; }
         label { display: block; margin: 12px 0 4px; font-size: 14px; color: #8b949e; }
-        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #f0f6fc; margin-bottom: 16px; outline: none; }
+        input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: rgba(13, 17, 23, 0.9); color: #f0f6fc; margin-bottom: 16px; outline: none; }
         input:focus { border-color: #58a6ff; }
         .tabs { display: flex; margin-bottom: 24px; border-bottom: 1px solid #30363d; }
         .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #8b949e; }
@@ -24,8 +37,6 @@
         .cf-turnstile { margin: 16px 0; display: flex; justify-content: center; }
         .link { text-align: center; margin-top: 20px; font-size: 14px; color: #8b949e; }
         .link a { color: #58a6ff; text-decoration: none; }
-        #error-msg { background: #da3633; padding: 8px; border-radius: 6px; color: white; display: none; margin-bottom: 16px; text-align: center; }
-        .hidden { display: none; }
         .guest-login-btn { display: block; text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #30363d; color: #8b949e; font-size: 14px; cursor: pointer; transition: color 0.2s; }
         .guest-login-btn:hover { color: #58a6ff; }
         .guest-login-btn a { color: #58a6ff; text-decoration: none; font-weight: 600; }
@@ -84,7 +95,6 @@
             }
         }
 
-        // 🔧 修复后的发验证码逻辑（加了 try-catch，确保报错时会弹窗提示）
         document.getElementById('loginSendCodeBtn').addEventListener('click', async function() {
             const email = document.querySelector('input[name="email"]').value;
             if(!email) { alert('请输入邮箱'); return; }
