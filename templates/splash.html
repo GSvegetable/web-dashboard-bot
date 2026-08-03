@@ -29,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层 ================= */
+        /* ================= 扩散/收缩遮罩层 (彻底移除 CSS transition，防止抢占控制权) ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -88,7 +88,7 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 新的下拉登录面板 (拉长 4 倍) ================= */
+        /* ================= 新的下拉登录面板 ================= */
         #login-dropdown {
             position: absolute;
             top: 110%;
@@ -104,7 +104,6 @@
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             padding: 24px;
-            /* ✅ 高度拉长 4 倍 */
             min-height: 320px;
             display: flex;
             flex-direction: column;
@@ -176,21 +175,16 @@
     </style>
 </head>
 <body>
-    <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
-    <!-- 背景模糊层 -->
     <div class="bg-blur" id="bg-blur"></div>
 
-    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
-        <!-- 下拉展开的长面板 -->
         <div id="login-dropdown">
             <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
-            <!-- 后续往这里放输入框和登录按钮，会自动居中 -->
         </div>
 
         <button class="theme-btn" onclick="toggleTheme(event)">
@@ -201,7 +195,6 @@
         </button>
     </div>
 
-    <!-- 文字和主页按钮 -->
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
         <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
@@ -220,45 +213,47 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 1. 修复主题切换动画：彻底改用 GSAP 稳定物理引擎 =================
+        // ================= 1. 强制双向动画（彻底移除底层 CSS transition 干扰） =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 翻转状态
             isExpanded = !isExpanded;
 
-            // 先杀掉动画，防止抢占冲突
+            // 先杀掉当前任何正在运行的动画，防止抢跑
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】切新图：从 0% 向外扩散到 150%
-                gsap.set(themeRing, {
+                // 【展开】切新图：0% -> 150%
+                gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
-                    clipPath: `circle(0% at ${x}px ${y}px)`
+                    clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                gsap.to(themeRing, {
-                    duration: 0.8,
-                    ease: "power2.inOut",
-                    clipPath: `circle(150% at ${x}px ${y}px)`
+                // 强制浏览器立刻执行重绘（这是解决"收回没动画"的核心物理手段）
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { 
+                    duration: 0.8, 
+                    ease: "power2.inOut", 
+                    clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】切回原图：从 150% 向内收缩到 0% （绝对有动画！）
-                gsap.set(themeRing, {
+                // 【收缩】切回原图：150% -> 0%
+                gsap.set(themeRing, { 
                     backgroundImage: `url("${defaultBgUrl}")`,
-                    clipPath: `circle(150% at ${x}px ${y}px)`
+                    clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
-                gsap.to(themeRing, {
-                    duration: 0.8,
-                    ease: "power2.inOut",
-                    clipPath: `circle(0% at ${x}px ${y}px)`
+                void themeRing.offsetHeight; // 强制执行重绘
+                gsap.to(themeRing, { 
+                    duration: 0.8, 
+                    ease: "power2.inOut", 
+                    clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
             }
         }
 
-        // ================= 2. 面板下拉分离动画 =================
+        // ================= 2. 面板下拉分离动画（大幅加大回弹力度） =================
         let isLoginOpen = false;
         let loginTl = null;
 
@@ -287,12 +282,12 @@
             gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center", y: 0 });
             gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
 
-            // 0.8 秒分离动画
+            // 0.8 秒分离动画（增加下拉距离，让回弹超级明显）
             loginTl = gsap.timeline();
             // 阶段1：向下延伸展开
             loginTl.to(panel, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out", transformOrigin: "top center" });
-            // 阶段2：脱离按钮，下拉并物理回弹
-            loginTl.fromTo(panel, { y: -8 }, { y: 0, duration: 0.6, ease: "bounce.out" });
+            // 阶段2：大幅回弹：从 -20px 高度掉下，回弹幅度明显加倍
+            loginTl.fromTo(panel, { y: -20 }, { y: 0, duration: 0.8, ease: "bounce.out" });
             // 背景模糊同步展开
             loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.8 }, 0);
         }
