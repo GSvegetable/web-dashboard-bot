@@ -17,7 +17,6 @@
             align-items: flex-start;
             padding-left: 12%;
             padding-top: 14vh; 
-            /* 强制指定主流系统原生圆体字 */
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
 
@@ -27,41 +26,36 @@
             gap: 12px;
         }
 
-        /* 主标题：字间距大幅拉开、加粗、左上角淡灰色光效 */
-        .main-title {
-            font-size: 56px;
-            font-weight: 900;  /* 加粗到最大级别 */
-            letter-spacing: 8px; /* 每个字中间的距离明显拉开 */
-            
-            /* 模拟从左上方斜打下来的淡灰色光效 */
-            background: linear-gradient(145deg, #ffffff 20%, #b0b0b0 100%);
+        /* 同一套光源效果：左上角打下来的淡灰色渐变 */
+        .gradient-text {
+            font-weight: 900; /* 加粗 */
+            background: linear-gradient(135deg, #ffffff 20%, #d9d9d9 100%); /* 光效减弱，渐变末端偏浅灰 */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            
-            /* 内部光晕与底部阴影，让光效有体积感 */
-            filter: drop-shadow(0 4px 10px rgba(255, 255, 255, 0.15));
-            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            
-            /* 渲染优化，让字体更柔和 */
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
+            text-shadow: none; /* 外部阴影去掉，只靠内部渐变 */
+            letter-spacing: 8px;
         }
 
-        /* 副标题：保持原样 */
+        /* 主标题：放大 */
+        .main-title {
+            font-size: 64px; /* 字再放大 */
+        }
+
+        /* 副标题：继承同样的光效，字号小所以光自然更淡 */
         .sub-title {
             font-size: 22px;
-            font-weight: 500;
             letter-spacing: 2px;
-            color: #ffffff;
-            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
+            font-weight: 500;
         }
 
-        /* 按钮组 */
+        /* 按钮组：离字体稍微近一点 */
         .btn-group {
             display: flex;
             gap: 24px;
-            margin-top: 50px;
+            margin-top: 30px; /* 稍微往上移 */
         }
 
         /* 纯透明玻璃效果按钮 */
@@ -85,12 +79,11 @@
 
         .glass-btn:active {
             transform: scale(0.94);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 12vh; }
-            .main-title { font-size: 40px; letter-spacing: 6px; }
+            .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { padding: 12px 20px; font-size: 15px; }
             .btn-group { gap: 16px; }
@@ -99,8 +92,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="main-title">宫水大世界</h1>
-        <h2 class="sub-title">Telegram bot编辑器</h2>
+        <h1 class="gradient-text main-title">宫水大世界</h1>
+        <h2 class="gradient-text sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
