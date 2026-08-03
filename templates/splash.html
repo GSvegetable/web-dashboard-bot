@@ -88,19 +88,12 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 右上角按钮的入场动画：从右侧滑入 ================= */
+        /* ================= 顶部按钮的入场动画：从右侧滑入 ================= */
         @keyframes slideInFromRight {
-            0% {
-                opacity: 0;
-                transform: translateX(280px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            0% { opacity: 0; transform: translateX(280px); }
+            100% { opacity: 1; transform: translateX(0); }
         }
-        .top-actions .top-btn,
-        .top-actions .theme-btn {
+        .top-actions .top-btn, .top-actions .theme-btn {
             opacity: 0;
             animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -123,8 +116,8 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            padding: 24px;
-            min-height: 320px;
+            padding: 16px;
+            min-height: 220px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -139,51 +132,71 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 登录面板输入框 ================= */
-        .InputGroup {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0.6em 0;
-            max-width: 380px; 
+        /* ================= 中世纪 3D 堆叠表单 ================= */
+        .stack-wrapper {
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: relative;
+            padding: 0 8px;
+        }
+        .stack-item {
+            position: relative;
+            width: 100%;
+            padding: 12px 0;
             display: flex;
             justify-content: center;
+            align-items: center;
+            margin-top: -6px; /* 上下堆叠产生3D重叠错觉 */
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+            z-index: var(--i);
+            border: 1px solid rgba(255, 255, 255, 0.02);
         }
-        .InputGroup input {
+        .stack-item:first-child { margin-top: 0; border-radius: 12px 12px 0 0; }
+        .stack-item:last-child { border-radius: 0 0 12px 12px; }
+
+        /* 仿中世纪暗黑建筑的配色 */
+        .stack-item:nth-child(1) { background: #35393d; } /* 邮箱 */
+        .stack-item:nth-child(2) { background: #2a2d31; } /* 输入密码 */
+        .stack-item:nth-child(3) { background: #1f2225; } /* 确定密码 */
+        .stack-item:nth-child(4) { background: #af693d; } /* 注册（暖黄橙光） */
+
+        .stack-input {
+            width: 90%;
+            padding: 8px 0;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
             font-size: 15px;
-            padding: 0.6em 1.2em;
+            transition: border-bottom 0.3s ease;
+            text-align: center;
+        }
+        .stack-input::placeholder {
+            color: #999999;
+            letter-spacing: 0.5px;
+        }
+        .stack-input:focus {
+            border-bottom: 2px solid #e6b28c; /* 中世纪暖黄高光 */
             outline: none;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background-color: transparent;
-            border-radius: 20px;
-            width: 100%;
-            color: #ffffff;
-            transition: border-color 0.3s ease;
         }
-        .InputGroup input:focus {
-            border-color: rgba(255, 255, 255, 0.6);
+
+        .stack-btn {
+            width: 90%;
+            padding: 8px 0;
+            background: transparent;
+            border: none;
+            color: #f4e3d5;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: transform 0.2s;
         }
-        .InputGroup label {
-            font-size: 15px;
-            position: absolute;
-            left: 0;
-            padding: 0.6em 1.2em;
-            margin-left: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-            color: rgba(255, 255, 255, 0.5);
-        }
-        .InputGroup :is(input:focus, input:valid) ~ label {
-            transform: translateY(-50%) scale(0.9);
-            margin: 0em;
-            margin-left: 1.3em;
-            padding: 0.4em;
-            background-color: rgba(22, 27, 34, 0.8);
-            color: #ffffff;
-        }
-        .InputGroup :is(input:focus, input:valid) {
-            border-color: #ffffff;
-        }
+        .stack-btn:active { transform: scale(0.94); }
 
         /* ================= 背景模糊层 ================= */
         .bg-blur {
@@ -200,7 +213,7 @@
             -webkit-backdrop-filter: blur(6px);
         }
 
-        /* ================= 文本与按钮 ================= */
+        /* ================= 文本与底部按钮 ================= */
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
@@ -213,20 +226,12 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* ================= 下方四个按钮：拆解入场动画，按顺序依次上滑 ================= */
-        .btn-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            width: 100%; max-width: 320px; z-index: 1; margin-top: 20px; justify-items: center;
-        }
-        .btn-grid .glass-btn {
-            opacity: 0;
-            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        /* 严格按照你给的顺序错开 */
-        .btn-grid .glass-btn:nth-child(1) { animation-delay: 0.1s; } /* 创建作品 (最快) */
-        .btn-grid .glass-btn:nth-child(2) { animation-delay: 0.3s; } /* 查看仓库 (跟上) */
-        .btn-grid .glass-btn:nth-child(3) { animation-delay: 0.5s; } /* 联系开发者 (紧随其后) */
-        .btn-grid .glass-btn:nth-child(4) { animation-delay: 0.7s; } /* 加入社区 (垫底) */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; margin-top: 20px; justify-items: center; }
+        .btn-grid .glass-btn { opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .btn-grid .glass-btn:nth-child(1) { animation-delay: 0.1s; }
+        .btn-grid .glass-btn:nth-child(2) { animation-delay: 0.3s; }
+        .btn-grid .glass-btn:nth-child(3) { animation-delay: 0.5s; }
+        .btn-grid .glass-btn:nth-child(4) { animation-delay: 0.7s; }
 
         .glass-btn {
             position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
@@ -249,8 +254,10 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
-            #login-dropdown { width: 90%; padding: 16px; min-height: 200px; }
-            .InputGroup { max-width: 90%; }
+            #login-dropdown { width: 90%; padding: 12px; min-height: 180px; }
+            .stack-item { padding: 10px 0; }
+            .stack-input { font-size: 14px; }
+            .stack-btn { font-size: 14px; }
         }
     </style>
 </head>
@@ -264,13 +271,20 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <div class="InputGroup">
-                <input type="text" id="login-email" required>
-                <label for="login-email">邮箱</label>
-            </div>
-            <div class="InputGroup">
-                <input type="password" id="login-password" required>
-                <label for="login-password">密码</label>
+            <!-- 被替换为 4 层中世纪 3D 堆叠表单 -->
+            <div class="stack-wrapper">
+                <div class="stack-item" style="--i: 4;">
+                    <input type="text" placeholder="邮箱" class="stack-input">
+                </div>
+                <div class="stack-item" style="--i: 3;">
+                    <input type="password" placeholder="输入密码" class="stack-input">
+                </div>
+                <div class="stack-item" style="--i: 2;">
+                    <input type="password" placeholder="确定密码" class="stack-input">
+                </div>
+                <div class="stack-item" style="--i: 1;">
+                    <button class="stack-btn">注册</button>
+                </div>
             </div>
         </div>
 
@@ -316,14 +330,11 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】背景和文字纹理瞬间同步切换为新图
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                textElements.forEach(el => {
-                    el.style.backgroundImage = `url("${newTextUrl}")`;
-                });
+                textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
@@ -331,21 +342,15 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】保持原图不换，直到动画彻底消失才瞬间替换
-                gsap.set(themeRing, { 
-                    clipPath: `circle(150% at ${x}px ${y}px)` 
-                });
+                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
                     clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
-                        // 动画缩到0%的瞬间，同时切换背景和文字纹理
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
-                        textElements.forEach(el => {
-                            el.style.backgroundImage = `url("${defaultTextUrl}")`;
-                        });
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                     }
                 });
             }
