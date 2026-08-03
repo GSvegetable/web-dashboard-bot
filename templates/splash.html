@@ -26,16 +26,6 @@
             opacity: 1;
         }
 
-        /* 模拟电脑版排版的样式（点击后生效） */
-        body.pc-mode {
-            padding-left: 20%;
-            padding-top: 15vh;
-            align-items: center; /* 电脑版居中显示 */
-        }
-        body.pc-mode .main-title { font-size: 80px; }
-        body.pc-mode .sub-title { font-size: 28px; }
-        body.pc-mode .btn-group { gap: 40px; margin-top: 30px; }
-
         .top-login-btn {
             position: fixed; top: 20px; right: 20px; z-index: 100;
             padding: 8px 20px; border-radius: 30px;
@@ -74,7 +64,7 @@
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .btn-group { display: flex; gap: 24px; margin-top: 20px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
+        .btn-group { display: flex; gap: 24px; margin-top: 20px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; flex-wrap: wrap; }
 
         .text-pattern {
             color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
@@ -85,7 +75,7 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* 苹果高级玻璃折射按钮（内联样式时统一规格） */
+        /* 玻璃折射按钮（统一规格） */
         .glass-btn {
             position: relative;
             padding: 14px 32px; border-radius: 40px;
@@ -110,7 +100,7 @@
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 20px; }
-            .btn-group { gap: 16px; }
+            .btn-group { gap: 12px; }
             .top-login-btn { top: 16px; right: 16px; padding: 6px 16px; font-size: 13px; }
         }
     </style>
@@ -138,6 +128,7 @@
         <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
     </div>
     
+    <!-- 三个按钮并排排列 -->
     <div class="btn-group">
         <a href="/create" class="glass-btn">
             <span class="btn-text">创建作品</span>
@@ -145,16 +136,15 @@
         <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">
             <span class="btn-text">查看仓库</span>
         </a>
+        <!-- 新增：联系开发者 (默认链接为你的 TG 账号) -->
+        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank">
+            <span class="btn-text">联系开发者</span>
+        </a>
     </div>
 
-    <!-- 全屏按钮：已去除符号，大小和粗细与上面完全一致 -->
+    <!-- 全屏显示按钮独立一行 -->
     <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn" style="margin-top: 12px; display: inline-block; font-size: 18px; padding: 14px 32px;">
         <span class="btn-text">全屏显示</span>
-    </a>
-
-    <!-- 新增：模拟电脑版排版按钮 -->
-    <a href="javascript:void(0)" onclick="togglePCMode()" class="glass-btn" style="margin-top: 12px; display: inline-block; font-size: 18px; padding: 14px 32px;">
-        <span class="btn-text">电脑版排版</span>
     </a>
 
     <script>
@@ -183,11 +173,6 @@
                     document.exitFullscreen();
                 }
             }
-        }
-
-        // 模拟电脑版排版切换（点按切换）
-        function togglePCMode() {
-            document.body.classList.toggle('pc-mode');
         }
     </script>
 </body>
