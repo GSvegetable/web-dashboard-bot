@@ -29,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层 (彻底移除 CSS transition，防止抢占控制权) ================= */
+        /* ================= 扩散/收缩遮罩层 ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -53,7 +53,7 @@
             gap: 12px;
         }
         .top-btn {
-            position: relative; /* 为下拉面板提供相对定位基准 */
+            position: relative;
             padding: 8px 20px;
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
@@ -88,7 +88,7 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 新的下拉登录面板 ================= */
+        /* ================= 登录下拉面板 (添加输入框) ================= */
         #login-dropdown {
             position: absolute;
             top: 110%;
@@ -117,6 +117,50 @@
             pointer-events: auto;
             opacity: 1;
             transform: translateX(-50%) scaleY(1);
+        }
+
+        /* 登录面板输入框样式 */
+        .InputGroup {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 1em 0;
+            max-width: 100%;
+            width: 100%;
+            position: relative;
+        }
+        .InputGroup input {
+            font-size: 16px;
+            padding: 0.8em;
+            outline: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background-color: transparent;
+            border-radius: 20px;
+            width: 100%;
+            color: #ffffff;
+            transition: border-color 0.3s ease;
+        }
+        .InputGroup input:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        .InputGroup label {
+            font-size: 16px;
+            position: absolute;
+            left: 0;
+            padding: 0.8em;
+            margin-left: 0.5em;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .InputGroup :is(input:focus, input:valid) ~ label {
+            transform: translateY(-50%) scale(0.9);
+            margin: 0em;
+            margin-left: 1.3em;
+            padding: 0.4em;
+            background-color: rgba(22, 27, 34, 0.8);
+            color: #ffffff;
+        }
+        .InputGroup :is(input:focus, input:valid) {
+            border-color: #ffffff;
         }
 
         /* ================= 背景模糊层 ================= */
@@ -184,7 +228,11 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
+            <!-- 新增：带有“邮箱”字样的输入框 -->
+            <div class="InputGroup">
+                <input type="text" id="login-email" required>
+                <label for="login-email">邮箱</label>
+            </div>
         </div>
 
         <button class="theme-btn" onclick="toggleTheme(event)">
@@ -213,7 +261,7 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 1. 强制双向动画（彻底移除底层 CSS transition 干扰） =================
+        // ================= 1. 修复双向动画（展开和收回完全丝滑，无跳图） =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -221,17 +269,14 @@
             const y = rect.top + rect.height / 2;
 
             isExpanded = !isExpanded;
-
-            // 先杀掉当前任何正在运行的动画，防止抢跑
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】切新图：0% -> 150%
+                // 【展开】直接切图，并扩散
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                // 强制浏览器立刻执行重绘（这是解决"收回没动画"的核心物理手段）
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
@@ -239,21 +284,24 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】切回原图：150% -> 0%
+                // 【收缩核心修复】保持当前新图不换，先把波纹收回到0%，完全消失后才换原图
                 gsap.set(themeRing, { 
-                    backgroundImage: `url("${defaultBgUrl}")`,
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
-                void themeRing.offsetHeight; // 强制执行重绘
+                void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
-                    clipPath: `circle(0% at ${x}px ${y}px)` 
+                    clipPath: `circle(0% at ${x}px ${y}px)`,
+                    onComplete: () => {
+                        // 动画彻底收完，瞬间换图，用户看不见
+                        themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                    }
                 });
             }
         }
 
-        // ================= 2. 登录面板更新（删掉粘稠拉扯，改成强果冻回弹） =================
+        // ================= 2. 登录面板下拉动画 =================
         let isLoginOpen = false;
         let loginTl = null;
 
@@ -279,7 +327,6 @@
             blurBg.classList.add('active');
             isLoginOpen = true;
 
-            // 核心改动：抛弃复杂的偏移拉扯，只用强力纵向果冻回弹
             gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center" });
             gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
 
@@ -287,8 +334,8 @@
             loginTl.to(panel, { 
                 scaleY: 1, 
                 opacity: 1, 
-                duration: 0.9,       // 时间延长到 0.9秒，给回弹留下充足时间
-                ease: "bounce.out",   // 绝佳果冻回弹缓动
+                duration: 0.9, 
+                ease: "bounce.out",
                 transformOrigin: "top center" 
             });
             loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.9 }, 0);
