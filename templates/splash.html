@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            /* 核心修复：全局消除浏览器点击时的蓝色高亮框 */
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        /* 核心修复：消除按钮点击后或聚焦时的蓝色轮廓线 */
+        button, a, input, textarea, select {
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:focus, a:focus, input:focus {
+            outline: none;
+        }
+
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background-image: url("{{ url_for('static', filename='bg.png') }}");
