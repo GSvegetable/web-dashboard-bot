@@ -15,7 +15,6 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            /* 整体往上移 */
             padding-left: 12%;
             padding-top: 12vh; 
             font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -27,7 +26,6 @@
             gap: 10px;
         }
 
-        /* 主标题：纯白色，加粗圆润 */
         .main-title {
             font-size: 44px;
             font-weight: 700;
@@ -37,7 +35,6 @@
             margin-bottom: 6px;
         }
 
-        /* 副标题：纯白色，字体圆润 */
         .sub-title {
             font-size: 22px;
             font-weight: 400;
@@ -46,23 +43,22 @@
             text-shadow: 0 2px 15px rgba(0, 0, 0, 0.7);
         }
 
-        /* 按钮组：上方留白多一点 */
         .btn-group {
             display: flex;
             gap: 24px;
             margin-top: 50px;
         }
 
-        /* 纯透明玻璃效果按钮 */
+        /* 加了一点点高光折射的玻璃按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
-            /* 背景几乎透明，只有一点点亮白光 */
-            background: rgba(255, 255, 255, 0.05);
-            /* 白色发光边框 */
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            /* 玻璃折射模糊 */
+            /* 底透底色 + 左上角极细微的白色光晕折射 */
+            background: rgba(255, 255, 255, 0.03);
+            background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 30%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* 内发光外发光，强化玻璃边缘反光 */
+            box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             color: #ffffff;
@@ -75,13 +71,11 @@
             display: inline-block;
         }
 
-        /* 微小的果冻回弹按压反馈 */
         .glass-btn:active {
             transform: scale(0.94);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        /* 手机端适配 */
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 10vh; }
             .main-title { font-size: 34px; letter-spacing: 2px; }
