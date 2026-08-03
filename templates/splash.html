@@ -9,6 +9,7 @@
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
 
+        /* 定义全局背景图片变量 */
         :root {
             --bg-img: url("{{ url_for('static', filename='bg.png') }}");
         }
@@ -75,6 +76,7 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
+        /* 2x2 Grid 网格布局 */
         .btn-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
             width: 100%; max-width: 350px;
@@ -82,11 +84,12 @@
             animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
         }
 
-        /* ================= 核心：修复移动端放大失效的折射按钮 ================= */
+        /* ================= 核心：真实苹果液态玻璃折射按钮 ================= */
         .glass-btn {
             position: relative;
             padding: 14px 0; width: 100%; text-align: center;
             border-radius: 40px;
+            /* 按钮自身的玻璃透明度 */
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -96,25 +99,31 @@
             overflow: hidden; z-index: 1;
             font-size: 18px;
         }
-        
-        /* 绕过移动端渲染 Bug 的核心方案：背景图片自身缩放 + 过滤强饱和度 */
+        /* 液态折射放大层（关键！） */
         .glass-btn::before {
             content: '';
             position: absolute;
-            inset: 0;
+            inset: -15px; /* 向外拉伸扩大，制造放大光晕 */
             background-image: var(--bg-img);
-            background-size: 115% 115%; /* 【关键修改】直接把背景图物理放大 15% */
-            background-position: center center;
+            /* 确保底图和网页背景图 100% 对齐 */
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
-            filter: blur(20px) saturate(300%) contrast(120%); /* 极高模糊与饱和，产生液态膨胀感 */
-            transform: scale(1);
             z-index: -1; /* 放在按钮文字下方 */
+            /* 核心物理特效：放大 + 高饱和模糊 */
+            transform: scale(1.15); /* 背景图物理放大 15% */
+            filter: blur(18px) saturate(250%) contrast(150%);
             border-radius: inherit;
+            /* 让文字发光效果放大 */
+            box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.1);
+            pointer-events: none;
         }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { font-weight: 600; color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); position: relative; z-index: 2; }
-        /* ============================================================== */
+        /* ================================================ */
 
+        /* 手机端间距适配 */
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 20vh; }
             .main-title { font-size: 44px; }
@@ -148,6 +157,7 @@
         <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
     </div>
     
+    <!-- 2x2 网格布局，4个等宽按钮 -->
     <div class="btn-grid">
         <a href="/create" class="glass-btn">
             <span class="btn-text">创建作品</span>
@@ -155,6 +165,8 @@
         <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">
             <span class="btn-text">查看仓库</span>
         </a>
+        
+        <!-- 👇 联系开发者改为 tg:// 协议，原生唤起 App，体验全屏 -->
         <a href="tg://resolve?domain=gsyxyc" class="glass-btn">
             <span class="btn-text">联系开发者</span>
         </a>
