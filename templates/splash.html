@@ -99,6 +99,53 @@
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .theme-btn:nth-child(2) { animation-delay: 0.6s; }
 
+        /* ================= 新增：联系开发者弹窗 (iframe 内嵌) ================= */
+        .iframe-modal {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .iframe-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .iframe-wrapper {
+            position: relative;
+            width: 90vw; height: 90vh; max-width: 800px;
+            background: transparent;
+            border-radius: 16px;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .iframe-modal.active .iframe-wrapper {
+            transform: scale(1);
+        }
+        .iframe-wrapper iframe {
+            width: 100%; height: 100%; border: none; background: #fff;
+        }
+        /* 弹窗关闭按钮 */
+        .close-modal-btn {
+            position: absolute; top: 16px; right: 16px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff; font-size: 20px; line-height: 36px; text-align: center;
+            cursor: pointer; z-index: 10;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        .close-modal-btn:active { transform: scale(0.9); }
+        /* ======================================================= */
+
         /* ================= 文字与底部按钮 ================= */
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -140,13 +187,14 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
+            .iframe-wrapper { width: 95vw; height: 90vh; }
         }
     </style>
 </head>
 <body>
     <div id="theme-ring"></div>
 
-    <!-- 顶部按钮（仅保留全屏与主题切换） -->
+    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="theme-btn" onclick="toggleTheme(event)">
@@ -157,6 +205,15 @@
         </button>
     </div>
 
+    <!-- ================= 新增：联系开发者弹窗 ================= -->
+    <div class="iframe-modal" id="devModal">
+        <div class="iframe-wrapper">
+            <div class="close-modal-btn" onclick="closeDevModal()">✕</div>
+            <iframe id="devIframe" src="https://t.me/gsyxyc" loading="lazy"></iframe>
+        </div>
+    </div>
+    <!-- ======================================================== -->
+
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
         <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
@@ -165,7 +222,12 @@
     <div class="btn-grid">
         <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
         <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
-        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
+        
+        <!-- 注意：联系开发者链接改成了调用 JS 打开弹窗 -->
+        <a href="javascript:void(0);" onclick="openDevModal()" class="glass-btn">
+            <span class="btn-text">联系开发者</span>
+        </a>
+        
         <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
     </div>
 
@@ -179,8 +241,8 @@
         const textElements = document.querySelectorAll('.text-pattern');
 
         // ⏱️ 自定义文字纹理切换时机
-        const EXPAND_TEXT_DELAY = 0.4; // 展开时 0.4 秒后换
-        const CONTRACT_TEXT_DELAY = 0.3; // 收缩时 0.3 秒后换（比原来 0.2 稍慢一点点）
+        const EXPAND_TEXT_DELAY = 0.4;
+        const CONTRACT_TEXT_DELAY = 0.3;
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
@@ -192,41 +254,50 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                
                 gsap.delayedCall(EXPAND_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
-
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
-                    duration: 0.8, 
-                    ease: "power2.inOut", 
-                    clipPath: `circle(150% at ${x}px ${y}px)` 
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                
                 gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
-
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
-                    duration: 0.8, 
-                    ease: "power2.inOut", 
-                    clipPath: `circle(0% at ${x}px ${y}px)`,
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
             }
         }
+
+        // ================= 联系开发者弹窗控制 =================
+        function openDevModal() {
+            const modal = document.getElementById('devModal');
+            const iframe = document.getElementById('devIframe');
+            iframe.src = "https://t.me/gsyxyc"; // 每次打开重载 iframe
+            modal.classList.add('active');
+        }
+        function closeDevModal() {
+            document.getElementById('devModal').classList.remove('active');
+            // 关闭后清空 iframe 释放内存
+            setTimeout(() => {
+                document.getElementById('devIframe').src = "about:blank";
+            }, 300);
+        }
+        // 点击半透明背景本身也能关闭
+        document.getElementById('devModal').addEventListener('click', function(e) {
+            if (e.target === this) { closeDevModal(); }
+        });
 
         // ================= 全屏显示 =================
         function toggleFullScreen() {
