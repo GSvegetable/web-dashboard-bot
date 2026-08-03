@@ -29,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 第一屏：顶部图片（绝对独立） ================= */
+        /* ================= 第一屏：顶部图片 ================= */
         .top-image {
             width: 100vw;
             height: 100vh; 
@@ -47,10 +47,11 @@
             position: relative;
             width: 100%;
             min-height: 100vh; 
-            /* 默认基础底图，作为切换回退时的底板 */
+            /* 默认基础底图 */
             background-image: var(--bg-img);
-            background-size: cover;
-            background-position: center;
+            /* 🟢 核心修复：改用 contain，保证整张图片 100% 完整显示，绝不裁切 */
+            background-size: contain;
+            background-position: center center;
             background-repeat: no-repeat;
             padding-left: 12%;
             padding-top: 15vh;
@@ -60,7 +61,7 @@
             align-items: flex-start;
             justify-content: center;
             z-index: 1;
-            overflow: hidden; /* 防止内部遮罩层溢出 */
+            overflow: hidden;
         }
 
         /* ================= 内部遮罩层（负责主题切换） ================= */
@@ -181,10 +182,8 @@
 
     <!-- 第二屏：文字与按钮区域 -->
     <div class="content-area" id="contentArea">
-        <!-- 内部遮罩层，负责切换该区域的背景 -->
         <div id="theme-ring"></div>
 
-        <!-- 文字与按钮（浮在遮罩层之上） -->
         <div class="text-group">
             <h1 class="text-pattern main-title">宫水大世界</h1>
             <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
@@ -224,7 +223,6 @@
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
-        // ================= 1. 主题切换动画（限定在第二屏内） =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -235,7 +233,6 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
@@ -248,7 +245,6 @@
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩，原路退回】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
                 gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
@@ -257,16 +253,13 @@
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
-                        // 彻底缩回后，清除遮罩图，露出下层的默认底图
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
             }
         }
 
-        // ================= 2. 滚动触发入场动画 =================
         document.addEventListener("DOMContentLoaded", function() {
-            // 预加载
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
@@ -275,7 +268,6 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 滚动触发文字和按钮动画
             gsap.fromTo(".text-group", 
                 { opacity: 0, y: 80 }, 
                 {
@@ -305,7 +297,6 @@
             );
         });
 
-        // ================= 3. 全屏显示 =================
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
