@@ -7,12 +7,11 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
+            /* 依然保持巨大的无限滑动空间 */
             width: 10000px;
             height: 10000px;
             overflow: auto;
-            background-color: #000000;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='1.5' height='1.5' fill='%23d0d0d0'/%3E%3C/svg%3E");
-            background-repeat: repeat;
+            background-color: #000000; /* 纯黑背景，删掉白点 */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -21,16 +20,16 @@
             display: none;
         }
 
-        /* 左侧悬浮面板 - 只占一半宽度，上下左等距 */
+        /* 左侧悬浮面板：灰色、拉长、完美等距 */
         .left-panel {
             position: fixed;
-            /* 上、下、左的距离完全相等，统一设置为 6% */
-            top: 6vh;
-            bottom: 6vh;
+            /* 统一使用 6vw，保证上、下、左的距离绝对相等 */
+            top: 6vw;
+            bottom: 6vw;
             left: 6vw;
-            /* 宽度设置为 48vw，精准占据屏幕一半左右（左边距 6% + 宽度 48% = 54%） */
-            width: 48vw;
-            background-color: #0b111b;
+            /* 宽度从 48vw 增加到了 60vw，往右边拉长 */
+            width: 60vw;
+            background-color: #2c2c2e; /* 改为灰色 */
             border-radius: 60px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             z-index: 10;
@@ -39,10 +38,11 @@
     </style>
 </head>
 <body>
-    <!-- 准确占据左半边的悬浮面板 -->
+    <!-- 左侧纯灰色、完美等距的面板 -->
     <div class="left-panel"></div>
 
     <script>
+        // 页面加载后，依然准确定位到画布正中心
         window.addEventListener('load', function() {
             window.scrollTo(5000, 5000);
         });
