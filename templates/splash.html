@@ -38,6 +38,7 @@
         }
         .top-login-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
+        /* ================= 玻璃质感的空登录弹窗 ================= */
         .modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -47,21 +48,23 @@
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
         .modal-card {
-            background: rgba(22, 27, 34, 0.85); border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px; padding: 32px 24px; width: 90%; max-width: 380px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+            /* 极致的玻璃透感 */
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            
+            /* 尺寸和位置 */
+            width: 80%; max-width: 380px;
+            min-height: 280px;
             transform: scale(0.9) translateY(20px);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
         }
         .modal-overlay.active .modal-card { transform: scale(1) translateY(0); }
-
-        .modal-card h2 { color: #f0f6fc; font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 20px; }
-        .modal-card label { display: block; margin: 12px 0 4px; font-size: 14px; color: #8b949e; }
-        .modal-card input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: rgba(13, 17, 23, 0.8); color: #f0f6fc; margin-bottom: 12px; }
-        .modal-card input:focus { border-color: #58a6ff; }
-        .modal-login-btn { width: 100%; padding: 12px; margin-top: 12px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; }
-        .modal-login-btn:active { transform: scale(0.98); }
-        .modal-close-btn { position: absolute; top: 12px; right: 16px; background: transparent; border: none; color: #8b949e; font-size: 20px; cursor: pointer; }
+        /* ====================================================== */
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -83,13 +86,13 @@
             justify-items: center;
         }
 
-        /* 干净的基础透明毛玻璃按钮 */
+        /* 玻璃按钮 */
         .glass-btn {
             position: relative;
             padding: 14px 0; 
             width: 90%; 
             text-align: center;
-            border-radius: 24px; /* 【核心修改】从 40px 改成了 24px，带有一点直角的长方体 */
+            border-radius: 24px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.35);
             backdrop-filter: blur(8px);
@@ -102,21 +105,14 @@
             display: inline-block;
             z-index: 1;
         }
-        .glass-btn:active {
-            transform: scale(0.94);
-        }
-        .btn-text {
-            position: relative;
-            z-index: 2;
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-        }
+        .glass-btn:active { transform: scale(0.94); }
+        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 20vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
-            .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; } /* 手机端也对应调小圆角 */
+            .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
             .top-login-btn { top: 16px; right: 16px; padding: 6px 16px; font-size: 13px; }
         }
@@ -125,19 +121,9 @@
 <body>
     <button class="top-login-btn" onclick="openLoginModal()">Log in</button>
 
+    <!-- 纯玻璃弹窗，内部空空如也 -->
     <div class="modal-overlay" id="loginModal">
-        <div class="modal-card">
-            <button class="modal-close-btn" onclick="closeLoginModal()">✕</button>
-            <h2>登录 gsbot</h2>
-            <form method="POST" action="/login">
-                <input type="hidden" name="login_type" value="password">
-                <label>邮箱</label>
-                <input type="email" name="email" placeholder="your@qq.com" required>
-                <label>密码</label>
-                <input type="password" name="password" placeholder="输入密码" required>
-                <button type="submit" class="modal-login-btn">登 录</button>
-            </form>
-        </div>
+        <div class="modal-card"></div>
     </div>
 
     <div class="text-group">
@@ -149,9 +135,12 @@
         <a href="/create" class="glass-btn">
             <span class="btn-text">创建作品</span>
         </a>
-        <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">
+        
+        <!-- 👇 点击查看仓库现在没有没有任何反应，静默状态 -->
+        <a href="javascript:void(0);" class="glass-btn">
             <span class="btn-text">查看仓库</span>
         </a>
+        
         <a href="tg://resolve?domain=gsyxyc" class="glass-btn">
             <span class="btn-text">联系开发者</span>
         </a>
@@ -161,9 +150,12 @@
     </div>
 
     <script>
+        // 打开/关闭登录弹窗
         function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
-        document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) { closeLoginModal(); } });
+        document.getElementById('loginModal').addEventListener('click', function(e) { 
+            if (e.target === this) { closeLoginModal(); } 
+        });
 
         document.addEventListener("DOMContentLoaded", function() {
             const bgImg = new Image();
