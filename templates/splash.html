@@ -5,160 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
     <style>
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            /* 核心修复：全局消除浏览器点击时的蓝色高亮框 */
-            -webkit-tap-highlight-color: transparent; 
-        }
-        
-        /* 核心修复：消除按钮点击后或聚焦时的蓝色轮廓线 */
-        button, a, input, textarea, select {
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        button:focus, a:focus, input:focus {
-            outline: none;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
+        button:focus, a:focus, input:focus { outline: none; }
 
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background-image: url("{{ url_for('static', filename='bg.png') }}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding-left: 12%;
-            padding-top: 14vh; 
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            display: flex; flex-direction: column; align-items: flex-start;
+            padding-left: 12%; padding-top: 14vh; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
 
-        /* ================= 右上角 Login 按钮 ================= */
         .top-login-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-            padding: 8px 20px;
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            padding: 8px 20px; border-radius: 30px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
+            color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .top-login-btn:active {
-            transform: scale(0.94);
-            background: rgba(255, 255, 255, 0.15);
-        }
+        .top-login-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 登录弹窗遮罩 ================= */
         .modal-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 999;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 999; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-        .modal-overlay.active {
-            opacity: 1; pointer-events: auto;
-        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* ================= 登录弹窗卡片 ================= */
         .modal-card {
-            background: rgba(22, 27, 34, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            padding: 32px 24px;
-            width: 90%; max-width: 380px;
+            background: rgba(22, 27, 34, 0.85); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px; padding: 32px 24px; width: 90%; max-width: 380px;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
             transform: scale(0.9) translateY(20px);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
         }
-        .modal-overlay.active .modal-card {
-            transform: scale(1) translateY(0);
-        }
+        .modal-overlay.active .modal-card { transform: scale(1) translateY(0); }
 
-        .modal-card h2 {
-            color: #f0f6fc; font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 20px;
-        }
-        .modal-card label {
-            display: block; margin: 12px 0 4px; font-size: 14px; color: #8b949e;
-        }
+        .modal-card h2 { color: #f0f6fc; font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 20px; }
+        .modal-card label { display: block; margin: 12px 0 4px; font-size: 14px; color: #8b949e; }
         .modal-card input {
             width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #30363d;
-            background: rgba(13, 17, 23, 0.8); color: #f0f6fc; margin-bottom: 12px; outline: none;
+            background: rgba(13, 17, 23, 0.8); color: #f0f6fc; margin-bottom: 12px;
         }
         .modal-card input:focus { border-color: #58a6ff; }
-        .modal-login-btn {
-            width: 100%; padding: 12px; margin-top: 12px;
-            background: #238636; color: white; border: none; border-radius: 8px;
-            font-weight: 600; font-size: 16px; cursor: pointer;
-        }
+        .modal-login-btn { width: 100%; padding: 12px; margin-top: 12px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; }
         .modal-login-btn:active { transform: scale(0.98); }
-        .modal-close-btn {
-            position: absolute; top: 12px; right: 16px;
-            background: transparent; border: none; color: #8b949e; font-size: 20px; cursor: pointer;
-        }
+        .modal-close-btn { position: absolute; top: 12px; right: 16px; background: transparent; border: none; color: #8b949e; font-size: 20px; cursor: pointer; }
 
-        /* ================= 入场动画 ================= */
-        @keyframes slideUpFade {
-            0% { opacity: 0; transform: translateY(80px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .text-group {
-            display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
-            opacity: 0;
-            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .btn-group {
-            display: flex; gap: 24px; margin-top: 20px;
-            opacity: 0;
-            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
-        }
+        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .btn-group { display: flex; gap: 24px; margin-top: 20px; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
 
         .text-pattern {
-            color: #ffffff;
-            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
-            background-size: cover; background-position: center;
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 900; text-align: left; margin: 0;
-            letter-spacing: 8px; text-shadow: none;
-            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased;
-            line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
+            color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
+            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
         }
-
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        .glass-btn {
-            padding: 14px 32px; border-radius: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            cursor: pointer; letter-spacing: 1px; text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block;
-        }
+        .glass-btn { padding: 14px 32px; border-radius: 40px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); cursor: pointer; letter-spacing: 1px; text-decoration: none; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; }
         .glass-btn:active { transform: scale(0.94); }
-
-        .btn-text {
-            font-size: 18px; font-weight: 600; color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-        }
+        .btn-text { font-size: 18px; font-weight: 600; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
 
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 12vh; }
@@ -197,7 +111,8 @@
     </div>
     
     <div class="btn-group">
-        <a href="#" class="glass-btn" onclick="alert('后续将跳转至创建作品页面')">
+        <!-- 👇 修改了这里：链接改成了 /create，去掉了 onclick 弹窗提示 -->
+        <a href="/create" class="glass-btn">
             <span class="btn-text">创建作品</span>
         </a>
         <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">
@@ -206,20 +121,9 @@
     </div>
 
     <script>
-        // 打开登录弹窗
-        function openLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
-        }
-        // 关闭登录弹窗
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.remove('active');
-        }
-        // 点击遮罩空白处自动关闭
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeLoginModal();
-            }
-        });
+        function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+        document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) { closeLoginModal(); } });
     </script>
 </body>
 </html>
