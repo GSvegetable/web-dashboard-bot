@@ -77,7 +77,7 @@
         #ropes-svg {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none; z-index: 1000;
-            opacity: 0; /* ⚠️ 关键修复：没点击时绝对隐藏！ */
+            opacity: 0;
         }
 
         @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -119,7 +119,7 @@
 <body>
     <button class="top-login-btn" onclick="openLoginModal()">Log in</button>
 
-    <!-- 两根白绳的 SVG (默认透明) -->
+    <!-- 两根白绳的 SVG -->
     <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
         <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
@@ -128,7 +128,7 @@
     <!-- 登录卡片弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
-            <!-- 弹窗内部留空，后续加什么你再加 -->
+            <!-- 弹窗内部留空 -->
         </div>
     </div>
 
@@ -140,7 +140,12 @@
     <div class="btn-grid">
         <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
         <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
-        <a href="tg://resolve?domain=gsyxyc" class="glass-btn"><span class="btn-text">联系开发者</span></a>
+        
+        <!-- 👇 联系开发者已改回网页版链接，并加上新窗口打开 -->
+        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank">
+            <span class="btn-text">联系开发者</span>
+        </a>
+        
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn"><span class="btn-text">全屏显示</span></a>
     </div>
 
@@ -152,68 +157,49 @@
             const ropeR = document.getElementById('rope-r');
             const ropesContainer = document.getElementById('ropes-svg');
 
-            // 1. 获取卡片精确的左右边缘位置 (基于屏幕窗口宽度的百分比)
-            // 因为卡片是 width: 80%，左间距 10%，所以绳子的底部连接点必须始终位于 10% 和 90%
             const leftX = 10;
             const rightX = 90;
-            // 设定绳子延伸到卡片顶部的纵向高度百分比 (卡片的顶部)
             const targetY = 15; 
 
-            // 2. 预先定义绳子动画：先弯曲（准备下落），再拉直（随卡片下坠）
             const curvedL = `M ${leftX} 0 Q ${leftX - 10} ${targetY * 0.8}, ${leftX} ${targetY}`;
             const curvedR = `M ${rightX} 0 Q ${rightX + 10} ${targetY * 0.8}, ${rightX} ${targetY}`;
             const straightL = `M ${leftX} 0 L ${leftX} ${targetY}`;
             const straightR = `M ${rightX} 0 L ${rightX} ${targetY}`;
 
-            // 3. 激活弹出层，并重置所有元素到屏幕外初始状态
             overlay.classList.add('active');
-            ropesContainer.style.opacity = '1'; // ✅ 解决不点按钮就出现：只在点击后显示绳子
+            ropesContainer.style.opacity = '1';
             
-            gsap.set(card, { y: '-100vh', rotation: 0, x: 0 });      // 卡片在屏幕外
-            gsap.set(ropeL, { attr: { d: curvedL } }); // 绳子松弛弯曲
+            gsap.set(card, { y: '-100vh', rotation: 0, x: 0 });
+            gsap.set(ropeL, { attr: { d: curvedL } });
             gsap.set(ropeR, { attr: { d: curvedR } });
 
-            // 4. 核心物理动画时间线
             const tl = gsap.timeline();
-            
-            // 卡片下坠 + 物理回弹 + 左右摇晃 + 极小翻转
             tl.to(card, { 
                 y: 0, 
-                x: 15,               // 下坠时往右偏一点（模拟绳子悬挂的惯性）
-                rotation: 3,         // 微微向右翻转
+                x: 15, 
+                rotation: 3, 
                 duration: 1.2, 
-                ease: "bounce.out"   // 两到三下真实回弹
+                ease: "bounce.out" 
             }, 0)
             .to(card, { 
-                x: -10,              // 回弹起来时往左偏
+                x: -10, 
                 rotation: -2,
                 duration: 0.6, 
                 ease: "power2.out" 
-            }, 1.2) // 稍微错开时间
+            }, 1.2)
             .to(card, { 
-                x: 0,                // 最终稳定在正中间
+                x: 0, 
                 rotation: 0,
                 duration: 0.4, 
                 ease: "power2.out" 
             }, 1.8);
 
-            // 同时，绳子跟随卡片：从松弛弯曲变成笔直绷紧
-            tl.to(ropeL, { 
-                attr: { d: straightL }, 
-                duration: 1.6, 
-                ease: "power2.inOut" 
-            }, 0)
-            .to(ropeR, { 
-                attr: { d: straightR }, 
-                duration: 1.6, 
-                ease: "power2.inOut" 
-            }, 0);
+            tl.to(ropeL, { attr: { d: straightL }, duration: 1.6, ease: "power2.inOut" }, 0)
+            .to(ropeR, { attr: { d: straightR }, duration: 1.6, ease: "power2.inOut" }, 0);
         }
 
         function closeLoginModal() {
-            const overlay = document.getElementById('loginModal');
-            overlay.classList.remove('active');
-            // 弹窗关掉后，把绳子再次隐藏
+            document.getElementById('loginModal').classList.remove('active');
             document.getElementById('ropes-svg').style.opacity = '0';
         }
 
