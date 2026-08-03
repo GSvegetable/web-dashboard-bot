@@ -7,15 +7,12 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            /* 依然保持无限大的滑动空间 */
             width: 10000px;
             height: 10000px;
             overflow: auto;
             background-color: #000000;
-            /* 保持之前调好的浅灰色点阵 */
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='1.5' height='1.5' fill='%23d0d0d0'/%3E%3C/svg%3E");
             background-repeat: repeat;
-            /* 彻底隐藏侧边和底部的滚动条 */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -24,36 +21,33 @@
             display: none;
         }
 
-        /* 右侧悬浮面板的核心样式 */
-        .right-panel {
+        /* 左侧超大的悬浮面板 */
+        .left-panel {
             position: fixed;
-            /* 离右边界留 5% 的空隙 */
-            right: 5vw;
+            /* 放到画面左边，留出大概 5% 的左间距 */
+            left: 5vw;
             /* 垂直绝对居中 */
             top: 50%;
             transform: translateY(-50%);
-            /* 占右侧将近一半，不贴边 */
-            width: 40vw;
-            /* 高度占屏幕的 80%，且上下不贴边 */
-            height: 80vh;
-            /* 黑偏蓝的底色 */
+            /* 放大现在的三倍：宽度占满左侧 85%，高度占满 90% */
+            width: 85vw;
+            height: 90vh;
+            /* 黑偏蓝的颜色 */
             background-color: #0b111b;
-            /* 极其圆润的边角 */
-            border-radius: 70px;
-            /* 加一点阴影让它浮在点阵上方 */
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+            /* 保持极致的圆润感 */
+            border-radius: 80px;
+            /* 悬浮阴影 */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             z-index: 10;
-            /* 防止阻挡背景的滑动操作，后续你想点它的话可以修改这里 */
             pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <!-- 右侧悬浮面板 -->
-    <div class="right-panel"></div>
+    <!-- 左侧超大悬浮面板 -->
+    <div class="left-panel"></div>
 
     <script>
-        // 页面加载后，强制把视口定位到画布正中心（5000, 5000）
         window.addEventListener('load', function() {
             window.scrollTo(5000, 5000);
         });
