@@ -75,6 +75,11 @@ def verify_turnstile(token):
 def splash():
     return render_template('splash.html')
 
+# 👇 新增的纯黑页面路由
+@app.route('/create')
+def create():
+    return render_template('create.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
