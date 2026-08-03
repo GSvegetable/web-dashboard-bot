@@ -117,7 +117,7 @@
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             padding: 16px;
-            min-height: 220px;
+            min-height: 200px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -132,71 +132,98 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 中世纪 3D 堆叠表单 ================= */
-        .stack-wrapper {
+        /* ================= 精确复刻的 3D 斜切堆叠表单 ================= */
+        .form {
             width: 100%;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            position: relative;
-            padding: 0 8px;
         }
-        .stack-item {
+        .wrapper {
             position: relative;
+            transform: skewY(-4deg);
+            list-style: none;
+            padding: 0; margin: 0;
+            width: 80%;
+        }
+        .wrapper li {
+            position: relative;
+            list-style: none;
             width: 100%;
-            padding: 12px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: -6px; /* 上下堆叠产生3D重叠错觉 */
-            border-radius: 6px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+            height: 40px;
             z-index: var(--i);
-            border: 1px solid rgba(255, 255, 255, 0.02);
+            margin-bottom: -6px; /* 产生层叠的关键 */
         }
-        .stack-item:first-child { margin-top: 0; border-radius: 12px 12px 0 0; }
-        .stack-item:last-child { border-radius: 0 0 12px 12px; }
-
-        /* 仿中世纪暗黑建筑的配色 */
-        .stack-item:nth-child(1) { background: #35393d; } /* 邮箱 */
-        .stack-item:nth-child(2) { background: #2a2d31; } /* 输入密码 */
-        .stack-item:nth-child(3) { background: #1f2225; } /* 确定密码 */
-        .stack-item:nth-child(4) { background: #af693d; } /* 注册（暖黄橙光） */
-
-        .stack-input {
-            width: 90%;
-            padding: 8px 0;
-            background: transparent;
+        /* 输入框与按钮的公共样式 */
+        .wrapper li .input, 
+        .wrapper li .button {
+            width: 100%;
+            height: 40px;
             border: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #e0e0e0;
+            padding: 0 16px;
+            position: relative;
+            z-index: 2;
             font-size: 15px;
-            transition: border-bottom 0.3s ease;
-            text-align: center;
+            color: #f0f0f0;
         }
-        .stack-input::placeholder {
-            color: #999999;
-            letter-spacing: 0.5px;
+        .wrapper li .input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
-        .stack-input:focus {
-            border-bottom: 2px solid #e6b28c; /* 中世纪暖黄高光 */
+        .wrapper li .input:focus {
             outline: none;
+            border-bottom: 2px solid rgba(255, 200, 150, 0.6); /* 中世纪暖光 */
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .wrapper li .button {
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .wrapper li .button:active {
+            transform: scale(0.94);
         }
 
-        .stack-btn {
-            width: 90%;
-            padding: 8px 0;
-            background: transparent;
-            border: none;
-            color: #f4e3d5;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            letter-spacing: 2px;
-            transition: transform 0.2s;
+        /* 3D 厚度两侧与底部斜切伪元素 */
+        .wrapper li::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -40px;
+            width: 40px; height: 100%;
+            transform-origin: right;
+            transform: skewY(45deg);
+            z-index: 1;
         }
-        .stack-btn:active { transform: scale(0.94); }
+        .wrapper li::after {
+            content: '';
+            position: absolute;
+            top: -40px; left: 0;
+            width: 100%; height: 40px;
+            transform-origin: bottom;
+            transform: skewX(45deg);
+            z-index: 1;
+        }
+
+        /* 中世纪暗黑图配色（4层递进） */
+        /* 第1层：邮箱 */
+        .wrapper li:nth-child(1) { background: #3a3f44; }
+        .wrapper li:nth-child(1)::before { background: #2a2e32; }
+        .wrapper li:nth-child(1)::after { background: #2a2e32; }
+
+        /* 第2层：输入密码 */
+        .wrapper li:nth-child(2) { background: #2d3236; }
+        .wrapper li:nth-child(2)::before { background: #1f2225; }
+        .wrapper li:nth-child(2)::after { background: #1f2225; }
+
+        /* 第3层：确定密码 */
+        .wrapper li:nth-child(3) { background: #212428; }
+        .wrapper li:nth-child(3)::before { background: #141619; }
+        .wrapper li:nth-child(3)::after { background: #141619; }
+
+        /* 第4层：注册（暖黄火光） */
+        .wrapper li:nth-child(4) { background: #db7c45; }
+        .wrapper li:nth-child(4)::before { background: #bd6535; }
+        .wrapper li:nth-child(4)::after { background: #bd6535; }
+        .wrapper li:nth-child(4) .button { color: #23140c; } /* 深棕字 */
 
         /* ================= 背景模糊层 ================= */
         .bg-blur {
@@ -254,10 +281,10 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
-            #login-dropdown { width: 90%; padding: 12px; min-height: 180px; }
-            .stack-item { padding: 10px 0; }
-            .stack-input { font-size: 14px; }
-            .stack-btn { font-size: 14px; }
+            #login-dropdown { width: 90%; padding: 12px; min-height: 150px; }
+            .wrapper { width: 90%; }
+            .wrapper li { height: 36px; }
+            .wrapper li .input, .wrapper li .button { font-size: 14px; }
         }
     </style>
 </head>
@@ -271,21 +298,23 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <!-- 被替换为 4 层中世纪 3D 堆叠表单 -->
-            <div class="stack-wrapper">
-                <div class="stack-item" style="--i: 4;">
-                    <input type="text" placeholder="邮箱" class="stack-input">
-                </div>
-                <div class="stack-item" style="--i: 3;">
-                    <input type="password" placeholder="输入密码" class="stack-input">
-                </div>
-                <div class="stack-item" style="--i: 2;">
-                    <input type="password" placeholder="确定密码" class="stack-input">
-                </div>
-                <div class="stack-item" style="--i: 1;">
-                    <button class="stack-btn">注册</button>
-                </div>
-            </div>
+            <!-- 完全照着 Uiverse 骨架搭出来的 3D 暗黑表单 -->
+            <form class="form">
+                <ul class="wrapper">
+                    <li style="--i:4;">
+                        <input class="input" type="text" placeholder="邮箱" required>
+                    </li>
+                    <li style="--i:3;">
+                        <input class="input" type="password" placeholder="输入密码" required>
+                    </li>
+                    <li style="--i:2;">
+                        <input class="input" type="password" placeholder="确定密码" required>
+                    </li>
+                    <li style="--i:1;">
+                        <button class="button">注册</button>
+                    </li>
+                </ul>
+            </form>
         </div>
 
         <button class="theme-btn" onclick="toggleTheme(event)">
@@ -311,15 +340,13 @@
     <script>
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
-        // 背景图
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
-        // 文字纹理图
         const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
 
-        // ================= 1. 双向动画 + 文字纹理同步换 =================
+        // ================= 1. 双向切换动画 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
