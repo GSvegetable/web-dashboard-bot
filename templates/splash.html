@@ -28,16 +28,32 @@
         }
         body.loaded { opacity: 1; }
 
-        .top-login-btn {
-            position: fixed; top: 20px; right: 20px; z-index: 100;
-            padding: 8px 20px; border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            color: #ffffff; font-size: 14px; font-weight: 500; cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* ================= 新增：顶部双按钮容器 ================= */
+        .top-actions {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 12px; /* 两个按钮之间的间距 */
         }
-        .top-login-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+        .top-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
         /* ================= 背景模糊 (6px) ================= */
         .modal-overlay {
@@ -62,7 +78,6 @@
             min-height: 280px;
             position: relative;
             overflow: hidden;
-            /* 初始放在屏幕外，用于动画 */
             transform: translateY(-110vh); 
         }
         .modal-card::before {
@@ -73,7 +88,7 @@
         }
         .modal-card > * { position: relative; z-index: 2; }
 
-        /* ================= 两跟白绳子 (默认完全隐藏) ================= */
+        /* ================= 两根白绳子 (默认隐藏) ================= */
         #ropes-svg {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none; z-index: 1000;
@@ -112,12 +127,17 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-login-btn { top: 16px; right: 16px; padding: 6px 16px; font-size: 13px; }
+            .top-actions { top: 16px; right: 16px; gap: 10px; }
+            .top-btn { font-size: 13px; padding: 6px 16px; }
         }
     </style>
 </head>
 <body>
-    <button class="top-login-btn" onclick="openLoginModal()">Log in</button>
+    <!-- ================= 新增：顶部双按钮 ================= -->
+    <div class="top-actions">
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" onclick="openLoginModal()">Log in</button>
+    </div>
 
     <!-- 两根白绳的 SVG -->
     <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -128,7 +148,7 @@
     <!-- 登录卡片弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
-            <!-- 弹窗内部留空 -->
+            <!-- 弹窗内部留空，供你后续添加 -->
         </div>
     </div>
 
@@ -141,12 +161,14 @@
         <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
         <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
         
-        <!-- 👇 联系开发者已改回网页版链接，并加上新窗口打开 -->
         <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank">
             <span class="btn-text">联系开发者</span>
         </a>
         
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="glass-btn"><span class="btn-text">全屏显示</span></a>
+        <!-- 👇 原来的全屏显示按钮已改为加入社区 -->
+        <a href="javascript:void(0);" class="glass-btn">
+            <span class="btn-text">加入社区</span>
+        </a>
     </div>
 
     <script>
