@@ -28,7 +28,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散波纹层（直接替换为图片切换） ================= */
+        /* 扩散/收缩 遮罩层 */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -38,10 +38,12 @@
             background-image: var(--bg-img); /* 默认和背景图一致 */
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
+            /* 开启硬件加速，防止动画闪烁 */
+            will-change: clip-path;
             transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* ================= 顶部三连排按钮 ================= */
+        /* 顶部三连排 */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -164,10 +166,8 @@
     </style>
 </head>
 <body>
-    <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
-    <!-- 顶部三连排按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
@@ -179,13 +179,11 @@
         </button>
     </div>
 
-    <!-- 两根白绳 -->
     <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
         <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
     </svg>
 
-    <!-- 登录弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
         </div>
@@ -209,39 +207,38 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 图片扩散切换逻辑 =================
+        // ================= 丝滑双方向扩散/收缩切换 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 1. 立即重置圆环为 0（取消动画）
+            // 切换状态
+            isDefaultBg = !isDefaultBg;
+
+            // 根据状态决定动画是“扩散出去”还是“原路收回”
+            // 切到新图 (0 -> 150)
+            // 切回原图 (150 -> 0)
+            const startClip = isDefaultBg ? '150%' : '0%';    // 起点
+            const endClip = isDefaultBg ? '0%' : '150%';      // 终点
+
+            // 关闭过渡，瞬间重置圆心和起点
             themeRing.style.transition = 'none';
-            themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+            themeRing.style.backgroundImage = `url("${isDefaultBg ? defaultBgUrl : newBgUrl}")`;
+            themeRing.style.clipPath = `circle(${startClip} at ${x}px ${y}px)`;
 
-            // 2. 强制浏览器完成重置
+            // 让浏览器强制刷新上面的重置
             requestAnimationFrame(() => {
-                // 3. 在下一帧切换背景图，并直接修改圆环的背景图属性
-                isDefaultBg = !isDefaultBg;
-                
-                // 直接在这里替换圆环的背景图！这样无论切哪个方向，都是“新图向外扩散”
-                if (isDefaultBg) {
-                    themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
-                } else {
-                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                }
-
-                // 4. 再度请求一帧，确保图片切换完成
                 requestAnimationFrame(() => {
-                    // 5. 重新开启过渡动画，并执行放大
+                    // 开启过渡，移动到终点
                     themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                    themeRing.style.clipPath = `circle(${endClip} at ${x}px ${y}px)`;
                 });
             });
         }
 
-        // 登录弹窗逻辑（绳子下落 + GSAP回弹）
+        // ================= 登录弹窗逻辑（绳子下坠 GSAP）=================
         function openLoginModal() {
             const overlay = document.getElementById('loginModal');
             const card = document.getElementById('modal-card');
