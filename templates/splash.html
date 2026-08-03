@@ -88,7 +88,7 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 登录下拉面板 (输入框调整) ================= */
+        /* ================= 登录下拉面板 ================= */
         #login-dropdown {
             position: absolute;
             top: 110%;
@@ -119,11 +119,11 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* 登录面板输入框样式（变窄一点，加长一点） */
+        /* ================= 登录面板输入框（拉长、左对齐修正） ================= */
         .InputGroup {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0.6em 0;
-            max-width: 280px; /* 控制输入框整体宽度稍窄 */
+            max-width: 380px; /* 两边拉长 */
             width: 100%;
             position: relative;
             display: flex;
@@ -131,7 +131,7 @@
         }
         .InputGroup input {
             font-size: 15px;
-            padding: 0.6em 1.2em; /* 上下边距缩小，左右拉伸加长 */
+            padding: 0.6em 1.2em;
             outline: none;
             border: 1px solid rgba(255, 255, 255, 0.3);
             background-color: transparent;
@@ -148,7 +148,7 @@
             position: absolute;
             left: 0;
             padding: 0.6em 1.2em;
-            margin-left: 0.5em;
+            margin-left: 0;
             pointer-events: none;
             transition: all 0.3s ease;
             color: rgba(255, 255, 255, 0.5);
@@ -191,6 +191,7 @@
             text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
         }
         .main-title { font-size: 64px; }
+        /* 修改文字内容，样式完全保留 */
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
@@ -217,7 +218,7 @@
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
             #login-dropdown { width: 90%; padding: 16px; min-height: 200px; }
-            .InputGroup { max-width: 220px; }
+            .InputGroup { max-width: 90%; }
         }
     </style>
 </head>
@@ -231,12 +232,11 @@
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
         <div id="login-dropdown">
-            <!-- 登录面板表单 -->
+            <!-- 拉长且左对齐的输入框 -->
             <div class="InputGroup">
                 <input type="text" id="login-email" required>
                 <label for="login-email">邮箱</label>
             </div>
-            <!-- 新增：一模一样的密码输入框 -->
             <div class="InputGroup">
                 <input type="password" id="login-password" required>
                 <label for="login-password">密码</label>
@@ -253,7 +253,8 @@
 
     <div class="text-group">
         <h1 class="text-pattern main-title">宫水大世界</h1>
-        <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
+        <!-- 已按要求修改为 Telegram Bot Editor，其他全部不变 -->
+        <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
     </div>
     
     <div class="btn-grid">
@@ -280,7 +281,6 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
@@ -292,7 +292,6 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩修复】保持新图不换，收完波纹瞬间替换
                 gsap.set(themeRing, { 
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
@@ -319,7 +318,6 @@
             if (loginTl) loginTl.kill();
             
             if (isLoginOpen) {
-                // 关闭
                 loginTl = gsap.timeline();
                 loginTl.to(panel, { scaleY: 0, opacity: 0, duration: 0.3, ease: "power2.in", transformOrigin: "top center" });
                 loginTl.to(blurBg, { backdropFilter: "blur(0px)", background: "rgba(0,0,0,0)", duration: 0.3 }, 0);
@@ -329,7 +327,6 @@
                 return;
             }
 
-            // 开启
             panel.classList.add('active');
             blurBg.classList.add('active');
             isLoginOpen = true;
@@ -348,7 +345,6 @@
             loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.9 }, 0);
         }
 
-        // 新增：点击网页任意空白位置（非面板、非按钮）直接关闭面板
         document.addEventListener('click', function(e) {
             const panel = document.getElementById('login-dropdown');
             const btn = document.getElementById('loginBtn');
