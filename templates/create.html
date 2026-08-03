@@ -7,22 +7,33 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            /* 设置成一个超大尺寸的容器，让滑动永远摸不到边 */
-            width: 5000px;
-            height: 5000px;
-            overflow: auto;  /* 允许上下左右自由滑动 */
+            /* 设置为一个巨大的画布（10000px），保证完全滑不到头 */
+            width: 10000px;
+            height: 10000px;
+            overflow: auto; /* 允许自由上下左右滑动 */
             background-color: #000000;
             
-            /* 核心图案：使用绝对均匀的 SVG 铺满 */
+            /* 绝对均匀的点阵：点距 50px，点大小 1.5px，浅灰色 */
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='1.5' height='1.5' fill='%23d0d0d0'/%3E%3C/svg%3E");
             background-repeat: repeat;
             
-            /* 防止触碰到边缘时产生不顺畅的拉拽效果 */
-            overscroll-behavior: none;
+            /* 彻底隐藏滚动条 */
+            scrollbar-width: none;      /* Firefox */
+            -ms-overflow-style: none;   /* IE/Edge */
+        }
+        
+        /* Chrome/Safari 隐藏滚动条 */
+        body::-webkit-scrollbar {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- 巨大的画布空间，所有角落的点阵绝对一致且距离均匀 -->
+    <script>
+        // 页面完全加载后，强制把视口定位到整个画布的正中心
+        window.addEventListener('load', function() {
+            window.scrollTo(5000, 5000);
+        });
+    </script>
 </body>
 </html>
