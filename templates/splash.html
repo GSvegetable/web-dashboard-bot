@@ -33,11 +33,11 @@
         /* ================= 顶部图片占位 ================= */
         .top-image {
             width: 100vw;
-            height: 60vh; /* 占据屏幕上半部分 */
-            /* 已替换为你最新上传的图片名 */
+            height: 100vh; /* 撑满整个屏幕高度，确保完整显示整张图片 */
             background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
-            background-size: cover;
-            background-position: center;
+            /* 改为 contain，绝不裁切图片，完整展示全部内容 */
+            background-size: contain;
+            background-position: center center;
             background-repeat: no-repeat;
             flex-shrink: 0;
             z-index: 0;
@@ -49,7 +49,7 @@
             z-index: 1;
             width: 100%;
             padding-left: 12%;
-            padding-top: 10vh;
+            padding-top: 8vh; /* 稍微往上提一点，让文字出现时更靠上 */
             padding-bottom: 15vh;
             display: flex;
             flex-direction: column;
@@ -150,8 +150,8 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            .top-image { height: 45vh; }
-            .content-area { padding-left: 6%; padding-top: 8vh; }
+            .top-image { height: 90vh; /* 手机端留一点点距离给下拉提示，也可以保持 100vh */ }
+            .content-area { padding-left: 6%; padding-top: 5vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -166,7 +166,7 @@
     <!-- 扩散/收缩遮罩层 -->
     <div id="theme-ring"></div>
 
-    <!-- 顶部图片 -->
+    <!-- 顶部图片 (高度撑满) -->
     <div class="top-image"></div>
 
     <!-- 固定悬浮的三连按钮 -->
