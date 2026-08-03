@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- 引入 GSAP 动画库 -->
+    <!-- 引入 GSAP 及其滚动触发插件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
@@ -17,37 +18,78 @@
         }
 
         body {
-            width: 100vw; height: 100vh; overflow: hidden;
-            background-color: #000000;
-            background-image: var(--bg-img);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            display: flex; flex-direction: column; align-items: flex-start;
-            padding-left: 12%; padding-top: 14vh; 
+            /* 取消锁定，改为可上下滚动 */
+            width: 100vw;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background-color: #0d1117; /* 纯黑偏深灰底色 */
+            display: flex;
+            flex-direction: column;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层 ================= */
-        #theme-ring {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none;
+        /* ================= 顶部图片占位 ================= */
+        .top-image {
+            width: 100vw;
+            height: 60vh; /* 占据屏幕上半部分 */
+            background-image: url("{{ url_for('static', filename='Screenshot_20260804_070126.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            flex-shrink: 0;
             z-index: 0;
-            background-color: transparent;
-            background-image: var(--bg-img);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            clip-path: circle(0% at 0 0);
-            will-change: clip-path, background-image;
         }
 
-        /* ================= 顶部按钮容器 ================= */
+        /* ================= 核心内容区（将被动画触发） ================= */
+        .content-area {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding-left: 12%;
+            padding-top: 10vh;
+            padding-bottom: 15vh;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .text-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
+            gap: 6px;
+            /* 初始隐藏，交由 ScrollTrigger 控制 */
+            opacity: 0; 
+            transform: translateY(60px); 
+        }
+
+        .text-pattern {
+            color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
+            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
+        }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
+
+        .btn-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            width: 100%; max-width: 320px;
+            margin-top: 30px;
+            justify-items: center;
+            /* 初始隐藏 */
+            opacity: 0;
+            transform: translateY(60px);
+        }
+
+        /* ================= 顶部固定悬浮的三连按钮 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 100;
+            z-index: 9999; /* 绝对高于一切 */
             display: flex;
             align-items: center;
             gap: 12px;
@@ -60,67 +102,39 @@
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-decoration: none;
+            color: #ffffff; font-size: 14px; font-weight: 500;
+            cursor: pointer; text-decoration: none;
             display: flex; align-items: center; justify-content: center;
-            border: none;
-            touch-action: manipulation;
+            border: none; touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-
         .theme-btn {
-            width: 34px; height: 34px;
-            padding: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            width: 34px; height: 34px; padding: 0; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            cursor: pointer;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #ffffff; touch-action: manipulation;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex; align-items: center; justify-content: center;
-            color: #ffffff;
-            touch-action: manipulation;
         }
-        .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-
-        /* ================= 顶部按钮的入场动画：从右侧滑入 ================= */
-        @keyframes slideInFromRight {
-            0% { opacity: 0; transform: translateX(280px); }
-            100% { opacity: 1; transform: translateX(0); }
+        /* 全员果冻按压反馈 */
+        .top-btn:active, .theme-btn:active, .glass-btn:active {
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.15);
         }
-        .top-actions .top-btn, .top-actions .theme-btn {
-            opacity: 0;
-            animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+        /* ================= 扩散遮罩层 ================= */
+        #theme-ring {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 0;
+            background-color: transparent;
+            background-image: var(--bg-img);
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            clip-path: circle(0% at 0 0);
+            will-change: clip-path, background-image;
         }
-        .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
-        .top-actions .theme-btn:nth-child(2) { animation-delay: 0.6s; }
 
-        /* ================= 文字与底部按钮 ================= */
-        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
-        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
-        .text-pattern {
-            color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
-            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
-            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
-        }
-        .main-title { font-size: 64px; }
-        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; margin-top: 20px; justify-items: center; }
-        .btn-grid .glass-btn { opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .btn-grid .glass-btn:nth-child(1) { animation-delay: 0.1s; }
-        .btn-grid .glass-btn:nth-child(2) { animation-delay: 0.3s; }
-        .btn-grid .glass-btn:nth-child(3) { animation-delay: 0.5s; }
-        .btn-grid .glass-btn:nth-child(4) { animation-delay: 0.7s; }
-
+        /* 最底部按钮统一玻璃质感 */
         .glass-btn {
             position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
@@ -128,14 +142,15 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
             color: #ffffff; font-size: 18px; font-weight: 600;
             cursor: pointer; letter-spacing: 1px; text-decoration: none;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block; z-index: 1;
-            touch-action: manipulation;
+            display: inline-block; z-index: 1; touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            body { padding-left: 6%; padding-top: 20vh; }
+            .top-image { height: 45vh; }
+            .content-area { padding-left: 6%; padding-top: 8vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -147,11 +162,17 @@
     </style>
 </head>
 <body>
+    <!-- 扩散/收缩遮罩层 -->
     <div id="theme-ring"></div>
 
-    <!-- 顶部按钮 -->
+    <!-- 顶部图片 -->
+    <div class="top-image"></div>
+
+    <!-- 固定悬浮的三连按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <!-- 恢复 Log in 按钮（目前无反应，但有果冻动画） -->
+        <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -160,19 +181,25 @@
         </button>
     </div>
 
-    <div class="text-group">
-        <h1 class="text-pattern main-title">宫水大世界</h1>
-        <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
-    </div>
-    
-    <div class="btn-grid">
-        <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
-        <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
-        <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
-        <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
+    <!-- 向下滑动才会触发的核心内容区 -->
+    <div class="content-area">
+        <div class="text-group">
+            <h1 class="text-pattern main-title">宫水大世界</h1>
+            <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
+        </div>
+        
+        <div class="btn-grid">
+            <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
+            <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
+        </div>
     </div>
 
     <script>
+        // 注册 GSAP 滚动触发器插件
+        gsap.registerPlugin(ScrollTrigger);
+
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
@@ -184,6 +211,7 @@
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
+        // ================= 1. 双向切换动画 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -220,15 +248,9 @@
             }
         }
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-            }
-        }
-
+        // ================= 2. 滚动触发入场动画 =================
         document.addEventListener("DOMContentLoaded", function() {
+            // 页面打开时，先加载背景图
             const bgImg = new Image();
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
@@ -236,7 +258,45 @@
             setTimeout(() => {
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
+
+            // 监听滚动，让文字和按钮在滑到屏幕时播放动画
+            gsap.fromTo(".text-group", 
+                { opacity: 0, y: 80 }, 
+                {
+                    opacity: 1, y: 0,
+                    duration: 1.2,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: ".content-area",
+                        start: "top 70%", // 当 content-area 的顶部进入视口 70% 位置时触发
+                        toggleActions: "play none none none"
+                    }
+                }
+            );
+            gsap.fromTo(".btn-grid", 
+                { opacity: 0, y: 80 }, 
+                {
+                    opacity: 1, y: 0,
+                    duration: 1.2,
+                    delay: 0.2, // 比文字稍微晚一点点
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: ".content-area",
+                        start: "top 70%", // 同步触发
+                        toggleActions: "play none none none"
+                    }
+                }
+            );
         });
+
+        // ================= 3. 全屏显示 =================
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+            }
+        }
     </script>
 </body>
 </html>
