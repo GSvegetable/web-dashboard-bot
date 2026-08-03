@@ -24,11 +24,11 @@
         @keyframes slideUpFade {
             0% {
                 opacity: 0;
-                transform: translateY(35px); /* 从下方升起 */
+                transform: translateY(80px); /* 【修改】轨迹从 35px 加长到了 80px，上升距离更长 */
             }
             100% {
                 opacity: 1;
-                transform: translateY(0);    /* 回到原位 */
+                transform: translateY(0);
             }
         }
 
@@ -37,18 +37,18 @@
             flex-direction: column;
             align-items: flex-start; 
             gap: 6px;
-            /* 文字整体先出来 */
             opacity: 0;
-            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            /* 【修改】动画时长从 0.7s 延长到 1.2s，运动更慢更优雅 */
+            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .btn-group {
             display: flex;
             gap: 24px;
             margin-top: 20px;
-            /* 按钮延迟 0.25 秒后跟随出来 */
             opacity: 0;
-            animation: slideUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+            /* 【修改】延迟时间从 0.25s 延长到 0.4s，错开感更明显 */
+            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
         }
         /* ================================================ */
 
