@@ -38,27 +38,28 @@
         }
         .top-login-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 玻璃质感的空登录弹窗 ================= */
+        /* ================= 修正：纯透玻璃弹窗 ================= */
         .modal-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            /* 背景用极深色，负责模糊底图 */
+            background: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             z-index: 999; display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
         .modal-card {
-            /* 极致的玻璃透感 */
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border-radius: 40px;
+            /* 【核心修复】去掉它自己的模糊滤镜，只让底图模糊透上来 */
+            background: rgba(255, 255, 255, 0.08); /* 非常浅的半透明白色 */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 32px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             
             /* 尺寸和位置 */
             width: 80%; max-width: 380px;
-            min-height: 280px;
+            min-height: 260px;
             transform: scale(0.9) translateY(20px);
             transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
@@ -86,7 +87,6 @@
             justify-items: center;
         }
 
-        /* 玻璃按钮 */
         .glass-btn {
             position: relative;
             padding: 14px 0; 
@@ -121,7 +121,7 @@
 <body>
     <button class="top-login-btn" onclick="openLoginModal()">Log in</button>
 
-    <!-- 纯玻璃弹窗，内部空空如也 -->
+    <!-- 玻璃空弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card"></div>
     </div>
@@ -135,12 +135,9 @@
         <a href="/create" class="glass-btn">
             <span class="btn-text">创建作品</span>
         </a>
-        
-        <!-- 👇 点击查看仓库现在没有没有任何反应，静默状态 -->
         <a href="javascript:void(0);" class="glass-btn">
             <span class="btn-text">查看仓库</span>
         </a>
-        
         <a href="tg://resolve?domain=gsyxyc" class="glass-btn">
             <span class="btn-text">联系开发者</span>
         </a>
@@ -150,7 +147,6 @@
     </div>
 
     <script>
-        // 打开/关闭登录弹窗
         function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
         document.getElementById('loginModal').addEventListener('click', function(e) { 
