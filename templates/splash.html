@@ -23,11 +23,13 @@
             background-size: cover; background-position: center; background-repeat: no-repeat;
             opacity: 0;
             transition: opacity 0.4s ease;
+            display: flex; flex-direction: column; align-items: flex-start;
+            padding-left: 12%; padding-top: 14vh; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层（同时包裹背景与文字） ================= */
+        /* ================= 扩散/收缩遮罩层 ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -38,35 +40,7 @@
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
             will-change: clip-path, background-image;
-            
-            /* 新增：文字排版布局，直接受 clip-path 控制 */
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-            padding-left: 12%;
-            padding-top: 14vh;
         }
-
-        .text-group {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 6px;
-            opacity: 0;
-            animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .text-pattern {
-            color: #ffffff;
-            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
-            background-size: cover; background-position: center;
-            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
-            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
-        }
-        .main-title { font-size: 64px; }
-        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
         /* ================= 顶部三连排容器 ================= */
         .top-actions {
@@ -145,7 +119,7 @@
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 登录面板输入框 ================= */
+        /* 登录面板输入框（拉长、左对齐） */
         .InputGroup {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0.6em 0;
@@ -206,7 +180,19 @@
             -webkit-backdrop-filter: blur(6px);
         }
 
-        /* ================= 底部主页按钮 ================= */
+        /* ================= 文本与按钮 ================= */
+        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 1; opacity: 0; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .text-pattern {
+            color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
+            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
+        }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
+
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; z-index: 1; opacity: 0; margin-top: 20px; animation: slideUpFade 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; justify-items: center; }
 
         .glass-btn {
@@ -221,10 +207,8 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(80px); } 100% { opacity: 1; transform: translateY(0); } }
-
         @media (max-width: 600px) {
-            #theme-ring { padding-left: 6%; padding-top: 20vh; }
+            body { padding-left: 6%; padding-top: 20vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -238,13 +222,7 @@
     </style>
 </head>
 <body>
-    <!-- 扩散/收缩遮罩层（文字和背景都在里面） -->
-    <div id="theme-ring">
-        <div class="text-group">
-            <h1 class="text-pattern main-title">宫水大世界</h1>
-            <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
-        </div>
-    </div>
+    <div id="theme-ring"></div>
 
     <div class="bg-blur" id="bg-blur"></div>
 
@@ -270,6 +248,11 @@
             </svg>
         </button>
     </div>
+
+    <div class="text-group">
+        <h1 class="text-pattern main-title">宫水大世界</h1>
+        <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
+    </div>
     
     <div class="btn-grid">
         <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
@@ -279,23 +262,17 @@
     </div>
 
     <script>
-        // ================= 预加载所有图片，彻底消除瞬间闪烁 =================
-        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
-        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
-        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
-        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
-        
-        const bgImgs = [defaultBgUrl, newBgUrl, defaultTextUrl, newTextUrl];
-        bgImgs.forEach(url => {
-            const img = new Image();
-            img.src = url;
-        });
-
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
+        // 背景图
+        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+        // 文字纹理图
+        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
 
-        // ================= 1. 严丝合缝的双向切换 =================
+        // ================= 1. 双向动画 + 文字纹理同步换 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -306,11 +283,13 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】瞬间更换遮罩层里的背景和字体素材，同时把遮罩归位到 0%
-                textElements.forEach(el => el.style.backgroundImage = `url("${newTextUrl}")`);
+                // 【展开】背景和文字纹理瞬间同步切换为新图
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
+                });
+                textElements.forEach(el => {
+                    el.style.backgroundImage = `url("${newTextUrl}")`;
                 });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
@@ -319,17 +298,22 @@
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】同理，瞬间换成旧素材，遮罩从 150% 开始往回缩，完全对齐
-                textElements.forEach(el => el.style.backgroundImage = `url("${defaultTextUrl}")`);
+                // 【收缩】保持原图不换，直到动画彻底消失才瞬间替换
                 gsap.set(themeRing, { 
-                    backgroundImage: `url("${defaultBgUrl}")`,
                     clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, 
                     ease: "power2.inOut", 
-                    clipPath: `circle(0% at ${x}px ${y}px)` 
+                    clipPath: `circle(0% at ${x}px ${y}px)`,
+                    onComplete: () => {
+                        // 动画缩到0%的瞬间，同时切换背景和文字纹理
+                        themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                        textElements.forEach(el => {
+                            el.style.backgroundImage = `url("${defaultTextUrl}")`;
+                        });
+                    }
                 });
             }
         }
