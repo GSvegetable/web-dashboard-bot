@@ -253,7 +253,7 @@
             }
         }
 
-        // ================= 2. 面板下拉分离动画（大幅加大回弹力度） =================
+        // ================= 2. 登录面板更新（删掉粘稠拉扯，改成强果冻回弹） =================
         let isLoginOpen = false;
         let loginTl = null;
 
@@ -279,17 +279,19 @@
             blurBg.classList.add('active');
             isLoginOpen = true;
 
-            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center", y: 0 });
+            // 核心改动：抛弃复杂的偏移拉扯，只用强力纵向果冻回弹
+            gsap.set(panel, { scaleY: 0, opacity: 0, transformOrigin: "top center" });
             gsap.set(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)" });
 
-            // 0.8 秒分离动画（增加下拉距离，让回弹超级明显）
             loginTl = gsap.timeline();
-            // 阶段1：向下延伸展开
-            loginTl.to(panel, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out", transformOrigin: "top center" });
-            // 阶段2：大幅回弹：从 -20px 高度掉下，回弹幅度明显加倍
-            loginTl.fromTo(panel, { y: -20 }, { y: 0, duration: 0.8, ease: "bounce.out" });
-            // 背景模糊同步展开
-            loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.8 }, 0);
+            loginTl.to(panel, { 
+                scaleY: 1, 
+                opacity: 1, 
+                duration: 0.9,       // 时间延长到 0.9秒，给回弹留下充足时间
+                ease: "bounce.out",   // 绝佳果冻回弹缓动
+                transformOrigin: "top center" 
+            });
+            loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.9 }, 0);
         }
 
         // ================= 3. 全屏显示 =================
