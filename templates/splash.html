@@ -23,35 +23,38 @@
         .text-group {
             display: flex;
             flex-direction: column;
+            align-items: flex-start; /* 确保两个标题绝对左对齐 */
             gap: 6px;
         }
 
-        /* 质感核心：极浅的高级银灰，去掉了刺眼的纯白 */
-        .text-premium {
-            color: #ecf0f5; /* 哑光银灰色 */
+        /* 核心修复：文字使用纯白 + 底部极浅的灰色渐变折射 */
+        .text-gradient {
             font-weight: 900;
+            text-align: left;
+            margin: 0;
+            /* 光线效果：90%是耀眼的白，只有最底部带一丁点微光折射 */
+            background: linear-gradient(160deg, #ffffff 0%, #ffffff 70%, #e5e5e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            
+            /* 轻微厚度阴影 */
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            
-            /* 通过多层堆叠阴影模拟玻璃/金属质感：
-               1. 顶部白边高光（模拟光照）
-               2. 底部柔和深影（模拟立体重力）
-               3. 隐约的背光泛蓝（增加通透感） */
-            text-shadow: 
-                0 1px 0 rgba(255, 255, 255, 0.4),
-                0 2px 15px rgba(255, 255, 255, 0.05),
-                0 4px 20px rgba(0, 0, 0, 0.5);
-            letter-spacing: 8px;
         }
 
         .main-title {
             font-size: 64px;
+            letter-spacing: 8px;
+            line-height: 1.1; /* 确保占位区域稳定 */
         }
 
         .sub-title {
             font-size: 22px;
             letter-spacing: 2px;
             font-weight: 600;
+            line-height: 1.1;
         }
 
         /* 按钮组 */
@@ -61,12 +64,11 @@
             margin-top: 20px;
         }
 
-        /* 纯透明玻璃效果按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
@@ -81,12 +83,14 @@
             transform: scale(0.94);
         }
 
-        /* 按钮文字统一使用同样的质感 */
         .btn-text {
-            color: #ecf0f5;
             font-size: 18px;
             font-weight: 600;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 10px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(160deg, #ffffff 0%, #f5f5f5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
 
         @media (max-width: 600px) {
@@ -101,8 +105,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="text-premium main-title">宫水大世界</h1>
-        <h2 class="text-premium sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-gradient main-title">宫水大世界</h1>
+        <h2 class="text-gradient sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
