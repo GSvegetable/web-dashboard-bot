@@ -27,12 +27,12 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散波纹层（仅在背景与文字之间） ================= */
+        /* 扩散波纹层（用于覆盖或显露出背景） */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none;
-            z-index: 0; /* 文字和按钮拥有更高的 z-index */
+            z-index: 0;
             background-color: #000000;
             clip-path: circle(0% at 0 0);
             transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -70,7 +70,7 @@
         .theme-btn {
             width: 34px; height: 34px;
             padding: 0;
-            border-radius: 50%; /* 圆形 */
+            border-radius: 50%;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(6px);
@@ -162,14 +162,13 @@
     </style>
 </head>
 <body>
-    <!-- 扩散波纹圆环层（位于底层，绝对盖不住上面的字和按钮） -->
+    <!-- 扩散波纹圆环层 -->
     <div id="theme-ring"></div>
 
     <!-- 顶部三连排按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
-        <!-- 主题切换圆形按钮 -->
         <button class="theme-btn" onclick="toggleTheme(event)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="23 4 23 10 17 10"/>
@@ -178,13 +177,11 @@
         </button>
     </div>
 
-    <!-- 两根白绳的 SVG -->
     <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
         <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
     </svg>
 
-    <!-- 登录卡片弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
         </div>
@@ -213,25 +210,28 @@
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
-            // 重置圆环位置并设置中心点
-            themeRing.style.transformOrigin = `${x}px ${y}px`;
+            // 1. 瞬间重置圆环为 0 (不带动画)
+            themeRing.style.transition = 'none';
+            themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
 
-            if (!isDarkMode) {
-                // 切到深色模式：圆环从0开始扩散
-                themeRing.style.transition = 'none';
-                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-                // 触发浏览器重绘，让上面那句立即生效
-                requestAnimationFrame(() => {
-                    themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-                });
-                isDarkMode = true;
-            } else {
-                // 切回浅色模式：圆环收缩消失
+            // 2. 强制浏览器重绘，让上面的重置生效
+            requestAnimationFrame(() => {
+                // 3. 打开过渡动画
                 themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-                isDarkMode = false;
-            }
+                
+                // 4. 切换状态，并设置对应的背景色
+                isDarkMode = !isDarkMode;
+                if (isDarkMode) {
+                    // 如果变成深色，圆环内容为黑色，盖住图片
+                    themeRing.style.backgroundColor = '#000000';
+                } else {
+                    // 如果变回浅色，圆环内容变透明，原图“自然显露”出来
+                    themeRing.style.backgroundColor = 'transparent';
+                }
+
+                // 5. 执行扩散动画 (放大到 150% 覆盖全屏)
+                themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+            });
         }
 
         // 登录弹窗逻辑
