@@ -12,6 +12,7 @@
 
         :root {
             --bg-img: url("{{ url_for('static', filename='bg.png') }}");
+            --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
         }
 
         body {
@@ -27,18 +28,20 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 扩散波纹层 */
+        /* ================= 扩散波纹层（直接替换为图片切换） ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none;
             z-index: 0;
-            background-color: #000000;
+            background-color: transparent;
+            background-image: var(--bg-img); /* 默认和背景图一致 */
+            background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
             transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 顶部三连排 */
+        /* ================= 顶部三连排按钮 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -161,8 +164,10 @@
     </style>
 </head>
 <body>
+    <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
+    <!-- 顶部三连排按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
@@ -174,11 +179,13 @@
         </button>
     </div>
 
+    <!-- 两根白绳 -->
     <svg id="ropes-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
         <path id="rope-l" d="M 0 0 Q 15 30, 10 40" fill="none" stroke="white" stroke-width="0.5"/>
         <path id="rope-r" d="M 100 0 Q 85 30, 90 40" fill="none" stroke="white" stroke-width="0.5"/>
     </svg>
 
+    <!-- 登录弹窗 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-card" id="modal-card">
         </div>
@@ -197,10 +204,12 @@
     </div>
 
     <script>
-        let isDarkMode = false;
+        let isDefaultBg = true; // 当前是否是 bg.png
         const themeRing = document.getElementById('theme-ring');
+        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 核心修复：双重刷新机制保证收回动画绝对丝滑 =================
+        // ================= 图片扩散切换逻辑 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
@@ -213,11 +222,17 @@
 
             // 2. 强制浏览器完成重置
             requestAnimationFrame(() => {
-                // 3. 在下一帧切换颜色和状态
-                isDarkMode = !isDarkMode;
-                themeRing.style.backgroundColor = isDarkMode ? '#000000' : 'transparent';
+                // 3. 在下一帧切换背景图，并直接修改圆环的背景图属性
+                isDefaultBg = !isDefaultBg;
+                
+                // 直接在这里替换圆环的背景图！这样无论切哪个方向，都是“新图向外扩散”
+                if (isDefaultBg) {
+                    themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                } else {
+                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                }
 
-                // 4. 再度请求一帧，确保上一帧的颜色切换完成
+                // 4. 再度请求一帧，确保图片切换完成
                 requestAnimationFrame(() => {
                     // 5. 重新开启过渡动画，并执行放大
                     themeRing.style.transition = 'clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -226,7 +241,7 @@
             });
         }
 
-        // 登录弹窗逻辑
+        // 登录弹窗逻辑（绳子下落 + GSAP回弹）
         function openLoginModal() {
             const overlay = document.getElementById('loginModal');
             const card = document.getElementById('modal-card');
