@@ -9,13 +9,23 @@
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
 
+        /* ================= 黑屏预加载处理 ================= */
         body {
             width: 100vw; height: 100vh; overflow: hidden;
-            background-image: url("{{ url_for('static', filename='bg.png') }}");
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            /* 初始状态全黑，不给它加载图片 */
+            background-color: #000000;
+            background-image: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
             display: flex; flex-direction: column; align-items: flex-start;
             padding-left: 12%; padding-top: 14vh; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+        }
+        /* 图片加载完毕后，JS会给 body 加上 loaded 类 */
+        body.loaded {
+            background-image: url("{{ url_for('static', filename='bg.png') }}");
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: 1;
         }
 
         .top-login-btn {
@@ -48,10 +58,7 @@
 
         .modal-card h2 { color: #f0f6fc; font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 20px; }
         .modal-card label { display: block; margin: 12px 0 4px; font-size: 14px; color: #8b949e; }
-        .modal-card input {
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #30363d;
-            background: rgba(13, 17, 23, 0.8); color: #f0f6fc; margin-bottom: 12px;
-        }
+        .modal-card input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #30363d; background: rgba(13, 17, 23, 0.8); color: #f0f6fc; margin-bottom: 12px; }
         .modal-card input:focus { border-color: #58a6ff; }
         .modal-login-btn { width: 100%; padding: 12px; margin-top: 12px; background: #238636; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; }
         .modal-login-btn:active { transform: scale(0.98); }
@@ -70,39 +77,37 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* ================= 苹果高级玻璃折射按钮核心 ================= */
+        /* ================= 苹果顶级玻璃折射按钮核心 ================= */
         .glass-btn {
-            position: relative; /* 为伪元素放大层提供参考 */
+            position: relative;
             padding: 14px 32px; border-radius: 40px;
-            /* 强化的高光折射底色 */
-            background: rgba(255, 255, 255, 0.08);
+            /* 底色变得更透亮 */
+            background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            /* 核心放大扭曲：提高模糊和色散度 */
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
             cursor: pointer; letter-spacing: 1px; text-decoration: none;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-block;
-            overflow: hidden; /* 防止放大层溢出 */
+            overflow: hidden;
             z-index: 1;
         }
-        /* 放大层（负责物理折射和扭曲） */
+        /* 底层放大折射畸变层 */
         .glass-btn::before {
             content: '';
             position: absolute;
-            inset: -8px; /* 向四周溢出一点 */
+            inset: -10px;
             background: inherit;
             border-radius: inherit;
-            /* 物理放大 5%，配合高强度模糊模拟折射 */
-            transform: scale(1.06);
-            filter: blur(20px) saturate(250%);
+            /* 核心：底图物理放大 10%，高光极强模糊与超饱和度模拟折射 */
+            transform: scale(1.1);
+            filter: blur(25px) saturate(220%) contrast(150%);
             z-index: -1;
         }
         .glass-btn:active { transform: scale(0.94); }
 
         .btn-text {
             font-size: 18px; font-weight: 600; color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* 增强文字穿透玻璃的白边光 */
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            position: relative; z-index: 2;
         }
         /* ================================================ */
 
@@ -150,9 +155,30 @@
     </div>
 
     <script>
+        // 打开/关闭登录弹窗
         function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
         document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) { closeLoginModal(); } });
+
+        // ================= 解决图片从上到下加载的「黑屏预加载」逻辑 =================
+        document.addEventListener("DOMContentLoaded", function() {
+            const bgImg = new Image();
+            // 读取背景图路径
+            const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            
+            // 图片下载完成后，瞬间切换黑屏为真实背景
+            bgImg.onload = function() {
+                document.body.classList.add('loaded');
+            };
+            
+            // 兜底：如果加载超时，也强制显示
+            setTimeout(function() {
+                if(!document.body.classList.contains('loaded')) {
+                    document.body.classList.add('loaded');
+                }
+            }, 3000);
+        });
     </script>
 </body>
 </html>
