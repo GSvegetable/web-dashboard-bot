@@ -29,7 +29,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 扩散/收缩遮罩层 (强制重绘，修复无动画) ================= */
+        /* ================= 扩散/收缩遮罩层 ================= */
         #theme-ring {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
@@ -39,7 +39,7 @@
             background-image: var(--bg-img);
             background-size: cover; background-position: center; background-repeat: no-repeat;
             clip-path: circle(0% at 0 0);
-            will-change: clip-path;
+            will-change: clip-path, background-image;
         }
 
         /* ================= 顶部三连排容器 ================= */
@@ -88,36 +88,39 @@
         }
         .theme-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* ================= 新的下拉登录面板 ================= */
+        /* ================= 新的下拉登录面板 (拉长 4 倍) ================= */
         #login-dropdown {
             position: absolute;
-            top: 110%; /* 位于按钮正下方一段距离 */
+            top: 110%;
             left: 50%;
-            transform: translateX(-50%) scaleY(0); /* 默认隐藏 */
+            transform: translateX(-50%) scaleY(0);
             transform-origin: top center;
-            /* 宽度略窄于按钮（按钮是固定宽度的，这里直接设置百分比） */
             width: 80%; 
-            margin-top: 8px; /* 与按钮的距离，绝对不接触 */
+            margin-top: 8px;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            padding: 16px;
+            padding: 24px;
+            /* ✅ 高度拉长 4 倍 */
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             pointer-events: none;
             opacity: 0;
             z-index: 1000;
         }
-        /* 展开时的状态 */
         #login-dropdown.active {
             pointer-events: auto;
             opacity: 1;
             transform: translateX(-50%) scaleY(1);
         }
 
-        /* ================= 背景模糊 (6px) ================= */
-        /* (由于不再使用原弹窗，这里只保留下层的模糊) */
+        /* ================= 背景模糊层 ================= */
         .bg-blur {
             position: fixed; inset: 0;
             background: rgba(0, 0, 0, 0); 
@@ -168,8 +171,7 @@
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 12px; padding: 6px 14px; }
             .theme-btn { width: 30px; height: 30px; }
-            /* 手机端下拉面板宽度 */
-            #login-dropdown { width: 90%; padding: 12px; }
+            #login-dropdown { width: 90%; padding: 16px; min-height: 200px; }
         }
     </style>
 </head>
@@ -177,7 +179,7 @@
     <!-- 扩散波纹层 -->
     <div id="theme-ring"></div>
 
-    <!-- 背景模糊层（独立出来控制登录下拉时的背景效果） -->
+    <!-- 背景模糊层 -->
     <div class="bg-blur" id="bg-blur"></div>
 
     <!-- 顶部按钮 -->
@@ -185,10 +187,10 @@
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="toggleLogin()">Log in</button>
         
-        <!-- 下拉展开的面板 -->
+        <!-- 下拉展开的长面板 -->
         <div id="login-dropdown">
             <p style="color:#ffffff; text-align:center; font-size:14px; margin:0;">登录面板</p>
-            <!-- 后续你可以在这里放输入框和登录按钮 -->
+            <!-- 后续往这里放输入框和登录按钮，会自动居中 -->
         </div>
 
         <button class="theme-btn" onclick="toggleTheme(event)">
@@ -218,27 +220,42 @@
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
 
-        // ================= 1. 修复主题切换动画 =================
+        // ================= 1. 修复主题切换动画：彻底改用 GSAP 稳定物理引擎 =================
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const rect = btn.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
 
+            // 翻转状态
             isExpanded = !isExpanded;
 
-            // 绝杀重绘：先重置样式，再切换图片
-            themeRing.style.transition = 'none';
-            themeRing.style.backgroundImage = `url("${isExpanded ? newBgUrl : defaultBgUrl}")`;
-            themeRing.style.clipPath = isExpanded ? `circle(0% at ${x}px ${y}px)` : `circle(150% at ${x}px ${y}px)`;
-            
-            // 强制页面立刻重绘刷新状态
-            void themeRing.offsetHeight; 
+            // 先杀掉动画，防止抢占冲突
+            gsap.killTweensOf(themeRing);
 
-            requestAnimationFrame(() => {
-                themeRing.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                themeRing.style.clipPath = isExpanded ? `circle(150% at ${x}px ${y}px)` : `circle(0% at ${x}px ${y}px)`;
-            });
+            if (isExpanded) {
+                // 【展开】切新图：从 0% 向外扩散到 150%
+                gsap.set(themeRing, {
+                    backgroundImage: `url("${newBgUrl}")`,
+                    clipPath: `circle(0% at ${x}px ${y}px)`
+                });
+                gsap.to(themeRing, {
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    clipPath: `circle(150% at ${x}px ${y}px)`
+                });
+            } else {
+                // 【收缩】切回原图：从 150% 向内收缩到 0% （绝对有动画！）
+                gsap.set(themeRing, {
+                    backgroundImage: `url("${defaultBgUrl}")`,
+                    clipPath: `circle(150% at ${x}px ${y}px)`
+                });
+                gsap.to(themeRing, {
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    clipPath: `circle(0% at ${x}px ${y}px)`
+                });
+            }
         }
 
         // ================= 2. 面板下拉分离动画 =================
@@ -249,9 +266,7 @@
             const panel = document.getElementById('login-dropdown');
             const blurBg = document.getElementById('bg-blur');
 
-            if (loginTl) {
-                loginTl.kill(); // 杀掉上一次未完成的动画，防止重叠
-            }
+            if (loginTl) loginTl.kill();
             
             if (isLoginOpen) {
                 // 关闭面板
@@ -274,11 +289,11 @@
 
             // 0.8 秒分离动画
             loginTl = gsap.timeline();
-            // 阶段1：按钮向下延伸展开 (0.2秒)
+            // 阶段1：向下延伸展开
             loginTl.to(panel, { scaleY: 1, opacity: 1, duration: 0.2, ease: "power2.out", transformOrigin: "top center" });
-            // 阶段2：脱离按钮，下拉并回弹停止 (0.6秒)
+            // 阶段2：脱离按钮，下拉并物理回弹
             loginTl.fromTo(panel, { y: -8 }, { y: 0, duration: 0.6, ease: "bounce.out" });
-            // 同时背景模糊同步展开
+            // 背景模糊同步展开
             loginTl.to(blurBg, { backdropFilter: "blur(6px)", background: "rgba(0,0,0,0.3)", duration: 0.8 }, 0);
         }
 
