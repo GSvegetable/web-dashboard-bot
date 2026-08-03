@@ -26,40 +26,42 @@
             gap: 6px;
         }
 
-        /* 同一套光源效果：左上角打下来的极淡灰色渐变 */
-        .gradient-text {
+        /* 核心修复：极白底色，微弱的斜向渐变模拟右上往下打的光 */
+        .text-gradient {
             font-weight: 900;
-            /* 将底部的灰色大幅调亮，保证绝大部分区域是纯白 */
-            background: linear-gradient(145deg, #ffffff 0%, #ffffff 70%, #f0f0f0 100%);
+            /* 绝大部分是纯白，只在左下角有一点点极其微弱的浅灰折射 */
+            background: linear-gradient(150deg, #ffffff 0%, #ffffff 85%, #f2f2f2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            
+            /* 增加一层极其柔和的阴影，让字体有厚度，仿佛光打在凸起的字上 */
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+            
+            /* 保持圆润渲染 */
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); /* 极小阴影，增加字体的厚度和光感 */
             letter-spacing: 8px;
         }
 
-        /* 主标题 */
         .main-title {
             font-size: 64px;
         }
 
-        /* 副标题 */
         .sub-title {
             font-size: 22px;
             letter-spacing: 2px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        /* 按钮组：离字体更近 */
+        /* 按钮组 */
         .btn-group {
             display: flex;
             gap: 24px;
-            margin-top: 20px; /* 往上移 */
+            margin-top: 20px;
         }
 
-        /* 纯透明玻璃效果按钮 */
+        /* 纯透明玻璃效果按钮 + 按钮字体也加上光效 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
@@ -68,9 +70,6 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 500;
             cursor: pointer;
             letter-spacing: 1px;
             text-decoration: none;
@@ -82,24 +81,40 @@
             transform: scale(0.94);
         }
 
+        /* 按钮里的文字应用同款光效 */
+        .btn-text {
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(150deg, #ffffff 0%, #ffffff 85%, #f2f2f2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+        }
+
         @media (max-width: 600px) {
             body { padding-left: 6%; padding-top: 12vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
-            .glass-btn { padding: 12px 20px; font-size: 15px; }
+            .glass-btn { padding: 12px 20px; }
+            .btn-text { font-size: 15px; }
             .btn-group { gap: 16px; }
         }
     </style>
 </head>
 <body>
     <div class="text-group">
-        <h1 class="gradient-text main-title">宫水大世界</h1>
-        <h2 class="gradient-text sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-gradient main-title">宫水大世界</h1>
+        <h2 class="text-gradient sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
-        <a href="#" class="glass-btn" onclick="alert('后续将跳转至创建作品页面')">创建作品</a>
-        <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">查看仓库</a>
+        <a href="#" class="glass-btn" onclick="alert('后续将跳转至创建作品页面')">
+            <span class="btn-text">创建作品</span>
+        </a>
+        <a href="/dashboard" class="glass-btn" onclick="alert('点击了查看仓库')">
+            <span class="btn-text">查看仓库</span>
+        </a>
     </div>
 </body>
 </html>
