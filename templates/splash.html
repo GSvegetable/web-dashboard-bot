@@ -27,16 +27,22 @@
             gap: 6px;
         }
 
-        /* 【核心修复】回归 100% 纯白底色，用内发光代替颜色渐变 */
-        .text-white {
-            color: #ffffff; /* 强制指定纯白色，永不变黑 */
+        /* 核心修改：使用你上传的真实纹理图片 */
+        .text-pattern {
+            color: #ffffff; /* 兜底：如果纹理图片加载失败，显示纯白色 */
+            /* 引入你上传的那张长名字的纹理图片作为文字的填充背景 */
+            background-image: url("{{ url_for('static', filename='mmexport1785753385948.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent; /* 把文字本身变透明，露出背景图 */
+
             font-weight: 900;
             text-align: left;
             margin: 0;
             letter-spacing: 8px;
-            /* 微弱的发光光效，模拟光线打在上面的感觉 */
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.15), 0 4px 10px rgba(0, 0, 0, 0.5);
-            /* 保持清晰度 */
+            text-shadow: none;
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
         }
@@ -60,7 +66,6 @@
             margin-top: 20px;
         }
 
-        /* 玻璃质感按钮 + 绝对白字的按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
@@ -83,9 +88,8 @@
         .btn-text {
             font-size: 18px;
             font-weight: 600;
-            color: #ffffff; /* 按钮字也是绝对纯白，永不变黑 */
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* 按钮字同样带一丢丢光效 */
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
         }
 
         @media (max-width: 600px) {
@@ -100,8 +104,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="text-white main-title">宫水大世界</h1>
-        <h2 class="text-white sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-pattern main-title">宫水大世界</h1>
+        <h2 class="text-pattern sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
