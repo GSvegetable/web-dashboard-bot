@@ -23,31 +23,27 @@
         .text-group {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* 确保两个标题绝对左对齐 */
+            align-items: flex-start; 
             gap: 6px;
         }
 
-        /* 核心修复：文字使用纯白 + 底部极浅的灰色渐变折射 */
-        .text-gradient {
+        /* 【核心修复】回归 100% 纯白底色，用内发光代替颜色渐变 */
+        .text-white {
+            color: #ffffff; /* 强制指定纯白色，永不变黑 */
             font-weight: 900;
             text-align: left;
             margin: 0;
-            /* 光线效果：90%是耀眼的白，只有最底部带一丁点微光折射 */
-            background: linear-gradient(160deg, #ffffff 0%, #ffffff 70%, #e5e5e5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            
-            /* 轻微厚度阴影 */
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+            letter-spacing: 8px;
+            /* 微弱的发光光效，模拟光线打在上面的感觉 */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.15), 0 4px 10px rgba(0, 0, 0, 0.5);
+            /* 保持清晰度 */
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
         }
 
         .main-title {
             font-size: 64px;
-            letter-spacing: 8px;
-            line-height: 1.1; /* 确保占位区域稳定 */
+            line-height: 1.1;
         }
 
         .sub-title {
@@ -64,6 +60,7 @@
             margin-top: 20px;
         }
 
+        /* 玻璃质感按钮 + 绝对白字的按钮 */
         .glass-btn {
             padding: 14px 32px;
             border-radius: 40px;
@@ -86,11 +83,9 @@
         .btn-text {
             font-size: 18px;
             font-weight: 600;
-            background: linear-gradient(160deg, #ffffff 0%, #f5f5f5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+            color: #ffffff; /* 按钮字也是绝对纯白，永不变黑 */
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.1); /* 按钮字同样带一丢丢光效 */
         }
 
         @media (max-width: 600px) {
@@ -105,8 +100,8 @@
 </head>
 <body>
     <div class="text-group">
-        <h1 class="text-gradient main-title">宫水大世界</h1>
-        <h2 class="text-gradient sub-title">Telegram bot编辑器</h2>
+        <h1 class="text-white main-title">宫水大世界</h1>
+        <h2 class="text-white sub-title">Telegram bot编辑器</h2>
     </div>
     
     <div class="btn-group">
