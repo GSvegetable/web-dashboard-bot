@@ -22,7 +22,7 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 第二屏（首页直接从这一屏开始） */
+        /* 第二屏 */
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -79,8 +79,6 @@
     </style>
 </head>
 <body>
-
-    <!-- 首页内容第二屏 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -88,6 +86,7 @@
                 <h1 class="text-pattern main-title">宫水大世界</h1>
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
+            <!-- 主题切换按钮，无论卡片是否打开，点击这里依然能正常切换 -->
             <button class="theme-btn-title" onclick="toggleTheme(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
@@ -107,25 +106,25 @@
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
     </div>
 
-    <!-- ================= 自定义通知条 ================= -->
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录表单（更通透、更淡的玻璃） ================= -->
+    <!-- ================= 登录表单（空心、细白线边框） ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 修改：背景透明度改为 bg-white/5，模糊改为 backdrop-blur-sm -->
-            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/20 rounded-2xl bg-white/5 backdrop-blur-sm shadow-2xl p-4">
+            <!-- 修改：完全透明背景，仅用极细的半透明白色边框和微弱的阴影勾勒 -->
+            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/60 rounded-2xl bg-transparent shadow-[0_0_20px_rgba(255,255,255,0.05)] p-4">
                 
-                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-white/5 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-white/5 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
+                <div class="relative z-10 flex flex-col gap-1">
                     <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
                     <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
                 <!-- 第1行：邮箱 + 验证 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <!-- 修改：输入框背景改为更通透的 bg-black/20 -->
+                    <!-- 修改：输入框使用极淡的黑底 + 白边 -->
                     <input type="text" id="reg-email" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                    <button id="send-code-btn" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
+                    <!-- 验证按钮：透明底、白边线 -->
+                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
                         验证
                     </button>
                 </div>
@@ -140,8 +139,8 @@
                     <input type="password" id="reg-password" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
-                <!-- 第4行：注册/登录按钮 -->
-                <button id="submit-btn" class="bg-white/20 hover:bg-white/30 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
+                <!-- 第4行：注册/登录 -->
+                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
                     注册/登录
                 </button>
             </form>
