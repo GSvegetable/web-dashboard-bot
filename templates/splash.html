@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- ✅ 引入 Tailwind CSS CDN，确保 Uiverse 样式完全一致 -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP 动画库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
@@ -50,57 +51,45 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ================= 顶部按钮 ================= */
-        .top-actions {
-            position: fixed;
-            top: 20px;
-            right: 24px;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 280px;
-        }
-        .top-btn {
-            flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        /* 顶部固定悬浮按钮 */
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
+        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* 顶部按钮入场动画 */
+        /* 入场动画 */
         @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
         .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
-        /* ================= 下拉登录卡片（定位至按钮下方） ================= */
+        /* ================= 下拉登录卡片容器 ================= */
         .modal-overlay {
             position: fixed; inset: 0;
             background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(3px); /* 🔽 虚化减弱 */
+            backdrop-filter: blur(3px);
             -webkit-backdrop-filter: blur(3px);
             z-index: 9998;
-            display: flex;
-            justify-content: flex-end; /* 靠右对齐 */
-            align-items: flex-start; /* 靠上对齐 */
-            padding-top: 80px; /* 精准落在右上角按钮的下方 */
+            display: flex; justify-content: flex-end; /* 靠右 */
+            align-items: flex-start; /* 靠上 */
+            padding-top: 80px; /* 弹窗定位在 Log in 按钮正下方 */
             padding-right: 24px;
             opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
             pointer-events: none;
         }
         .modal-overlay.active {
             opacity: 1; visibility: visible; pointer-events: auto;
         }
-
         .modal-box {
-            transform: translateY(-15px);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateY(-10px);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .modal-overlay.active .modal-box {
             transform: translateY(0);
         }
 
-        /* 手机上让卡片居中 */
+        /* 移动端适配 */
         @media (max-width: 600px) {
             .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
@@ -154,38 +143,43 @@
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <!-- 下拉菜单的触发源 -->
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
     </div>
 
-    <!-- ========== 登录下拉卡片（适配 Tailwind） ========== -->
+    <!-- ========== 登录下拉卡片（Tailwind 样式 + 真正的前端交互） ========== -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <form class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-4 w-80 border border-neutral-500 rounded-lg bg-neutral-50 p-4 shadow-xl">
-                <!-- 发光背景特效 -->
+            <form id="authForm" onsubmit="return false;" class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-neutral-500 rounded-lg bg-neutral-50 p-4 shadow-xl">
+                
+                <!-- 流光背景层 -->
                 <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-rose-300 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-purple-300 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-violet-600">登录或注册你的GsBot账号</span>
-                    <p class="text-neutral-700 text-xs leading-tight">绑定邮箱账号 最快的了解所有新功能</p>
+                    <span class="font-extrabold text-xl text-violet-600 anim-item">获取自己的GsBot账号</span>
+                    <p class="text-neutral-700 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
                 <!-- 第1行：邮箱 + 验证 -->
-                <div class="flex gap-2 w-full relative z-10">
+                <div class="flex gap-2 w-full relative z-10 anim-item">
                     <div class="relative rounded-lg flex-1 overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg">
-                        <input type="text" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="邮箱" />
+                        <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="邮箱" required />
                     </div>
-                    <button class="bg-violet-500 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium whitespace-nowrap relative z-10">
+                    <button id="send-code-btn" class="bg-violet-500 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">
                         验证
                     </button>
                 </div>
 
-                <!-- 第2行：验证码 与第1行等宽 -->
-                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10">
-                    <input type="text" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="验证码" />
+                <!-- 第2行：验证码 -->
+                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item">
+                    <input type="text" id="reg-code" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
-                <!-- 第3行：注册按钮 与第1行等宽 -->
-                <button class="bg-violet-500 text-neutral-50 w-full p-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium relative z-10">
-                    注册
+                <!-- 第3行：密码 -->
+                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item">
+                    <input type="password" id="reg-password" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="设置密码 (6位以上，仅限字母数字_/)" required />
+                </div>
+
+                <!-- 第4行：注册/登录按钮 -->
+                <button id="submit-btn" class="bg-violet-500 text-neutral-50 w-full p-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium relative z-10 active:scale-95 transition-transform anim-item">
+                    注册/登录
                 </button>
             </form>
         </div>
@@ -248,20 +242,112 @@
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
 
-        // ================= 弹窗交互控制 =================
+        // ================= 弹窗控制与动画 =================
         function openLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
-            document.body.style.overflow = 'hidden'; // 🔽 锁定底层滚动
+            const modal = document.getElementById('loginModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // 锁定底层滚动
+
+            // 触发内部元素的从右向左滑入动画
+            const items = document.querySelectorAll('#loginModal .anim-item');
+            gsap.fromTo(items, { x: 20, opacity: 0 }, { 
+                x: 0, 
+                opacity: 1, 
+                duration: 0.4, 
+                stagger: 0.08, // 0.08秒错开，实现“最快的在最前，最慢的在最后（按钮）”
+                ease: "power2.out" 
+            });
         }
+
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
-            document.body.style.overflow = ''; // 🔽 恢复底层滚动
+            document.body.style.overflow = '';
         }
+
         function closeLoginOnBg(event) {
-            if (event.target === event.currentTarget) {
-                closeLoginModal();
-            }
+            if (event.target === event.currentTarget) { closeLoginModal(); }
         }
+
+        // ================= 真正有效的对接逻辑 =================
+        document.getElementById('send-code-btn').addEventListener('click', async function() {
+            const emailInput = document.getElementById('reg-email');
+            const email = emailInput.value.trim();
+            if(!email) { alert('请输入邮箱地址'); return; }
+
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.innerText = '发送中...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/send_code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email})
+                });
+                const data = await res.json();
+                if(data.ok) {
+                    alert('✅ ' + data.msg);
+                } else {
+                    alert('❌ ' + data.msg);
+                }
+            } catch (e) {
+                alert('❌ 网络请求失败，请检查后台运行状态');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('submit-btn').addEventListener('click', async function() {
+            const email = document.getElementById('reg-email').value.trim();
+            const code = document.getElementById('reg-code').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            
+            if(!email || !code || !password) {
+                alert('请完整填写邮箱、验证码和密码'); return;
+            }
+
+            // 校验密码：至少6位，仅限字母、数字、_、/
+            const passRegex = /^[a-zA-Z0-9_\/]+$/;
+            if(password.length < 6) {
+                alert('密码长度必须大于等于 6 位'); return;
+            }
+            if(!passRegex.test(password)) {
+                alert('密码只能包含英文字母、数字、下划线 _ 和斜杠 /'); return;
+            }
+
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.innerText = '处理中...';
+            btn.disabled = true;
+
+            try {
+                // 尝试注册（因为后端会判断邮箱是否已存在，如果存在则走登录逻辑）
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&confirm_password=${encodeURIComponent(password)}&code=${encodeURIComponent(code)}&cf-turnstile-response=dummy`
+                });
+                
+                // 因为后端注册/登录成功会返回 redirect，我们需要用 text() 判断
+                const text = await res.text();
+                
+                if(text.includes('注册成功') || text.includes('登录成功')) {
+                    alert('🎉 成功！您可以开始使用了');
+                    closeLoginModal();
+                } else if(text.includes('验证码错误')) {
+                    alert('❌ 验证码错误或已过期');
+                } else {
+                    alert('❌ 注册/登录失败，请检查账号状态');
+                }
+            } catch (e) {
+                alert('❌ 请求异常：' + e.message);
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
