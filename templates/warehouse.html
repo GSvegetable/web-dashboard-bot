@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>查看仓库</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            /* 纯黑偏深蓝色 */
+            width: 100vw; height: 100vh;
+            background-color: #0d1117;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        /* 右侧圆角长方形（离顶部、底部、右边距离相等） */
+        .panel {
+            position: fixed;
+            right: 5%;        /* 离右边的距离 */
+            top: 5%;          /* 离顶部的距离 */
+            bottom: 5%;       /* 离底部的距离（确保 top 和 bottom 相等） */
+            width: 66vw;      /* 占据右边 4/6 的区域 */
+            max-width: 800px;
+            background-color: #161b22;
+            border-radius: 40px; /* 极度圆润的边角 */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid #30363d;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 纯黑深蓝背景 + 右侧等距圆角长方形 -->
+    <div class="panel"></div>
+</body>
+</html>
