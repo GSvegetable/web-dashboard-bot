@@ -36,7 +36,7 @@
             height: 100vh; 
             flex-shrink: 0;
             z-index: 1;
-            display: flex; /* 让内部的动画能更容易在图片上居中 */
+            display: flex;
             justify-content: center;
             align-items: center;
         }
@@ -52,53 +52,52 @@
             z-index: 0;
         }
 
-        /* 🔽 这里就是你需要的 3D 盒子动画（文字已彻底清空） */
-        .loader {
+        /* ================= 全新 Tooltip 悬浮提示框 ================= */
+        .tooltip {
             position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background-color: #282828;
+            color: #ffffff;
+            padding: 1em 2em;
+            border-radius: 1em;
             z-index: 2;
-            width: 84px;
-            aspect-ratio: 1;
-            background:
-                linear-gradient(#ff4500 0 0) left/50% 100% no-repeat,
-                conic-gradient(from -90deg at 32px 9.47px, #fff8dc 135deg, #8b0000 0 270deg, #ffa500 0);
-            background-blend-mode: multiply;
-            -webkit-mask: 
-                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0),
-                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0);
-            mask: 
-                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0),
-                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0);
-            -webkit-mask-size: 50% 50%;
-            mask-size: 50% 50%;
-            -webkit-mask-composite: source-in;
-            mask-composite: intersect;
-            animation: loaderAnim 1.8s infinite cubic-bezier(0.5, 0.2, 0.5, 1);
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            transform: perspective(1000px) rotateY(15deg);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            user-select: none;
         }
 
-        @keyframes loaderAnim {
-            0% {
-                background-position: 0% 0%, 0 0;
-                transform: perspective(1000px) rotateY(15deg) scale(1);
-                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            }
-            25% {
-                background-position: 100% 0%, 0 0;
-            }
-            50% {
-                background-position: 100% 100%, 0 0;
-                transform: perspective(1000px) rotateY(15deg) scale(1.08);
-                box-shadow: 0 0 25px rgba(255, 69, 0, 0.8);
-            }
-            75% {
-                background-position: 0% 100%, 0 0;
-            }
-            100% {
-                background-position: 0% 0%, 0 0;
-                transform: perspective(1000px) rotateY(15deg) scale(1);
-                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
-            }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #282828;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #282828 transparent transparent transparent;
+            transform: translateX(-50%);
         }
         /* ======================================================== */
 
@@ -250,7 +249,7 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            .loader { width: 60px; }
+            .tooltip { font-size: 14px; padding: 0.8em 1.5em; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -265,11 +264,15 @@
     </style>
 </head>
 <body>
-    <!-- 第一屏：顶部图片 + 全新 3D 动画 -->
+    <!-- 第一屏：顶部图片 + 悬浮提示框 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
-        <!-- 第一张图片内容已清空，只保留这个 3D 盒子动画 -->
-        <div class="loader"></div>
+        
+        <!-- 完全按照截图复刻的 Tooltip 组件，文字已按要求修改 -->
+        <div class="tooltip">
+            正在施工中，请向上滑动
+            <div class="tooltiptext">Hi there!</div>
+        </div>
     </div>
 
     <!-- 第二屏：宫水大世界 -->
