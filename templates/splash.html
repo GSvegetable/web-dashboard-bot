@@ -14,8 +14,9 @@
         .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
 
-        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
-        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
         .theme-btn-title { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
@@ -53,13 +54,10 @@
         .login-card > * { position: relative; z-index: 1; }
         .login-card .title { font-size: 24px; font-weight: 800; color: #fcd34d; margin: 0 0 4px 0; }
         .login-card .subtitle { font-size: 12px; color: #9e907d; margin: 0 0 4px 0; }
-        
         .login-card .input-group { display: flex; gap: 8px; width: 100%; }
         .login-card .input-field { flex: 1; background: rgba(47, 45, 39, 0.4); border: 1px solid rgba(94, 85, 69, 0.5); border-radius: 8px; padding: 10px 12px; color: #d1caba; width: 100%; font-size: 14px; outline: none; box-sizing: border-box; }
         .login-card .input-field::placeholder { color: #7a7264; }
         .login-card .input-field:focus { border-color: #7a7264; }
-        
-        .login-card .btn-row { width: 100%; display: flex; gap: 8px; }
         .login-card .btn { border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500; cursor: pointer; color: #e5e7eb; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .login-card .btn:active { transform: scale(0.95); }
         .login-card .btn-verify { background: linear-gradient(to right, #4a3c2c, #2d4530); padding: 10px 16px; white-space: nowrap; width: auto; }
@@ -146,17 +144,14 @@
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
+        const contentArea = document.getElementById('contentArea');
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
         const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
         const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
-        const contentArea = document.getElementById('contentArea');
         const toast = document.getElementById('custom-toast');
         let toastTimer;
-
-        const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
-        const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
@@ -168,28 +163,27 @@
             isExpanded = !isExpanded;
             gsap.killTweensOf(themeRing);
 
+            // 修复核心：图片预加载，然后再执行动画和替换壁纸！
+            const imgLoader = new Image();
             const targetUrl = isExpanded ? newBgUrl : defaultBgUrl;
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
-
-            // 关键修改：利用图片预加载，彻底防止黑屏
-            const imgLoader = new Image();
+            
             imgLoader.src = targetUrl;
+            
+            // 图片加载成功后执行动画
             imgLoader.onload = function() {
-                themeRing.style.backgroundImage = `url("${targetUrl}")`;
+                // 1. 把底图真正替换掉！
+                contentArea.style.backgroundImage = `url("${targetUrl}")`;
                 
+                // 2. 把文字纹理也替换掉！
+                textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                
+                // 3. 执行圆形扩散动画
                 if (isExpanded) {
                     gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                    gsap.delayedCall(0.1, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                    void themeRing.offsetHeight; 
                     gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
                 } else {
                     gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                    gsap.delayedCall(0.25, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                    void themeRing.offsetHeight; 
                     gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
                 }
             };
