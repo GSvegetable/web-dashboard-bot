@@ -1,5 +1,5 @@
->
-身体html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -54,11 +54,11 @@
             /* 🔼 往上移：内边距从 20vh 改为 15vh，整体位置靠上 */
             margin-top: 0;
             padding-top: 15vh;
-            左填充: 12%;
-            垫底: 15VH;
-            显示: 弯曲;
-            挠曲方向: 柱;
-            对齐项目: 灵活启动;
+            padding-left: 12%;
+            padding-bottom: 15vh;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             justify-content: flex-start;
             z-index: 1;
             overflow: hidden;
@@ -78,8 +78,8 @@
             will-change: clip-path, background-image;
         }
 
-        /*=================标题行(文字+切换按钮)=================*/
-        .标题行 {
+        /* ================= 标题行（文字 + 切换按钮） ================= */
+        .title-row {
             display: flex;
             flex-direction: row;
             align-items: flex-start;
@@ -110,219 +110,219 @@
             color: #ffffff; touch-action: manipulation;
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             opacity: 0;
-            改变: translateY(60PX);
-            挠曲收缩: 0;
-            上边距: 6PX;
+            transform: translateY(60px);
+            flex-shrink: 0;
+            margin-top: 6px;
         }
-        .主题-btn-标题:活跃的 { 改变: 规模(0.94); 背景: RGBA(255, 255, 255, 0.15); }
+        .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        .文本模式 {
-            颜色：#ffffff；
-            背景图象: URL("{{url_for('static'，filename='texture.jpg')}}"); 
-            背景尺寸: 覆盖; 背景位置: 中心;
-            -webkit-background-clip: 文本; 背景剪辑: 文本; -webkit-text-fill-color: 透明的;
-            字体粗细: 900; 文本对齐: 左; 边缘: 0; 字母间距: 8PX; 文本阴影: 没有一个;
-            文本渲染: optimizeLegibility; -webkit-font-moothing: 抗锯齿的; 线高: 1.3; 顶部衬垫: 2PX; 垫底: 4PX;
+        .text-pattern {
+            color: #ffffff; 
+            background-image: url("{{ url_for('static', filename='texture.jpg') }}"); 
+            background-size: cover; background-position: center;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
+            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
         }
-        .主要标题 { 字体大小: 64PX; }
-        .副标题 { 字体大小: 22PX; 字母间距: 2PX; 字体粗细: 600; }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
         .btn-grid {
-            显示: 网格; 网格模板列: 1Fr 1Fr; 差距: 16PX;
-            宽度: 100%; 最大宽度: 320PX;
-            上边距: 0;
-            对齐项目: 中心;
-            不透明度: 0;
-            改变: translateY(60PX);
-            位置: 相对的;
-            Z指数: 1;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            width: 100%; max-width: 320px;
+            margin-top: 0;
+            justify-items: center;
+            opacity: 0;
+            transform: translateY(60px);
+            position: relative;
+            z-index: 1;
         }
 
-        /*=================屏幕顶部固定悬浮的按钮=================*/
+        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
         .top-actions {
-            位置: 确定的;
-            顶端: 20PX;
-            正确的: 24PX; 
-            Z指数: 9999; 
-            显示: 弯曲;
-            对齐项目: 中心;
-            差距: 12PX;
+            position: fixed;
+            top: 20px;
+            right: 24px; 
+            z-index: 9999; 
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         .top-btn {
-            填充: 8PX 20PX;
-            边界半径: 30PX;
-            背景: RGBA(255, 255, 255, 0.08);
-            边境: 1PX 固体 RGBA(255, 255, 255, 0.3);
-            背景滤光镜: 模糊(6PX);
-            -webkit-backdrop-filter: 模糊(6PX);
-            箱形阴影: 0 8PX 24PX RGBA(0, 0, 0, 0.2), 插图 0 1PX 0 RGBA(255, 255, 255, 0.2);
-            颜色：#ffffff；字体大小: 14PX; 字体粗细: 500;
-            光标: 指针; 文字装饰: 没有一个;
-            显示: 弯曲; 对齐项目: 中心; justify-content: 中心;
-            边境: 没有一个; 触摸动作: 操纵;
-            过渡: 所有 0.2s 立方比西埃(0.34, 1.56, 0.64, 1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            color: #ffffff; font-size: 14px; font-weight: 500;
+            cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; justify-content: center;
+            border: none; touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         #loginBtn { margin-left: 16px; }
 
         /* 底部按钮统一玻璃质感 */
         .glass-btn {
-                    );:                 ; 填充: 14PX 0; 宽度: 90%; 文本对齐: 中心; 边界半径: 24PX;
-            背景: RGBA(255, 255, 255, 0.08); 边境: 1PX 固体 RGBA(255, 255, 255, 0.35);
-            背景滤光镜: 模糊(8PX); -webkit-backdrop-filter: 模糊(8PX);
-            箱形阴影: 0 8PX 24PX RGBA(0, 0, 0, 0.4), 插图 0 1PX 0 RGBA(255, 255, 255, 0.3);
-            颜色：#ffffff；字体大小: 18PX; 字体粗细: 600;
-            光标: 指针; 字母间距: 1PX; 文字装饰: 没有一个;
-            显示: 内联块; Z指数: 1; 触摸动作: 操纵;
-            过渡: 所有 0.2s 立方比西埃(0.34, 1.56, 0.64, 1);
+            position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            color: #ffffff; font-size: 18px; font-weight: 600;
+            cursor: pointer; letter-spacing: 1px; text-decoration: none;
+            display: inline-block; z-index: 1; touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .glass-btn:活跃的 { 改变: 规模(0.94); }
-        .btn-文本 { 位置：相对；z索引：2；颜色：#ffffff；text-shadow:0010px rgba(255，255，255，0.15)；}relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
+        .glass-btn:active { transform: scale(0.94); }
+        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-@media(最大宽度：600px){@media (max-width: 600px) {
-.top-image{height:100vh；}top-image { height: 100vh; }
-.content-area{padding-top:11vh；padding-left:6%；min-height:100vh；}content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
-.main-title{font-size:44px；}main-title { font-size: 44px; }
-.sub-title{font-size:16px；}sub-title { font-size: 16px; }
-.glass-btn{font-size:15px；padding:12px0；border-radius:20px；}glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
-.btn-grid{gap:12px；max-width:260px；}btn-grid { gap: 12px; max-width: 260px; }
-.top-actions{top:16px；right:16px；gap:6px；}top-actions { top: 16px; right: 16px; gap: 6px; }
-.top-btn{font-size:12px；padding:6px14px；}top-btn { font-size: 12px; padding: 6px 14px; }
-#loginBtn{margin-left:8px；}loginBtn { margin-left: 8px; }
-.theme-btn-title{width:28px；height:28px；margin-top:3px；}theme-btn-title { width: 28px; height: 28px; margin-top: 3px; }
+        @media (max-width: 600px) {
+            .top-image { height: 100vh; }
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
+            .main-title { font-size: 44px; }
+            .sub-title { font-size: 16px; }
+            .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
+            .btn-grid { gap: 12px; max-width: 260px; }
+            .top-actions { top: 16px; right: 16px; gap: 6px; }
+            .top-btn { font-size: 12px; padding: 6px 14px; }
+            #loginBtn { margin-left: 8px; }
+            .theme-btn-title { width: 28px; height: 28px; margin-top: 3px; }
         }
-    </风格>
-</头>
-<身体>
-    <! -- 第一屏：顶部图片 -->
-    <div 班级="顶部图像"></div>
+    </style>
+</head>
+<body>
+    <!-- 第一屏：顶部图片 -->
+    <div class="top-image"></div>
 
-    <！--第二屏：文字与按钮区域-->
-    <div 班级="内容区域" 身份标识="contentArea">
-        <div 身份标识="主题环"></div>
+    <!-- 第二屏：文字与按钮区域 -->
+    <div class="content-area" id="contentArea">
+        <div id="theme-ring"></div>
 
         <!-- 标题行：包含文字与右上角切换按钮 -->
-        <div 班级="标题行">
-            <div 班级="文本组">
-                <H1 班级="文本模式主标题">宫水大世界</H1>
-                <H2 班级="文本模式子标题">电报机器人编辑器</H2>
+        <div class="title-row">
+            <div class="text-group">
+                <h1 class="text-pattern main-title">宫水大世界</h1>
+                <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
             
             <!-- 固定在“宫水大世界”右侧的切换按钮 -->
-            <按钮 班级="主题-btn-标题" onClick="toggleTheme(事件)"(event)">
-                <SVG 宽度="14" 高度="14" 检视方块="0 0 24 24" 填满="无" 中风="当前颜色" 笔划宽度="2.5" 行程-线帽="圆形" stroke-linejoin="圆形">
-                    <折线 积分="23 4 23 10 17 10"/>
-                    <路径 d="M20.4915a99011-2.12-9.36L2310"/>
-                </SVG>
-            </按钮>
+            <button class="theme-btn-title" onclick="toggleTheme(event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+            </button>
         </div>
         
-        <div 班级="btn-grid">
-            <一个 href="/create" 班级="玻璃-btn"><跨度 班级="btn-text">创建作品</跨度></一个>
-            <一个 href="javascript:void(0)；" 班级="玻璃-btn"><跨度 班级="btn-text">查看仓库</跨度></一个>
-            <一个 href="https://t.me/gsyxyc" 班级="玻璃-btn" 目标="_空白"><跨度 班级="btn-text">联系开发者</跨度></一个>
-            <一个 href="javascript:void(0)；" 班级="玻璃-btn"><跨度 班级="btn-text">加入社区</跨度></一个>
+        <div class="btn-grid">
+            <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
+            <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
         </div>
     </div>
 
     <!-- 整个网页顶部悬浮的按钮 -->
-    <div 班级="顶级操作">
-        <一个 href="javascript:void(0)" onClick="toggleFullScreen()"()" 班级="top-btn">全屏显示</一个>
-        <按钮 班级="top-btn" 身份标识="loginBtn" onClick="void(0)"(0)">登录</按钮>
+    <div class="top-actions">
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
     </div>
 
-    <脚本>
-gsap.registerPlugin(ScrollTrigger)；gsap.registerPlugin(ScrollTrigger);
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
 
-设is expanded=false；let isExpanded = false;
-const themering=document.getElementById('theme-ring')；const themeRing = document.getElementById('theme-ring');
-！doctype超文本标记语言！doctype超文本标记语言Const defaultBgUrl="{{url_for('static'，filename='bg.PNG')}}"；！doctype超文本标记语言！doctype超文本标记语言Const defaultBgUrl="{{url_for('static'，filename='bg.png')}}";
-常量newBgUrl="{{url_for('static'，filename='mmexport 1785785172198.jpg')}}";Const newBgUrl="{{url_for('static'，filename='mmexport 1785785172198.jpg')}}";
-        Const defaultTextUrl="{{url_for('static'，filename='texture.jpg')}}";Const defaultTextUrl="{{url_for('static'，filename='texture.jpg')}}";
-const newTextUrl="{{url_for('static'，filename='mmexport 1785791861411.jpg')}}";Const newTextUrl="{{url_for('static'，filename='mmexport 1785791861411.jpg')}}";
-常量文本元素=文件.querySelectorAll('.文本模式')；Const textElements=文件.querySelectorAll('.文本模式');
-Const contentArea=文件.getElementById('ContentArea')；Const contentArea=文件.getElementById('ContentArea');
+        let isExpanded = false;
+        const themeRing = document.getElementById('theme-ring');
+        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+        const textElements = document.querySelectorAll('.text-pattern');
+        const contentArea = document.getElementById('contentArea');
 
-功能toggleTheme(事件){功能 toggleTheme(事件) {
-Const BTN=事件。当前目标；Const BTN=事件.currenttarget;
+        function toggleTheme(event) {
+            const btn = event.currentTarget;
             
-//获取按钮相对于父容器(contentArea)的坐标//获取按钮相对于父容器(contentArea)的坐标
-Const btnRect=BTN.getBoundingClientRect()；Const btnRect=BTN.getBoundingClientRect();
-ConstareRect=contentArea。getBoundingClientRect()；ConstareaRect=contentArea.getBoundingClientRect();
+            // 获取按钮相对于父容器 (contentArea) 的坐标
+            const btnRect = btn.getBoundingClientRect();
+            const areaRect = contentArea.getBoundingClientRect();
             
-Constx=(btnRect.左-areaRect.左)+btn正确。宽度/2；Constx=(btnRect.左 - areaRect.左)+btnRect.宽度 / 2;
-Consty=(btnRect.顶端-areaRect.顶端)+btn正确。高度/2；Consty=(btnRect.顶端 - areaRect.顶端)+btnRect.高度 / 2;
+            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
 
-is展开=！is展开；is展开= !is展开;
-GSAP.killTweensOf(主题化)；GSAP.killTweensOf(主题化);
+            isExpanded = !isExpanded;
+            gsap.killTweensOf(themeRing);
 
-如果(is展开){如果 (is展开) {
-                // 【展开】背景图切换，且文字纹理同步秒刷新// 【展开】背景图切换，且文字纹理同步秒刷新
-GSAP。设置(主题化，{(主题化，{
-                    BackgroundImage: 'URL("${newBgUrl}")'，
-                    clipPath: '圆形(0%在${x}PX${y}PX)处' 
-PX});
-// ✅ 文字纹理同步秒换(删除了之前的delayCall延迟）✅ 文字纹理同步秒换(删除了之前的delayCall延迟）
-textElements.foreach(埃尔=>{埃尔.风格.BackgroundImage='url("${newTextUrl}")'；})；textElements.foreach(埃尔=>{ 埃尔.风格.BackgroundImage='url("${newTextUrl}")'；})；
-                
-无效的主题化.offsetHeight；
-GSAP。到(主题化，{
-持续超文本标记语言>持续：0.8，缓解："power2.inOut“”，clipPath：'圆圈(150%在${x}PX${y}PX)处'
+            if (isExpanded) {
+                // 【展开】背景图切换，且文字纹理同步秒刷新
+                gsap.set(themeRing, { 
+                    backgroundImage: `url("${newBgUrl}")`,
+                    clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-} 其他{
+                // ✅ 文字纹理同步秒换（删除了之前的 delayedCall 延迟）
+                textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
+                
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { 
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
+                });
+            } else {
                 // 【收缩】背景图切换，且文字纹理同步秒刷新
-GSAP。设置(主题化，{clipPath：'圆圈(150%在${x}PX${y}PX)处'})；
+                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
                 // ✅ 文字纹理同步秒换
-textElements.foreach(埃尔=>{埃尔.风格.BackgroundImage='URL("${defaultTextUrl}")'；})；
-<！doctype超文本标记语言>！doctype<
-offsetHeight无效的主题化.offsetHeight；
-GSAP。到(主题化，{
-持续：0.8，缓解："power2.inOut“”，clipPath：'圆形(0%在${x}PX${y}PX)处'，
-onComplete：()=>{
-主题化.风格.BackgroundImage='url("${defaultBgUrl}")'；
+                textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+                
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { 
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
+                    onComplete: () => {
+                        themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
             }
         }
 
-文件.addEventListener("DOMContentLoaded"，功能(){
-            ConstbgImg=新的图像();
-            Constimgurl="{{url_for('static'，filename='bg.png')}}";
-            bgImg.src=imgurl;
-            bgImg.onload=功能() { 文件.身体.classList.添加('已加载'); };
-            setTimeout(()=>{
-                如果(!文件.身体.classList.包含('已加载')) { 文件.身体.classList.添加('已加载'); }
+        document.addEventListener("DOMContentLoaded", function() {
+            const bgImg = new Image();
+            const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(() => {
+                if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
             // 预渲染切换动画（解决第一次点击卡顿）
-            GSAP.设置(主题化, { clipPath: '圆形(0%at00)' });
-            setTimeout(()=>{
-                GSAP.设置(主题化, { clipPath: '圆形(在00时为150%)' });
-                setTimeout(()=>{
-                    GSAP.设置(主题化, { clipPath: '圆形(0%at00)' });
+            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+            setTimeout(() => {
+                gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
+                setTimeout(() => {
+                    gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
                 }, 100);
             }, 200);
 
             // 滚动触发动画
-            ConstTL=GSAP.时间线({
+            const tl = gsap.timeline({
                 scrollTrigger: {
-                    触发: ".content-area",
-                    开始: "前85%",
-                    toggleActions: "播放无无无"
+                    trigger: ".content-area",
+                    start: "top 85%",
+                    toggleActions: "play none none none"
                 }
             });
-            TL.到(".text-group", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
-              .到(".theme-btn-title", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
-              .到(".btn-grid", { 不透明度: 1, y: 0, 持续: 1.2, 延期: 0.2, 缓解: "power3.out" }, 0.2);
+            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
         });
 
-        功能 toggleFullScreen() {
-            如果 (!文件.fullscreenElement) {
-                文件.documentElement.requestFullscreen();
-            } 其他 {
-                如果 (文件.exitFullscreen) { 文件.exitFullscreen(); }
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
             }
         }
-    </脚本>
-</身体>
->超文本标记语言</
+    </script>
+</body>
+</html>
