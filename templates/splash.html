@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- 引入 GSAP 及其滚动触发插件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
@@ -18,234 +17,47 @@
         }
 
         body {
-            width: 100vw;
-            min-height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-            background-color: #000000;
-            display: flex;
-            flex-direction: column;
-            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            width: 100vw; min-height: 100vh; overflow-y: auto; overflow-x: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 第一屏：顶部图片区域 ================= */
-        .top-image-wrapper {
-            position: relative;
-            width: 100vw;
-            height: 100vh; 
-            flex-shrink: 0;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .top-image {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%; 
-            background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            z-index: 0;
-        }
+        /* 第一屏 */
+        .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
+        .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; background-color: #282828; color: #ffffff; padding: 1em 2em; border-radius: 1em; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.5); user-select: none; }
+        .tooltip .tooltiptext { visibility: hidden; width: 200px; background-color: #282828; color: #ffffff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #282828 transparent transparent transparent; transform: translateX(-50%); }
 
-        /* ================= 顶部施工提示 ================= */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            background-color: #282828;
-            color: #ffffff;
-            padding: 1em 2em;
-            border-radius: 1em;
-            z-index: 2;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            user-select: none;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #282828;
-            color: #ffffff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        .tooltip .tooltiptext::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #282828 transparent transparent transparent;
-            transform: translateX(-50%);
-        }
-
-        /* ================= 第二屏：文字与按钮区域 ================= */
-        .content-area {
-            position: relative;
-            width: 100%;
-            min-height: 100vh; 
-            background-image: var(--bg-img);
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            margin-top: 0;
-            padding-top: 15vh;
-            padding-left: 12%;
-            padding-bottom: 15vh;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        /* ================= 内部遮罩层（负责主题切换） ================= */
-        #theme-ring {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            background-color: transparent;
-            background-image: var(--bg-img);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            clip-path: circle(0% at 0 0);
-            will-change: clip-path, background-image;
-        }
-
-        /* ================= 标题行 ================= */
-        .title-row {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            justify-content: flex-start;
-            gap: 12px;
-            position: relative;
-            z-index: 1;
-            margin-bottom: 4px; 
-            margin-top: 0; 
-        }
-        .text-group {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start; 
-            gap: 6px;
-            opacity: 0; 
-            transform: translateY(60px); 
-        }
-        .theme-btn-title {
-            width: 30px; height: 30px; padding: 0; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: #ffffff; touch-action: manipulation;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            opacity: 0;
-            transform: translateY(60px);
-            flex-shrink: 0;
-            margin-top: 6px;
-        }
+        /* 第二屏 */
+        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
+        .theme-btn-title { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-
-        .text-pattern {
-            color: #ffffff; 
-            background-image: url("{{ url_for('static', filename='texture.jpg') }}"); 
-            background-size: cover; background-position: center;
-            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none;
-            text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px;
-        }
+        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* ================= 底部 2x2 网格按钮 ================= */
-        .btn-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            width: 100%; max-width: 320px;
-            margin-top: 0;
-            justify-items: center;
-            opacity: 0;
-            transform: translateY(60px);
-            position: relative;
-            z-index: 1;
-        }
-        .glass-btn {
-            position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            color: #ffffff; font-size: 18px; font-weight: 600;
-            cursor: pointer; letter-spacing: 1px; text-decoration: none;
-            display: inline-block; z-index: 1; touch-action: manipulation;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        /* 底部 4 按钮 */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; opacity: 0; transform: translateY(60px); position: relative; z-index: 1; }
+        .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ================= 顶部等宽三按钮 ================= */
-        .top-actions {
-            position: fixed;
-            top: 20px;
-            right: 24px; 
-            z-index: 9999; 
-            display: flex;
-            align-items: center;
-            gap: 8px; /* 缩紧间距 */
-            width: 280px; /* 固定宽，让 flex: 1 完美均分 */
-        }
-        .top-btn {
-            flex: 1; /* 强行等宽 */
-            min-width: 50px;
-            text-align: center;
-            padding: 8px 6px; /* 确保字不会挤出去 */
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            color: #ffffff; font-size: 13px; font-weight: 500;
-            cursor: pointer; text-decoration: none;
-            display: flex; align-items: center; justify-content: center;
-            border: none; touch-action: manipulation;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        /* 顶部 3 按钮 */
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
+        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        @keyframes slideInFromRight {
-            0% { opacity: 0; transform: translateX(280px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-        .top-actions .top-btn {
-            opacity: 0;
-            animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        /* 依次延迟：联系开发者(0.2s), 全屏显示(0.4s), Log in(0.6s) */
+        @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
+        .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
         @media (max-width: 600px) {
-            .tooltip { font-size: 14px; padding: 0.8em 1.5em; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -258,19 +70,13 @@
     </style>
 </head>
 <body>
-    <!-- 第一屏：顶部图片 + 提示框 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
-        <div class="tooltip">
-            正在施工中，请向上滑动
-            <div class="tooltiptext">Hi there!</div>
-        </div>
+        <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
     </div>
 
-    <!-- 第二屏 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
-
         <div class="title-row">
             <div class="text-group">
                 <h1 class="text-pattern main-title">宫水大世界</h1>
@@ -278,22 +84,20 @@
             </div>
             <button class="theme-btn-title" onclick="toggleTheme(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                 </svg>
             </button>
         </div>
         
-        <!-- 底部 2x2 网格按钮（创建作品、查看仓库 / 加入社区、AGent） -->
+        <!-- 4 个底部按钮（红字部分是按你要求修改的） -->
         <div class="btn-grid">
-            <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
-            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
+            <a href="/warehouse" class="glass-btn"><span class="btn-text">查看仓库</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
-            <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">AGent</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">AGent</span></a>
         </div>
     </div>
 
-    <!-- 顶部固定悬浮三按钮（联系开发者、全屏显示、Log in） -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -302,7 +106,6 @@
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
-
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
@@ -312,11 +115,8 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
-        // 预加载
-        const preloadNewBg = new Image();
-        preloadNewBg.src = newBgUrl;
-        const preloadNewText = new Image();
-        preloadNewText.src = newTextUrl;
+        const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
+        const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
@@ -342,11 +142,7 @@
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
-                    onComplete: () => {
-                        themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
-                    }
-                });
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
             }
         }
 
@@ -355,24 +151,13 @@
             const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(() => {
-                if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
-            }, 3000);
+            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => {
-                gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
-                setTimeout(() => {
-                    gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-                }, 100);
-            }, 200);
+            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
             const tl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: ".content-area",
-                    start: "top 85%",
-                    toggleActions: "play none none reverse"
-                }
+                scrollTrigger: { trigger: ".content-area", start: "top 85%", toggleActions: "play none none reverse" }
             });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
@@ -380,11 +165,7 @@
         });
 
         function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); }
-            }
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
     </script>
 </body>
