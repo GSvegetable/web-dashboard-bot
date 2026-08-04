@@ -13,28 +13,19 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
-            padding: 5vh 3vw; /* 距离屏幕边缘的统一边距 */
-            gap: 2vw;
+            padding: 5vh 3vw;
             box-sizing: border-box;
-        }
-
-        /* 双面板布局容器 */
-        .panel {
-            height: 100%;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            padding: 20px; /* 盒子与边缘的边距 */
-            overflow-y: auto;
+            justify-content: flex-start;
         }
 
         /* ================= 左侧新布局 ================= */
         .left-panel-wrapper {
             flex: 1;
-            max-width: 35%;
-            min-width: 220px;
+            width: 100%;
+            max-width: 380px; /* 控制左侧整体宽度，不让它占据整个屏幕 */
             display: flex;
             flex-direction: column;
-            gap: 20px; /* 上下长方形之间的距离，与屏幕边距保持一致 */
+            gap: 20px; /* 上下长方形之间的距离 */
             height: 100%;
         }
 
@@ -47,36 +38,38 @@
             box-sizing: border-box;
         }
 
-        /* 上部分：占比 1/6 */
+        /* 上部分：缩小到下面的 1/10 */
         .top-box {
             flex: 1;
-            min-height: 80px;
+            min-height: 40px;
             display: flex;
             align-items: center;
+            padding: 12px 16px;
         }
 
-        /* 下部分：占比 5/6 */
+        /* 下部分：占比 10/10 */
         .bottom-box {
-            flex: 5;
+            flex: 10;
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
             overflow: hidden;
+            padding: 16px; /* 减少一点内边距 */
         }
 
-        /* 上方按钮 */
+        /* 上方按钮（缩小版） */
         .file-btn {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 24px;
-            border-radius: 12px;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 8px;
             border: 1px solid #30363d;
             background: rgba(255, 255, 255, 0.05);
             color: #ffffff;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -84,7 +77,7 @@
         }
         .file-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
 
-        .file-btn .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+        .file-btn .icon { width: 14px; height: 14px; stroke: currentColor; fill: none; }
 
         /* 空白占位状态 */
         .empty-state {
@@ -104,7 +97,7 @@
             width: 100%;
         }
         .file-tree-accordion.open {
-            max-height: 1200px; /* 足够容纳完整的树 */
+            max-height: 1500px;
         }
 
         .file-tree-content {
@@ -112,54 +105,41 @@
             width: 100%;
         }
 
-        /* ================= 右侧面板 ================= */
-        .right-panel {
-            flex: 2;
-            max-width: 65%;
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #8b949e;
-            font-size: 14px;
-        }
-
         /* ==========================================================
-           以下为 Uiverse 作者 ashif_6672 的原生 CSS (原封不动)
+           Uiverse 树形菜单组件 (去掉了外部的黑/白背景和边框)
            ========================================================== */
         .tree-container {
             width: 100%;
-            border: 1px solid #e4e4e7;
-            border-radius: 8px;
-            padding: 24px;
-            background: #ffffff;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            padding: 4px;
+            /* 彻底去掉背景和边框，融入下方盒子 */
+            background: transparent;
+            border: none;
+            box-shadow: none;
             box-sizing: border-box;
         }
 
         ul { list-style: none; padding: 0; margin: 0; }
-        ul ul { margin-left: 11px; padding-left: 11px; border-left: 1px solid #e4e4e7; }
+        ul ul { margin-left: 11px; padding-left: 11px; border-left: 1px solid rgba(255, 255, 255, 0.1); }
         .tree-item { position: relative; margin-top: 4px; }
         ul ul .tree-item::before {
             content: ""; position: absolute; left: -11px; top: 14px;
-            width: 11px; height: 1px; background-color: #e4e4e7;
+            width: 11px; height: 1px; background-color: rgba(255, 255, 255, 0.1);
         }
 
         .tree-label, .file-item {
             display: flex; align-items: center; gap: 8px; padding: 4px 8px;
             border-radius: 4px; cursor: pointer; font-size: 14px;
-            color: #09090b; transition: background-color 0.2s; user-select: none;
+            color: #c9d1d9; transition: background-color 0.2s; user-select: none;
             text-decoration: none; height: 28px;
         }
-        .tree-label:hover, .file-item:hover { background-color: #f4f4f5; }
-        .is-selected { background-color: #f4f4f5; color: #09090b; font-weight: 500; }
+        .tree-label:hover, .file-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .is-selected { background-color: rgba(255, 255, 255, 0.05); color: #ffffff; font-weight: 500; }
 
-        .icon { width: 16px; height: 16px; color: #71717a; flex-shrink: 0; }
+        .icon { width: 16px; height: 16px; color: #8b949e; flex-shrink: 0; }
         .folder-open-icon { display: none; }
         .folder-closed-icon { display: block; }
 
-        .tree-toggle:checked ~ .tree-label .folder-open-icon { display: block; color: #09090b; }
+        .tree-toggle:checked ~ .tree-label .folder-open-icon { display: block; color: #ffffff; }
         .tree-toggle:checked ~ .tree-label .folder-closed-icon { display: none; }
         .tree-toggle { display: none; }
 
@@ -172,19 +152,18 @@
         /* ========================================================== */
 
         @media (max-width: 600px) {
-            body { flex-direction: column; padding: 3vh 3vw; gap: 3vh; overflow-y: auto; }
-            .left-panel-wrapper, .right-panel { max-width: 100%; width: 100%; flex: none; height: 50vh; }
-            .left-panel-wrapper { min-height: 250px; }
-            .top-box { flex: 1; min-height: 60px; }
-            .bottom-box { flex: 5; }
-            .tree-container { padding: 12px; }
+            body { padding: 3vh 3vw; overflow-y: auto; }
+            .left-panel-wrapper { max-width: 100%; height: 100vh; }
+            .top-box { flex: 1; min-height: 40px; padding: 10px 14px; }
+            .bottom-box { flex: 10; padding: 12px; }
+            .tree-container { padding: 0; }
         }
     </style>
 </head>
 <body>
-    <!-- 左侧全新 1:5 双面板 + 可折叠目录 -->
+    <!-- 左侧纯双面板结构 -->
     <div class="left-panel-wrapper">
-        <!-- 上半部分（1/6） -->
+        <!-- 上半部分（缩小至 1/10） -->
         <div class="box top-box">
             <button class="file-btn" id="fileToggleBtn" onclick="toggleFileTree()">
                 <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -192,12 +171,12 @@
             </button>
         </div>
 
-        <!-- 下半部分（5/6） -->
+        <!-- 下半部分（10/10） -->
         <div class="box bottom-box">
             <!-- 空状态提示 -->
             <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
 
-            <!-- 可折叠的白色树形菜单 -->
+            <!-- 可折叠树形菜单 (去掉黑底，透明融合) -->
             <div id="fileTreeAccordion" class="file-tree-accordion">
                 <div class="file-tree-content">
                     <div class="tree-container">
@@ -278,33 +257,20 @@
         </div>
     </div>
 
-    <!-- 右侧面板 -->
-    <div class="panel right-panel">
-        右侧面板预留区域
-    </div>
-
     <script>
         function toggleFileTree() {
             const accordion = document.getElementById('fileTreeAccordion');
             const emptyState = document.getElementById('emptyState');
-            const btn = document.getElementById('fileToggleBtn');
+            // 按钮文字不再改变，始终保持为“文件”
 
             const isOpen = accordion.classList.toggle('open');
             
             if (isOpen) {
                 emptyState.style.display = 'none';
-                btn.innerHTML = `
-                    <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    文件 (收起)
-                `;
             } else {
                 setTimeout(() => {
                     emptyState.style.display = 'block';
-                }, 400); // 等待动画结束后显示空状态
-                btn.innerHTML = `
-                    <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    文件
-                `;
+                }, 400); // 等待折叠动画结束后再显示空状态
             }
         }
     </script>
