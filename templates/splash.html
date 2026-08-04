@@ -52,7 +52,7 @@
             z-index: 0;
         }
 
-        /* ================= 全新 Tooltip 悬浮提示框 ================= */
+        /* ================= 顶部施工提示 ================= */
         .tooltip {
             position: relative;
             display: inline-block;
@@ -65,7 +65,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             user-select: none;
         }
-
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 200px;
@@ -82,12 +81,10 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
-
         .tooltip .tooltiptext::after {
             content: "";
             position: absolute;
@@ -135,7 +132,7 @@
             will-change: clip-path, background-image;
         }
 
-        /* ================= 标题行（文字 + 切换按钮） ================= */
+        /* ================= 标题行 ================= */
         .title-row {
             display: flex;
             flex-direction: row;
@@ -147,7 +144,6 @@
             margin-bottom: 4px; 
             margin-top: 0; 
         }
-
         .text-group {
             display: flex;
             flex-direction: column;
@@ -156,8 +152,6 @@
             opacity: 0; 
             transform: translateY(60px); 
         }
-
-        /* 固定在“宫水大世界”右侧的切换按钮 */
         .theme-btn-title {
             width: 30px; height: 30px; padding: 0; border-radius: 50%;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
@@ -184,6 +178,7 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
+        /* ================= 底部 2x2 网格按钮 ================= */
         .btn-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
             width: 100%; max-width: 320px;
@@ -194,8 +189,20 @@
             position: relative;
             z-index: 1;
         }
+        .glass-btn {
+            position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            color: #ffffff; font-size: 18px; font-weight: 600;
+            cursor: pointer; letter-spacing: 1px; text-decoration: none;
+            display: inline-block; z-index: 1; touch-action: manipulation;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .glass-btn:active { transform: scale(0.94); }
+        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ================= 屏幕顶部固定悬浮的按钮（强制等宽、有序动画） ================= */
+        /* ================= 顶部等宽三按钮 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -203,21 +210,20 @@
             z-index: 9999; 
             display: flex;
             align-items: center;
-            gap: 12px;
-            width: 260px; /* 限制总宽度，让 flex:1 发挥均匀分布的作用 */
+            gap: 8px; /* 缩紧间距 */
+            width: 280px; /* 固定宽，让 flex: 1 完美均分 */
         }
         .top-btn {
-            flex: 1;
+            flex: 1; /* 强行等宽 */
             min-width: 50px;
             text-align: center;
-            padding: 8px 10px; /* 稍微减小左右 padding，防止因为固定宽度导致挤压 */
+            padding: 8px 6px; /* 确保字不会挤出去 */
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            color: #ffffff; font-size: 14px; font-weight: 500;
+            color: #ffffff; font-size: 13px; font-weight: 500;
             cursor: pointer; text-decoration: none;
             display: flex; align-items: center; justify-content: center;
             border: none; touch-action: manipulation;
@@ -233,24 +239,10 @@
             opacity: 0;
             animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        /* 依次延迟：全屏显示(0.2s), AGent(0.4s), Log in(0.6s) */
+        /* 依次延迟：联系开发者(0.2s), 全屏显示(0.4s), Log in(0.6s) */
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
-
-        /* 底部按钮统一玻璃质感 */
-        .glass-btn {
-            position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            color: #ffffff; font-size: 18px; font-weight: 600;
-            cursor: pointer; letter-spacing: 1px; text-decoration: none;
-            display: inline-block; z-index: 1; touch-action: manipulation;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .glass-btn:active { transform: scale(0.94); }
-        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
             .tooltip { font-size: 14px; padding: 0.8em 1.5em; }
@@ -260,24 +252,22 @@
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
             .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
-            .top-btn { font-size: 12px; padding: 6px 8px; min-width: 40px; }
+            .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
             .top-actions .top-btn { animation-duration: 0.5s; }
         }
     </style>
 </head>
 <body>
-    <!-- 第一屏：顶部图片 + 悬浮提示框 -->
+    <!-- 第一屏：顶部图片 + 提示框 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
-        
-        <!-- Tooltip 组件 -->
         <div class="tooltip">
             正在施工中，请向上滑动
             <div class="tooltiptext">Hi there!</div>
         </div>
     </div>
 
-    <!-- 第二屏：宫水大世界 -->
+    <!-- 第二屏 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
 
@@ -294,17 +284,19 @@
             </button>
         </div>
         
+        <!-- 底部 2x2 网格按钮（创建作品、查看仓库 / 加入社区、AGent） -->
         <div class="btn-grid">
             <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
+            <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">AGent</span></a>
         </div>
     </div>
 
-    <!-- 顶部悬浮按钮（三均分，尺寸固定） -->
+    <!-- 顶部固定悬浮三按钮（联系开发者、全屏显示、Log in） -->
     <div class="top-actions">
+        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">AGent</a>
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
     </div>
 
@@ -320,7 +312,7 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
-        // 预加载新图片
+        // 预加载
         const preloadNewBg = new Image();
         preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image();
