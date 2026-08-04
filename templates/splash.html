@@ -60,7 +60,7 @@
             align-items: flex-start;
             justify-content: flex-start;
             z-index: 1;
-            overflow: hidden;
+            /* 🛑 关键修复：彻底删掉 overflow: hidden，永绝“被切掉”的后患 */
         }
 
         /* ================= 内部遮罩层（负责主题切换） ================= */
@@ -132,9 +132,8 @@
             width: 100%; max-width: 320px;
             margin-top: 0;
             justify-items: center;
-            /* 🛑 初始状态设为透明，交由 GSAP 激活 */
             opacity: 0;
-            transform: translateY(60px);
+            transform: translateY(30px); /* 改为 30px，大幅降低被裁切的风险 */
             position: relative;
             z-index: 1;
         }
@@ -326,11 +325,11 @@
                 }, 100);
             }, 200);
 
-            // 🔥 滚动触发动画（只播放一次，绝不重复）
+            // 滚动触发动画
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 80%", // 触发点稍微提前，确保刚看到就能触发
+                    start: "top 80%",
                     toggleActions: "play none none none",
                     invalidateOnRefresh: true
                 }
@@ -338,20 +337,7 @@
             
             tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
-
-            // ⚠️ 【终极兜底方案】如果手机端的 ScrollTrigger 没触发，等待 3 秒后强行强制显示
-            setTimeout(() => {
-                if (!tl.isActive()) {
-                    gsap.to(".btn-grid .glass-btn", { 
-                        opacity: 1, 
-                        y: 0, 
-                        duration: 0.5, 
-                        stagger: 0.1,
-                        ease: "power2.out" 
-                    });
-                }
-            }, 3000);
+              .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
         function toggleFullScreen() {
