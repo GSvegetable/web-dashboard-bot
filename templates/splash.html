@@ -31,8 +31,8 @@
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
         .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #282828 transparent transparent transparent; transform: translateX(-50%); }
 
-        /* 🔽 新增：第一张图片左下角的文字 */
-        .top-image-footer-text {
+        /* 🔽 第一张图片左下角文字（已替换新内容） */
+        .top-image-footer-left {
             position: absolute;
             bottom: 5%;
             left: 6%;
@@ -40,12 +40,28 @@
             color: #ffffff;
             text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
             font-size: 17px;
-            line-height: 1.6;
+            line-height: 1.8;
             font-weight: 500;
-            pointer-events: none; /* 防止遮挡点击 */
-            max-width: 80%;
+            pointer-events: none;
+            text-align: left;
+            max-width: 45%;
         }
-        .top-image-footer-text p { margin: 4px 0; }
+
+        /* 🔽 新增：第一张图片右下角文字 */
+        .top-image-footer-right {
+            position: absolute;
+            bottom: 5%;
+            right: 6%;
+            z-index: 2;
+            color: #ffffff;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
+            font-size: 17px;
+            line-height: 1.8;
+            font-weight: 500;
+            pointer-events: none;
+            text-align: right;
+            max-width: 45%;
+        }
 
         /* 第二屏 */
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
@@ -76,7 +92,9 @@
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
         @media (max-width: 600px) {
-            .top-image-footer-text { font-size: 14px; bottom: 4%; left: 5%; max-width: 90%; }
+            .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; line-height: 1.6; }
+            .top-image-footer-left { left: 5%; }
+            .top-image-footer-right { right: 5%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -94,11 +112,16 @@
         
         <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
 
-        <!-- 🔽 新增：第一张图片左下角的白色文字（和中间按钮绝对不重叠） -->
-        <div class="top-image-footer-text">
-            <p>联系开发者的那个qq不回消息 提交bug就提交好了呀</p>
-            <p>刷屏那个笑哭表情包 还发片的，你们真死妈了</p>
-            <p>建议横屏浏览，并且开启全图显示</p>
+        <!-- 左侧文字（已按你的要求更新） -->
+        <div class="top-image-footer-left">
+            <p>联系开发者不提供QQ了 你们太坏了</p>
+            <p>刷屏笑哭表情 还发片的 你真死妈了</p>
+            <p>手机建议横屏浏览 开启全图显示</p>
+        </div>
+
+        <!-- 右侧新增文字 -->
+        <div class="top-image-footer-right">
+            <p>卡顿就挂vpn  服务器在海外</p>
         </div>
     </div>
 
