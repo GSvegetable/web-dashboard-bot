@@ -163,22 +163,23 @@
             isExpanded = !isExpanded;
             gsap.killTweensOf(themeRing);
 
-            // 修复核心：图片预加载，然后再执行动画和替换壁纸！
-            const imgLoader = new Image();
             const targetUrl = isExpanded ? newBgUrl : defaultBgUrl;
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
             
+            const imgLoader = new Image();
             imgLoader.src = targetUrl;
             
-            // 图片加载成功后执行动画
             imgLoader.onload = function() {
-                // 1. 把底图真正替换掉！
+                // 1. 把底层背景图替换掉！
                 contentArea.style.backgroundImage = `url("${targetUrl}")`;
                 
-                // 2. 把文字纹理也替换掉！
+                // 2. 重点修复：必须同步更新遮罩层（theme-ring）的背景图，否则动画就会带出纯黑色！
+                themeRing.style.backgroundImage = `url("${targetUrl}")`;
+                
+                // 3. 把文字纹理也替换掉！
                 textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
                 
-                // 3. 执行圆形扩散动画
+                // 4. 执行圆形扩散动画
                 if (isExpanded) {
                     gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
                     gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
