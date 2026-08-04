@@ -83,7 +83,6 @@
             flex-direction: row;
             align-items: flex-start;
             justify-content: flex-start;
-            /* 减小间距，让按钮更贴近文字 */
             gap: 6px; 
             position: relative;
             z-index: 1;
@@ -139,7 +138,7 @@
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮（恢复右侧滑入动画） ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮（右侧滑入动画） ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -166,7 +165,6 @@
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         #loginBtn { margin-left: 16px; }
 
-        /* 🔥 顶部按钮从右侧滑入的动画定义 */
         @keyframes slideInFromRight {
             0% { opacity: 0; transform: translateX(280px); }
             100% { opacity: 1; transform: translateX(0); }
@@ -327,20 +325,20 @@
                 }, 100);
             }, 200);
 
-            // 🔥 滚动触发动画 (彻底解决4个按钮不出来的问题)
-            // 使用 fromTo 严格定义初始状态，触发点改到 90%，动画更早触发
+            // 🔥 滚动触发动画：将触发点调整为 80%，只要第二屏一下拉出现，立即播放动画
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 90%",
+                    start: "top 80%",
                     toggleActions: "play reverse play reverse",
                     invalidateOnRefresh: true
                 }
             });
             
+            // 文字和按钮，严格定义动画起点
             tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              // 用 fromTo 包裹四个按钮，保证错开动画绝对生效
+              // 四个按钮严格按照 stagger: 0.15 依次错开
               .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
