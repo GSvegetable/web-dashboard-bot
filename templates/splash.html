@@ -138,7 +138,7 @@
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮（右侧滑入动画） ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -325,20 +325,20 @@
                 }, 100);
             }, 200);
 
-            // 🔥 滚动触发动画：将触发点调整为 80%，只要第二屏一下拉出现，立即播放动画
+            // 🔥 滚动触发动画（终极简化版：滑到第二屏，只播放一次，绝不重复）
+            // toggleActions: "play none none none" 表示：进入视口播放一次，离开不反向，再进入不播放。
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 80%",
-                    toggleActions: "play reverse play reverse",
+                    start: "top 85%",
+                    toggleActions: "play none none none",
                     invalidateOnRefresh: true
                 }
             });
             
-            // 文字和按钮，严格定义动画起点
             tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              // 四个按钮严格按照 stagger: 0.15 依次错开
+              // 四个按钮依然保持 0.15 秒的依次错开
               .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
