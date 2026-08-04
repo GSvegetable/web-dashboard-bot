@@ -45,7 +45,6 @@
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.08);
             
-            /* 蜂巢背景 */
             --s: 200px;
             --c1: #1d1d1d;
             --c2: #4e4f51;
@@ -88,7 +87,7 @@
         .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
         .top-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
 
-        /* ================= 下方主盒子 ================= */
+        /* ================= 下方主盒子（丝滑动画核心） ================= */
         .bottom-box {
             flex: 1;
             position: relative;
@@ -101,7 +100,8 @@
             background-color: #161b22;
             border: 1px solid #30363d;
             height: 100%;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            /* 优化的宽度的缓动曲线，让收缩和展开极其丝滑 */
+            transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         /* 收缩状态 */
@@ -110,15 +110,34 @@
             align-self: flex-start !important;
         }
 
-        /* ================= 你提供的怪物背景动画 ================= */
+        /* 🔽 关键修改：文件树和空状态的淡出淡入衔接 */
+        #emptyState, .file-tree-accordion {
+            position: relative;
+            z-index: 1;
+            opacity: 1;
+            visibility: visible;
+            /* 快速淡出，不拖泥带水 */
+            transition: opacity 0.15s ease, visibility 0.15s;
+        }
+        .bottom-box.shrink #emptyState,
+        .bottom-box.shrink .file-tree-accordion {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* 🔽 怪物背景的衔接：从无到有的缓慢淡入 */
         .monster-bg {
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             width: 100%; height: 100%;
             pointer-events: none;
-            display: none; /* 默认隐藏 */
             background-color: #111;
-            z-index: 0; /* 放在底层 */
+            z-index: 0;
+            /* 初始状态不可见 */
+            opacity: 0;
+            visibility: hidden;
+            /* 淡入的时间比收缩长一点点，制造高级感 */
+            transition: opacity 0.5s ease, visibility 0.5s;
+            
             --color-0: #fff;
             --color-1: #111;
             --color-2: #222;
@@ -235,27 +254,21 @@
             42%, 100% { opacity: 0; }
         }
 
-        /* 🔽 逻辑控制：仅在收缩（未展开）时显示怪物背景 */
+        /* 仅在收缩时显示怪物 */
         .bottom-box.shrink .monster-bg {
-            display: block;
-        }
-        /* 收缩时隐藏空状态和文件树 */
-        .bottom-box.shrink #emptyState,
-        .bottom-box.shrink .file-tree-accordion {
-            display: none;
+            opacity: 1;
+            visibility: visible;
         }
 
         /* ================= 树形菜单组件 ================= */
         .file-tree-accordion {
-            max-height: 0; overflow: hidden;
+            max-height: 0; 
+            overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
-            position: relative; z-index: 1;
         }
         .file-tree-accordion.open { max-height: 1500px; }
         .file-tree-content { padding-top: 10px; width: 100%; }
-
-        #emptyState { position: relative; z-index: 1; }
 
         .tree-container { width: 100%; padding: 4px; background: transparent; border: none; box-sizing: border-box; }
         ul { list-style: none; padding: 0; margin: 0; }
@@ -310,9 +323,9 @@
             <button class="top-btn" id="createNewBtn">新键作品</button>
         </div>
 
-        <!-- 下半部分（收缩时触发怪物动画） -->
+        <!-- 下半部分（完美衔接切换） -->
         <div class="box bottom-box" id="bottomBox">
-            <!-- 🔽 怪物背景动画层（仅当 width 收缩为 1/3 时可见） -->
+            <!-- 怪物背景动画层（通过透明度控制） -->
             <div class="monster-bg"></div>
 
             <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
@@ -383,19 +396,28 @@
     </div>
 
     <script>
-        // 切换文件树展开/收起
+        // 切换文件树展开/收起（同时处理与怪物模式的切换）
         function toggleFileTree() {
             const bottomBox = document.getElementById('bottomBox');
             const accordion = document.getElementById('fileTreeAccordion');
             const emptyState = document.getElementById('emptyState');
 
-            // 如果当前是收缩状态（有怪物），点击文件时先取消收缩
+            // 如果当前是怪物模式，先取消收缩状态，退出怪物背景
             if (bottomBox.classList.contains('shrink')) {
                 bottomBox.classList.remove('shrink');
-                // 让空状态和文件树正常出现
-                emptyState.style.display = 'block';
+                // 等盒子展开动画跑完（0.4s），再切换文件树状态
+                setTimeout(() => {
+                    const isOpen = accordion.classList.toggle('open');
+                    if (isOpen) {
+                        emptyState.style.display = 'none';
+                    } else {
+                        setTimeout(() => { emptyState.style.display = 'block'; }, 400);
+                    }
+                }, 400); 
+                return;
             }
 
+            // 正常切换模式
             const isOpen = accordion.classList.toggle('open');
             if (isOpen) {
                 emptyState.style.display = 'none';
@@ -404,20 +426,26 @@
             }
         }
 
-        // 点击新键作品：触发宽度收缩，同时显示怪物背景（隐藏文件树）
+        // 点击新键作品：触发收缩，文字淡出，怪物淡入
         document.getElementById('createNewBtn').addEventListener('click', function() {
             const bottomBox = document.getElementById('bottomBox');
             const accordion = document.getElementById('fileTreeAccordion');
-            const emptyState = document.getElementById('emptyState');
+            const isCurrentlyShrunk = bottomBox.classList.contains('shrink');
 
-            // 如果文件树是展开的，先把文件树收回去
-            if (accordion.classList.contains('open')) {
-                accordion.classList.remove('open');
-                // 文件树收起后，空状态应该隐藏，因为它已经被收缩状态覆盖了
+            if (!isCurrentlyShrunk) {
+                // 1. 如果是展开状态，先收起文件树（触发 0.4s 折叠动画）
+                if (accordion.classList.contains('open')) {
+                    accordion.classList.remove('open');
+                }
+                // 2. 延时 0.1 秒，等文件树折叠启动，再触发底盒收缩和文字淡出
+                setTimeout(() => {
+                    bottomBox.classList.add('shrink');
+                }, 100);
+            } else {
+                // 如果是收缩状态，切回展开
+                bottomBox.classList.remove('shrink');
+                // 怪物会淡出，空状态文件树会淡入
             }
-
-            // 强制触发收缩状态（此时 .shrink 生效，怪物显示，文件和空状态被 CSS 隐藏）
-            bottomBox.classList.toggle('shrink');
         });
     </script>
 </body>
