@@ -335,7 +335,8 @@
             });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+              /* 🛑 修改点：目标改为逐个按钮，并加上 stagger: 0.15 实现依次错开出场 */
+              .to(".btn-grid .glass-btn", { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
         function toggleFullScreen() {
