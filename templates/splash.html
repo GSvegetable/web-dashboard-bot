@@ -15,7 +15,6 @@
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
 
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
-        /* 核心：覆盖层容器 */
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -92,9 +91,7 @@
     </div>
 
     <div class="content-area" id="contentArea">
-        <!-- 覆盖层：负责展示圆形遮罩和图片过渡 -->
         <div id="theme-ring"></div>
-        
         <div class="title-row">
             <div class="text-group">
                 <h1 class="text-pattern main-title">宫水大世界</h1>
@@ -166,41 +163,54 @@
             isExpanded = !isExpanded;
             gsap.killTweensOf(themeRing);
 
-            const targetUrl = isExpanded ? newBgUrl : defaultBgUrl;
+            // 目标图片：展开时是白色主题，收缩时是黑色主题
+            const targetUrl = isExpanded ? newBgUrl : defaultBgUrl; 
+            // 当前底层图片：收缩时必须是黑色主题（外层），展开时必须是白色主题（内层）
+            const currentBgUrl = isExpanded ? defaultBgUrl : newBgUrl; 
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
 
+            // 防闪/黑屏预加载
             const imgLoader = new Image();
             imgLoader.src = targetUrl;
-
+            
             imgLoader.onload = function() {
-                // 【核心修正】：在动画开始前，把“遮罩层”替换成目标图片
-                // 这样用户就能看到：圆形遮罩里面是目标图，外面是底层当前图
+                // 1. 核心修正：分别设置遮罩层和底层的主题
+                // 收缩时：遮罩层是白色主题，底层是黑色主题（满足“外面是黑，里面是白”）
+                // 展开时：遮罩层是黑色主题，底层是白色主题
                 themeRing.style.backgroundImage = `url("${targetUrl}")`;
-
-                // 定义动画的起点和终点
-                // 展开：从 0% 变成 150%，覆盖整个页面
-                // 收缩：从 150% 变回 0%，展示底层的图片
-                const startClip = isExpanded ? `circle(0% at ${x}px ${y}px)` : `circle(150% at ${x}px ${y}px)`;
-                const endClip = isExpanded ? `circle(150% at ${x}px ${y}px)` : `circle(0% at ${x}px ${y}px)`;
-
-                gsap.set(themeRing, { clipPath: startClip });
+                contentArea.style.backgroundImage = `url("${currentBgUrl}")`;
                 
-                // 执行 0.8 秒的过渡动画
-                gsap.to(themeRing, {
-                    duration: 0.8,
-                    ease: "power2.inOut",
-                    clipPath: endClip,
+                // 强制重绘，彻底解决闪白/闪黑问题
+                void themeRing.offsetHeight; 
+                void contentArea.offsetHeight;
+
+                // 2. 构建精确的 0.8s 水波纹时间轴
+                const tl = gsap.timeline({
                     onComplete: () => {
-                        // 【防黑屏核心】：动画执行完毕瞬间，立刻将底层图片也替换，并清理可能产生的残余
+                        // 动画完全结束的瞬间，把底图彻底变成目标主题！
                         contentArea.style.backgroundImage = `url("${targetUrl}")`;
                     }
                 });
 
-                // 文字纹理切换（严格按你的要求延迟）
-                const textDelay = isExpanded ? 0.2 : 0.35;
-                gsap.delayedCall(textDelay, () => {
-                    textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                });
+                if (isExpanded) {
+                    // 展开动画：从按钮中心向四周均匀扩散（水波纹展开）
+                    tl.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` })
+                      .to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                    
+                    // 同步延迟 0.2s 更换文字纹理
+                    gsap.delayedCall(0.2, () => {
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                    });
+                } else {
+                    // 收缩动画：水波纹从四周向按钮中心收拢
+                    tl.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` })
+                      .to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                      
+                    // 同步延迟 0.35s 更换文字纹理
+                    gsap.delayedCall(0.35, () => {
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                    });
+                }
             };
         }
 
@@ -210,13 +220,14 @@
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-            // 防卡顿预渲染机制：DOM加载完毕立刻偷偷跑一次 0% -> 150% -> 0% 的预演
+            // 3. 首屏防卡顿预渲染：隐藏执行 0->150->0，彻底唤醒浏览器渲染引擎
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
                 setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100);
             }, 200);
 
+            // 4. 进入首屏时的入场动画（GSAP 原本的逻辑）
             const tl = gsap.timeline({ scrollTrigger: { trigger: ".content-area", start: "top 85%", toggleActions: "play none none reverse" } });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
