@@ -98,6 +98,13 @@
         #custom-toast.success { border-left-color: #22c55e; }
         #custom-toast.show { opacity: 1; visibility: visible; }
 
+        /* 🌟 修复：防止验证按钮在禁用时改变颜色 */
+        #send-code-btn:disabled {
+            background-color: #8b5cf6 !important; /* 强制保持原有的紫罗兰色 */
+            opacity: 1 !important; /* 不因为禁用变灰 */
+            cursor: not-allowed;
+        }
+
         @media (max-width: 600px) {
             .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
@@ -174,18 +181,19 @@
                     <div class="relative rounded-lg flex-1 overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg">
                         <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="邮箱" required />
                     </div>
+                    <!-- 这里是验证按钮，添加了 ID -->
                     <button id="send-code-btn" class="bg-violet-500 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">
                         验证
                     </button>
                 </div>
 
-                <!-- 第2行：验证码 -->
-                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item" id="code-wrapper">
+                <!-- 第2行：验证码（修改：去掉了粉色的发光背景，保持干净） -->
+                <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
                     <input type="text" id="reg-code" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
-                <!-- 第3行：密码 -->
-                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item" id="password-wrapper">
+                <!-- 第3行：密码（修改：去掉了粉色的发光背景，保持干净） -->
+                <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
                     <input type="password" id="reg-password" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
