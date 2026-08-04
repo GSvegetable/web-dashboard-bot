@@ -75,8 +75,8 @@
         /* ================= 弹窗容器 ================= */
         .modal-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+            background: transparent; /* 修改：去掉了黑色的遮罩背景 */
+            backdrop-filter: none;  /* 修改：去掉了背景模糊 */
             z-index: 9998;
             display: flex; justify-content: flex-end; align-items: flex-start;
             padding-top: 80px; padding-right: 24px;
@@ -161,7 +161,8 @@
     <!-- ================= 登录表单 ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-neutral-500/40 rounded-lg bg-white/70 backdrop-blur-md shadow-2xl p-4">
+            <!-- 修改：添加了 novalidate 去掉了浏览器的默认错误提示，改 bg-white/70 为 bg-white/20 增加透明度 -->
+            <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/30 rounded-lg bg-white/20 backdrop-blur-md shadow-2xl p-4">
                 
                 <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-rose-300/50 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-purple-300/50 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
                     <span class="font-extrabold text-xl text-violet-600 anim-item">获取自己的GsBot账号</span>
@@ -269,17 +270,18 @@
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            // 修改：去掉了 `document.body.style.overflow = 'hidden';`，使得页面在弹窗打开时依然可以滑动
 
             const items = document.querySelectorAll('#loginModal .anim-item');
+            // 修改：调优了动画参数，去掉了最后一个按钮“顿一下”的卡顿感
             gsap.fromTo(items, { x: 20, opacity: 0 }, { 
-                x: 0, opacity: 1, duration: 0.3, stagger: 0.05, ease: "power1.out" 
+                x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" 
             });
         }
 
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
-            document.body.style.overflow = '';
+            // 修改：去掉了 `document.body.style.overflow = '';`
         }
 
         function closeLoginOnBg(event) {
@@ -290,7 +292,6 @@
         function shakeElement(element) {
             if(!element) return;
             element.classList.remove('shake-field');
-            // 强制重绘，让动画重新触发
             void element.offsetWidth; 
             element.classList.add('shake-field');
         }
@@ -307,8 +308,7 @@
             }
 
             const btn = this;
-            const originalText = btn.innerText;
-            btn.innerText = '发送中...';
+            // 修改：去掉了 `btn.innerText = '发送中...';`，现在按钮永远显示“验证”，不会变字
             btn.disabled = true;
 
             try {
@@ -331,7 +331,6 @@
             } catch (e) {
                 showToast('❌ 网络请求失败，请检查后台运行状态', 'error');
             } finally {
-                btn.innerText = originalText;
                 btn.disabled = false;
             }
         });
@@ -390,6 +389,7 @@
                 
                 if(text.includes('注册成功') || text.includes('登录成功')) {
                     showToast('🎉 注册/登录成功！', 'success');
+                    // 修改：点击注册/登录按钮成功后，自动关闭卡片
                     setTimeout(() => { closeLoginModal(); }, 1000);
                 } else if(text.includes('验证码错误')) {
                     showToast('❌ 验证码错误或已过期', 'error');
