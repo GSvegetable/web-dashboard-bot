@@ -51,9 +51,9 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔴 核心修复：删掉导致缝隙的 margin-top，改为用 padding-top 控制内部元素下移 */
+            /* 🔼 往上移：内边距从 20vh 改为 15vh，整体位置靠上 */
             margin-top: 0;
-            padding-top: 20vh; /* 内部元素整体向下移动 20vh，第二屏本身紧紧贴住第一屏 */
+            padding-top: 15vh;
             padding-left: 12%;
             padding-bottom: 15vh;
             display: flex;
@@ -181,7 +181,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { padding-top: 15vh; padding-left: 6%; min-height: 100vh; }
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -243,13 +243,10 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
-        const EXPAND_TEXT_DELAY = 0.4;
-        const CONTRACT_TEXT_DELAY = 0.3;
-
         function toggleTheme(event) {
             const btn = event.currentTarget;
             
-            // 核心修复：获取按钮相对于父容器 (contentArea) 的坐标
+            // 获取按钮相对于父容器 (contentArea) 的坐标
             const btnRect = btn.getBoundingClientRect();
             const areaRect = contentArea.getBoundingClientRect();
             
@@ -260,22 +257,24 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
+                // 【展开】背景图切换，且文字纹理同步秒刷新
                 gsap.set(themeRing, { 
                     backgroundImage: `url("${newBgUrl}")`,
                     clipPath: `circle(0% at ${x}px ${y}px)` 
                 });
-                gsap.delayedCall(EXPAND_TEXT_DELAY, () => {
-                    textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
-                });
+                // ✅ 文字纹理同步秒换（删除了之前的 delayedCall 延迟）
+                textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
+                
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
+                // 【收缩】背景图切换，且文字纹理同步秒刷新
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(CONTRACT_TEXT_DELAY, () => {
-                    textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
-                });
+                // ✅ 文字纹理同步秒换
+                textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+                
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
