@@ -47,6 +47,7 @@
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
+        .top-actions .top-btn:nth-child(4) { animation-delay: 0.6s; }
 
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
@@ -59,11 +60,21 @@
 
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* ============== 音乐卡片 CSS (整合 Uiverse) ============== */
+        /* 登录卡片样式 */
+        .login-card {
+            position: relative; width: 320px; padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #e5e7eb; display: flex; flex-direction: column; gap: 14px;
+        }
+
+        /* ============== 音乐卡片 CSS ============== */
         .music-glass-card {
             max-width: 420px; width: 90%;
             padding: 18px;
-            /* 改为同款通透玻璃质感 */
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.35);
@@ -130,12 +141,13 @@
             .top-actions { top: 16px; right: 16px; gap: 4px; width: 200px; }
             .top-btn { font-size: 11px; padding: 4px 6px; min-width: 40px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .music-glass-card { width: 280px; padding: 16px; }
+            .login-card, .music-glass-card { width: 280px; padding: 16px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
 </head>
 <body>
+    <!-- ================= 首页核心内容 ================= -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -155,6 +167,7 @@
         </div>
     </div>
 
+    <!-- ================= 顶部按钮 ================= -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <!-- 新增：音乐按钮 -->
@@ -167,7 +180,7 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片 (保持不变) ================= -->
+    <!-- ================= 登录卡片 ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="login-card">
@@ -190,7 +203,7 @@
         </div>
     </div>
 
-    <!-- ================= 音乐卡片 (同款高斯玻璃) ================= -->
+    <!-- ================= 音乐卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-glass-card">
@@ -246,7 +259,6 @@
     </div>
 
     <script>
-        /* ... 此前所有的 JS 保持不变，增加音乐卡片的逻辑 ... */
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -295,6 +307,7 @@
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
+            /* 确保字体和按钮重新出现 */
             const tl = gsap.timeline();
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
@@ -324,11 +337,11 @@
 
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        // 新增：打开音乐卡片
+        // 打开音乐卡片
         function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
         function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
 
-        // 点击空白处关闭任何卡片（排除按钮和输入框）
+        // 点击空白处关闭任意卡片（排除按钮和输入框）
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('input')) return;
             closeLoginModal();
@@ -350,12 +363,4 @@
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
-                else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败
+            if(!email) { shake
