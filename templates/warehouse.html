@@ -22,7 +22,7 @@
         .left-panel-wrapper {
             flex: 1;
             width: 100%;
-            max-width: 380px; /* 控制左侧整体宽度，不让它占据整个屏幕 */
+            max-width: 520px; /* 🔽 向右拉长：宽度增加了 1/3 */
             display: flex;
             flex-direction: column;
             gap: 20px; /* 上下长方形之间的距离 */
@@ -38,25 +38,25 @@
             box-sizing: border-box;
         }
 
-        /* 上部分：缩小到下面的 1/10 */
+        /* 上部分：缩小到下面的 1/15 */
         .top-box {
             flex: 1;
-            min-height: 40px;
+            min-height: 30px;
             display: flex;
             align-items: center;
             padding: 12px 16px;
         }
 
-        /* 下部分：占比 10/10 */
+        /* 下部分：占比 15/15 */
         .bottom-box {
-            flex: 10;
+            flex: 15; /* 🔽 上下比例改为 1:15 */
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
             overflow: hidden;
-            padding: 16px; /* 减少一点内边距 */
+            padding: 16px;
         }
 
         /* 上方按钮（缩小版） */
@@ -74,6 +74,8 @@
             cursor: pointer;
             transition: all 0.2s;
             user-select: none;
+            outline: none; /* 🔽 去掉蓝色聚焦框 */
+            -webkit-tap-highlight-color: transparent; /* 🔽 去掉手机端的蓝色高亮 */
         }
         .file-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
 
@@ -106,12 +108,12 @@
         }
 
         /* ==========================================================
-           Uiverse 树形菜单组件 (去掉了外部的黑/白背景和边框)
+           树形菜单组件 (去掉了外部的黑/白背景边框)
+           ✅ 补回了被你发现消失的“连接线”和“蓝色高亮去除”
            ========================================================== */
         .tree-container {
             width: 100%;
             padding: 4px;
-            /* 彻底去掉背景和边框，融入下方盒子 */
             background: transparent;
             border: none;
             box-shadow: none;
@@ -119,11 +121,23 @@
         }
 
         ul { list-style: none; padding: 0; margin: 0; }
-        ul ul { margin-left: 11px; padding-left: 11px; border-left: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* 连接子级的长竖线和短横线（恢复原版浅灰色） */
+        ul ul {
+            margin-left: 11px;
+            padding-left: 11px;
+            border-left: 1px solid #4a4d52; /* 🔼 明显可见的竖线 */
+        }
         .tree-item { position: relative; margin-top: 4px; }
+        
         ul ul .tree-item::before {
-            content: ""; position: absolute; left: -11px; top: 14px;
-            width: 11px; height: 1px; background-color: rgba(255, 255, 255, 0.1);
+            content: "";
+            position: absolute;
+            left: -11px;
+            top: 14px;
+            width: 11px;
+            height: 1px;
+            background-color: #4a4d52; /* 🔼 明显可见的横线 */
         }
 
         .tree-label, .file-item {
@@ -131,6 +145,8 @@
             border-radius: 4px; cursor: pointer; font-size: 14px;
             color: #c9d1d9; transition: background-color 0.2s; user-select: none;
             text-decoration: none; height: 28px;
+            outline: none; /* 🔽 去掉浏览器默认的蓝色聚焦框 */
+            -webkit-tap-highlight-color: transparent; /* 🔽 去掉点击时的蓝色闪屏 */
         }
         .tree-label:hover, .file-item:hover { background-color: rgba(255, 255, 255, 0.05); }
         .is-selected { background-color: rgba(255, 255, 255, 0.05); color: #ffffff; font-weight: 500; }
@@ -149,13 +165,12 @@
         }
         .tree-children { overflow: hidden; }
         .tree-toggle:checked ~ .tree-children-wrapper { grid-template-rows: 1fr; }
-        /* ========================================================== */
 
         @media (max-width: 600px) {
             body { padding: 3vh 3vw; overflow-y: auto; }
             .left-panel-wrapper { max-width: 100%; height: 100vh; }
             .top-box { flex: 1; min-height: 40px; padding: 10px 14px; }
-            .bottom-box { flex: 10; padding: 12px; }
+            .bottom-box { flex: 15; padding: 12px; }
             .tree-container { padding: 0; }
         }
     </style>
@@ -163,7 +178,7 @@
 <body>
     <!-- 左侧纯双面板结构 -->
     <div class="left-panel-wrapper">
-        <!-- 上半部分（缩小至 1/10） -->
+        <!-- 上半部分（缩小至 1/15） -->
         <div class="box top-box">
             <button class="file-btn" id="fileToggleBtn" onclick="toggleFileTree()">
                 <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -171,12 +186,12 @@
             </button>
         </div>
 
-        <!-- 下半部分（10/10） -->
+        <!-- 下半部分（15/15） -->
         <div class="box bottom-box">
             <!-- 空状态提示 -->
             <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
 
-            <!-- 可折叠树形菜单 (去掉黑底，透明融合) -->
+            <!-- 可折叠树形菜单 -->
             <div id="fileTreeAccordion" class="file-tree-accordion">
                 <div class="file-tree-content">
                     <div class="tree-container">
@@ -261,7 +276,6 @@
         function toggleFileTree() {
             const accordion = document.getElementById('fileTreeAccordion');
             const emptyState = document.getElementById('emptyState');
-            // 按钮文字不再改变，始终保持为“文件”
 
             const isOpen = accordion.classList.toggle('open');
             
@@ -270,7 +284,7 @@
             } else {
                 setTimeout(() => {
                     emptyState.style.display = 'block';
-                }, 400); // 等待折叠动画结束后再显示空状态
+                }, 400);
             }
         }
     </script>
