@@ -27,19 +27,18 @@
             overflow-y: auto;
         }
 
-        /* ================= 左侧面板：精确复刻 Uiverse 暗黑树形菜单 ================= */
+        /* ================= 左侧面板：暗黑树形菜单 ================= */
         .left-panel {
             flex: 1;
             max-width: 35%;
             min-width: 220px;
-            /* 精准复刻 Uiverse 截图的暗色外观 */
-            background-color: #09090b; /* 纯黑灰背景 */
+            background-color: #09090b; /* 深黑背景 */
             border: 1px solid #27272a;
             border-radius: 8px;
             padding: 12px 8px;
         }
 
-        /* ================= 右侧面板：保持之前的深空灰 ================= */
+        /* ================= 右侧面板 ================= */
         .right-panel {
             flex: 2;
             max-width: 65%;
@@ -52,7 +51,7 @@
             font-size: 14px;
         }
 
-        /* ================= 完美复刻截图动画与结构的纯 CSS 树 ================= */
+        /* ================= 纯 CSS 折叠树 ================= */
         .tree {
             list-style: none;
             padding: 0;
@@ -79,13 +78,8 @@
             outline: none;
             user-select: none;
         }
-        .tree-toggle summary::-webkit-details-marker {
-            display: none;
-        }
-        .tree-toggle summary::marker {
-            display: none;
-            content: "";
-        }
+        .tree-toggle summary::-webkit-details-marker { display: none; }
+        .tree-toggle summary::marker { display: none; content: ""; }
 
         /* 树形层级标签 */
         .tree-label {
@@ -100,15 +94,14 @@
             width: 100%;
         }
         .tree-label:hover {
-            background-color: #27272a; /* 悬停时的深灰块 */
+            background-color: #27272a;
             color: #fafafa;
         }
-        /* 展开状态保持高亮文字 */
         .tree-toggle[open] > .tree-label {
             color: #fafafa;
         }
 
-        /* 图标标准化 */
+        /* 图标 */
         .icon-wrapper {
             display: inline-flex;
             align-items: center;
@@ -165,24 +158,24 @@
     </style>
 </head>
 <body>
-    <!-- 左侧面板（精准的父子层级、暗色线框、平滑动画） -->
+    <!-- 左侧面板（三层文件结构假数据） -->
     <div class="panel left-panel">
         <ul class="tree">
             <li class="tree-item">
                 <details class="tree-toggle">
                     <summary class="tree-label">
                         <span class="icon-wrapper folder-closed-icon">
-                            <!-- 文件夹闭合图标 -->
                             <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
                         </span>
                         <span class="icon-wrapper folder-open-icon">
-                            <!-- 文件夹打开图标 -->
                             <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
                         </span>
                         src
                     </summary>
                     <div class="tree-children-wrapper">
                         <ul class="tree-children">
+                            
+                            <!-- 第 1 层：app -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
@@ -198,25 +191,28 @@
                                         <ul class="tree-children">
                                             <li class="tree-item">
                                                 <span class="tree-label">
-                                                    <span class="icon-wrapper">
-                                                        <!-- 文件图标 -->
-                                                        <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                    </span>
+                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                                                     layout.tsx
                                                 </span>
                                             </li>
                                             <li class="tree-item">
                                                 <span class="tree-label">
-                                                    <span class="icon-wrapper">
-                                                        <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                    </span>
+                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                                                     page.tsx
+                                                </span>
+                                            </li>
+                                            <li class="tree-item">
+                                                <span class="tree-label">
+                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                                                    globals.css
                                                 </span>
                                             </li>
                                         </ul>
                                     </div>
                                 </details>
                             </li>
+
+                            <!-- 第 1 层：components -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
@@ -230,25 +226,59 @@
                                     </summary>
                                     <div class="tree-children-wrapper">
                                         <ul class="tree-children">
-                                            <li class="tree-item"><span class="tree-label">
-                                                <span class="icon-wrapper">
-                                                    <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                                </span> ui
-                                            </span></li>
-                                            <li class="tree-item"><span class="tree-label">
-                                                <span class="icon-wrapper">
-                                                    <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                </span> header.tsx
-                                            </span></li>
-                                            <li class="tree-item"><span class="tree-label">
-                                                <span class="icon-wrapper">
-                                                    <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                </span> footer.tsx
-                                            </span></li>
+                                            
+                                            <!-- 第 2 层：ui -->
+                                            <li class="tree-item">
+                                                <details class="tree-toggle">
+                                                    <summary class="tree-label">
+                                                        <span class="icon-wrapper folder-closed-icon">
+                                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                                        </span>
+                                                        <span class="icon-wrapper folder-open-icon">
+                                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                                        </span>
+                                                        ui
+                                                    </summary>
+                                                    <div class="tree-children-wrapper">
+                                                        <ul class="tree-children">
+                                                            <!-- 第 3 层：文件 -->
+                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
+                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
+                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>input.tsx</span></li>
+                                                        </ul>
+                                                    </div>
+                                                </details>
+                                            </li>
+
+                                            <!-- 第 2 层：components 下的文件 -->
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>footer.tsx</span></li>
                                         </ul>
                                     </div>
                                 </details>
                             </li>
+
+                            <!-- 第 1 层：hooks -->
+                            <li class="tree-item">
+                                <details class="tree-toggle">
+                                    <summary class="tree-label">
+                                        <span class="icon-wrapper folder-closed-icon">
+                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                        </span>
+                                        <span class="icon-wrapper folder-open-icon">
+                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                        </span>
+                                        hooks
+                                    </summary>
+                                    <div class="tree-children-wrapper">
+                                        <ul class="tree-children">
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>useTheme.tsx</span></li>
+                                        </ul>
+                                    </div>
+                                </details>
+                            </li>
+
+                            <!-- 第 1 层：lib -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
@@ -262,15 +292,16 @@
                                     </summary>
                                     <div class="tree-children-wrapper">
                                         <ul class="tree-children">
-                                            <li class="tree-item"><span class="tree-label">
-                                                <span class="icon-wrapper">
-                                                    <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                                </span> utils.ts
-                                            </span></li>
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>utils.ts</span></li>
                                         </ul>
                                     </div>
                                 </details>
                             </li>
+
+                            <!-- 第 1 层：根文件 -->
+                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>package.json</span></li>
+                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>tsconfig.json</span></li>
+                            
                         </ul>
                     </div>
                 </details>
