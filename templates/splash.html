@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
+    <!-- 引入 Three.js 核心库用于 WebGL 实时渲染 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -21,9 +23,6 @@
             width: 100vw; min-height: 100vh; overflow-y: auto; overflow-x: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
-
-        /* --- 定义隐藏的 SVG 滤镜 --- */
-        #glass-svg-container { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
 
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
@@ -53,7 +52,22 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* --- 登录卡片弹窗 (SVG实时扭曲+色差) --- */
+        /* WebGL 画布容器层（位于卡片下方进行扭曲采样） */
+        #webgl-glass-wrapper {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 9997;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #webgl-glass-wrapper.active {
+            opacity: 1; visibility: visible;
+        }
+        #webgl-glass-wrapper canvas {
+            width: 100% !important; height: 100% !important;
+            display: block;
+        }
+
+        /* 悬浮卡片基础布局 */
         .modal-overlay { position: fixed; inset: 0; background: transparent; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: none; }
         .modal-box { pointer-events: auto; transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -74,41 +88,12 @@
             .btn-grid { gap: 12px; max-width: 260px; }
             .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
             .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
-            .top-actions .top-btn { animation-duration: 0.5s; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
+            #webgl-glass-wrapper.active { margin-top: -10px; }
         }
     </style>
 </head>
 <body>
-    <!-- SVG 滤镜核心定义（完全透明，实时采样） -->
-    <div id="glass-svg-container">
-        <svg xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <filter id="glassRefraction">
-                    <!-- 生成动态分形噪点，产生水波纹扭曲 -->
-                    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.04" numOctaves="2" result="noise" />
-                    <!-- 利用噪点对下方图像进行不规则的位移采样 -->
-                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-                    
-                    <!-- 色差与色散：红蓝通道分离 -->
-                    <feColorMatrix in="displaced" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="redOnly"/>
-                    <feColorMatrix in="displaced" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blueOnly"/>
-                    
-                    <!-- 极细的红蓝边缘偏移（精准的屏幕边缘色散） -->
-                    <feOffset dx="-1.5" dy="0" in="redOnly" result="redShift"/>
-                    <feOffset dx="1.5" dy="0" in="blueOnly" result="blueShift"/>
-                    
-                    <!-- 重新融合红蓝通道作为色差层 -->
-                    <feBlend mode="screen" in="redShift" in2="blueShift" result="chromatic"/>
-                    
-                    <!-- 最终叠加 -->
-                    <feBlend mode="normal" in="chromatic" in2="displaced" />
-                </filter>
-            </defs>
-        </svg>
-    </div>
-
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -128,7 +113,6 @@
         </div>
     </div>
 
-    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -137,11 +121,14 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片（实时扭曲 + 红蓝色差） ================= -->
+    <!-- 1. WebGL 玻璃特效层 (独立于卡片渲染) -->
+    <div id="webgl-glass-wrapper"></div>
+
+    <!-- 2. 登录卡片 (透明底白细边线) -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 重点：使用 svg 滤镜实现实时扭曲折射 + 色差，无高斯模糊 -->
-            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/70 rounded-2xl bg-transparent shadow-[0_0_30px_rgba(255,255,255,0.1)] p-4 backdrop-filter: url(#glassRefraction);">
+            <!-- 边缘加入极细的红蓝色散阴影 -->
+            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/60 rounded-2xl bg-transparent shadow-[-2px_0_8px_rgba(255,0,0,0.2), 2px_0_8px_rgba(0,0,255,0.2), 0_0_20px_rgba(0,0,0,0.2)] p-4">
                 
                 <div class="relative z-10 flex flex-col gap-1">
                     <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
@@ -149,18 +136,18 @@
                 </div>
 
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
                     <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
                         验证
                     </button>
                 </div>
 
                 <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
                 <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
                 <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
@@ -171,6 +158,130 @@
     </div>
 
     <script>
+        /* ===========================================================
+           3. WebGL 实时采样扭曲代码（自包含渲染引擎）
+           =========================================================== */
+        let glassScene, glassCamera, glassRenderer, glassMesh;
+        let glassActive = false;
+
+        function initWebGLGlass() {
+            const wrapper = document.getElementById('webgl-glass-wrapper');
+            if(!wrapper) return;
+            
+            // 创建场景
+            glassScene = new THREE.Scene();
+            glassCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+            glassCamera.position.z = 1;
+
+            glassRenderer = new THREE.WebGLRenderer({ 
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            glassRenderer.setSize(window.innerWidth, window.innerHeight);
+            glassRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            wrapper.appendChild(glassRenderer.domElement);
+
+            // 着色器材质（实时水波纹扭曲 + 色差）
+            const vertexShader = `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `;
+
+            const fragmentShader = `
+                uniform float uTime;
+                uniform vec2 uResolution;
+                varying vec2 vUv;
+
+                void main() {
+                    vec2 uv = vUv;
+                    // 1. 模拟水波纹扭曲位移 (fractal 噪声模拟)
+                    float strength = 0.015; // 扭曲强度
+                    float frequency = 6.0;
+                    
+                    // 水波运动的 X/Y 轴偏移计算
+                    float waveX = sin(uv.y * 20.0 + uTime * 1.2) * cos(uv.x * 10.0 + uTime * 1.5) * 0.5 + 0.5;
+                    float waveY = cos(uv.x * 18.0 + uTime * 1.0) * sin(uv.y * 12.0 + uTime * 1.8) * 0.5 + 0.5;
+                    
+                    float offsetX = (waveX - 0.5) * strength;
+                    float offsetY = (waveY - 0.5) * strength;
+                    
+                    // 应用扭曲位移
+                    uv.x += offsetX;
+                    uv.y += offsetY;
+
+                    // 2. 边缘红蓝色差 (棱镜色散)
+                    float offsetChromatic = 0.003; // 红蓝偏移量 (极细)
+                    
+                    // 采样红通道 (往左偏)
+                    float r = texture2D(inputTexture, uv - vec2(offsetChromatic, 0.0)).r;
+                    // 采样绿通道 (原位置)
+                    float g = texture2D(inputTexture, uv).g;
+                    // 采样蓝通道 (往右偏)
+                    float b = texture2D(inputTexture, uv + vec2(offsetChromatic, 0.0)).b;
+                    
+                    gl_FragColor = vec4(r, g, b, 0.75); // 0.75 透明度保证透出背景
+                }
+            `;
+
+            // 获取当前底图作为扭曲的采样基础
+            const currentBgUrl = isExpanded ? newBgUrl : defaultBgUrl;
+            const textureLoader = new THREE.TextureLoader();
+            const bgTexture = textureLoader.load(currentBgUrl);
+
+            const uniforms = {
+                uTime: { value: 0 },
+                uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                inputTexture: { value: bgTexture }
+            };
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader
+            });
+
+            // 创建一个覆盖全屏的平面
+            const geometry = new THREE.PlaneGeometry(2, 2);
+            glassMesh = new THREE.Mesh(geometry, material);
+            glassScene.add(glassMesh);
+
+            // 处理窗口改变
+            window.addEventListener('resize', () => {
+                glassRenderer.setSize(window.innerWidth, window.innerHeight);
+                uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // 开启或关闭 WebGL 层
+        function toggleWebGL(show) {
+            const wrapper = document.getElementById('webgl-glass-wrapper');
+            if(!wrapper) return;
+            if(show) {
+                wrapper.classList.add('active');
+                glassActive = true;
+                animateWebGL();
+            } else {
+                wrapper.classList.remove('active');
+                glassActive = false;
+            }
+        }
+
+        // 实时渲染循环
+        function animateWebGL() {
+            if(!glassActive) return;
+            requestAnimationFrame(animateWebGL);
+            if(glassMesh && glassMesh.material.uniforms) {
+                glassMesh.material.uniforms.uTime.value += 0.02; // 流动速度
+            }
+            glassRenderer.render(glassScene, glassCamera);
+        }
+
+        /* ===========================================================
+           4. 其他的交互与切换逻辑
+           =========================================================== */
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -186,6 +297,11 @@
         const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
+        // 修改：仅在页面完全加载后初始化 WebGL
+        document.addEventListener("DOMContentLoaded", function() {
+            initWebGLGlass(); // 启动 WebGL 引擎
+        });
+
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const btnRect = btn.getBoundingClientRect();
@@ -199,19 +315,36 @@
             if (isExpanded) {
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                gsap.delayedCall(0.2, () => { 
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
+                    // 更新 WebGL 采样图
+                    if(glassMesh && glassMesh.material.uniforms) {
+                        const loader = new THREE.TextureLoader();
+                        glassMesh.material.uniforms.inputTexture.value = loader.load(newBgUrl);
+                    }
+                });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
             } else {
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                gsap.delayedCall(0.35, () => { 
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+                    // 还原 WebGL 采样图
+                    if(glassMesh && glassMesh.material.uniforms) {
+                        const loader = new THREE.TextureLoader();
+                        glassMesh.material.uniforms.inputTexture.value = loader.load(defaultBgUrl);
+                    }
+                });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
             }
         }
 
+        // 首屏加载动画
         document.addEventListener("DOMContentLoaded", function() {
-            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            // 背景预加载处理
+            const bgImg = new Image(); 
+            const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
@@ -230,8 +363,7 @@
         }
 
         function showToast(msg, type='info') {
-            toast.innerText = msg;
-            toast.className = 'show';
+            toast.innerText = msg; toast.className = 'show';
             if(type === 'error') toast.classList.add('error');
             else if(type === 'success') toast.classList.add('success');
             else toast.classList.remove('error', 'success');
@@ -239,16 +371,20 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // 卡片开关联动 WebGL 玻璃层
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
+            toggleWebGL(true); // 启动 WebGL 扭曲效果
         }
 
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
+            toggleWebGL(false); // 关闭 WebGL 扭曲效果
         }
 
         function closeLoginOnBg(event) {
+            // 点击空白处关闭卡片
             if (event.target === event.currentTarget) { closeLoginModal(); }
         }
 
@@ -259,107 +395,56 @@
             element.classList.add('shake-field');
         }
 
+        // 发送验证码逻辑
         document.getElementById('send-code-btn').addEventListener('click', async function() {
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
-            
-            if(!email) {
-                shakeElement(document.getElementById('email-wrapper'));
-                showToast('请输入邮箱地址', 'error');
-                return; 
-            }
-
-            const btn = this;
-            btn.disabled = true;
-
+            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
+            const btn = this; btn.disabled = true;
             try {
-                const res = await fetch('/api/send_code', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: email})
-                });
-                
-                if (!res.ok) {
-                    throw new Error(`服务器响应代码: ${res.status}`);
-                }
-                
+                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
+                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
                 const data = await res.json();
-                if(data.ok) {
-                    showToast('✅ ' + data.msg, 'success');
-                } else {
-                    showToast('❌ ' + data.msg, 'error');
-                }
-            } catch (e) {
-                showToast('❌ 网络请求失败，请检查后台运行状态', 'error');
-            } finally {
-                btn.disabled = false;
-            }
+                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
+                else { showToast('❌ ' + data.msg, 'error'); }
+            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
+            finally { btn.disabled = false; }
         });
 
+        // 注册提交逻辑
         document.getElementById('submit-btn').addEventListener('click', async function() {
             const email = document.getElementById('reg-email').value.trim();
             const code = document.getElementById('reg-code').value.trim();
             const password = document.getElementById('reg-password').value.trim();
-            
             const emailWrapper = document.getElementById('email-wrapper');
             const codeWrapper = document.getElementById('code-wrapper');
             const passwordWrapper = document.getElementById('password-wrapper');
-
             [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
 
             let hasError = false;
-
             if(!email) { shakeElement(emailWrapper); hasError = true; }
             if(!code) { shakeElement(codeWrapper); hasError = true; }
             if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-
-            if(hasError) {
-                showToast('请正确填写所有必填项', 'error');
-                return;
-            }
+            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
 
             const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) {
-                shakeElement(passwordWrapper);
-                showToast('密码仅允许英文字母、数字、_ 和 /', 'error');
-                return;
-            }
+            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
 
-            const btn = this;
-            const originalText = btn.innerText;
-            btn.innerText = '处理中...';
-            btn.disabled = true;
-
+            const btn = this; const originalText = btn.innerText;
+            btn.innerText = '处理中...'; btn.disabled = true;
             try {
                 const formData = new URLSearchParams();
-                formData.append('email', email);
-                formData.append('password', password);
-                formData.append('confirm_password', password);
-                formData.append('code', code);
+                formData.append('email', email); formData.append('password', password);
+                formData.append('confirm_password', password); formData.append('code', code);
                 formData.append('cf-turnstile-response', 'dummy');
-
-                const res = await fetch('/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: formData.toString()
-                });
-                
+                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
                 const text = await res.text();
-                
                 if(text.includes('注册成功') || text.includes('登录成功')) {
                     showToast('🎉 注册/登录成功！', 'success');
                     setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) {
-                    showToast('❌ 验证码错误或已过期', 'error');
-                } else {
-                    showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error');
-                }
-            } catch (e) {
-                showToast('❌ 请求异常：' + e.message, 'error');
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
+                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
+            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
         });
     </script>
 </body>
