@@ -4,199 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 仓库页</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { width: 100vw; min-height: 100vh; overflow-y: auto; overflow-x: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
-        
+        body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
+
         .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
 
-        /* 修改：仓库页的第二屏改成有明确说明的布局 */
-        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
-        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
-        .main-title { font-size: 64px; }
-        .glass-btn { position: relative; padding: 14px 30px; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .glass-btn:active { transform: scale(0.94); }
-
+        /* 顶部悬浮按钮 */
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
-        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
+        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* 统一卡片 CSS */
-        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
-        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
-        .modal-box { transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .modal-overlay.active .modal-box { transform: translateY(0); }
-        
-        .login-card { color: #d1caba; padding: 24px; width: 320px; border: 1px solid #4a4235; border-radius: 16px; background: linear-gradient(to bottom right, rgba(43, 43, 43, 0.85), rgba(30, 38, 32, 0.85)); backdrop-filter: blur(8px); box-shadow: 0 20px 50px -12px rgba(0,0,0,0.6); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px;}
-        .login-card .gradient-glow { position: absolute; right: 0; top: -48px; width: 128px; height: 80px; background: linear-gradient(to right, rgba(94, 77, 62, 0.4), rgba(62, 94, 65, 0.4)); border-radius: 50%; filter: blur(24px); z-index: 0; }
-        .login-card .gradient-glow-right { position: absolute; right: -24px; top: -48px; width: 96px; height: 96px; background: linear-gradient(to right, rgba(53, 79, 51, 0.4), rgba(79, 62, 48, 0.4)); border-radius: 50%; filter: blur(24px); z-index: 0; }
-        .login-card > * { position: relative; z-index: 1; }
-        .login-card .title { font-size: 24px; font-weight: 800; color: #fcd34d; margin: 0 0 4px 0; }
-        .login-card .subtitle { font-size: 12px; color: #9e907d; margin: 0 0 4px 0; }
-        .login-card .input-group { display: flex; gap: 8px; width: 100%; }
-        .login-card .input-field { flex: 1; background: rgba(47, 45, 39, 0.4); border: 1px solid rgba(94, 85, 69, 0.5); border-radius: 8px; padding: 10px 12px; color: #d1caba; width: 100%; font-size: 14px; outline: none; box-sizing: border-box; }
-        .login-card .input-field::placeholder { color: #7a7264; }
-        .login-card .input-field:focus { border-color: #7a7264; }
-        .login-card .btn { border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 500; cursor: pointer; color: #e5e7eb; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .login-card .btn:active { transform: scale(0.95); }
-        .login-card .btn-verify { background: linear-gradient(to right, #4a3c2c, #2d4530); padding: 10px 16px; white-space: nowrap; width: auto; }
-        .login-card .btn-verify:hover { background: linear-gradient(to right, #564431, #38543b); }
-        .login-card .btn-submit { width: 100%; background: linear-gradient(to right, #4a3c2c, #2d4530); padding: 10px; }
-        .login-card .btn-submit:hover { background: linear-gradient(to right, #564431, #38543b); }
-        .login-card .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        
-        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; text-align: center; }
-        #custom-toast.error { border-left-color: #ef4444; }
-        #custom-toast.success { border-left-color: #22c55e; }
-        #custom-toast.show { opacity: 1; visibility: visible; }
-
         @media (max-width: 600px) {
-            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
-            .main-title { font-size: 40px; }
-            .glass-btn { font-size: 15px; padding: 12px 20px; border-radius: 20px; }
-            .top-actions { top: 16px; right: 16px; gap: 4px; width: 240px; } 
+            .top-actions { top: 16px; right: 16px; gap: 4px; width: 200px; }
             .top-btn { font-size: 11px; padding: 4px 6px; min-width: auto; }
-            .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
 </head>
 <body>
+    <!-- 仅保留第一张大图 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
-        <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
     </div>
 
-    <!-- 专门修改：仓库页的内容，不再是复制首页了！ -->
-    <div class="content-area" id="contentArea">
-        <div id="theme-ring"></div>
-        <div style="position: relative; z-index: 1;">
-            <h1 class="main-title" style="color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">我的仓库</h1>
-            <p style="font-size: 18px; color: #9e907d; margin-top: 10px; letter-spacing: 1px;">这里将展示您的机器人配置和所有作品</p>
-            
-            <div style="margin-top: 40px; display: flex; gap: 16px; flex-wrap: wrap;">
-                <!-- 点击返回首页按钮 -->
-                <button class="glass-btn" onclick="window.location.href='/';">返回首页</button>
-                <button class="glass-btn" onclick="alert('仓库功能开发中...');">新建项目</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 顶部按钮 -->
+    <!-- 顶部固定悬浮按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="toggleLoginModal()">Log in</button>
+        <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
     </div>
 
-    <div id="custom-toast"></div>
-
-    <!-- 登录卡片（完全一致） -->
-    <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
-        <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" novalidate class="login-card">
-                <div class="gradient-glow"></div><div class="gradient-glow-right"></div>
-                <div>
-                    <p class="title" id="card-title" style="font-size: 24px;">获取自己的GsBot账号</p>
-                    <p class="subtitle">绑定邮箱 更快获得最新功能</p>
-                </div>
-                <div class="input-group" id="email-wrapper">
-                    <input type="text" id="reg-email" class="input-field" placeholder="邮箱或手机号" required />
-                    <button id="send-code-btn" class="btn btn-verify">验证</button>
-                </div>
-                <div id="code-wrapper">
-                    <input type="text" id="reg-code" class="input-field" placeholder="验证码" required />
-                </div>
-                <div id="password-wrapper">
-                    <input type="password" id="reg-password" class="input-field" placeholder="密码" required />
-                </div>
-                <button id="submit-btn" class="btn btn-submit">注册/登录</button>
-            </form>
-        </div>
-    </div>
+    <!-- 已删除“我的仓库”、“返回首页”、“新建项目”等文字和按钮 -->
 
     <script>
-        let toastTimer;
-        const toast = document.getElementById('custom-toast');
         function toggleFullScreen() {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
-        function showToast(msg, type='info') {
-            toast.innerText = msg; toast.className = 'show';
-            if(type === 'error') toast.classList.add('error');
-            else if(type === 'success') toast.classList.add('success');
-            else toast.classList.remove('error', 'success');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-        function toggleLoginModal() {
-            const modal = document.getElementById('loginModal');
-            if (modal.classList.contains('active')) { closeLoginModal(); } else { openLoginModal(); }
-        }
-        function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
-        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
-        function closeLoginOnBg(event) { if (event.target === event.currentTarget) { closeLoginModal(); } }
-        function shakeElement(element) {
-            if(!element) return;
-            element.classList.remove('shake-field');
-            void element.offsetWidth; 
-            element.classList.add('shake-field');
-        }
 
-        document.getElementById('send-code-btn').addEventListener('click', async function() {
-            const emailInput = document.getElementById('reg-email');
-            const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) {
-                    showToast('✅ ' + data.msg, 'success');
-                    const codeInput = document.getElementById('reg-code');
-                    codeInput.value = '验证码已发送'; codeInput.disabled = true;
-                } else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败', 'error'); } finally { btn.disabled = false; }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', async function() {
-            const email = document.getElementById('reg-email').value.trim();
-            const code = document.getElementById('reg-code').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const emailWrapper = document.getElementById('email-wrapper');
-            const codeWrapper = document.getElementById('code-wrapper');
-            const passwordWrapper = document.getElementById('password-wrapper');
-            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
-
-            let hasError = false;
-            if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
-
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
+        // 为了兼容性保留空函数
+        function openLoginModal() { alert("登录功能请前往首页 Log in 弹窗操作。"); }
+        function closeLoginModal() {}
     </script>
 </body>
 </html>
