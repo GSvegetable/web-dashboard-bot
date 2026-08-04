@@ -15,6 +15,7 @@
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
 
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        /* 核心：覆盖层容器 */
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: url("{{ url_for('static', filename='bg.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -91,7 +92,9 @@
     </div>
 
     <div class="content-area" id="contentArea">
+        <!-- 覆盖层：负责展示圆形遮罩和图片过渡 -->
         <div id="theme-ring"></div>
+        
         <div class="title-row">
             <div class="text-group">
                 <h1 class="text-pattern main-title">宫水大世界</h1>
@@ -165,38 +168,39 @@
 
             const targetUrl = isExpanded ? newBgUrl : defaultBgUrl;
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
-            
-            // 1. 防黑屏预加载机制：图片完全下载完毕后再执行
+
             const imgLoader = new Image();
             imgLoader.src = targetUrl;
-            
+
             imgLoader.onload = function() {
-                // 立刻替换底层大图、遮罩层图片
-                contentArea.style.backgroundImage = `url("${targetUrl}")`;
+                // 【核心修正】：在动画开始前，把“遮罩层”替换成目标图片
+                // 这样用户就能看到：圆形遮罩里面是目标图，外面是底层当前图
                 themeRing.style.backgroundImage = `url("${targetUrl}")`;
+
+                // 定义动画的起点和终点
+                // 展开：从 0% 变成 150%，覆盖整个页面
+                // 收缩：从 150% 变回 0%，展示底层的图片
+                const startClip = isExpanded ? `circle(0% at ${x}px ${y}px)` : `circle(150% at ${x}px ${y}px)`;
+                const endClip = isExpanded ? `circle(150% at ${x}px ${y}px)` : `circle(0% at ${x}px ${y}px)`;
+
+                gsap.set(themeRing, { clipPath: startClip });
                 
-                // 2. 构建动画时间轴
-                const tl = gsap.timeline();
-                
-                if (isExpanded) {
-                    // 展开动画：0.8秒，从 0 扩散到 150%
-                    tl.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                    tl.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
-                    
-                    // 延迟 0.2 秒更新文字纹理
-                    gsap.delayedCall(0.2, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                } else {
-                    // 收缩动画：0.8秒，从 150% 收缩回 0
-                    tl.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                    tl.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
-                    
-                    // 延迟 0.35 秒更新文字纹理
-                    gsap.delayedCall(0.35, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                }
+                // 执行 0.8 秒的过渡动画
+                gsap.to(themeRing, {
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    clipPath: endClip,
+                    onComplete: () => {
+                        // 【防黑屏核心】：动画执行完毕瞬间，立刻将底层图片也替换，并清理可能产生的残余
+                        contentArea.style.backgroundImage = `url("${targetUrl}")`;
+                    }
+                });
+
+                // 文字纹理切换（严格按你的要求延迟）
+                const textDelay = isExpanded ? 0.2 : 0.35;
+                gsap.delayedCall(textDelay, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                });
             };
         }
 
@@ -206,7 +210,7 @@
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-            // 3. 首屏防卡顿预渲染：后台隐藏执行一次 0->150->0
+            // 防卡顿预渲染机制：DOM加载完毕立刻偷偷跑一次 0% -> 150% -> 0% 的预演
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
