@@ -137,7 +137,7 @@
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮（恢复入场动画） ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -325,7 +325,7 @@
                 }, 100);
             }, 200);
 
-            // 🔥 第二屏滚动触发动画（滑下去播放，滑上去反方向复原，再滑下来再次正向播放）
+            // 🔥 第二屏滚动触发动画
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
@@ -335,9 +335,9 @@
             });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              /* 🛑 关键修复：先手动把包裹按钮的父容器的透明和位移消除（解除封印） */
-              .set(".btn-grid", { opacity: 1, y: 0 })
-              /* 🛑 然后再针对里面的四个按钮进行 0.15 秒间隔的错开动画 */
+              /* 🛑 修复：去掉瞬间显现的 .set()，改为让父容器平滑淡入 */
+              .to(".btn-grid", { opacity: 1, y: 0, duration: 0.2, ease: "power2.out" }, 0.2)
+              /* 🛑 父容器淡入后，紧接着 0.15 秒错开出现按钮 */
               .to(".btn-grid .glass-btn", { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
