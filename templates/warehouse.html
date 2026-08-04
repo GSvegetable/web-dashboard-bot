@@ -18,152 +18,129 @@
             box-sizing: border-box;
         }
 
-        /* 双面板布局容器 */
+        /* 双面板布局 */
         .panel {
             height: 100%;
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
         }
 
-        /* ================= 左侧面板：暗黑树形菜单 ================= */
+        /* ================= 左侧面板 ================= */
         .left-panel {
             flex: 1;
-            max-width: 35%;
-            min-width: 220px;
-            background-color: #09090b; /* 深黑背景 */
+            max-width: 36%;
+            min-width: 240px;
+            background-color: #09090b; /* 纯黑灰 */
             border: 1px solid #27272a;
             border-radius: 8px;
-            padding: 12px 8px;
         }
 
         /* ================= 右侧面板 ================= */
         .right-panel {
             flex: 2;
-            max-width: 65%;
+            max-width: 64%;
             background-color: #161b22;
             border: 1px solid #30363d;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #8b949e;
-            font-size: 14px;
+            display: flex; justify-content: center; align-items: center;
+            color: #8b949e; font-size: 14px;
         }
 
-        /* ================= 纯 CSS 折叠树 ================= */
+        /* ================= 完美文件树（带箭头与连接线） ================= */
         .tree {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            color: #a1a1aa;
-            font-size: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
+            list-style: none; padding: 0; margin: 0;
+            color: #a1a1aa; font-size: 14px;
+            display: flex; flex-direction: column; gap: 2px;
         }
-        
         .tree-item {
             position: relative;
+            padding-left: 20px; /* 留出给线腾出空间 */
+        }
+        /* 连接子菜单的竖线 */
+        .tree-item::before {
+            content: '';
+            position: absolute;
+            left: 6px; top: 20px;
+            width: 1px; height: calc(100% - 20px);
+            background-color: #3f3f46;
+        }
+        /* 如果是最后一个子节点，线只连一半 */
+        .tree-item:last-child::before {
+            height: 18px;
         }
 
         .tree-toggle {
             list-style: none;
         }
         .tree-toggle summary {
-            list-style: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            outline: none;
-            user-select: none;
+            list-style: none; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 12px; border-radius: 6px;
+            color: #a1a1aa; transition: all 0.2s;
+            outline: none; user-select: none;
+            position: relative;
         }
+        /* 去掉系统默认的小三角 */
         .tree-toggle summary::-webkit-details-marker { display: none; }
         .tree-toggle summary::marker { display: none; content: ""; }
 
-        /* 树形层级标签 */
-        .tree-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            color: #a1a1aa;
-            text-decoration: none;
-            transition: background-color 0.2s, color 0.2s;
-            width: 100%;
+        .tree-toggle summary:hover { background-color: #27272a; color: #fafafa; }
+        .tree-toggle[open] summary { color: #fafafa; }
+
+        /* 🔽 自定义的小箭头 */
+        .tree-toggle summary .arrow-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 16px; height: 16px; flex-shrink: 0;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .tree-label:hover {
-            background-color: #27272a;
-            color: #fafafa;
+        .tree-toggle summary .arrow-icon svg {
+            width: 12px; height: 12px; stroke: currentColor; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
         }
-        .tree-toggle[open] > .tree-label {
-            color: #fafafa;
+        /* 展开时箭头旋转 90 度向下 */
+        .tree-toggle[open] summary .arrow-icon {
+            transform: rotate(90deg);
         }
 
         /* 图标 */
-        .icon-wrapper {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-        .icon-wrapper svg {
-            width: 100%; height: 100%;
-            stroke: currentColor;
-            stroke-width: 1.5;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
+        .icon-wrapper { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; }
+        .icon-wrapper svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.5; fill: none; }
 
         .folder-open-icon { display: none; }
         .folder-closed-icon { display: block; }
         .tree-toggle[open] .folder-open-icon { display: block; }
         .tree-toggle[open] .folder-closed-icon { display: none; }
 
-        /* 丝滑网格折叠/展开动画 */
+        /* 丝滑展开动画 */
         .tree-children-wrapper {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-left: 20px; /* 子级缩进 */
+            display: grid; grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-left: 4px; /* 为竖线留出对齐位置 */
         }
-        .tree-children {
-            overflow: hidden;
-        }
-        .tree-toggle[open] + .tree-children-wrapper {
-            grid-template-rows: 1fr;
-        }
+        .tree-children { overflow: hidden; }
+        .tree-toggle[open] + .tree-children-wrapper { grid-template-rows: 1fr; }
 
-        /* 手机端小屏幕适配 */
+        /* 手机端适配 */
         @media (max-width: 600px) {
-            body {
-                flex-direction: column;
-                padding: 3vh 3vw;
-                gap: 3vh;
-                overflow-y: auto;
-            }
-            .left-panel, .right-panel {
-                max-width: 100%;
-                width: 100%;
-                flex: none;
-                height: 50vh;
-                border-radius: 18px;
-            }
+            body { flex-direction: column; padding: 3vh 3vw; gap: 3vh; overflow-y: auto; }
+            .left-panel, .right-panel { max-width: 100%; width: 100%; flex: none; height: 50vh; }
             .left-panel { min-height: 200px; }
         }
     </style>
 </head>
 <body>
-    <!-- 左侧面板（三层文件结构假数据） -->
+    <!-- 左侧面板（带箭头和线的完美 3 层结构） -->
     <div class="panel left-panel">
         <ul class="tree">
             <li class="tree-item">
-                <details class="tree-toggle">
+                <details class="tree-toggle" open>
                     <summary class="tree-label">
+                        <!-- 新增：自定义小箭头 -->
+                        <span class="arrow-icon">
+                            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                        <!-- 图标 -->
                         <span class="icon-wrapper folder-closed-icon">
                             <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
                         </span>
@@ -174,74 +151,46 @@
                     </summary>
                     <div class="tree-children-wrapper">
                         <ul class="tree-children">
-                            
-                            <!-- 第 1 层：app -->
+                            <!-- 子 1：app -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
-                                        <span class="icon-wrapper folder-closed-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                        </span>
-                                        <span class="icon-wrapper folder-open-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                        </span>
+                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
+                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
                                         app
                                     </summary>
                                     <div class="tree-children-wrapper">
                                         <ul class="tree-children">
-                                            <li class="tree-item">
-                                                <span class="tree-label">
-                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-                                                    layout.tsx
-                                                </span>
-                                            </li>
-                                            <li class="tree-item">
-                                                <span class="tree-label">
-                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-                                                    page.tsx
-                                                </span>
-                                            </li>
-                                            <li class="tree-item">
-                                                <span class="tree-label">
-                                                    <span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-                                                    globals.css
-                                                </span>
-                                            </li>
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
+                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>globals.css</span></li>
                                         </ul>
                                     </div>
                                 </details>
                             </li>
-
-                            <!-- 第 1 层：components -->
+                            <!-- 子 2：components -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
-                                        <span class="icon-wrapper folder-closed-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                        </span>
-                                        <span class="icon-wrapper folder-open-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                        </span>
+                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
+                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
                                         components
                                     </summary>
                                     <div class="tree-children-wrapper">
                                         <ul class="tree-children">
-                                            
-                                            <!-- 第 2 层：ui -->
+                                            <!-- 子 2-1：ui (第三层) -->
                                             <li class="tree-item">
                                                 <details class="tree-toggle">
                                                     <summary class="tree-label">
-                                                        <span class="icon-wrapper folder-closed-icon">
-                                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                                        </span>
-                                                        <span class="icon-wrapper folder-open-icon">
-                                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                                        </span>
+                                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
+                                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
                                                         ui
                                                     </summary>
                                                     <div class="tree-children-wrapper">
                                                         <ul class="tree-children">
-                                                            <!-- 第 3 层：文件 -->
                                                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
                                                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
                                                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>input.tsx</span></li>
@@ -249,25 +198,20 @@
                                                     </div>
                                                 </details>
                                             </li>
-
-                                            <!-- 第 2 层：components 下的文件 -->
+                                            <!-- components 下的直接文件 -->
                                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
                                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>footer.tsx</span></li>
                                         </ul>
                                     </div>
                                 </details>
                             </li>
-
-                            <!-- 第 1 层：hooks -->
+                            <!-- 子 3：hooks -->
                             <li class="tree-item">
                                 <details class="tree-toggle">
                                     <summary class="tree-label">
-                                        <span class="icon-wrapper folder-closed-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                        </span>
-                                        <span class="icon-wrapper folder-open-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                        </span>
+                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
+                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
                                         hooks
                                     </summary>
                                     <div class="tree-children-wrapper">
@@ -277,31 +221,9 @@
                                     </div>
                                 </details>
                             </li>
-
-                            <!-- 第 1 层：lib -->
-                            <li class="tree-item">
-                                <details class="tree-toggle">
-                                    <summary class="tree-label">
-                                        <span class="icon-wrapper folder-closed-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                        </span>
-                                        <span class="icon-wrapper folder-open-icon">
-                                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                        </span>
-                                        lib
-                                    </summary>
-                                    <div class="tree-children-wrapper">
-                                        <ul class="tree-children">
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>utils.ts</span></li>
-                                        </ul>
-                                    </div>
-                                </details>
-                            </li>
-
-                            <!-- 第 1 层：根文件 -->
+                            <!-- src 下的顶层文件 -->
                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>package.json</span></li>
                             <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>tsconfig.json</span></li>
-                            
                         </ul>
                     </div>
                 </details>
@@ -309,9 +231,6 @@
         </ul>
     </div>
 
-    <!-- 右侧面板 -->
-    <div class="panel right-panel">
-        右侧面板预留区域
-    </div>
+    <div class="panel right-panel">右侧面板预留区域</div>
 </body>
 </html>
