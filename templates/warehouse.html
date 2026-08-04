@@ -3,118 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>查看仓库</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/warehouse.css') }}">
+    <title>gsbot 启动页</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
+        button:focus, a:focus, input:focus { outline: none; }
+
+        :root {
+            --bg-img: url("{{ url_for('static', filename='bg.png') }}");
+            --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
+        }
+
+        body {
+            width: 100vw; min-height: 100vh; overflow-y: auto; overflow-x: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+        }
+        body.loaded { opacity: 1; }
+
+        /* 第一屏 */
+        .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
+        .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; background-color: #282828; color: #ffffff; padding: 1em 2em; border-radius: 1em; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.5); user-select: none; }
+        .tooltip .tooltiptext { visibility: hidden; width: 200px; background-color: #282828; color: #ffffff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #282828 transparent transparent transparent; transform: translateX(-50%); }
+        .top-image-footer-left { position: absolute; bottom: 5%; left: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: left; max-width: 45%; }
+        .top-image-footer-right { position: absolute; bottom: 5%; right: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: right; max-width: 45%; }
+
+        /* 第二屏 */
+        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
+        .theme-btn-title { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
+        .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
+
+        /* 底部 4 按钮 */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; opacity: 0; transform: translateY(60px); position: relative; z-index: 1; }
+        .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .glass-btn:active { transform: scale(0.94); }
+        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
+
+        /* 顶部 3 按钮 */
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
+        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+
+        @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
+        .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
+        .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
+        .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
+
+        /* ================= 登录弹窗（完全按照你发的代码原貌） ================= */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+            transform: scale(0.95);
+        }
+        .modal-overlay.active {
+            opacity: 1; visibility: visible; transform: scale(1);
+        }
+
+        /* 弹窗包裹层，不干涉原组件的白底 */
+        .modal-box {
+            width: 100%; max-width: 420px;
+            margin: 0 16px;
+            background: transparent;
+            display: flex; justify-content: center;
+        }
+
+        /* 🌟 原封不动保留你发的 Uiverse CSS 🌟 */
+        .form_container {
+            width: fit-content;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 50px 40px 20px 40px;
+            background-color: #ffffff;
+            box-shadow: 0px 106px 42px rgba(0, 0, 0, 0.01),
+                0px 59px 36px rgba(0, 0, 0, 0.05), 0px 26px 26px rgba(0, 0, 0, 0.09),
+                0px 7px 15px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+            border-radius: 11px;
+            font-family: "Inter", sans-serif;
+            width: 100%; /* 加个宽度 100% 防止过窄 */
+        }
+
+        .logo_container {
+            box-sizing: border-box;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(180deg, rgba(248, 248, 248, 0) 50%, #F8F8F888 100%);
+            border: 1px solid #F7F7F8;
+            filter: drop-shadow(0px 0.5px 0.5px #EFEFEF) drop-shadow(0px 1px 0.5px rgba(239, 239, 239, 0.5));
+            border-radius: 11px;
+        }
+
+        .title_container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #212121;
+        }
+
+        .subtitle {
+            font-size: 0.725rem;
+            max-width: 80%;
+            text-align: center;
+            line-height: 1.1rem;
+            color: #8B8E98;
+        }
+
+        .input_container {
+            width: 100%;
+            height: fit-content;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .icon {
+            width: 20px;
+            position: absolute;
+            z-index: 99;
+            left: 12px;
+            bottom: 9px;
+        }
+
+        .input_label {
+            font-size: 0.75rem;
+            color: #8B8E98;
+            font-weight: 600;
+        }
+
+        .input_field {
+            width: 100%; /* 这里强制 100% 适配弹窗宽度 */
+            height: 40px;
+            padding: 0 0 0 40px;
+            border-radius: 7px;
+            outline: none;
+            border: 1px solid #e5e5e5;
+            filter: drop-shadow(0px 1px 0px #efefef)
+                drop-shadow(0px 1px 0.5px rgba(239, 239, 239, 0.5));
+            transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
+        }
+
+        .input_field:focus {
+            border: 1px solid transparent;
+            box-shadow: 0px 0px 0px 2px #242424;
+            background-color: transparent;
+        }
+
+        .sign-in_btn {
+            width: 100%;
+            height: 40px;
+            border: 0;
+            background: #115DFC;
+            border-radius: 7px;
+            outline: none;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .sign-in_ggl {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #ffffff;
+            border-radius: 7px;
+            outline: none;
+            color: #242424;
+            border: 1px solid #e5e5e5;
+            filter: drop-shadow(0px 1px 0px #efefef)
+                drop-shadow(0px 1px 0.5px rgba(239, 239, 239, 0.5));
+            cursor: pointer;
+        }
+
+        .sign-in_apl {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #212121;
+            border-radius: 7px;
+            outline: none;
+            color: #ffffff;
+            border: 1px solid #e5e5e5;
+            filter: drop-shadow(0px 1px 0px #efefef)
+                drop-shadow(0px 1px 0.5px rgba(239, 239, 239, 0.5));
+            cursor: pointer;
+        }
+
+        .separator {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            color: #8B8E98;
+        }
+
+        .separator .line {
+            display: block;
+            width: 100%;
+            height: 1px;
+            border: 0;
+            background-color: #e8e8e8;
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: #8B8E98;
+            text-decoration: underline;
+        }
+        /* ==================================================== */
+
+        @media (max-width: 600px) {
+            .form_container { padding: 30px 20px 20px 20px; }
+            .logo_container { width: 60px; height: 60px; }
+            .title { font-size: 1.1rem; }
+            .input_field { height: 36px; }
+            .sign-in_btn, .sign-in_ggl, .sign-in_apl { height: 36px; }
+        }
+
+        @media (max-width: 600px) {
+            .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
+            .main-title { font-size: 44px; }
+            .sub-title { font-size: 16px; }
+            .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
+            .btn-grid { gap: 12px; max-width: 260px; }
+            .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
+            .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
+            .top-actions .top-btn { animation-duration: 0.5s; }
+        }
+    </style>
 </head>
 <body>
-    <div class="left-panel-wrapper">
-        <!-- 上方细长条 -->
-        <div class="box top-box">
-            <button class="top-btn" id="fileToggleBtn" onclick="toggleFileTree()">
-                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                文件
-            </button>
-            <button class="top-btn" id="createNewBtn">新键作品</button>
+    <div class="top-image-wrapper">
+        <div class="top-image"></div>
+        <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
+        <div class="top-image-footer-left">
+            <p>联系开发者不提供QQ了 你们太坏了</p>
+            <p>刷屏笑哭表情 还发片的 你真死妈了</p>
+            <p>手机建议横屏浏览 开启全图显示</p>
         </div>
+        <div class="top-image-footer-right">
+            <p>卡顿就挂vpn  服务器在海外</p>
+        </div>
+    </div>
 
-        <!-- 下方主盒子（恢复纯净的树形面板） -->
-        <div class="box bottom-box" id="bottomBox">
-            <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
-
-            <div id="fileTreeAccordion" class="file-tree-accordion">
-                <div class="file-tree-content">
-                    <div class="tree-container">
-                        <ul>
-                            <li class="tree-item">
-                                <input type="checkbox" class="tree-toggle" id="t1" checked>
-                                <label for="t1" class="tree-label is-selected">
-                                    <span class="icon folder-closed-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                    <span class="icon folder-open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                    src
-                                </label>
-                                <div class="tree-children-wrapper">
-                                    <ul class="tree-children">
-                                        <li class="tree-item">
-                                            <input type="checkbox" class="tree-toggle" id="t1-1">
-                                            <label for="t1-1" class="tree-label">
-                                                <span class="icon folder-closed-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                                <span class="icon folder-open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                                app
-                                            </label>
-                                            <div class="tree-children-wrapper">
-                                                <ul class="tree-children">
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                        <li class="tree-item">
-                                            <input type="checkbox" class="tree-toggle" id="t1-2">
-                                            <label for="t1-2" class="tree-label">
-                                                <span class="icon folder-closed-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                                <span class="icon folder-open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                                components
-                                            </label>
-                                            <div class="tree-children-wrapper">
-                                                <ul class="tree-children">
-                                                    <li class="tree-item">
-                                                        <input type="checkbox" class="tree-toggle" id="t1-2-1">
-                                                        <label for="t1-2-1" class="tree-label">
-                                                            <span class="icon folder-closed-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                                            <span class="icon folder-open-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                                            ui
-                                                        </label>
-                                                        <div class="tree-children-wrapper">
-                                                            <ul class="tree-children">
-                                                                <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
-                                                                <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
-                                                            </ul>
-                                                        </div>
-                                                    </li>
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
-                                                </ul>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+    <div class="content-area" id="contentArea">
+        <div id="theme-ring"></div>
+        <div class="title-row">
+            <div class="text-group">
+                <h1 class="text-pattern main-title">宫水大世界</h1>
+                <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
+            <button class="theme-btn-title" onclick="toggleTheme(event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="btn-grid">
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
+            <a href="/warehouse" class="glass-btn"><span class="btn-text">查看仓库</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">AGent</span></a>
+        </div>
+    </div>
+
+    <!-- 顶部固定悬浮按钮 -->
+    <div class="top-actions">
+        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
+    </div>
+
+    <!-- 🔽 登录弹窗（精准替换为你的原版白底组件） -->
+    <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
+        <div class="modal-box">
+            <form class="form_container">
+                <div class="logo_container"></div>
+                <div class="title_container">
+                    <p class="title">Login to your Account</p>
+                    <span class="subtitle">Get started with our app, just create an account and enjoy the experience.</span>
+                </div>
+                <div class="input_container">
+                    <label class="input_label" for="email_field">Email</label>
+                    <svg fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg" class="icon">
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="1.5" stroke="#141B34" d="M7 8.5L9.94202 10.2394C11.6572 11.2535 12.3428 11.2535 14.058 10.2394L17 8.5"></path>
+                        <path stroke-linejoin="round" stroke-width="1.5" stroke="#141B34" d="M2.01577 13.4756C2.08114 16.5412 2.11383 18.0739 3.24496 19.2094C4.37608 20.3448 5.95033 20.3843 9.09883 20.4634C11.0393 20.5122 12.9607 20.5122 14.9012 20.4634C18.0497 20.3843 19.6239 20.3448 20.7551 19.2094C21.8862 18.0739 21.9189 16.5412 21.9842 13.4756C22.0053 12.4899 22.0053 11.5101 21.9842 10.5244C21.9189 7.45886 21.8862 5.92609 20.7551 4.79066C19.6239 3.65523 18.0497 3.61568 14.9012 3.53657C12.9607 3.48781 11.0393 3.48781 9.09882 3.53656C5.95033 3.61566 4.37608 3.65521 3.24495 4.79065C2.11382 5.92608 2.08114 7.45885 2.01576 10.5244C1.99474 11.5101 1.99475 12.4899 2.01577 13.4756Z"></path>
+                    </svg>
+                    <input placeholder="name@mail.com" title="Inpit title" name="input-name" type="text" class="input_field" id="email_field">
+                </div>
+                <div class="input_container">
+                    <label class="input_label" for="password_field">Password</label>
+                    <svg fill="none" viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg" class="icon">
+                        <path stroke-linecap="round" stroke-width="1.5" stroke="#141B34" d="M18 11.0041C17.4166 9.91704 16.273 9.15775 14.9519 9.0993C13.477 9.03404 11.9788 9 10.329 9C8.67911 9 7.18091 9.03404 5.70604 9.0993C3.95328 9.17685 2.51295 10.4881 2.27882 12.1618C2.12602 13.2541 2 14.3734 2 15.5134C2 16.6534 2.12602 17.7727 2.27882 18.865C2.51295 20.5387 3.95328 21.8499 5.70604 21.9275C6.42013 21.9591 7.26041 21.9834 8 22"></path>
+                        <path stroke-linejoin="round" stroke-linecap="round" stroke-width="1.5" stroke="#141B34" d="M6 9V6.5C6 4.01472 8.01472 2 10.5 2C12.9853 2 15 4.01472 15 6.5V9"></path>
+                        <path fill="#141B34" d="M21.2046 15.1045L20.6242 15.6956V15.6956L21.2046 15.1045ZM21.4196 16.4767C21.7461 16.7972 22.2706 16.7924 22.5911 16.466C22.9116 16.1395 22.9068 15.615 22.5804 15.2945L21.4196 16.4767ZM18.0228 15.1045L17.4424 14.5134V14.5134L18.0228 15.1045ZM18.2379 18.0387C18.5643 18.3593 19.0888 18.3545 19.4094 18.028C19.7299 17.7016 19.7251 17.1771 19.3987 16.8565L18.2379 18.0387ZM14.2603 20.7619C13.7039 21.3082 12.7957 21.3082 12.2394 20.7619L11.0786 21.9441C12.2794 23.1232 14.2202 23.1232 15.4211 21.9441L14.2603 20.7619ZM12.2394 20.7619C11.6914 20.2239 11.6914 19.358 12.2394 18.82L11.0786 17.6378C9.86927 18.8252 9.86927 20.7567 11.0786 21.9441L12.2394 20.7619ZM12.2394 18.82C12.7957 18.2737 13.7039 18.2737 14.2603 18.82L15.4211 17.6378C14.2202 16.4587 12.2794 16.4587 11.0786 17.6378L12.2394 18.82ZM14.2603 18.82C14.8082 19.358 14.8082 20.2239 14.2603 20.7619L15.4211 21.9441C16.6304 20.7567 16.6304 18.8252 15.4211 17.6378L14.2603 18.82ZM20.6242 15.6956L21.4196 16.4767L22.5804 15.2945L21.785 14.5134L20.6242 15.6956ZM15.4211 18.82L17.8078 16.4767L16.647 15.2944L14.2603 17.6377L15.4211 18.82ZM17.8078 16.4767L18.6032 15.6956L17.4424 14.5134L16.647 15.2945L17.8078 16.4767ZM16.647 16.4767L18.2379 18.0387L19.3987 16.8565L17.8078 15.2945L16.647 16.4767ZM21.785 14.5134C21.4266 14.1616 21.0998 13.8383 20.7993 13.6131C20.4791 13.3732 20.096 13.1716 19.6137 13.1716V14.8284C19.6145 14.8284 19.619 14.8273 19.6395 14.8357C19.6663 14.8466 19.7183 14.8735 19.806 14.9391C19.9969 15.0822 20.2326 15.3112 20.6242 15.6956L21.785 14.5134ZM18.6032 15.6956C18.9948 15.3112 19.2305 15.0822 19.4215 14.9391C19.5091 14.8735 19.5611 14.8466 19.5879 14.8357C19.6084 14.8273 19.6129 14.8284 19.6137 14.8284V13.1716C19.1314 13.1716 18.7483 13.3732 18.4281 13.6131C18.1276 13.8383 17.8008 14.1616 17.4424 14.5134L18.6032 15.6956Z"></path>
+                    </svg>
+                    <input placeholder="Password" title="Inpit title" name="input-name" type="password" class="input_field" id="password_field">
+                </div>
+                <button title="Sign In" type="submit" class="sign-in_btn">
+                    <span>Sign In</span>
+                </button>
+
+                <div class="separator">
+                    <hr class="line">
+                    <span>Or</span>
+                    <hr class="line">
+                </div>
+                <button title="Sign In" type="submit" class="sign-in_ggl">
+                    <svg height="18" width="18" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" id="A"></path>
+                        </defs>
+                        <clipPath id="B">
+                            
+                        </clipPath>
+                        <g transform="matrix(.727273 0 0 .727273 -.954545 -1.45455)">
+                            <path fill="#fbbc05" clip-path="url(#B)" d="M0 37V11l17 13z"></path>
+                            <path fill="#ea4335" clip-path="url(#B)" d="M0 11l17 13 7-6.1L48 14V0H0z"></path>
+                            <path fill="#34a853" clip-path="url(#B)" d="M0 37l30-23 7.9 1L48 0v48H0z"></path>
+                            <path fill="#4285f4" clip-path="url(#B)" d="M48 48L17 24l-4-3 35-10z"></path>
+                        </g>
+                    </svg>
+                    <span>Sign In with Google</span>
+                </button>
+                <button title="Sign In" type="submit" class="sign-in_apl">
+                    <svg preserveAspectRatio="xMidYMid" version="1.1" viewBox="0 0 256 315" height="20px" width="16px" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                            <path fill="#ffffff" d="M213.803394,167.030943 C214.2452,214.609646 255.542482,230.442639 256,230.644727 C255.650812,231.761357 249.401383,253.208293 234.24263,275.361446 C221.138555,294.513969 207.538253,313.596333 186.113759,313.991545 C165.062051,314.379442 158.292752,301.507828 134.22469,301.507828 C110.163898,301.507828 102.642899,313.596301 82.7151126,314.379442 C62.0350407,315.16201 46.2873831,293.668525 33.0744079,274.586162 C6.07529317,235.552544 -14.5576169,164.286328 13.147166,116.18047 C26.9103111,92.2909053 51.5060917,77.1630356 78.2026125,76.7751096 C98.5099145,76.3877456 117.677594,90.4371851 130.091705,90.4371851 C142.497945,90.4371851 165.790755,73.5415029 190.277627,76.0228474 C200.528668,76.4495055 229.303509,80.1636878 247.780625,107.209389 C246.291825,108.132333 213.44635,127.253405 213.803394,167.030988 M174.239142,50.1987033 C185.218331,36.9088319 192.607958,18.4081019 190.591988,0 C174.766312,0.636050225 155.629514,10.5457909 144.278109,23.8283506 C134.10507,35.5906758 125.195775,54.4170275 127.599657,72.4607932 C145.239231,73.8255433 163.259413,63.4970262 174.239142,50.1987249"></path>
+                        </g>
+                    </svg>
+                    <span>Sign In with Apple</span>
+                </button>
+                <p class="note">Terms of use &amp; Conditions</p>
+            </form>
         </div>
     </div>
 
     <script>
-        function toggleFileTree() {
-            const bottomBox = document.getElementById('bottomBox');
-            const accordion = document.getElementById('fileTreeAccordion');
-            const emptyState = document.getElementById('emptyState');
-            if (bottomBox.classList.contains('shrink')) {
-                bottomBox.classList.remove('shrink');
-                setTimeout(() => { if (!accordion.classList.contains('open')) { emptyState.style.display = 'block'; } }, 400);
-                return;
+        gsap.registerPlugin(ScrollTrigger);
+        let isExpanded = false;
+        const themeRing = document.getElementById('theme-ring');
+        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+        const textElements = document.querySelectorAll('.text-pattern');
+        const contentArea = document.getElementById('contentArea');
+
+        const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
+        const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
+
+        function toggleTheme(event) {
+            const btn = event.currentTarget;
+            const btnRect = btn.getBoundingClientRect();
+            const areaRect = contentArea.getBoundingClientRect();
+            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
+
+            isExpanded = !isExpanded;
+            gsap.killTweensOf(themeRing);
+
+            if (isExpanded) {
+                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+            } else {
+                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
             }
-            const isOpen = accordion.classList.toggle('open');
-            if (isOpen) { emptyState.style.display = 'none'; } else { setTimeout(() => { emptyState.style.display = 'block'; }, 400); }
         }
 
-        document.getElementById('createNewBtn').addEventListener('click', function() {
-            const bottomBox = document.getElementById('bottomBox');
-            const accordion = document.getElementById('fileTreeAccordion');
-            const emptyState = document.getElementById('emptyState');
-            if (bottomBox.classList.contains('shrink')) {
-                bottomBox.classList.remove('shrink');
-                setTimeout(() => { if (!accordion.classList.contains('open')) { emptyState.style.display = 'block'; } }, 400);
-                return;
-            }
-            if (accordion.classList.contains('open')) {
-                accordion.classList.remove('open');
-                setTimeout(() => { bottomBox.classList.add('shrink'); emptyState.style.display = 'none'; }, 400);
-            } else {
-                bottomBox.classList.add('shrink'); emptyState.style.display = 'none';
-            }
+        document.addEventListener("DOMContentLoaded", function() {
+            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+
+            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+
+            const tl = gsap.timeline({ scrollTrigger: { trigger: ".content-area", start: "top 85%", toggleActions: "play none none reverse" } });
+            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
         });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+        }
+
+        // ================= 弹窗交互控制 =================
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+        function closeLoginOnBg(event) {
+            if (event.target === event.currentTarget) {
+                closeLoginModal();
+            }
+        }
     </script>
 </body>
 </html>
