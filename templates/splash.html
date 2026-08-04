@@ -50,32 +50,26 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* ================= 全新卡片设计：无模糊 + 红蓝边缘色差 + 内部流动晕染 ================= */
-        .modal-overlay { position: fixed; inset: 0; background: transparent; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
-        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: none; }
-        .modal-box { pointer-events: auto; transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        /* --- 弹窗覆盖层与极简通透玻璃卡片 --- */
+        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 卡片主体：红蓝色差阴影制造棱镜边缘 + 透明纯边框 */
+        /* 重新设计的极简通透高斯玻璃卡片 */
         .login-card {
-            position: relative; background: transparent; width: 320px; padding: 24px;
-            border: 1px solid rgba(255,255,255,0.6); border-radius: 16px;
-            /* 极细的红蓝棱镜边缘色差 */
-            box-shadow: -2px 0 8px rgba(255, 100, 100, 0.4), 2px 0 8px rgba(100, 100, 255, 0.4), 0 0 30px rgba(255,255,255,0.05);
-            overflow: hidden; display: flex; flex-direction: column; gap: 12px; color: #e5e7eb;
+            position: relative; width: 320px; padding: 24px;
+            background: rgba(255, 255, 255, 0.05); /* 极高的通透度 */
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); /* 标准高斯模糊 */
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: #e5e7eb; display: flex; flex-direction: column; gap: 14px;
         }
 
-        /* 动态水波纹错觉层：用缓慢旋转的微光代替真实扭曲，绝对流畅 */
-        .glass-wave {
-            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.05), transparent, rgba(200,200,255,0.03), transparent);
-            z-index: -1; pointer-events: none;
-            border-radius: 50%;
-            /* 用 GSAP 驱动无限旋转 */
-        }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; transform: none !important; }
-
+        /* 通知条 */
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
         #custom-toast.success { border-left-color: #22c55e; }
@@ -90,6 +84,7 @@
             .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
             .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
+            .login-card { width: 280px; padding: 20px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
@@ -122,40 +117,34 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片（纯透明边缘色差+内部流动晕染） ================= -->
-    <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
+    <!-- ================= 纯透高斯玻璃卡片 ================= -->
+    <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
-            <!-- 使用新的 .login-card 结构 -->
-            <div class="login-card">
-                <!-- 动态水波流动层 -->
-                <div class="glass-wave" id="glassWave"></div>
-                
-                <form id="authForm" onsubmit="return false;" novalidate class="relative z-10 flex flex-col justify-start gap-3">
-                    <div class="flex flex-col gap-1">
-                        <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
-                        <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
-                    </div>
+            <form id="authForm" onsubmit="return false;" novalidate class="login-card">
+                <div class="flex flex-col gap-1">
+                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                </div>
 
-                    <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                        <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                        <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
-                            验证
-                        </button>
-                    </div>
-
-                    <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
-                        <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                    </div>
-
-                    <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
-                        <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                    </div>
-
-                    <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
-                        注册/登录
+                <div class="flex gap-2 w-full anim-item" id="email-wrapper">
+                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">
+                        验证
                     </button>
-                </form>
-            </div>
+                </div>
+
+                <div class="anim-item" id="code-wrapper">
+                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                </div>
+
+                <div class="anim-item" id="password-wrapper">
+                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                </div>
+
+                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">
+                    注册/登录
+                </button>
+            </form>
         </div>
     </div>
 
@@ -227,35 +216,28 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // ================= 交互核心修改 =================
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
-            
-            // 重点：打开卡片时，用 GSAP 驱动卡片内部的渐变光晕无限缓慢旋转，模拟水波！
-            const wave = document.getElementById('glassWave');
-            if(wave) {
-                gsap.to(wave, {
-                    rotation: 360,
-                    duration: 12,
-                    ease: "none",
-                    repeat: -1
-                });
-            }
+            // 展开时的入场动画（极简）
+            const items = document.querySelectorAll('#loginModal .anim-item');
+            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
         }
 
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
-            // 关闭时销毁动画节省性能
-            const wave = document.getElementById('glassWave');
-            if(wave) {
-                gsap.killTweensOf(wave);
-                wave.style.transform = "rotate(0deg)";
-            }
         }
 
-        function closeLoginOnBg(event) {
-            if (event.target === event.currentTarget) { closeLoginModal(); }
-        }
+        // 修改：点击网页任意位置（除了按钮）关闭卡片
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            // 如果点击的或者点击的父级是 button（包含输入框），不触发关闭
+            if (e.target.closest('button')) {
+                return;
+            }
+            // 其余所有情况（包括点击卡片空白处、输入框、外部空白）全部关闭
+            closeLoginModal();
+        });
 
         function shakeElement(element) {
             if(!element) return;
@@ -264,7 +246,9 @@
             element.classList.add('shake-field');
         }
 
-        document.getElementById('send-code-btn').addEventListener('click', async function() {
+        // ================= 验证码逻辑 =================
+        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
+            e.stopPropagation(); // 防止点击按钮时冒泡触发卡片关闭
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
             if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
@@ -279,7 +263,9 @@
             finally { btn.disabled = false; }
         });
 
-        document.getElementById('submit-btn').addEventListener('click', async function() {
+        // ================= 注册/登录提交逻辑 =================
+        document.getElementById('submit-btn').addEventListener('click', async function(e) {
+            e.stopPropagation(); // 防止点击按钮时冒泡触发卡片关闭
             const email = document.getElementById('reg-email').value.trim();
             const code = document.getElementById('reg-code').value.trim();
             const password = document.getElementById('reg-password').value.trim();
