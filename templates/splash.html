@@ -17,14 +17,12 @@
             --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
         }
 
-        /* 修改重点：锁定整个页面，禁止上下滑动 */
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
-        /* 主内容区锁定为 100vh */
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -40,6 +38,7 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
+        /* 重新排列后的顶部按钮 */
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
         .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
@@ -49,6 +48,7 @@
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
+        .top-actions .top-btn:nth-child(4) { animation-delay: 0.6s; }
 
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
@@ -82,8 +82,8 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
-            .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
+            .top-actions { top: 16px; right: 16px; gap: 4px; width: 200px; }
+            .top-btn { font-size: 11px; padding: 4px 6px; min-width: 40px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card { width: 280px; padding: 20px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
@@ -110,10 +110,15 @@
         </div>
     </div>
 
+    <!-- 修改：顶部按钮顺序已重新排列 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
+        <!-- 新增：音乐图标按钮 -->
+        <button class="top-btn" id="musicBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
     </div>
 
     <div id="custom-toast"></div>
@@ -198,7 +203,7 @@
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
-            // 修改：移除 ScrollTrigger，改为页面瞬间在视口内开始动画
+            // 移除 ScrollTrigger，改为页面瞬间在视口内开始动画
             const tl = gsap.timeline();
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
@@ -230,7 +235,7 @@
             document.getElementById('loginModal').classList.remove('active');
         }
 
-        // 注意：增加了「点击网页任意位置关闭卡片，除了按钮」的特性
+        // 点击网页任意位置关闭卡片，除了按钮
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('input')) {
                 return;
