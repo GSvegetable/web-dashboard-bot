@@ -35,16 +35,16 @@
             box-sizing: border-box;
         }
 
-        /* 上部分：1/20，应用你的蜂巢背景 */
+        /* ✅ 核心修复：上方盒子绝对锚定，绝不随下方伸缩改变大小 */
         .top-box {
-            flex: 1;
-            min-height: 30px;
+            flex: none;
+            width: 100%;
+            min-height: 35px;
             display: flex;
-            justify-content: space-between; /* 两头对齐，防止按钮分开 */
+            justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.08);
             
-            /* ⬇️ 你提供的蜂巢纹理 CSS */
             --s: 200px;
             --c1: #1d1d1d;
             --c2: #4e4f51;
@@ -62,10 +62,8 @@
                     var(--c3) 0 180deg
                 );
             background-size: var(--s) calc(var(--s) * 0.577);
-            /* ⬆️ 纹理结束 */
         }
 
-        /* 上部分两个玻璃按钮 */
         .top-btn {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -88,7 +86,7 @@
         .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
         .top-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
 
-        /* 下部分：20/20，带有平滑收缩动画 */
+        /* 下部分：带有精确的 1/3 宽收缩动画 */
         .bottom-box {
             flex: 20;
             position: relative;
@@ -101,14 +99,16 @@
             background-color: #161b22;
             border: 1px solid #30363d;
             /* 丝滑收缩动画 */
-            transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            align-self: stretch;
         }
 
-        /* 🔽 点击新键作品后的收缩状态 */
+        /* 🔽 收缩至 1/3，且靠左固定（右侧留出空白） */
         .bottom-box.shrink {
-            width: 50%;
-            flex: 0 0 50%; /* 强制改变长度比例 */
+            width: 33.33% !important;
+            flex: none !important;
+            align-self: flex-start !important;
         }
 
         .empty-state {
@@ -159,7 +159,8 @@
         @media (max-width: 600px) {
             body { padding: 3vh 3vw; overflow-y: auto; }
             .left-panel-wrapper { height: 100vh; margin-top: -6px; }
-            .bottom-box.shrink { width: 100%; flex: auto; }
+            .top-box { min-height: 30px; padding: 12px 14px; }
+            .bottom-box.shrink { width: 100%; flex: auto; align-self: stretch; }
             .top-btn { font-size: 12px; padding: 4px 10px; }
             .tree-container { padding: 0; }
         }
@@ -169,7 +170,7 @@
     <!-- 双面板结构 -->
     <div class="left-panel-wrapper">
         
-        <!-- 上半部分（蜂巢背景 + 两个玻璃按钮） -->
+        <!-- 上半部分（绝对锚定，蜂巢背景） -->
         <div class="box top-box">
             <button class="top-btn" id="fileToggleBtn" onclick="toggleFileTree()">
                 <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -178,11 +179,10 @@
             <button class="top-btn" id="createNewBtn">新键作品</button>
         </div>
 
-        <!-- 下半部分（带收缩动画的主容器） -->
+        <!-- 下半部分（可收缩至 1/3 主容器） -->
         <div class="box bottom-box" id="bottomBox">
             <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
 
-            <!-- 树形菜单容器 -->
             <div id="fileTreeAccordion" class="file-tree-accordion">
                 <div class="file-tree-content">
                     <div class="tree-container">
@@ -259,22 +259,11 @@
             }
         }
 
+        // ✅ 点击新键作品，只负责下方盒子缩放，绝对不干涉任何其他东西
         document.getElementById('createNewBtn').addEventListener('click', function() {
             const bottomBox = document.getElementById('bottomBox');
-            const accordion = document.getElementById('fileTreeAccordion');
-            const emptyState = document.getElementById('emptyState');
-
-            // 切换底部盒子的 50% 收缩状态
             bottomBox.classList.toggle('shrink');
-            
-            // 如果当前文件树是展开的，点击新键作品时自动收起它
-            if (accordion.classList.contains('open')) {
-                accordion.classList.remove('open');
-                setTimeout(() => { 
-                    emptyState.style.display = 'block'; 
-                }, 400);
-            }
         });
     </script>
 </body>
-                                                                                                                                                                                                                                                                                                  </html>
+</html>
