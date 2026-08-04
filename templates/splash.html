@@ -99,7 +99,6 @@
             border-color: #282828 transparent transparent transparent;
             transform: translateX(-50%);
         }
-        /* ======================================================== */
 
         /* ================= 第二屏：文字与按钮区域 ================= */
         .content-area {
@@ -196,7 +195,7 @@
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮（强制等宽、有序动画） ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -205,9 +204,13 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            width: 260px; /* 限制总宽度，让 flex:1 发挥均匀分布的作用 */
         }
         .top-btn {
-            padding: 8px 20px;
+            flex: 1;
+            min-width: 50px;
+            text-align: center;
+            padding: 8px 10px; /* 稍微减小左右 padding，防止因为固定宽度导致挤压 */
             border-radius: 30px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -221,7 +224,6 @@
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-        #loginBtn { margin-left: 16px; }
 
         @keyframes slideInFromRight {
             0% { opacity: 0; transform: translateX(280px); }
@@ -231,8 +233,10 @@
             opacity: 0;
             animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        /* 依次延迟：全屏显示(0.2s), AGent(0.4s), Log in(0.6s) */
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
+        .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
         /* 底部按钮统一玻璃质感 */
         .glass-btn {
@@ -255,10 +259,8 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 6px; }
-            .top-btn { font-size: 12px; padding: 6px 14px; }
-            #loginBtn { margin-left: 8px; }
-            .theme-btn-title { width: 28px; height: 28px; margin-top: 3px; }
+            .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
+            .top-btn { font-size: 12px; padding: 6px 8px; min-width: 40px; }
             .top-actions .top-btn { animation-duration: 0.5s; }
         }
     </style>
@@ -268,7 +270,7 @@
     <div class="top-image-wrapper">
         <div class="top-image"></div>
         
-        <!-- 完全按照截图复刻的 Tooltip 组件，文字已按要求修改 -->
+        <!-- Tooltip 组件 -->
         <div class="tooltip">
             正在施工中，请向上滑动
             <div class="tooltiptext">Hi there!</div>
@@ -295,14 +297,14 @@
         <div class="btn-grid">
             <a href="/create" class="glass-btn"><span class="btn-text">创建作品</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">查看仓库</span></a>
-            <a href="https://t.me/gsyxyc" class="glass-btn" target="_blank"><span class="btn-text">联系开发者</span></a>
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
         </div>
     </div>
 
-    <!-- 顶部悬浮按钮 -->
+    <!-- 顶部悬浮按钮（三均分，尺寸固定） -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">AGent</a>
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
     </div>
 
