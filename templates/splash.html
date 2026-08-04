@@ -24,10 +24,28 @@
         /* 第一屏 */
         .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
+        
+        /* 中间施工提示按钮 */
         .tooltip { position: relative; display: inline-block; cursor: pointer; background-color: #282828; color: #ffffff; padding: 1em 2em; border-radius: 1em; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.5); user-select: none; }
         .tooltip .tooltiptext { visibility: hidden; width: 200px; background-color: #282828; color: #ffffff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
         .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
         .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #282828 transparent transparent transparent; transform: translateX(-50%); }
+
+        /* 🔽 新增：第一张图片左下角的文字 */
+        .top-image-footer-text {
+            position: absolute;
+            bottom: 5%;
+            left: 6%;
+            z-index: 2;
+            color: #ffffff;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
+            font-size: 17px;
+            line-height: 1.6;
+            font-weight: 500;
+            pointer-events: none; /* 防止遮挡点击 */
+            max-width: 80%;
+        }
+        .top-image-footer-text p { margin: 4px 0; }
 
         /* 第二屏 */
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
@@ -58,6 +76,7 @@
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
         @media (max-width: 600px) {
+            .top-image-footer-text { font-size: 14px; bottom: 4%; left: 5%; max-width: 90%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -72,7 +91,15 @@
 <body>
     <div class="top-image-wrapper">
         <div class="top-image"></div>
+        
         <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
+
+        <!-- 🔽 新增：第一张图片左下角的白色文字（和中间按钮绝对不重叠） -->
+        <div class="top-image-footer-text">
+            <p>联系开发者的那个qq不回消息 提交bug就提交好了呀</p>
+            <p>刷屏那个笑哭表情包 还发片的，你们真死妈了</p>
+            <p>建议横屏浏览，并且开启全图显示</p>
+        </div>
     </div>
 
     <div class="content-area" id="contentArea">
@@ -89,7 +116,6 @@
             </button>
         </div>
         
-        <!-- 4 个底部按钮（红字部分是按你要求修改的） -->
         <div class="btn-grid">
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
             <a href="/warehouse" class="glass-btn"><span class="btn-text">查看仓库</span></a>
