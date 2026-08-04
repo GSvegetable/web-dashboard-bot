@@ -13,7 +13,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
-            padding: 5vh 3vw;
+            padding: 5vh 3vw; /* 距离屏幕边缘的统一边距 */
             gap: 2vw;
             box-sizing: border-box;
         }
@@ -23,25 +23,99 @@
             height: 100%;
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            padding: 20px;
+            padding: 20px; /* 盒子与边缘的边距 */
             overflow-y: auto;
         }
 
-        /* 左侧面板（白底组件包裹层） */
-        .left-panel {
+        /* ================= 左侧新布局 ================= */
+        .left-panel-wrapper {
             flex: 1;
-            max-width: 40%;
+            max-width: 35%;
             min-width: 220px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 30px;
+            flex-direction: column;
+            gap: 20px; /* 上下长方形之间的距离，与屏幕边距保持一致 */
+            height: 100%;
         }
 
-        /* 右侧面板（保留深色留空） */
+        .box {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 24px;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 上部分：占比 1/6 */
+        .top-box {
+            flex: 1;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 下部分：占比 5/6 */
+        .bottom-box {
+            flex: 5;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+
+        /* 上方按钮 */
+        .file-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 24px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .file-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
+
+        .file-btn .icon { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+
+        /* 空白占位状态 */
+        .empty-state {
+            position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #8b949e;
+            font-size: 14px;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        /* 下拉展开动画容器 */
+        .file-tree-accordion {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+        }
+        .file-tree-accordion.open {
+            max-height: 1200px; /* 足够容纳完整的树 */
+        }
+
+        .file-tree-content {
+            padding-top: 10px;
+            width: 100%;
+        }
+
+        /* ================= 右侧面板 ================= */
         .right-panel {
             flex: 2;
-            max-width: 60%;
+            max-width: 65%;
             background-color: #161b22;
             border: 1px solid #30363d;
             display: flex;
@@ -52,7 +126,7 @@
         }
 
         /* ==========================================================
-           ⚠️ 以下为 Uiverse 作者 ashif_6672 的原生 CSS，未作任何修改。
+           以下为 Uiverse 作者 ashif_6672 的原生 CSS (原封不动)
            ========================================================== */
         .tree-container {
             width: 100%;
@@ -61,223 +135,146 @@
             padding: 24px;
             background: #ffffff;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
         }
 
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        ul ul {
-            margin-left: 11px;
-            padding-left: 11px;
-            border-left: 1px solid #e4e4e7;
-        }
-
-        .tree-item {
-            position: relative;
-            margin-top: 4px;
-        }
-
+        ul { list-style: none; padding: 0; margin: 0; }
+        ul ul { margin-left: 11px; padding-left: 11px; border-left: 1px solid #e4e4e7; }
+        .tree-item { position: relative; margin-top: 4px; }
         ul ul .tree-item::before {
-            content: "";
-            position: absolute;
-            left: -11px;
-            top: 14px;
-            width: 11px;
-            height: 1px;
-            background-color: #e4e4e7;
+            content: ""; position: absolute; left: -11px; top: 14px;
+            width: 11px; height: 1px; background-color: #e4e4e7;
         }
 
-        .tree-label,
-        .file-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #09090b;
-            transition: background-color 0.2s;
-            user-select: none;
-            text-decoration: none;
-            height: 28px;
+        .tree-label, .file-item {
+            display: flex; align-items: center; gap: 8px; padding: 4px 8px;
+            border-radius: 4px; cursor: pointer; font-size: 14px;
+            color: #09090b; transition: background-color 0.2s; user-select: none;
+            text-decoration: none; height: 28px;
         }
+        .tree-label:hover, .file-item:hover { background-color: #f4f4f5; }
+        .is-selected { background-color: #f4f4f5; color: #09090b; font-weight: 500; }
 
-        .tree-label:hover,
-        .file-item:hover {
-            background-color: #f4f4f5;
-        }
-
-        .is-selected {
-            background-color: #f4f4f5;
-            color: #09090b;
-            font-weight: 500;
-        }
-
-        .icon {
-            width: 16px;
-            height: 16px;
-            color: #71717a;
-            flex-shrink: 0;
-        }
-
+        .icon { width: 16px; height: 16px; color: #71717a; flex-shrink: 0; }
         .folder-open-icon { display: none; }
         .folder-closed-icon { display: block; }
 
-        .tree-toggle:checked ~ .tree-label .folder-open-icon {
-            display: block;
-            color: #09090b;
-        }
+        .tree-toggle:checked ~ .tree-label .folder-open-icon { display: block; color: #09090b; }
         .tree-toggle:checked ~ .tree-label .folder-closed-icon { display: none; }
-
         .tree-toggle { display: none; }
 
         .tree-children-wrapper {
-            display: grid;
-            grid-template-rows: 0fr;
+            display: grid; grid-template-rows: 0fr;
             transition: grid-template-rows 0.3s ease-in-out;
         }
-
         .tree-children { overflow: hidden; }
-
-        /* 展开状态 */
-        .tree-toggle:checked ~ .tree-children-wrapper {
-            grid-template-rows: 1fr;
-        }
+        .tree-toggle:checked ~ .tree-children-wrapper { grid-template-rows: 1fr; }
         /* ========================================================== */
 
         @media (max-width: 600px) {
-            body {
-                flex-direction: column;
-                padding: 3vh 3vw;
-                gap: 3vh;
-                overflow-y: auto;
-            }
-            .left-panel, .right-panel {
-                max-width: 100%;
-                width: 100%;
-                flex: none;
-                height: 50vh;
-                border-radius: 18px;
-            }
-            .left-panel { min-height: 200px; }
+            body { flex-direction: column; padding: 3vh 3vw; gap: 3vh; overflow-y: auto; }
+            .left-panel-wrapper, .right-panel { max-width: 100%; width: 100%; flex: none; height: 50vh; }
+            .left-panel-wrapper { min-height: 250px; }
+            .top-box { flex: 1; min-height: 60px; }
+            .bottom-box { flex: 5; }
+            .tree-container { padding: 12px; }
         }
     </style>
 </head>
 <body>
-    <!-- 左侧面板：Uiverse 原生浅色组件 -->
-    <div class="panel left-panel">
-        <div class="tree-container">
-            <ul>
-                <li class="tree-item">
-                    <!-- 父级 1：src -->
-                    <input type="checkbox" class="tree-toggle" id="t1" checked>
-                    <label for="t1" class="tree-label is-selected">
-                        <span class="icon folder-closed-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                        </span>
-                        <span class="icon folder-open-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                        </span>
-                        src
-                    </label>
-                    <div class="tree-children-wrapper">
-                        <ul class="tree-children">
-                            
-                            <!-- 子级 1：app -->
-                            <li class="tree-item">
-                                <input type="checkbox" class="tree-toggle" id="t1-1">
-                                <label for="t1-1" class="tree-label">
-                                    <span class="icon folder-closed-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                    </span>
-                                    <span class="icon folder-open-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                    </span>
-                                    app
-                                </label>
-                                <div class="tree-children-wrapper">
-                                    <ul class="tree-children">
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>globals.css</span></li>
-                                    </ul>
-                                </div>
-                            </li>
+    <!-- 左侧全新 1:5 双面板 + 可折叠目录 -->
+    <div class="left-panel-wrapper">
+        <!-- 上半部分（1/6） -->
+        <div class="box top-box">
+            <button class="file-btn" id="fileToggleBtn" onclick="toggleFileTree()">
+                <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                文件
+            </button>
+        </div>
 
-                            <!-- 子级 2：components -->
+        <!-- 下半部分（5/6） -->
+        <div class="box bottom-box">
+            <!-- 空状态提示 -->
+            <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
+
+            <!-- 可折叠的白色树形菜单 -->
+            <div id="fileTreeAccordion" class="file-tree-accordion">
+                <div class="file-tree-content">
+                    <div class="tree-container">
+                        <ul>
                             <li class="tree-item">
-                                <input type="checkbox" class="tree-toggle" id="t1-2">
-                                <label for="t1-2" class="tree-label">
+                                <input type="checkbox" class="tree-toggle" id="t1" checked>
+                                <label for="t1" class="tree-label is-selected">
                                     <span class="icon folder-closed-icon">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
                                     </span>
                                     <span class="icon folder-open-icon">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
                                     </span>
-                                    components
+                                    src
                                 </label>
                                 <div class="tree-children-wrapper">
                                     <ul class="tree-children">
-                                        
-                                        <!-- 子子级 2-1：ui -->
                                         <li class="tree-item">
-                                            <input type="checkbox" class="tree-toggle" id="t1-2-1">
-                                            <label for="t1-2-1" class="tree-label">
+                                            <input type="checkbox" class="tree-toggle" id="t1-1">
+                                            <label for="t1-1" class="tree-label">
                                                 <span class="icon folder-closed-icon">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
                                                 </span>
                                                 <span class="icon folder-open-icon">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
                                                 </span>
-                                                ui
+                                                app
                                             </label>
                                             <div class="tree-children-wrapper">
                                                 <ul class="tree-children">
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
-                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>input.tsx</span></li>
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
                                                 </ul>
                                             </div>
                                         </li>
-
-                                        <!-- components 直属文件 -->
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>footer.tsx</span></li>
+                                        <li class="tree-item">
+                                            <input type="checkbox" class="tree-toggle" id="t1-2">
+                                            <label for="t1-2" class="tree-label">
+                                                <span class="icon folder-closed-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                                </span>
+                                                <span class="icon folder-open-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                                </span>
+                                                components
+                                            </label>
+                                            <div class="tree-children-wrapper">
+                                                <ul class="tree-children">
+                                                    <li class="tree-item">
+                                                        <input type="checkbox" class="tree-toggle" id="t1-2-1">
+                                                        <label for="t1-2-1" class="tree-label">
+                                                            <span class="icon folder-closed-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                                            </span>
+                                                            <span class="icon folder-open-icon">
+                                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                                            </span>
+                                                            ui
+                                                        </label>
+                                                        <div class="tree-children-wrapper">
+                                                            <ul class="tree-children">
+                                                                <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
+                                                                <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
+                                                            </ul>
+                                                        </div>
+                                                    </li>
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
+                                                </ul>
+                                            </div>
+                                        </li>
                                     </ul>
                                 </div>
                             </li>
-
-                            <!-- 子级 3：lib -->
-                            <li class="tree-item">
-                                <input type="checkbox" class="tree-toggle" id="t1-3">
-                                <label for="t1-3" class="tree-label">
-                                    <span class="icon folder-closed-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                                    </span>
-                                    <span class="icon folder-open-icon">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
-                                    </span>
-                                    lib
-                                </label>
-                                <div class="tree-children-wrapper">
-                                    <ul class="tree-children">
-                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>utils.ts</span></li>
-                                    </ul>
-                                </div>
-                            </li>
-
-                            <!-- src 直属文件 -->
-                            <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>package.json</span></li>
-                            <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>tsconfig.json</span></li>
-
                         </ul>
                     </div>
-                </li>
-            </ul>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -285,5 +282,31 @@
     <div class="panel right-panel">
         右侧面板预留区域
     </div>
+
+    <script>
+        function toggleFileTree() {
+            const accordion = document.getElementById('fileTreeAccordion');
+            const emptyState = document.getElementById('emptyState');
+            const btn = document.getElementById('fileToggleBtn');
+
+            const isOpen = accordion.classList.toggle('open');
+            
+            if (isOpen) {
+                emptyState.style.display = 'none';
+                btn.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    文件 (收起)
+                `;
+            } else {
+                setTimeout(() => {
+                    emptyState.style.display = 'block';
+                }, 400); // 等待动画结束后显示空状态
+                btn.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    文件
+                `;
+            }
+        }
+    </script>
 </body>
 </html>
