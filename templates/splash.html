@@ -51,8 +51,8 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔽 修正位置：移除强制居中，把负边距从 -12vh 缩小到 -7vh，稍微往下移一点 */
-            margin-top: -7vh;
+            /* 🔽 按你要求，将 -7vh 改为 10vh，整体往下移动 */
+            margin-top: 10vh;
             padding-top: 1vh;
             padding-left: 12%;
             padding-bottom: 15vh;
@@ -99,7 +99,7 @@
             transform: translateY(60px); 
         }
 
-        /* 固定在“宫水大世界”右侧的缩小版切换按钮 */
+        /* 固定在“宫水大世界”右侧的切换按钮 */
         .theme-btn-title {
             width: 30px; height: 30px; padding: 0; border-radius: 50%;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
@@ -180,7 +180,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { margin-top: -4vh; padding-left: 6%; min-height: 100vh; }
+            .content-area { margin-top: 10vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -248,7 +248,7 @@
         function toggleTheme(event) {
             const btn = event.currentTarget;
             
-            // ⚠️ 核心修复：获取按钮相对于父容器 (contentArea) 的坐标，而不是屏幕坐标
+            // 核心修复：获取按钮相对于父容器 (contentArea) 的坐标，而不是屏幕坐标
             const btnRect = btn.getBoundingClientRect();
             const areaRect = contentArea.getBoundingClientRect();
             
