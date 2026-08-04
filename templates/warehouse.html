@@ -13,47 +13,52 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
-            padding: 5vh 3vw; /* 上下 5%，左右 3% 的呼吸留白 */
-            gap: 2vw; /* 左右面板之间的间距 */
+            padding: 5vh 3vw;
+            gap: 2vw;
             box-sizing: border-box;
         }
 
-        /* 双面板布局 */
+        /* 双面板布局容器 */
         .panel {
             height: 100%;
-            background-color: #161b22;
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            border: 1px solid #30363d;
             padding: 20px;
             overflow-y: auto;
         }
 
-        /* 左侧面板：文件夹树 */
+        /* ================= 左侧面板：Uiverse 原版浅色卡片 ================= */
         .left-panel {
             flex: 1;
-            max-width: 35%;
+            max-width: 40%;
             min-width: 220px;
-            /* 去除默认滚动条样式 */
-            scrollbar-width: thin;
-            scrollbar-color: #30363d transparent;
+            /* ✅ 精准复刻 Uiverse 截图的浅色外观 */
+            background-color: #ffffff;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
-        .left-panel::-webkit-scrollbar { width: 6px; }
-        .left-panel::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 10px; }
 
-        /* 右侧面板 */
+        /* ================= 右侧面板：保持你原有的深色外观 ================= */
         .right-panel {
             flex: 2;
-            max-width: 65%;
+            max-width: 60%;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #8b949e;
+            font-size: 14px;
         }
 
-        /* ================= Uiverse 纯 CSS 折叠树组件 ================= */
+        /* ================= 精确复刻 Uiverse 的纯 CSS 折叠树 ================= */
         .tree {
             list-style: none;
             padding: 0;
             margin: 0;
-            color: #cfcfcf;
-            background: transparent;
+            color: #555555;
             font-size: 14px;
         }
         .tree-item {
@@ -67,25 +72,31 @@
             top: 14px;
             width: 1px;
             height: 18px;
-            background-color: #444;
+            background-color: #e4e4e7;
         }
         .tree-label {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 4px;
-            color: #b0b0b0;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: #555555;
             transition: background-color 0.2s, color 0.2s;
             text-decoration: none;
             cursor: pointer;
             user-select: none;
+            height: 36px;
+            font-weight: 500;
         }
         .tree-label:hover {
-            background-color: #2a2a2a;
-            color: #ffffff;
+            background-color: #f4f4f5;
+            color: #000000;
         }
-        /* 折叠/展开控制器 */
+        /* 展开时的颜色高亮 */
+        .tree-toggle[open] .tree-label {
+            color: #000000;
+        }
+
         .tree-toggle {
             list-style: none;
         }
@@ -120,12 +131,17 @@
         .tree-toggle[open] + .tree-children-wrapper {
             grid-template-rows: 1fr;
         }
-        .tree-toggle[open] .tree-label {
-            color: #ffffff;
+        /* 文件夹箭头图标 */
+        .folder-icon {
+            width: 16px;
+            height: 16px;
+            color: #777777;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        /* ========================================================= */
 
-        /* 手机端小屏幕适配 */
+        /* 手机端小屏幕自动上下排列 */
         @media (max-width: 600px) {
             body {
                 flex-direction: column;
@@ -138,28 +154,31 @@
                 width: 100%;
                 flex: none;
                 height: 50vh;
-                border-radius: 18px;
             }
             .left-panel { min-height: 200px; }
         }
     </style>
 </head>
 <body>
-    <!-- 左侧面板（原版 Uiverse 组件） -->
+    <!-- 左侧面板（精确复刻截图浅色外观） -->
     <div class="panel left-panel">
         <ul class="tree">
             <li class="tree-item">
                 <details class="tree-toggle" open>
                     <summary class="tree-label">
-                        <span class="folder-closed-icon">📁</span>
-                        <span class="folder-open-icon">📂</span>
+                        <span class="folder-closed-icon folder-icon">📁</span>
+                        <span class="folder-open-icon folder-icon">📂</span>
                         src
                     </summary>
                     <div class="tree-children-wrapper">
                         <ul class="tree-children">
                             <li class="tree-item">
                                 <details class="tree-toggle">
-                                    <summary class="tree-label">app</summary>
+                                    <summary class="tree-label">
+                                        <span class="folder-closed-icon folder-icon">📁</span>
+                                        <span class="folder-open-icon folder-icon">📂</span>
+                                        app
+                                    </summary>
                                     <div class="tree-children-wrapper">
                                         <ul class="tree-children">
                                             <li class="tree-item"><span class="tree-label">components</span></li>
@@ -179,8 +198,8 @@
             <li class="tree-item">
                 <details class="tree-toggle">
                     <summary class="tree-label">
-                        <span class="folder-closed-icon">📁</span>
-                        <span class="folder-open-icon">📂</span>
+                        <span class="folder-closed-icon folder-icon">📁</span>
+                        <span class="folder-open-icon folder-icon">📂</span>
                         public
                     </summary>
                     <div class="tree-children-wrapper">
@@ -194,12 +213,9 @@
         </ul>
     </div>
 
-    <!-- 右侧面板（保留之前的占位） -->
+    <!-- 右侧面板（保留深色区域） -->
     <div class="panel right-panel">
-        <!-- 右侧留白区域，将来可以放更多内容 -->
-        <div style="color: #8b949e; font-size: 14px; text-align: center; margin-top: 40%;">
-            右侧面板预留区域
-        </div>
+        右侧面板预留区域
     </div>
 </body>
 </html>
