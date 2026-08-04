@@ -163,55 +163,53 @@
             isExpanded = !isExpanded;
             gsap.killTweensOf(themeRing);
 
-            // 目标图片：展开时是白色主题，收缩时是黑色主题
             const targetUrl = isExpanded ? newBgUrl : defaultBgUrl; 
-            // 当前底层图片：收缩时必须是黑色主题（外层），展开时必须是白色主题（内层）
-            const currentBgUrl = isExpanded ? defaultBgUrl : newBgUrl; 
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
+            const currentBgUrl = isExpanded ? defaultBgUrl : newBgUrl;
 
-            // 防闪/黑屏预加载
-            const imgLoader = new Image();
-            imgLoader.src = targetUrl;
-            
-            imgLoader.onload = function() {
-                // 1. 核心修正：分别设置遮罩层和底层的主题
-                // 收缩时：遮罩层是白色主题，底层是黑色主题（满足“外面是黑，里面是白”）
-                // 展开时：遮罩层是黑色主题，底层是白色主题
-                themeRing.style.backgroundImage = `url("${targetUrl}")`;
-                contentArea.style.backgroundImage = `url("${currentBgUrl}")`;
-                
-                // 强制重绘，彻底解决闪白/闪黑问题
-                void themeRing.offsetHeight; 
-                void contentArea.offsetHeight;
+            // 强制清除可能残留的 display: none，确保每次切换前圆环都是可见的
+            themeRing.style.display = 'block';
 
-                // 2. 构建精确的 0.8s 水波纹时间轴
-                const tl = gsap.timeline({
+            // 【核心修复】先强制把遮罩和底图放到正确的位置，消除“收回/展开时的闪图”
+            themeRing.style.backgroundImage = `url("${targetUrl}")`;
+            contentArea.style.backgroundImage = `url("${currentBgUrl}")`;
+
+            if (isExpanded) {
+                // 展开：0 -> 150
+                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                void themeRing.offsetHeight;
+                gsap.to(themeRing, { 
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)`,
                     onComplete: () => {
-                        // 动画完全结束的瞬间，把底图彻底变成目标主题！
+                        // 展开动画彻底完成后，让底图彻底变成目标主题
                         contentArea.style.backgroundImage = `url("${targetUrl}")`;
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                    }
+                });
+                
+                // 字体纹理在展开 0.2s 后即可提前变（视觉跟随更快）
+                gsap.delayedCall(0.2, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                });
+            } else {
+                // 收回：150 -> 0，彻底解决收回时的断层
+                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                void themeRing.offsetHeight;
+                gsap.to(themeRing, { 
+                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
+                    onComplete: () => {
+                        // 【绝对防闪屏关键】先瞬间隐藏遮罩层，再同步切换底图和文字纹理
+                        themeRing.style.display = 'none';
+                        contentArea.style.backgroundImage = `url("${targetUrl}")`;
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
                     }
                 });
 
-                if (isExpanded) {
-                    // 展开动画：从按钮中心向四周均匀扩散（水波纹展开）
-                    tl.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` })
-                      .to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
-                    
-                    // 同步延迟 0.2s 更换文字纹理
-                    gsap.delayedCall(0.2, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                } else {
-                    // 收缩动画：水波纹从四周向按钮中心收拢
-                    tl.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` })
-                      .to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
-                      
-                    // 同步延迟 0.35s 更换文字纹理
-                    gsap.delayedCall(0.35, () => {
-                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
-                    });
-                }
-            };
+                // 字体纹理延迟 0.35s 变，和收回动画的视觉差完美契合
+                gsap.delayedCall(0.35, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                });
+            }
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -220,14 +218,13 @@
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-            // 3. 首屏防卡顿预渲染：隐藏执行 0->150->0，彻底唤醒浏览器渲染引擎
+            // 首次加载防卡顿预渲染（静默跑一次动画，让 GPU 热身）
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
                 setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100);
             }, 200);
 
-            // 4. 进入首屏时的入场动画（GSAP 原本的逻辑）
             const tl = gsap.timeline({ scrollTrigger: { trigger: ".content-area", start: "top 85%", toggleActions: "play none none reverse" } });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
