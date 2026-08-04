@@ -22,7 +22,6 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 第一屏 */
         .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
         .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
         .tooltip { position: relative; display: inline-block; cursor: pointer; background-color: #282828; color: #ffffff; padding: 1em 2em; border-radius: 1em; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.5); user-select: none; }
@@ -32,7 +31,6 @@
         .top-image-footer-left { position: absolute; bottom: 5%; left: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: left; max-width: 45%; }
         .top-image-footer-right { position: absolute; bottom: 5%; right: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: right; max-width: 45%; }
 
-        /* 第二屏 */
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -43,13 +41,11 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* 底部 4 按钮 */
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; opacity: 0; transform: translateY(60px); position: relative; z-index: 1; }
         .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* 顶部 3 按钮 */
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
         .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
@@ -80,7 +76,7 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 4px; width: 240px; } /* 修改：增加宽度防止压缩折行 */
+            .top-actions { top: 16px; right: 16px; gap: 4px; width: 240px; } 
             .top-btn { font-size: 11px; padding: 4px 6px; min-width: auto; }
             .top-actions .top-btn { animation-duration: 0.5s; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
@@ -115,7 +111,6 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
-        <!-- 修改：给所有底部按钮添加 onclick 强制跳转，解决手机端点击后只是刷新不跳转的问题 -->
         <div class="btn-grid">
             <a href="javascript:void(0);" class="glass-btn" onclick="window.location=this.href"><span class="btn-text">创建作品</span></a>
             <a href="/warehouse" class="glass-btn" onclick="window.location=this.href"><span class="btn-text">查看仓库</span></a>
@@ -128,6 +123,7 @@
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <!-- 重点：必须绑定 toggleLoginModal，不要用 openLoginModal -->
         <button class="top-btn" id="loginBtn" onclick="toggleLoginModal()">Log in</button>
     </div>
 
@@ -138,14 +134,11 @@
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-300 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-[#4a4235]/60 rounded-2xl bg-gradient-to-br from-[#2b2b2b]/80 to-[#1e2620]/80 shadow-2xl p-4 backdrop-blur-sm">
-                
-                <!-- 修改：字号改为 text-2xl 更大，颜色改为 amber-300 更亮 -->
                 <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-gradient-to-r from-[#5e4d3e]/40 to-[#3e5e41]/40 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-gradient-to-r from-[#354f33]/40 to-[#4f3e30]/40 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
                     <span class="font-extrabold text-2xl text-amber-300 anim-item">获取自己的GsBot账号</span>
                     <p class="text-[#9e907d] text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
-                <!-- 第1行：邮箱 + 验证 修改：占位符改为 邮箱或手机号 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
                     <div class="relative rounded-lg flex-1 overflow-hidden bg-[#2f2d27]/40 border border-[#5e5545]/50 shadow-inner backdrop-blur-sm">
                         <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border-none text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-0 block w-full p-2.5" placeholder="邮箱或手机号" required />
@@ -153,17 +146,14 @@
                     <button id="send-code-btn" class="bg-gradient-to-r from-[#4a3c2c] to-[#2d4530] hover:from-[#564431] hover:to-[#38543b] text-neutral-200 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">验证</button>
                 </div>
 
-                <!-- 第2行：验证码 -->
                 <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
                     <input type="text" id="reg-code" class="relative bg-[#2f2d27]/40 ring-0 outline-none border border-[#5e5545]/50 text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-1 focus:ring-[#7a7264] block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
-                <!-- 第3行：密码 修改：占位符改为 密码 -->
                 <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
                     <input type="password" id="reg-password" class="relative bg-[#2f2d27]/40 ring-0 outline-none border border-[#5e5545]/50 text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-1 focus:ring-[#7a7264] block w-full p-2.5" placeholder="密码" required />
                 </div>
 
-                <!-- 第4行：注册/登录 -->
                 <button id="submit-btn" class="bg-gradient-to-r from-[#4a3c2c] to-[#2d4530] hover:from-[#564431] hover:to-[#38543b] text-neutral-200 w-full p-2.5 rounded-lg text-sm font-medium relative z-10 active:scale-95 transition-transform anim-item">注册/登录</button>
             </form>
         </div>
@@ -238,6 +228,7 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // 核心弹窗控制函数：点击 Log in 时，如果卡片在就关闭，如果不在就打开
         function toggleLoginModal() {
             const modal = document.getElementById('loginModal');
             if (modal.classList.contains('active')) {
@@ -329,4 +320,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
