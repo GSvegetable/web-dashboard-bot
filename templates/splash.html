@@ -335,7 +335,9 @@
             });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              /* 🛑 修改点：目标改为逐个按钮，并加上 stagger: 0.15 实现依次错开出场 */
+              /* 🛑 关键修复：先手动把包裹按钮的父容器的透明和位移消除（解除封印） */
+              .set(".btn-grid", { opacity: 1, y: 0 })
+              /* 🛑 然后再针对里面的四个按钮进行 0.15 秒间隔的错开动画 */
               .to(".btn-grid .glass-btn", { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
