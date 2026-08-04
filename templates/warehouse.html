@@ -35,9 +35,9 @@
             box-sizing: border-box;
         }
 
-        /* ================= 上方细长条（绝对锚定） ================= */
+        /* ================= 上方细长条 ================= */
         .top-box {
-            flex: 0 0 auto; /* 绝不能伸缩，不管下面怎么动 */
+            flex: 0 0 auto;
             width: 100%;
             min-height: 35px;
             display: flex;
@@ -90,7 +90,7 @@
 
         /* ================= 下方主盒子 ================= */
         .bottom-box {
-            flex: 1; /* 垂直方向上填满剩余所有空间，阻止高度塌陷 */
+            flex: 1;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -101,25 +101,148 @@
             background-color: #161b22;
             border: 1px solid #30363d;
             height: 100%;
-            
-            /* 核心：只对宽度变化做过渡，绝对不改变 flex 伸缩属性 */
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* 🔽 精准锁定收缩到 1/3 宽度，死死靠左，高度由 flex: 1 完全撑满 */
+        /* 收缩状态 */
         .bottom-box.shrink {
             width: 33.33% !important;
-            align-self: flex-start !important; /* 强制盒子往左靠，不动高度 */
+            align-self: flex-start !important;
         }
 
-        /* 空状态提示 */
-        .empty-state {
+        /* ================= 你提供的怪物背景动画 ================= */
+        .monster-bg {
             position: absolute;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #8b949e;
-            font-size: 14px;
+            inset: 0;
+            width: 100%; height: 100%;
             pointer-events: none;
-            transition: opacity 0.3s;
+            display: none; /* 默认隐藏 */
+            background-color: #111;
+            z-index: 0; /* 放在底层 */
+            --color-0: #fff;
+            --color-1: #111;
+            --color-2: #222;
+            --color-3: #333;
+            --color-4: #2e2e2e;
+            --color-5: #d2b48c;
+            --color-6: #b22222;
+            --color-7: #871a1a;
+            --color-8: #ff6347;
+            --color-9: #ff3814;
+            background-image: linear-gradient(to top, var(--color-2) 5%, var(--color-1) 6%, var(--color-1) 7%, transparent 7%),
+                linear-gradient(to bottom, var(--color-1) 30%, transparent 80%),
+                linear-gradient(to right, var(--color-2), var(--color-4) 5%, transparent 5%),
+                linear-gradient(to right, transparent 6%, var(--color-2) 6%, var(--color-4) 9%, transparent 9%),
+                linear-gradient(to right, transparent 27%, var(--color-2) 27%, var(--color-4) 34%, transparent 34%),
+                linear-gradient(to right, transparent 51%, var(--color-2) 51%, var(--color-4) 57%, transparent 57%),
+                linear-gradient(to bottom, var(--color-1) 35%, transparent 35%),
+                linear-gradient(to right, transparent 42%, var(--color-2) 42%, var(--color-4) 44%, transparent 44%),
+                linear-gradient(to right, transparent 45%, var(--color-2) 45%, var(--color-4) 47%, transparent 47%),
+                linear-gradient(to right, transparent 48%, var(--color-2) 48%, var(--color-4) 50%, transparent 50%),
+                linear-gradient(to right, transparent 87%, var(--color-2) 87%, var(--color-4) 91%, transparent 91%),
+                linear-gradient(to bottom, var(--color-1) 37.5%, transparent 37.5%),
+                linear-gradient(to right, transparent 14%, var(--color-2) 14%, var(--color-4) 20%, transparent 20%),
+                linear-gradient(to bottom, var(--color-1) 40%, transparent 40%),
+                linear-gradient(to right, transparent 10%, var(--color-2) 10%, var(--color-4) 13%, transparent 13%),
+                linear-gradient(to right, transparent 21%, var(--color-2) 21%, #1a1a1a 25%, transparent 25%),
+                linear-gradient(to right, transparent 58%, var(--color-2) 58%, var(--color-4) 64%, transparent 64%),
+                linear-gradient(to right, transparent 92%, var(--color-2) 92%, var(--color-4) 95%, transparent 95%),
+                linear-gradient(to bottom, var(--color-1) 48%, transparent 48%),
+                linear-gradient(to right, transparent 96%, var(--color-2) 96%, #1a1a1a 99%, transparent 99%),
+                linear-gradient(to bottom, transparent 68.5%, transparent 76%, var(--color-1) 76%, var(--color-1) 77.5%, transparent 77.5%, transparent 86%, var(--color-1) 86%, var(--color-1) 87.5%, transparent 87.5%),
+                linear-gradient(to right, transparent 35%, var(--color-2) 35%, var(--color-4) 41%, transparent 41%),
+                linear-gradient(to bottom, var(--color-1) 68%, transparent 68%),
+                linear-gradient(to right, transparent 78%, var(--color-3) 78%, var(--color-3) 80%, transparent 80%, transparent 82%, var(--color-3) 82%, var(--color-3) 83%, transparent 83%),
+                linear-gradient(to right, transparent 66%, var(--color-2) 66%, var(--color-4) 85%, transparent 85%);
+            background-size: 300px 150px;
+            background-position: center bottom;
+        }
+
+        /* 怪物手电筒发光动画 */
+        .monster-bg::before {
+            content: "";
+            width: 100%; height: 100%;
+            position: absolute; inset: 0;
+            background-color: #111;
+            background-image: linear-gradient(to top, #d2b48c 5%, #111 6%, #111 7%, transparent 7%),
+                linear-gradient(to bottom, #111 30%, transparent 30%),
+                linear-gradient(to right, #b22222, #871a1a 5%, transparent 5%),
+                linear-gradient(to right, transparent 6%, #ff6347 6%, #ff3814 9%, transparent 9%),
+                linear-gradient(to right, transparent 27%, #556b2f 27%, #39481f 34%, transparent 34%),
+                linear-gradient(to right, transparent 51%, #fa8072 51%, #f85441 57%, transparent 57%),
+                linear-gradient(to bottom, #111 35%, transparent 35%),
+                linear-gradient(to right, transparent 42%, #008080 42%, #004d4d 44%, transparent 44%),
+                linear-gradient(to right, transparent 45%, #008080 45%, #004d4d 47%, transparent 47%),
+                linear-gradient(to right, transparent 48%, #008080 48%, #004d4d 50%, transparent 50%),
+                linear-gradient(to right, transparent 87%, #789 87%, #4f5d6a 91%, transparent 91%),
+                linear-gradient(to bottom, #111 37.5%, transparent 37.5%),
+                linear-gradient(to right, transparent 14%, #bdb76b 14%, #989244 20%, transparent 20%),
+                linear-gradient(to bottom, #111 40%, transparent 40%),
+                linear-gradient(to right, transparent 10%, #808000 10%, #4d4d00 13%, transparent 13%),
+                linear-gradient(to right, transparent 21%, #8b4513 21%, #5e2f0d 25%, transparent 25%),
+                linear-gradient(to right, transparent 58%, #8b4513 58%, #5e2f0d 64%, transparent 64%),
+                linear-gradient(to right, transparent 92%, #2f4f4f 92%, #1c2f2f 95%, transparent 95%),
+                linear-gradient(to bottom, #111 48%, transparent 48%),
+                linear-gradient(to right, transparent 96%, #2f4f4f 96%, #1c2f2f 99%, transparent 99%),
+                linear-gradient(to bottom, transparent 68.5%, transparent 76%, #111 76%, #111 77.5%, transparent 77.5%, transparent 86%, #111 86%, #111 87.5%, transparent 87.5%),
+                linear-gradient(to right, transparent 35%, #cd5c5c 35%, #bc3a3a 41%, transparent 41%),
+                linear-gradient(to bottom, #111 68%, transparent 68%),
+                linear-gradient(to right, transparent 78%, #bc8f8f 78%, #bc8f8f 80%, transparent 80%, transparent 82%, #bc8f8f 82%, #bc8f8f 83%, transparent 83%),
+                linear-gradient(to right, transparent 66%, #a52a2a 66%, #7c2020 85%, transparent 85%);
+            background-size: 300px 150px;
+            background-position: center bottom;
+            clip-path: circle(150px at center center);
+            animation: flashlight 20s ease infinite;
+        }
+
+        /* 怪物眼睛动画 */
+        .monster-bg::after {
+            content: "";
+            width: 25px; height: 10px;
+            position: absolute;
+            left: calc(50% + 59px);
+            bottom: 100px;
+            background-repeat: no-repeat;
+            background-image: radial-gradient(circle, #fff 50%, transparent 50%),
+                radial-gradient(circle, #fff 50%, transparent 50%);
+            background-size: 10px 10px;
+            background-position: left center, right center;
+            animation: eyes 20s infinite;
+        }
+
+        @keyframes flashlight {
+            0% { clip-path: circle(150px at -25% 10%); }
+            38% { clip-path: circle(150px at 60% 20%); }
+            39% { opacity: 1; clip-path: circle(150px at 60% 86%); }
+            40% { opacity: 0; clip-path: circle(150px at 60% 86%); }
+            41% { opacity: 1; clip-path: circle(150px at 60% 86%); }
+            42% { opacity: 0; clip-path: circle(150px at 60% 86%); }
+            54% { opacity: 0; clip-path: circle(150px at 60% 86%); }
+            55% { opacity: 1; clip-path: circle(150px at 60% 86%); }
+            59% { opacity: 1; clip-path: circle(150px at 60% 86%); }
+            64% { clip-path: circle(150px at 45% 78%); }
+            68% { clip-path: circle(150px at 85% 89%); }
+            72% { clip-path: circle(150px at 60% 86%); }
+            74% { clip-path: circle(150px at 60% 86%); }
+            100% { clip-path: circle(150px at 150% 50%); }
+        }
+
+        @keyframes eyes {
+            0%, 38% { opacity: 0; }
+            39%, 41% { opacity: 1; transform: scaleY(1); }
+            40% { transform: scaleY(0); filter: none; background-image: radial-gradient(circle, #fff 50%, transparent 50%), radial-gradient(circle, #fff 50%, transparent 50%); }
+            41% { transform: scaleY(1); background-image: radial-gradient(circle, #ff0000 50%, transparent 50%), radial-gradient(circle, #ff0000 50%, transparent 50%); filter: drop-shadow(0 0 4px #ff8686); }
+            42%, 100% { opacity: 0; }
+        }
+
+        /* 🔽 逻辑控制：仅在收缩（未展开）时显示怪物背景 */
+        .bottom-box.shrink .monster-bg {
+            display: block;
+        }
+        /* 收缩时隐藏空状态和文件树 */
+        .bottom-box.shrink #emptyState,
+        .bottom-box.shrink .file-tree-accordion {
+            display: none;
         }
 
         /* ================= 树形菜单组件 ================= */
@@ -127,9 +250,12 @@
             max-height: 0; overflow: hidden;
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            position: relative; z-index: 1;
         }
         .file-tree-accordion.open { max-height: 1500px; }
         .file-tree-content { padding-top: 10px; width: 100%; }
+
+        #emptyState { position: relative; z-index: 1; }
 
         .tree-container { width: 100%; padding: 4px; background: transparent; border: none; box-sizing: border-box; }
         ul { list-style: none; padding: 0; margin: 0; }
@@ -161,7 +287,7 @@
         .tree-children { overflow: hidden; }
         .tree-toggle:checked ~ .tree-children-wrapper { grid-template-rows: 1fr; }
 
-        /* 手机端小屏适配 */
+        /* 手机端适配 */
         @media (max-width: 600px) {
             body { padding: 3vh 3vw; overflow-y: auto; }
             .left-panel-wrapper { height: 100vh; margin-top: -6px; }
@@ -184,10 +310,14 @@
             <button class="top-btn" id="createNewBtn">新键作品</button>
         </div>
 
-        <!-- 下半部分（宽度可收缩，高度永远撑满） -->
+        <!-- 下半部分（收缩时触发怪物动画） -->
         <div class="box bottom-box" id="bottomBox">
+            <!-- 🔽 怪物背景动画层（仅当 width 收缩为 1/3 时可见） -->
+            <div class="monster-bg"></div>
+
             <div id="emptyState" class="empty-state">点击上方“文件”展开目录</div>
 
+            <!-- 树形菜单 -->
             <div id="fileTreeAccordion" class="file-tree-accordion">
                 <div class="file-tree-content">
                     <div class="tree-container">
@@ -255,8 +385,17 @@
     <script>
         // 切换文件树展开/收起
         function toggleFileTree() {
+            const bottomBox = document.getElementById('bottomBox');
             const accordion = document.getElementById('fileTreeAccordion');
             const emptyState = document.getElementById('emptyState');
+
+            // 如果当前是收缩状态（有怪物），点击文件时先取消收缩
+            if (bottomBox.classList.contains('shrink')) {
+                bottomBox.classList.remove('shrink');
+                // 让空状态和文件树正常出现
+                emptyState.style.display = 'block';
+            }
+
             const isOpen = accordion.classList.toggle('open');
             if (isOpen) {
                 emptyState.style.display = 'none';
@@ -265,9 +404,19 @@
             }
         }
 
-        // 点击新建作品 -> 仅控制宽度 33.33%，绝对不影响高度
+        // 点击新键作品：触发宽度收缩，同时显示怪物背景（隐藏文件树）
         document.getElementById('createNewBtn').addEventListener('click', function() {
             const bottomBox = document.getElementById('bottomBox');
+            const accordion = document.getElementById('fileTreeAccordion');
+            const emptyState = document.getElementById('emptyState');
+
+            // 如果文件树是展开的，先把文件树收回去
+            if (accordion.classList.contains('open')) {
+                accordion.classList.remove('open');
+                // 文件树收起后，空状态应该隐藏，因为它已经被收缩状态覆盖了
+            }
+
+            // 强制触发收缩状态（此时 .shrink 生效，怪物显示，文件和空状态被 CSS 隐藏）
             bottomBox.classList.toggle('shrink');
         });
     </script>
