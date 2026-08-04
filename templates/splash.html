@@ -36,88 +36,69 @@
             height: 100vh; 
             flex-shrink: 0;
             z-index: 1;
-            /* 因为文字绝对定位在里面，背景图撑满 */
+            display: flex; /* 让内部的动画能更容易在图片上居中 */
+            justify-content: center;
+            align-items: center;
         }
         .top-image {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%; 
             background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}");
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
+            z-index: 0;
         }
 
-        /* 🔽 第一张图片里面的新内容 */
-        .top-image-content {
-            position: absolute;
-            top: 15%; /* 放置在屏幕左上方的约 1/4 处 */
-            left: 12%; /* 保持和底部对齐 */
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            pointer-events: none; 
-            z-index: 2;
-        }
-        /* 第一排：极大字体 */
-        .cover-title {
-            font-size: clamp(48px, 10vw, 100px);
-            font-weight: 700;
-            color: #ffffff; /* 纯白色，没有任何效果 */
-            text-shadow: none;
-            margin-bottom: 2vh; /* 与第二排的距离 */
-        }
-        /* 第二排：中等字体 + 加载动画 */
-        .cover-sub-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 2.5vh;
-        }
-        .cover-subtitle {
-            font-size: clamp(22px, 4vw, 42px);
-            font-weight: 500;
-            color: #ffffff;
-            text-shadow: none;
-        }
-        
-        /* 🔴 核心修复：精确复刻 Uiverse 的 rollingRock 弹跳动画 */
+        /* 🔽 这里就是你需要的 3D 盒子动画（文字已彻底清空） */
         .loader {
             position: relative;
-            width: 2rem; height: 2rem;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .loader::after {
-            content: '';
-            position: absolute;
-            left: 0; bottom: 0.5rem;
-            width: 1rem; height: 1rem;
-            background-color: #f2a900; /* 橙色圆点 */
-            border-radius: 50%;
-            animation: rollingRock 2.5s cubic-bezier(.79, 0, .47, .97) infinite;
-        }
-        @keyframes rollingRock {
-            0% { transform: translate(0, -1rem) rotate(-45deg); }
-            5% { transform: translate(0, -1rem) rotate(-50deg); }
-            20% { transform: translate(1rem, -2rem) rotate(47deg); }
-            25% { transform: translate(1rem, -2rem) rotate(45deg); }
-            30% { transform: translate(1rem, -2rem) rotate(40deg); }
-            45% { transform: translate(2rem, -3rem) rotate(137deg); }
-            50% { transform: translate(2rem, -3rem) rotate(135deg); }
-            55% { transform: translate(2rem, -3rem) rotate(130deg); }
-            70% { transform: translate(3rem, -4rem) rotate(217deg); }
-            75% { transform: translate(3rem, -4rem) rotate(225deg); }
-            100% { transform: translate(0, -1rem) rotate(225deg); }
+            z-index: 2;
+            width: 84px;
+            aspect-ratio: 1;
+            background:
+                linear-gradient(#ff4500 0 0) left/50% 100% no-repeat,
+                conic-gradient(from -90deg at 32px 9.47px, #fff8dc 135deg, #8b0000 0 270deg, #ffa500 0);
+            background-blend-mode: multiply;
+            -webkit-mask: 
+                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0),
+                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0);
+            mask: 
+                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0),
+                conic-gradient(from -90deg at right 6px bottom 6px, #000 90deg, #0000 0);
+            -webkit-mask-size: 50% 50%;
+            mask-size: 50% 50%;
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+            animation: loaderAnim 1.8s infinite cubic-bezier(0.5, 0.2, 0.5, 1);
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            transform: perspective(1000px) rotateY(15deg);
         }
 
-        /* 第三排：最小字体 */
-        .cover-hint {
-            font-size: clamp(14px, 2vw, 24px);
-            font-weight: 300;
-            color: #ffffff;
-            opacity: 0.8;
-            text-shadow: none;
-            letter-spacing: 1px;
+        @keyframes loaderAnim {
+            0% {
+                background-position: 0% 0%, 0 0;
+                transform: perspective(1000px) rotateY(15deg) scale(1);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
+            25% {
+                background-position: 100% 0%, 0 0;
+            }
+            50% {
+                background-position: 100% 100%, 0 0;
+                transform: perspective(1000px) rotateY(15deg) scale(1.08);
+                box-shadow: 0 0 25px rgba(255, 69, 0, 0.8);
+            }
+            75% {
+                background-position: 0% 100%, 0 0;
+            }
+            100% {
+                background-position: 0% 0%, 0 0;
+                transform: perspective(1000px) rotateY(15deg) scale(1);
+                box-shadow: 0 0 15px rgba(255, 69, 0, 0.6);
+            }
         }
         /* ======================================================== */
 
@@ -269,11 +250,7 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            .top-image-content { left: 6%; top: 12%; }
-            .cover-title { margin-bottom: 1.5vh; }
-            .cover-sub-row { gap: 8px; margin-bottom: 1.5vh; }
-            .cover-subtitle { font-size: 20px; }
-
+            .loader { width: 60px; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -288,19 +265,11 @@
     </style>
 </head>
 <body>
-    <!-- 第一屏：顶部图片 + 文字 -->
+    <!-- 第一屏：顶部图片 + 全新 3D 动画 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
-        
-        <!-- 第一张图片新增内容（纯白、左对齐、精确占位比例） -->
-        <div class="top-image-content">
-            <h1 class="cover-title">GsBot编辑器</h1>
-            <div class="cover-sub-row">
-                <h2 class="cover-subtitle">该网页施工中</h2>
-                <div class="loader"></div>
-            </div>
-            <p class="cover-hint">向下滑动查看更多</p>
-        </div>
+        <!-- 第一张图片内容已清空，只保留这个 3D 盒子动画 -->
+        <div class="loader"></div>
     </div>
 
     <!-- 第二屏：宫水大世界 -->
