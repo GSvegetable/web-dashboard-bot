@@ -132,6 +132,7 @@
             width: 100%; max-width: 320px;
             margin-top: 0;
             justify-items: center;
+            /* 🛑 初始状态设为透明，交由 GSAP 激活 */
             opacity: 0;
             transform: translateY(60px);
             position: relative;
@@ -325,12 +326,11 @@
                 }, 100);
             }, 200);
 
-            // 🔥 滚动触发动画（终极简化版：滑到第二屏，只播放一次，绝不重复）
-            // toggleActions: "play none none none" 表示：进入视口播放一次，离开不反向，再进入不播放。
+            // 🔥 滚动触发动画（只播放一次，绝不重复）
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 85%",
+                    start: "top 80%", // 触发点稍微提前，确保刚看到就能触发
                     toggleActions: "play none none none",
                     invalidateOnRefresh: true
                 }
@@ -338,8 +338,20 @@
             
             tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              // 四个按钮依然保持 0.15 秒的依次错开
               .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
+
+            // ⚠️ 【终极兜底方案】如果手机端的 ScrollTrigger 没触发，等待 3 秒后强行强制显示
+            setTimeout(() => {
+                if (!tl.isActive()) {
+                    gsap.to(".btn-grid .glass-btn", { 
+                        opacity: 1, 
+                        y: 0, 
+                        duration: 0.5, 
+                        stagger: 0.1,
+                        ease: "power2.out" 
+                    });
+                }
+            }, 3000);
         });
 
         function toggleFullScreen() {
