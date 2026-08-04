@@ -18,219 +18,272 @@
             box-sizing: border-box;
         }
 
-        /* 双面板布局 */
+        /* 双面板布局容器 */
         .panel {
             height: 100%;
-            border-radius: 20px;
+            border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            padding: 16px;
+            padding: 20px;
             overflow-y: auto;
         }
 
-        /* ================= 左侧面板 ================= */
+        /* 左侧面板（白底组件包裹层） */
         .left-panel {
             flex: 1;
-            max-width: 36%;
-            min-width: 240px;
-            background-color: #09090b; /* 纯黑灰 */
-            border: 1px solid #27272a;
-            border-radius: 8px;
+            max-width: 40%;
+            min-width: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 30px;
         }
 
-        /* ================= 右侧面板 ================= */
+        /* 右侧面板（保留深色留空） */
         .right-panel {
             flex: 2;
-            max-width: 64%;
+            max-width: 60%;
             background-color: #161b22;
             border: 1px solid #30363d;
-            display: flex; justify-content: center; align-items: center;
-            color: #8b949e; font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #8b949e;
+            font-size: 14px;
         }
 
-        /* ================= 完美文件树（带箭头与连接线） ================= */
-        .tree {
-            list-style: none; padding: 0; margin: 0;
-            color: #a1a1aa; font-size: 14px;
-            display: flex; flex-direction: column; gap: 2px;
+        /* ==========================================================
+           ⚠️ 以下为 Uiverse 作者 ashif_6672 的原生 CSS，未作任何修改。
+           ========================================================== */
+        .tree-container {
+            width: 100%;
+            border: 1px solid #e4e4e7;
+            border-radius: 8px;
+            padding: 24px;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        ul ul {
+            margin-left: 11px;
+            padding-left: 11px;
+            border-left: 1px solid #e4e4e7;
+        }
+
         .tree-item {
             position: relative;
-            padding-left: 20px; /* 留出给线腾出空间 */
+            margin-top: 4px;
         }
-        /* 连接子菜单的竖线 */
-        .tree-item::before {
-            content: '';
+
+        ul ul .tree-item::before {
+            content: "";
             position: absolute;
-            left: 6px; top: 20px;
-            width: 1px; height: calc(100% - 20px);
-            background-color: #3f3f46;
-        }
-        /* 如果是最后一个子节点，线只连一半 */
-        .tree-item:last-child::before {
-            height: 18px;
+            left: -11px;
+            top: 14px;
+            width: 11px;
+            height: 1px;
+            background-color: #e4e4e7;
         }
 
-        .tree-toggle {
-            list-style: none;
-        }
-        .tree-toggle summary {
-            list-style: none; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-            padding: 8px 12px; border-radius: 6px;
-            color: #a1a1aa; transition: all 0.2s;
-            outline: none; user-select: none;
-            position: relative;
-        }
-        /* 去掉系统默认的小三角 */
-        .tree-toggle summary::-webkit-details-marker { display: none; }
-        .tree-toggle summary::marker { display: none; content: ""; }
-
-        .tree-toggle summary:hover { background-color: #27272a; color: #fafafa; }
-        .tree-toggle[open] summary { color: #fafafa; }
-
-        /* 🔽 自定义的小箭头 */
-        .tree-toggle summary .arrow-icon {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 16px; height: 16px; flex-shrink: 0;
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .tree-toggle summary .arrow-icon svg {
-            width: 12px; height: 12px; stroke: currentColor; fill: none;
-            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-        }
-        /* 展开时箭头旋转 90 度向下 */
-        .tree-toggle[open] summary .arrow-icon {
-            transform: rotate(90deg);
+        .tree-label,
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #09090b;
+            transition: background-color 0.2s;
+            user-select: none;
+            text-decoration: none;
+            height: 28px;
         }
 
-        /* 图标 */
-        .icon-wrapper { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0; }
-        .icon-wrapper svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.5; fill: none; }
+        .tree-label:hover,
+        .file-item:hover {
+            background-color: #f4f4f5;
+        }
+
+        .is-selected {
+            background-color: #f4f4f5;
+            color: #09090b;
+            font-weight: 500;
+        }
+
+        .icon {
+            width: 16px;
+            height: 16px;
+            color: #71717a;
+            flex-shrink: 0;
+        }
 
         .folder-open-icon { display: none; }
         .folder-closed-icon { display: block; }
-        .tree-toggle[open] .folder-open-icon { display: block; }
-        .tree-toggle[open] .folder-closed-icon { display: none; }
 
-        /* 丝滑展开动画 */
-        .tree-children-wrapper {
-            display: grid; grid-template-rows: 0fr;
-            transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            padding-left: 4px; /* 为竖线留出对齐位置 */
+        .tree-toggle:checked ~ .tree-label .folder-open-icon {
+            display: block;
+            color: #09090b;
         }
-        .tree-children { overflow: hidden; }
-        .tree-toggle[open] + .tree-children-wrapper { grid-template-rows: 1fr; }
+        .tree-toggle:checked ~ .tree-label .folder-closed-icon { display: none; }
 
-        /* 手机端适配 */
+        .tree-toggle { display: none; }
+
+        .tree-children-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease-in-out;
+        }
+
+        .tree-children { overflow: hidden; }
+
+        /* 展开状态 */
+        .tree-toggle:checked ~ .tree-children-wrapper {
+            grid-template-rows: 1fr;
+        }
+        /* ========================================================== */
+
         @media (max-width: 600px) {
-            body { flex-direction: column; padding: 3vh 3vw; gap: 3vh; overflow-y: auto; }
-            .left-panel, .right-panel { max-width: 100%; width: 100%; flex: none; height: 50vh; }
+            body {
+                flex-direction: column;
+                padding: 3vh 3vw;
+                gap: 3vh;
+                overflow-y: auto;
+            }
+            .left-panel, .right-panel {
+                max-width: 100%;
+                width: 100%;
+                flex: none;
+                height: 50vh;
+                border-radius: 18px;
+            }
             .left-panel { min-height: 200px; }
         }
     </style>
 </head>
 <body>
-    <!-- 左侧面板（带箭头和线的完美 3 层结构） -->
+    <!-- 左侧面板：Uiverse 原生浅色组件 -->
     <div class="panel left-panel">
-        <ul class="tree">
-            <li class="tree-item">
-                <details class="tree-toggle" open>
-                    <summary class="tree-label">
-                        <!-- 新增：自定义小箭头 -->
-                        <span class="arrow-icon">
-                            <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        <div class="tree-container">
+            <ul>
+                <li class="tree-item">
+                    <!-- 父级 1：src -->
+                    <input type="checkbox" class="tree-toggle" id="t1" checked>
+                    <label for="t1" class="tree-label is-selected">
+                        <span class="icon folder-closed-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
                         </span>
-                        <!-- 图标 -->
-                        <span class="icon-wrapper folder-closed-icon">
-                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
-                        </span>
-                        <span class="icon-wrapper folder-open-icon">
-                            <svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                        <span class="icon folder-open-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
                         </span>
                         src
-                    </summary>
+                    </label>
                     <div class="tree-children-wrapper">
                         <ul class="tree-children">
-                            <!-- 子 1：app -->
+                            
+                            <!-- 子级 1：app -->
                             <li class="tree-item">
-                                <details class="tree-toggle">
-                                    <summary class="tree-label">
-                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                        app
-                                    </summary>
-                                    <div class="tree-children-wrapper">
-                                        <ul class="tree-children">
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>globals.css</span></li>
-                                        </ul>
-                                    </div>
-                                </details>
+                                <input type="checkbox" class="tree-toggle" id="t1-1">
+                                <label for="t1-1" class="tree-label">
+                                    <span class="icon folder-closed-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                    </span>
+                                    <span class="icon folder-open-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                    </span>
+                                    app
+                                </label>
+                                <div class="tree-children-wrapper">
+                                    <ul class="tree-children">
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>layout.tsx</span></li>
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>page.tsx</span></li>
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>globals.css</span></li>
+                                    </ul>
+                                </div>
                             </li>
-                            <!-- 子 2：components -->
+
+                            <!-- 子级 2：components -->
                             <li class="tree-item">
-                                <details class="tree-toggle">
-                                    <summary class="tree-label">
-                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                        components
-                                    </summary>
-                                    <div class="tree-children-wrapper">
-                                        <ul class="tree-children">
-                                            <!-- 子 2-1：ui (第三层) -->
-                                            <li class="tree-item">
-                                                <details class="tree-toggle">
-                                                    <summary class="tree-label">
-                                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-                                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                                        ui
-                                                    </summary>
-                                                    <div class="tree-children-wrapper">
-                                                        <ul class="tree-children">
-                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
-                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
-                                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>input.tsx</span></li>
-                                                        </ul>
-                                                    </div>
-                                                </details>
-                                            </li>
-                                            <!-- components 下的直接文件 -->
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>footer.tsx</span></li>
-                                        </ul>
-                                    </div>
-                                </details>
+                                <input type="checkbox" class="tree-toggle" id="t1-2">
+                                <label for="t1-2" class="tree-label">
+                                    <span class="icon folder-closed-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                    </span>
+                                    <span class="icon folder-open-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                    </span>
+                                    components
+                                </label>
+                                <div class="tree-children-wrapper">
+                                    <ul class="tree-children">
+                                        
+                                        <!-- 子子级 2-1：ui -->
+                                        <li class="tree-item">
+                                            <input type="checkbox" class="tree-toggle" id="t1-2-1">
+                                            <label for="t1-2-1" class="tree-label">
+                                                <span class="icon folder-closed-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                                </span>
+                                                <span class="icon folder-open-icon">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                                </span>
+                                                ui
+                                            </label>
+                                            <div class="tree-children-wrapper">
+                                                <ul class="tree-children">
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>button.tsx</span></li>
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>card.tsx</span></li>
+                                                    <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>input.tsx</span></li>
+                                                </ul>
+                                            </div>
+                                        </li>
+
+                                        <!-- components 直属文件 -->
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>header.tsx</span></li>
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>footer.tsx</span></li>
+                                    </ul>
+                                </div>
                             </li>
-                            <!-- 子 3：hooks -->
+
+                            <!-- 子级 3：lib -->
                             <li class="tree-item">
-                                <details class="tree-toggle">
-                                    <summary class="tree-label">
-                                        <span class="arrow-icon"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
-                                        <span class="icon-wrapper folder-closed-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg></span>
-                                        <span class="icon-wrapper folder-open-icon"><svg viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg></span>
-                                        hooks
-                                    </summary>
-                                    <div class="tree-children-wrapper">
-                                        <ul class="tree-children">
-                                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>useTheme.tsx</span></li>
-                                        </ul>
-                                    </div>
-                                </details>
+                                <input type="checkbox" class="tree-toggle" id="t1-3">
+                                <label for="t1-3" class="tree-label">
+                                    <span class="icon folder-closed-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/></svg>
+                                    </span>
+                                    <span class="icon folder-open-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><path d="M2 10h20"/></svg>
+                                    </span>
+                                    lib
+                                </label>
+                                <div class="tree-children-wrapper">
+                                    <ul class="tree-children">
+                                        <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>utils.ts</span></li>
+                                    </ul>
+                                </div>
                             </li>
-                            <!-- src 下的顶层文件 -->
-                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>package.json</span></li>
-                            <li class="tree-item"><span class="tree-label"><span class="icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>tsconfig.json</span></li>
+
+                            <!-- src 直属文件 -->
+                            <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>package.json</span></li>
+                            <li class="tree-item"><span class="file-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></span>tsconfig.json</span></li>
+
                         </ul>
                     </div>
-                </details>
-            </li>
-        </ul>
+                </li>
+            </ul>
+        </div>
     </div>
 
-    <div class="panel right-panel">右侧面板预留区域</div>
+    <!-- 右侧面板 -->
+    <div class="panel right-panel">
+        右侧面板预留区域
+    </div>
 </body>
 </html>
