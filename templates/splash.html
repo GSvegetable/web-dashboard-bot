@@ -17,12 +17,14 @@
             --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
         }
 
+        /* 修改重点：锁定整个页面，禁止上下滑动 */
         body {
             width: 100vw; height: 100vh; overflow: hidden;
             background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
         body.loaded { opacity: 1; }
 
+        /* 主内容区锁定为 100vh */
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -47,20 +49,16 @@
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
-        .top-actions .top-btn:nth-child(4) { animation-delay: 0.6s; }
 
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* ============== 弹窗基础 ============== */
+        /* 弹窗卡片 - 极简通透高斯玻璃 */
         .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
-
-        /* 登录卡片样式 */
         .login-card {
             position: relative; width: 320px; padding: 24px;
             background: rgba(255, 255, 255, 0.05);
@@ -71,61 +69,7 @@
             color: #e5e7eb; display: flex; flex-direction: column; gap: 14px;
         }
 
-        /* ============== 音乐卡片 CSS ============== */
-        .music-glass-card {
-            max-width: 420px; width: 90%;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            color: white; font-family: -apple-system, system-ui, sans-serif;
-            display: flex; flex-direction: column; gap: 14px;
-        }
-
-        .track-info { display: flex; align-items: center; gap: 12px; }
-        .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
-        .album-art:hover { transform: scale(1.05); }
-        .track-details { flex-grow: 1; overflow: hidden; }
-        .track-title { font-size: 1.3em; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .artist-name { font-size: 0.9em; color: #d1d1d6; margin-top: 2px; }
-        .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; }
-        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
-        @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
-
-        .playback-controls { display: flex; flex-direction: column; gap: 8px; }
-        .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
-        .current-time::before { content: "0:00"; animation: timer 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-        .remaining-time::before { content: "0:45"; animation: timerDown 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-
-        @keyframes timer {
-            0% { content: "0:00"; } 2.22% { content: "0:01"; } 4.44% { content: "0:02"; } 6.67% { content: "0:03"; } 8.89% { content: "0:04"; } 11.11% { content: "0:05"; } 13.33% { content: "0:06"; } 15.56% { content: "0:07"; } 17.78% { content: "0:08"; } 20.00% { content: "0:09"; } 22.22% { content: "0:10"; } 24.44% { content: "0:11"; } 26.67% { content: "0:12"; } 28.89% { content: "0:13"; } 31.11% { content: "0:14"; } 33.33% { content: "0:15"; } 35.56% { content: "0:16"; } 37.78% { content: "0:17"; } 40.00% { content: "0:18"; } 42.22% { content: "0:19"; } 44.44% { content: "0:20"; } 46.67% { content: "0:21"; } 48.89% { content: "0:22"; } 51.11% { content: "0:23"; } 53.33% { content: "0:24"; } 55.56% { content: "0:25"; } 57.78% { content: "0:26"; } 60.00% { content: "0:27"; } 62.22% { content: "0:28"; } 64.44% { content: "0:29"; } 66.67% { content: "0:30"; } 68.89% { content: "0:31"; } 71.11% { content: "0:32"; } 73.33% { content: "0:33"; } 75.56% { content: "0:34"; } 77.78% { content: "0:35"; } 80.00% { content: "0:36"; } 82.22% { content: "0:37"; } 84.44% { content: "0:38"; } 86.67% { content: "0:39"; } 88.89% { content: "0:40"; } 91.11% { content: "0:41"; } 93.33% { content: "0:42"; } 95.56% { content: "0:43"; } 97.78% { content: "0:44"; } 100% { content: "0:45"; }
-        }
-        @keyframes timerDown {
-            0% { content: "0:45"; } 2.22% { content: "0:44"; } 4.44% { content: "0:43"; } 6.67% { content: "0:42"; } 8.89% { content: "0:41"; } 11.11% { content: "0:40"; } 13.33% { content: "0:39"; } 15.56% { content: "0:38"; } 17.78% { content: "0:37"; } 20.00% { content: "0:36"; } 22.22% { content: "0:35"; } 24.44% { content: "0:34"; } 26.67% { content: "0:33"; } 28.89% { content: "0:32"; } 31.11% { content: "0:31"; } 33.33% { content: "0:30"; } 35.56% { content: "0:29"; } 37.78% { content: "0:28"; } 40.00% { content: "0:27"; } 42.22% { content: "0:26"; } 44.44% { content: "0:25"; } 46.67% { content: "0:24"; } 48.89% { content: "0:23"; } 51.11% { content: "0:22"; } 53.33% { content: "0:21"; } 55.56% { content: "0:20"; } 57.78% { content: "0:19"; } 60.00% { content: "0:18"; } 62.22% { content: "0:17"; } 64.44% { content: "0:16"; } 66.67% { content: "0:15"; } 68.89% { content: "0:14"; } 71.11% { content: "0:13"; } 73.33% { content: "0:12"; } 75.56% { content: "0:11"; } 77.78% { content: "0:10"; } 80.00% { content: "0:09"; } 82.22% { content: "0:08"; } 84.44% { content: "0:07"; } 86.67% { content: "0:06"; } 88.89% { content: "0:05"; } 91.11% { content: "0:04"; } 93.33% { content: "0:03"; } 95.56% { content: "0:02"; } 97.78% { content: "0:01"; } 100% { content: "0:00"; }
-        }
-
-        .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; animation: progressAnim 45s linear infinite; animation-play-state: running; }
-        .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); animation: handleAnim 45s linear infinite; animation-play-state: running; }
-        @keyframes progressAnim { from { width: 0; } to { width: 100%; } }
-        @keyframes handleAnim { from { left: 0%; } to { left: 100%; } }
-
-        .button-row { display: flex; justify-content: space-between; gap: 12px; }
-        .control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
-        .control-button.play-pause-button:hover, .control-button.d:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
-        .main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
-        .play-pause-button .icon-pause { display: none; }
-
-        #play-toggle:checked ~ .track-info .volume-bars .bar { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .progress-fill, #play-toggle:checked ~ .playback-controls .progress-handle { animation-play-state: paused; }
-        .music-glass-card:has(#play-toggle:checked) .time-info .current-time::before,
-        .music-glass-card:has(#play-toggle:checked) .time-info .remaining-time::before { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-play { display: block; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-pause { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-play { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-pause { display: block; }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -138,16 +82,15 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 4px; width: 200px; }
-            .top-btn { font-size: 11px; padding: 4px 6px; min-width: 40px; }
+            .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
+            .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .login-card, .music-glass-card { width: 280px; padding: 16px; }
+            .login-card { width: 280px; padding: 20px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
 </head>
 <body>
-    <!-- ================= 首页核心内容 ================= -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -167,13 +110,8 @@
         </div>
     </div>
 
-    <!-- ================= 顶部按钮 ================= -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
-        <!-- 新增：音乐按钮 -->
-        <button class="top-btn" id="musicBtn" onclick="openMusicModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        </button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
     </div>
@@ -188,73 +126,26 @@
                     <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
                     <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
+
                 <div class="flex gap-2 w-full anim-item" id="email-wrapper">
                     <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">
+                        验证
+                    </button>
                 </div>
+
                 <div class="anim-item" id="code-wrapper">
                     <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                 </div>
+
                 <div class="anim-item" id="password-wrapper">
                     <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
-                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
-            </form>
-        </div>
-    </div>
 
-    <!-- ================= 音乐卡片 ================= -->
-    <div class="modal-overlay" id="musicModal">
-        <div class="modal-box">
-            <div class="music-glass-card">
-                <input type="checkbox" id="play-toggle" hidden="">
-                <div class="track-info">
-                    <div class="album-art"></div>
-                    <div class="track-details">
-                        <div class="track-title">Glow</div>
-                        <div class="artist-name">Echo</div>
-                    </div>
-                    <div class="volume-bars">
-                        <div class="bar" style="--delay:0s"></div>
-                        <div class="bar" style="--delay:0.1s"></div>
-                        <div class="bar" style="--delay:0.2s"></div>
-                        <div class="bar" style="--delay:0.3s"></div>
-                        <div class="bar" style="--delay:0.4s"></div>
-                        <div class="bar" style="--delay:0.5s"></div>
-                        <div class="bar" style="--delay:0.6s"></div>
-                        <div class="bar" style="--delay:0.7s"></div>
-                    </div>
-                </div>
-                <div class="playback-controls">
-                    <div class="time-info">
-                        <span class="current-time"></span>
-                        <span class="remaining-time"></span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
-                        <div class="progress-handle"></div>
-                    </div>
-                    <div class="button-row">
-                        <div class="main-control-btns">
-                            <button class="control-button back">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg>
-                            </button>
-                            <div class="play-pause-btns">
-                                <label for="play-toggle" class="control-button play-pause-button">
-                                    <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
-                                    <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
-                                </label>
-                            </div>
-                            <button class="control-button next">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg>
-                            </button>
-                        </div>
-                        <button class="control-button d">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">
+                    注册/登录
+                </button>
+            </form>
         </div>
     </div>
 
@@ -307,7 +198,7 @@
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
-            /* 确保字体和按钮重新出现 */
+            // 修改：移除 ScrollTrigger，改为页面瞬间在视口内开始动画
             const tl = gsap.timeline();
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
@@ -335,20 +226,16 @@
             gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
         }
 
-        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
 
-        // 打开音乐卡片
-        function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
-        function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
-
-        // 点击空白处关闭任意卡片（排除按钮和输入框）
+        // 注意：增加了「点击网页任意位置关闭卡片，除了按钮」的特性
         document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input')) return;
+            if (e.target.closest('button') || e.target.closest('input')) {
+                return;
+            }
             closeLoginModal();
-        });
-        document.getElementById('musicModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button')) return;
-            closeMusicModal();
         });
 
         function shakeElement(element) {
@@ -358,9 +245,59 @@
             element.classList.add('shake-field');
         }
 
-        // ================= 验证码和注册逻辑 =================
+        // ================= 验证码逻辑 =================
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
-            if(!email) { shake
+            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
+            const btn = this; btn.disabled = true;
+            try {
+                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
+                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
+                const data = await res.json();
+                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
+                else { showToast('❌ ' + data.msg, 'error'); }
+            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
+            finally { btn.disabled = false; }
+        });
+
+        // ================= 注册/登录提交逻辑 =================
+        document.getElementById('submit-btn').addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const email = document.getElementById('reg-email').value.trim();
+            const code = document.getElementById('reg-code').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const emailWrapper = document.getElementById('email-wrapper');
+            const codeWrapper = document.getElementById('code-wrapper');
+            const passwordWrapper = document.getElementById('password-wrapper');
+            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
+
+            let hasError = false;
+            if(!email) { shakeElement(emailWrapper); hasError = true; }
+            if(!code) { shakeElement(codeWrapper); hasError = true; }
+            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
+            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
+
+            const passRegex = /^[a-zA-Z0-9_\/]+$/;
+            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
+
+            const btn = this; const originalText = btn.innerText;
+            btn.innerText = '处理中...'; btn.disabled = true;
+            try {
+                const formData = new URLSearchParams();
+                formData.append('email', email); formData.append('password', password);
+                formData.append('confirm_password', password); formData.append('code', code);
+                formData.append('cf-turnstile-response', 'dummy');
+                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
+                const text = await res.text();
+                if(text.includes('注册成功') || text.includes('登录成功')) {
+                    showToast('🎉 注册/登录成功！', 'success');
+                    setTimeout(() => { closeLoginModal(); }, 1000);
+                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
+                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
+            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
