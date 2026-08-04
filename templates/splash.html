@@ -22,15 +22,7 @@
         }
         body.loaded { opacity: 1; }
 
-        .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
-        .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
-        .tooltip { position: relative; display: inline-block; cursor: pointer; background-color: #282828; color: #ffffff; padding: 1em 2em; border-radius: 1em; z-index: 2; box-shadow: 0 4px 15px rgba(0,0,0,0.5); user-select: none; }
-        .tooltip .tooltiptext { visibility: hidden; width: 200px; background-color: #282828; color: #ffffff; text-align: center; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
-        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
-        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #282828 transparent transparent transparent; transform: translateX(-50%); }
-        .top-image-footer-left { position: absolute; bottom: 5%; left: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: left; max-width: 45%; }
-        .top-image-footer-right { position: absolute; bottom: 5%; right: 6%; z-index: 2; color: #ffffff; text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9); font-size: 17px; line-height: 1.8; font-weight: 500; pointer-events: none; text-align: right; max-width: 45%; }
-
+        /* 第二屏（首页现在直接从这一屏开始） */
         .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -47,7 +39,7 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
-        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
         @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
@@ -59,18 +51,13 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
+        /* --- 弹窗样式（黑灰白极简通透玻璃） --- */
+        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 修正：验证按钮禁用时不能有缩放/变色 */
-        #send-code-btn:disabled {
-            background: rgba(6, 78, 59, 0.5) !important;
-            color: #a3a3a3 !important;
-            cursor: not-allowed !important;
-            transform: none !important;
-        }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; transform: none !important; }
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -78,7 +65,6 @@
         #custom-toast.show { opacity: 1; visibility: visible; }
 
         @media (max-width: 600px) {
-            .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
@@ -93,21 +79,9 @@
     </style>
 </head>
 <body>
-    <!-- 第一屏 -->
-    <div class="top-image-wrapper">
-        <div class="top-image"></div>
-        <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
-        <div class="top-image-footer-left">
-            <p>联系开发者不提供QQ了 你们太坏了</p>
-            <p>刷屏笑哭表情 还发片的 你真死妈了</p>
-            <p>手机建议横屏浏览 开启全图显示</p>
-        </div>
-        <div class="top-image-footer-right">
-            <p>卡顿就挂vpn  服务器在海外</p>
-        </div>
-    </div>
+    <!-- 已删除第一屏（包括文字和图片） -->
 
-    <!-- 第二屏 -->
+    <!-- 首页内容第二屏 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -137,41 +111,37 @@
     <!-- ================= 自定义通知条 ================= -->
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录表单 ================= -->
-    <!-- 修改：加上 novalidate 去掉浏览器默认提示 -->
+    <!-- ================= 登录表单（黑白灰通透玻璃） ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 修改：背景改为深绿色向暗黄色柔和的渐变，非常淡 -->
-            <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-emerald-700/30 rounded-2xl bg-gradient-to-br from-emerald-900/20 to-amber-900/20 backdrop-blur-md shadow-2xl p-4">
+            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/20 rounded-2xl bg-white/10 backdrop-blur-md shadow-2xl p-4">
                 
-                <!-- 修改：内部光晕改为渐变融合 -->
-                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-gradient-to-r from-emerald-700/20 to-amber-700/20 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-gradient-to-r from-amber-700/20 to-emerald-700/20 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
-                    <span class="font-extrabold text-xl bg-gradient-to-r from-amber-300 to-emerald-400 bg-clip-text text-transparent anim-item">获取自己的GsBot账号</span>
-                    <p class="text-emerald-300/70 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                <!-- 去除彩色光晕，换成微弱的黑白灰光晕 -->
+                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-white/5 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-white/5 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
+                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
                 <!-- 第1行：邮箱 + 验证 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/20 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-600/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="邮箱" required />
-                    <!-- 修改：验证按钮改用渐变底色 -->
-                    <button id="send-code-btn" class="bg-gradient-to-r from-emerald-700/50 to-amber-700/50 text-neutral-200 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
+                    <input type="text" id="reg-email" class="relative bg-black/40 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                    <button id="send-code-btn" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
                         验证
                     </button>
                 </div>
 
                 <!-- 第2行：验证码 -->
                 <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-black/20 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-600/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="验证码" required />
+                    <input type="text" id="reg-code" class="relative bg-black/40 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
                 <!-- 第3行：密码 -->
                 <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-black/20 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-600/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="设置密码" required />
+                    <input type="password" id="reg-password" class="relative bg-black/40 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
                 <!-- 第4行：注册/登录按钮 -->
-                <!-- 修改：按钮底色改为渐变融合 -->
-                <button id="submit-btn" class="bg-gradient-to-r from-emerald-700/60 to-amber-700/60 text-neutral-100 w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
+                <button id="submit-btn" class="bg-white/20 hover:bg-white/30 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
                     注册/登录
                 </button>
             </form>
@@ -250,12 +220,11 @@
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
-            // 修改：删除了 document.body.style.overflow = 'hidden'; ，现在不影响滑动
+            // 去掉了 body scroll 限制和 GSAP 动画，卡片直接弹现
         }
 
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
-            // 修改：删除了 document.body.style.overflow = '';
         }
 
         function closeLoginOnBg(event) {
