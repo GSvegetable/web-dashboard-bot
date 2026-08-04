@@ -51,9 +51,9 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔽 按你要求，将 -7vh 改为 10vh，整体往下移动 */
-            margin-top: 10vh;
-            padding-top: 1vh;
+            /* 🔴 核心修复：删掉导致缝隙的 margin-top，改为用 padding-top 控制内部元素下移 */
+            margin-top: 0;
+            padding-top: 20vh; /* 内部元素整体向下移动 20vh，第二屏本身紧紧贴住第一屏 */
             padding-left: 12%;
             padding-bottom: 15vh;
             display: flex;
@@ -88,6 +88,7 @@
             position: relative;
             z-index: 1;
             margin-bottom: 4px; 
+            margin-top: 0; 
         }
 
         .text-group {
@@ -180,7 +181,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { margin-top: 10vh; padding-left: 6%; min-height: 100vh; }
+            .content-area { padding-top: 15vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -248,7 +249,7 @@
         function toggleTheme(event) {
             const btn = event.currentTarget;
             
-            // 核心修复：获取按钮相对于父容器 (contentArea) 的坐标，而不是屏幕坐标
+            // 核心修复：获取按钮相对于父容器 (contentArea) 的坐标
             const btnRect = btn.getBoundingClientRect();
             const areaRect = contentArea.getBoundingClientRect();
             
