@@ -113,7 +113,6 @@
             transform: translateY(60px);
             flex-shrink: 0;
             margin-top: 6px;
-            /* 稍微往左挪一点点，贴近宫字 */
             margin-left: -4px;
         }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
@@ -328,22 +327,21 @@
                 }, 100);
             }, 200);
 
-            // 🔥 第二屏滚动触发动画（修复：滑出视口复原，再滑入再次播放）
-            // toggleActions 设置为 "play reverse play reverse"
-            // 触发顺序：进入播放 -> 离开反向播放 -> 再次进入播放 -> 再次离开反向播放
+            // 🔥 滚动触发动画 (彻底解决4个按钮不出来的问题)
+            // 使用 fromTo 严格定义初始状态，触发点改到 90%，动画更早触发
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 85%",
+                    start: "top 90%",
                     toggleActions: "play reverse play reverse",
                     invalidateOnRefresh: true
                 }
             });
-            // 两行文字和切换按钮一起出现
-            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              // 底部四个按钮，使用 stagger: 0.15 让他们依次错开出现
-              .to(".btn-grid .glass-btn", { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
+            
+            tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              // 用 fromTo 包裹四个按钮，保证错开动画绝对生效
+              .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
         function toggleFullScreen() {
