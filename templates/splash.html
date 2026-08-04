@@ -27,7 +27,12 @@
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
-        .theme-btn-title { width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
+        
+        /* 修改：提升切换按钮的层级，保证在卡片上方，点击可直接穿透 */
+        .theme-btn-title { 
+            z-index: 9999; position: relative;
+            width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; 
+        }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
@@ -53,7 +58,8 @@
 
         /* --- 弹窗样式 --- */
         .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
-        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: none; } /* 覆盖层继续保持穿透，不会拦截点击 */
+        .modal-box { pointer-events: auto; } /* 只有框内可以交互 */
         .modal-box { transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
@@ -86,7 +92,7 @@
                 <h1 class="text-pattern main-title">宫水大世界</h1>
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
-            <!-- 主题切换按钮，无论卡片是否打开，点击这里依然能正常切换 -->
+            <!-- 主题切换按钮，层级已提升至卡片上方，现在穿透无误 -->
             <button class="theme-btn-title" onclick="toggleTheme(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
@@ -108,10 +114,9 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录表单（空心、细白线边框） ================= -->
+    <!-- ================= 登录表单（空心、细白线边框，穿透可见） ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 修改：完全透明背景，仅用极细的半透明白色边框和微弱的阴影勾勒 -->
             <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/60 rounded-2xl bg-transparent shadow-[0_0_20px_rgba(255,255,255,0.05)] p-4">
                 
                 <div class="relative z-10 flex flex-col gap-1">
@@ -119,27 +124,21 @@
                     <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
-                <!-- 第1行：邮箱 + 验证 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <!-- 修改：输入框使用极淡的黑底 + 白边 -->
                     <input type="text" id="reg-email" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                    <!-- 验证按钮：透明底、白边线 -->
                     <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
                         验证
                     </button>
                 </div>
 
-                <!-- 第2行：验证码 -->
                 <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
                     <input type="text" id="reg-code" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
-                <!-- 第3行：密码 -->
                 <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
                     <input type="password" id="reg-password" class="relative bg-black/20 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
-                <!-- 第4行：注册/登录 -->
                 <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
                     注册/登录
                 </button>
@@ -226,6 +225,7 @@
         }
 
         function closeLoginOnBg(event) {
+            // 修改：只有当点击目标确实是覆盖层本身时才触发（即点击卡片外部空白区域）
             if (event.target === event.currentTarget) { closeLoginModal(); }
         }
 
