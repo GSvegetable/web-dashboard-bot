@@ -73,8 +73,6 @@
         #custom-toast.success { border-left-color: #22c55e; }
         #custom-toast.show { opacity: 1; visibility: visible; }
 
-        #send-code-btn:disabled { background-color: #b45309 !important; opacity: 0.8 !important; cursor: not-allowed; }
-
         @media (max-width: 600px) {
             .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
@@ -117,7 +115,6 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
-        <!-- 重点检查的底部4个按钮，在这里！ -->
         <div class="btn-grid">
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
             <a href="/warehouse" class="glass-btn"><span class="btn-text">查看仓库</span></a>
@@ -126,41 +123,50 @@
         </div>
     </div>
 
-    <!-- 顶部固定悬浮按钮（联系开发者、全屏、登录） -->
+    <!-- 顶部固定悬浮按钮（切换函数已更新） -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
+        <!-- 修改：点击切换卡片开启/关闭 -->
+        <button class="top-btn" id="loginBtn" onclick="toggleLoginModal()">Log in</button>
     </div>
 
     <!-- ================= 自定义通知条 ================= -->
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录弹窗/卡片 ================= -->
+    <!-- ================= 登录卡片（改进颜色渐变、圆角） ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/30 rounded-lg bg-white/20 backdrop-blur-md shadow-2xl p-4">
-                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-amber-800/40 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-emerald-800/40 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-amber-500 anim-item">获取自己的GsBot账号</span>
-                    <p class="text-amber-800 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+            <!-- 修改：由 rounded-lg 改为 rounded-2xl，颜色改为深褐色到深绿色的渐变背景和边框 -->
+            <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-300 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-[#4a4235]/60 rounded-2xl bg-gradient-to-br from-[#2b2b2b]/80 to-[#1e2620]/80 shadow-2xl p-4 backdrop-blur-sm">
+                
+                <!-- 修改：整体饱和度降低，改成不显眼的暗色渐变圆环 -->
+                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-gradient-to-r from-[#5e4d3e]/40 to-[#3e5e41]/40 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-gradient-to-r from-[#354f33]/40 to-[#4f3e30]/40 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
+                    <span class="font-extrabold text-xl bg-gradient-to-r from-[#c3a981] to-[#8aa982] bg-clip-text text-transparent anim-item">获取自己的GsBot账号</span>
+                    <p class="text-[#9e907d] text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
-                <!-- 第1行 -->
+
+                <!-- 第1行：邮箱 + 验证 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <div class="relative rounded-lg flex-1 overflow-hidden bg-emerald-900/20 border border-amber-700/50 shadow-inner backdrop-blur-sm">
-                        <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border-none text-amber-100 placeholder-amber-700/60 text-sm rounded-lg focus:ring-0 block w-full p-2.5" placeholder="邮箱" required />
+                    <div class="relative rounded-lg flex-1 overflow-hidden bg-[#2f2d27]/40 border border-[#5e5545]/50 shadow-inner backdrop-blur-sm">
+                        <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border-none text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-0 block w-full p-2.5" placeholder="邮箱" required />
                     </div>
-                    <button id="send-code-btn" class="bg-amber-700 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-amber-600 text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">验证</button>
+                    <!-- 修改：按钮改成褐色到绿色的渐变 -->
+                    <button id="send-code-btn" class="bg-gradient-to-r from-[#4a3c2c] to-[#2d4530] hover:from-[#564431] hover:to-[#38543b] text-neutral-200 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">验证</button>
                 </div>
-                <!-- 第2行 -->
+
+                <!-- 第2行：验证码 (包含之后变成“验证码已发送”的逻辑) -->
                 <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-emerald-900/20 ring-0 outline-none border border-amber-700/50 text-amber-100 placeholder-amber-700/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="验证码" required />
+                    <input type="text" id="reg-code" class="relative bg-[#2f2d27]/40 ring-0 outline-none border border-[#5e5545]/50 text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-1 focus:ring-[#7a7264] block w-full p-2.5" placeholder="验证码" required />
                 </div>
-                <!-- 第3行 -->
+
+                <!-- 第3行：密码 -->
                 <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-emerald-900/20 ring-0 outline-none border border-amber-700/50 text-amber-100 placeholder-amber-700/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="设置密码" required />
+                    <input type="password" id="reg-password" class="relative bg-[#2f2d27]/40 ring-0 outline-none border border-[#5e5545]/50 text-[#d1caba] placeholder-[#7a7264]/70 text-sm rounded-lg focus:ring-1 focus:ring-[#7a7264] block w-full p-2.5" placeholder="设置密码" required />
                 </div>
-                <!-- 第4行 -->
-                <button id="submit-btn" class="bg-amber-700 text-neutral-50 w-full p-2.5 rounded-lg hover:bg-amber-600 text-sm font-medium relative z-10 active:scale-95 transition-transform anim-item">注册/登录</button>
+
+                <!-- 第4行：注册/登录 (同样应用深色渐变) -->
+                <button id="submit-btn" class="bg-gradient-to-r from-[#4a3c2c] to-[#2d4530] hover:from-[#564431] hover:to-[#38543b] text-neutral-200 w-full p-2.5 rounded-lg text-sm font-medium relative z-10 active:scale-95 transition-transform anim-item">注册/登录</button>
             </form>
         </div>
     </div>
@@ -234,10 +240,19 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // ---------- 修改：新增切换函数，支持再次点击关闭卡片 ----------
+        function toggleLoginModal() {
+            const modal = document.getElementById('loginModal');
+            if (modal.classList.contains('active')) {
+                closeLoginModal();
+            } else {
+                openLoginModal();
+            }
+        }
+
         function openLoginModal() {
             document.getElementById('loginModal').classList.add('active');
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            // 修改：删除了之前的 gsap 逐个滑入动画，现在卡片是整体淡入显现的
         }
 
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
@@ -250,21 +265,32 @@
             element.classList.add('shake-field');
         }
 
+        // ---------- 验证码发送 ----------
         document.getElementById('send-code-btn').addEventListener('click', async function() {
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
             if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
+            
             const btn = this;
             btn.disabled = true;
             try {
                 const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
                 if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
                 const data = await res.json();
-                if(data.ok) showToast('✅ ' + data.msg, 'success');
-                else showToast('❌ ' + data.msg, 'error');
+                
+                if(data.ok) {
+                    showToast('✅ ' + data.msg, 'success');
+                    // ---------- 修改：验证成功后将验证码输入框改为“验证码已发送” ----------
+                    const codeInput = document.getElementById('reg-code');
+                    codeInput.value = '验证码已发送';
+                    codeInput.disabled = true;
+                } else {
+                    showToast('❌ ' + data.msg, 'error');
+                }
             } catch (e) { showToast('❌ 网络请求失败', 'error'); } finally { btn.disabled = false; }
         });
 
+        // ---------- 注册/登录提交 ----------
         document.getElementById('submit-btn').addEventListener('click', async function() {
             const email = document.getElementById('reg-email').value.trim();
             const code = document.getElementById('reg-code').value.trim();
