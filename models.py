@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     is_banned = db.Column(db.Boolean, default=False)
     is_vip = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
     bot_configs = db.relationship('BotConfig', backref='user', lazy=True)
 
 # 机器人配置表
@@ -24,7 +25,7 @@ class BotConfig(db.Model):
     response = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 新增：邮箱验证码表（用于记录注册、登录的验证码）
+# 邮箱验证码表（用于注册验证）
 class EmailCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
