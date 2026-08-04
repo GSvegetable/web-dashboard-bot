@@ -166,26 +166,36 @@
             const targetUrl = isExpanded ? newBgUrl : defaultBgUrl;
             const targetTextUrl = isExpanded ? newTextUrl : defaultTextUrl;
             
+            // 1. 防黑屏预加载机制：图片完全下载完毕后再执行
             const imgLoader = new Image();
             imgLoader.src = targetUrl;
             
             imgLoader.onload = function() {
-                // 1. 把底层背景图替换掉！
+                // 立刻替换底层大图、遮罩层图片
                 contentArea.style.backgroundImage = `url("${targetUrl}")`;
-                
-                // 2. 重点修复：必须同步更新遮罩层（theme-ring）的背景图，否则动画就会带出纯黑色！
                 themeRing.style.backgroundImage = `url("${targetUrl}")`;
                 
-                // 3. 把文字纹理也替换掉！
-                textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                // 2. 构建动画时间轴
+                const tl = gsap.timeline();
                 
-                // 4. 执行圆形扩散动画
                 if (isExpanded) {
-                    gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                    // 展开动画：0.8秒，从 0 扩散到 150%
+                    tl.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                    tl.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                    
+                    // 延迟 0.2 秒更新文字纹理
+                    gsap.delayedCall(0.2, () => {
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                    });
                 } else {
-                    gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                    // 收缩动画：0.8秒，从 150% 收缩回 0
+                    tl.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                    tl.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                    
+                    // 延迟 0.35 秒更新文字纹理
+                    gsap.delayedCall(0.35, () => {
+                        textElements.forEach(el => { el.style.backgroundImage = `url("${targetTextUrl}")`; });
+                    });
                 }
             };
         }
@@ -195,8 +205,14 @@
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+
+            // 3. 首屏防卡顿预渲染：后台隐藏执行一次 0->150->0
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+            setTimeout(() => {
+                gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
+                setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100);
+            }, 200);
+
             const tl = gsap.timeline({ scrollTrigger: { trigger: ".content-area", start: "top 85%", toggleActions: "play none none reverse" } });
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
