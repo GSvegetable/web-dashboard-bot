@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- 引入 Three.js 核心库用于 WebGL 实时渲染 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -52,26 +50,29 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* WebGL 画布容器层（位于卡片下方进行扭曲采样） */
-        #webgl-glass-wrapper {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 9997;
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        #webgl-glass-wrapper.active {
-            opacity: 1; visibility: visible;
-        }
-        #webgl-glass-wrapper canvas {
-            width: 100% !important; height: 100% !important;
-            display: block;
-        }
-
-        /* 悬浮卡片基础布局 */
+        /* ================= 全新卡片设计：无模糊 + 红蓝边缘色差 + 内部流动晕染 ================= */
         .modal-overlay { position: fixed; inset: 0; background: transparent; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.2s ease, visibility 0.2s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: none; }
         .modal-box { pointer-events: auto; transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        /* 卡片主体：红蓝色差阴影制造棱镜边缘 + 透明纯边框 */
+        .login-card {
+            position: relative; background: transparent; width: 320px; padding: 24px;
+            border: 1px solid rgba(255,255,255,0.6); border-radius: 16px;
+            /* 极细的红蓝棱镜边缘色差 */
+            box-shadow: -2px 0 8px rgba(255, 100, 100, 0.4), 2px 0 8px rgba(100, 100, 255, 0.4), 0 0 30px rgba(255,255,255,0.05);
+            overflow: hidden; display: flex; flex-direction: column; gap: 12px; color: #e5e7eb;
+        }
+
+        /* 动态水波纹错觉层：用缓慢旋转的微光代替真实扭曲，绝对流畅 */
+        .glass-wave {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.05), transparent, rgba(200,200,255,0.03), transparent);
+            z-index: -1; pointer-events: none;
+            border-radius: 50%;
+            /* 用 GSAP 驱动无限旋转 */
+        }
 
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; transform: none !important; }
 
@@ -89,7 +90,7 @@
             .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
             .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            #webgl-glass-wrapper.active { margin-top: -10px; }
+            #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
 </head>
@@ -121,167 +122,44 @@
 
     <div id="custom-toast"></div>
 
-    <!-- 1. WebGL 玻璃特效层 (独立于卡片渲染) -->
-    <div id="webgl-glass-wrapper"></div>
-
-    <!-- 2. 登录卡片 (透明底白细边线) -->
+    <!-- ================= 登录卡片（纯透明边缘色差+内部流动晕染） ================= -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 边缘加入极细的红蓝色散阴影 -->
-            <form id="authForm" onsubmit="return false;" novalidate class="text-gray-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-white/60 rounded-2xl bg-transparent shadow-[-2px_0_8px_rgba(255,0,0,0.2), 2px_0_8px_rgba(0,0,255,0.2), 0_0_20px_rgba(0,0,0,0.2)] p-4">
+            <!-- 使用新的 .login-card 结构 -->
+            <div class="login-card">
+                <!-- 动态水波流动层 -->
+                <div class="glass-wave" id="glassWave"></div>
                 
-                <div class="relative z-10 flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
-                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
-                </div>
+                <form id="authForm" onsubmit="return false;" novalidate class="relative z-10 flex flex-col justify-start gap-3">
+                    <div class="flex flex-col gap-1">
+                        <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                        <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                    </div>
 
-                <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
-                        验证
+                    <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
+                        <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                        <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
+                            验证
+                        </button>
+                    </div>
+
+                    <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
+                        <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                    </div>
+
+                    <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
+                        <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                    </div>
+
+                    <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
+                        注册/登录
                     </button>
-                </div>
-
-                <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                </div>
-
-                <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/40 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                </div>
-
-                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
-                    注册/登录
-                </button>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
     <script>
-        /* ===========================================================
-           3. WebGL 实时采样扭曲代码（自包含渲染引擎）
-           =========================================================== */
-        let glassScene, glassCamera, glassRenderer, glassMesh;
-        let glassActive = false;
-
-        function initWebGLGlass() {
-            const wrapper = document.getElementById('webgl-glass-wrapper');
-            if(!wrapper) return;
-            
-            // 创建场景
-            glassScene = new THREE.Scene();
-            glassCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
-            glassCamera.position.z = 1;
-
-            glassRenderer = new THREE.WebGLRenderer({ 
-                alpha: true,
-                powerPreference: "high-performance"
-            });
-            glassRenderer.setSize(window.innerWidth, window.innerHeight);
-            glassRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            wrapper.appendChild(glassRenderer.domElement);
-
-            // 着色器材质（实时水波纹扭曲 + 色差）
-            const vertexShader = `
-                varying vec2 vUv;
-                void main() {
-                    vUv = uv;
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `;
-
-            const fragmentShader = `
-                uniform float uTime;
-                uniform vec2 uResolution;
-                varying vec2 vUv;
-
-                void main() {
-                    vec2 uv = vUv;
-                    // 1. 模拟水波纹扭曲位移 (fractal 噪声模拟)
-                    float strength = 0.015; // 扭曲强度
-                    float frequency = 6.0;
-                    
-                    // 水波运动的 X/Y 轴偏移计算
-                    float waveX = sin(uv.y * 20.0 + uTime * 1.2) * cos(uv.x * 10.0 + uTime * 1.5) * 0.5 + 0.5;
-                    float waveY = cos(uv.x * 18.0 + uTime * 1.0) * sin(uv.y * 12.0 + uTime * 1.8) * 0.5 + 0.5;
-                    
-                    float offsetX = (waveX - 0.5) * strength;
-                    float offsetY = (waveY - 0.5) * strength;
-                    
-                    // 应用扭曲位移
-                    uv.x += offsetX;
-                    uv.y += offsetY;
-
-                    // 2. 边缘红蓝色差 (棱镜色散)
-                    float offsetChromatic = 0.003; // 红蓝偏移量 (极细)
-                    
-                    // 采样红通道 (往左偏)
-                    float r = texture2D(inputTexture, uv - vec2(offsetChromatic, 0.0)).r;
-                    // 采样绿通道 (原位置)
-                    float g = texture2D(inputTexture, uv).g;
-                    // 采样蓝通道 (往右偏)
-                    float b = texture2D(inputTexture, uv + vec2(offsetChromatic, 0.0)).b;
-                    
-                    gl_FragColor = vec4(r, g, b, 0.75); // 0.75 透明度保证透出背景
-                }
-            `;
-
-            // 获取当前底图作为扭曲的采样基础
-            const currentBgUrl = isExpanded ? newBgUrl : defaultBgUrl;
-            const textureLoader = new THREE.TextureLoader();
-            const bgTexture = textureLoader.load(currentBgUrl);
-
-            const uniforms = {
-                uTime: { value: 0 },
-                uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-                inputTexture: { value: bgTexture }
-            };
-
-            const material = new THREE.ShaderMaterial({
-                uniforms: uniforms,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader
-            });
-
-            // 创建一个覆盖全屏的平面
-            const geometry = new THREE.PlaneGeometry(2, 2);
-            glassMesh = new THREE.Mesh(geometry, material);
-            glassScene.add(glassMesh);
-
-            // 处理窗口改变
-            window.addEventListener('resize', () => {
-                glassRenderer.setSize(window.innerWidth, window.innerHeight);
-                uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
-            });
-        }
-
-        // 开启或关闭 WebGL 层
-        function toggleWebGL(show) {
-            const wrapper = document.getElementById('webgl-glass-wrapper');
-            if(!wrapper) return;
-            if(show) {
-                wrapper.classList.add('active');
-                glassActive = true;
-                animateWebGL();
-            } else {
-                wrapper.classList.remove('active');
-                glassActive = false;
-            }
-        }
-
-        // 实时渲染循环
-        function animateWebGL() {
-            if(!glassActive) return;
-            requestAnimationFrame(animateWebGL);
-            if(glassMesh && glassMesh.material.uniforms) {
-                glassMesh.material.uniforms.uTime.value += 0.02; // 流动速度
-            }
-            glassRenderer.render(glassScene, glassCamera);
-        }
-
-        /* ===========================================================
-           4. 其他的交互与切换逻辑
-           =========================================================== */
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -297,11 +175,6 @@
         const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
-        // 修改：仅在页面完全加载后初始化 WebGL
-        document.addEventListener("DOMContentLoaded", function() {
-            initWebGLGlass(); // 启动 WebGL 引擎
-        });
-
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const btnRect = btn.getBoundingClientRect();
@@ -315,36 +188,19 @@
             if (isExpanded) {
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { 
-                    textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
-                    // 更新 WebGL 采样图
-                    if(glassMesh && glassMesh.material.uniforms) {
-                        const loader = new THREE.TextureLoader();
-                        glassMesh.material.uniforms.inputTexture.value = loader.load(newBgUrl);
-                    }
-                });
+                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
             } else {
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { 
-                    textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
-                    // 还原 WebGL 采样图
-                    if(glassMesh && glassMesh.material.uniforms) {
-                        const loader = new THREE.TextureLoader();
-                        glassMesh.material.uniforms.inputTexture.value = loader.load(defaultBgUrl);
-                    }
-                });
+                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
             }
         }
 
-        // 首屏加载动画
         document.addEventListener("DOMContentLoaded", function() {
-            // 背景预加载处理
-            const bgImg = new Image(); 
-            const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
@@ -371,20 +227,33 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // 卡片开关联动 WebGL 玻璃层
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
-            toggleWebGL(true); // 启动 WebGL 扭曲效果
+            
+            // 重点：打开卡片时，用 GSAP 驱动卡片内部的渐变光晕无限缓慢旋转，模拟水波！
+            const wave = document.getElementById('glassWave');
+            if(wave) {
+                gsap.to(wave, {
+                    rotation: 360,
+                    duration: 12,
+                    ease: "none",
+                    repeat: -1
+                });
+            }
         }
 
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
-            toggleWebGL(false); // 关闭 WebGL 扭曲效果
+            // 关闭时销毁动画节省性能
+            const wave = document.getElementById('glassWave');
+            if(wave) {
+                gsap.killTweensOf(wave);
+                wave.style.transform = "rotate(0deg)";
+            }
         }
 
         function closeLoginOnBg(event) {
-            // 点击空白处关闭卡片
             if (event.target === event.currentTarget) { closeLoginModal(); }
         }
 
@@ -395,7 +264,6 @@
             element.classList.add('shake-field');
         }
 
-        // 发送验证码逻辑
         document.getElementById('send-code-btn').addEventListener('click', async function() {
             const emailInput = document.getElementById('reg-email');
             const email = emailInput.value.trim();
@@ -411,7 +279,6 @@
             finally { btn.disabled = false; }
         });
 
-        // 注册提交逻辑
         document.getElementById('submit-btn').addEventListener('click', async function() {
             const email = document.getElementById('reg-email').value.trim();
             const code = document.getElementById('reg-code').value.trim();
