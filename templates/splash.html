@@ -51,7 +51,7 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔼 往上移：内边距从 20vh 改为 15vh，整体位置靠上 */
+            /* 调整上边距，保持位置舒适 */
             margin-top: 0;
             padding-top: 15vh;
             padding-left: 12%;
@@ -243,6 +243,12 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
+        // ✅ 核心修复：提前在后台预加载新图片
+        const preloadNewBg = new Image();
+        preloadNewBg.src = newBgUrl;
+        const preloadNewText = new Image();
+        preloadNewText.src = newTextUrl;
+
         function toggleTheme(event) {
             const btn = event.currentTarget;
             
@@ -257,28 +263,33 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】背景图切换，且文字纹理同步秒刷新
-                gsap.set(themeRing, { 
-                    backgroundImage: `url("${newBgUrl}")`,
-                    clipPath: `circle(0% at ${x}px ${y}px)` 
+                // 【展开】瞬间替换遮罩背景图（因为已经预加载，立刻生效不卡顿）
+                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+
+                // 0.2 秒后切换文字纹理
+                gsap.delayedCall(0.2, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
-                // ✅ 文字纹理同步秒换（删除了之前的 delayedCall 延迟）
-                textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
                 });
             } else {
-                // 【收缩】背景图切换，且文字纹理同步秒刷新
+                // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                // ✅ 文字纹理同步秒换
-                textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+
+                // 0.2 秒后切换回默认文字纹理
+                gsap.delayedCall(0.2, () => {
+                    textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
+                });
                 
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
+                        // 动画完全结束后，才把背景切回原图（保证倒回无缝）
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
@@ -294,7 +305,7 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 预渲染切换动画（解决第一次点击卡顿）
+            // ✅ 预渲染遮罩动画（解决首次点击极端卡顿）
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
