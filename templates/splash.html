@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
-    <!-- ⚠️ 引入 Tailwind CSS CDN，这是确保 Uiverse 表单完全一致的核心！ -->
+    <!-- ✅ 引入 Tailwind CSS CDN，确保 Uiverse 样式完全一致 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
@@ -51,37 +50,57 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* 顶部 3 按钮 */
-        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
-        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        /* ================= 顶部按钮 ================= */
+        .top-actions {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 280px;
+        }
+        .top-btn {
+            flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
+        /* 顶部按钮入场动画 */
         @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
         .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
 
-        /* ================= 登录弹窗（完全使用 Tailwind 渲染） ================= */
+        /* ================= 下拉登录卡片（定位至按钮下方） ================= */
         .modal-overlay {
             position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(6px);
-            z-index: 10000;
-            display: flex; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(3px); /* 🔽 虚化减弱 */
+            -webkit-backdrop-filter: blur(3px);
+            z-index: 9998;
+            display: flex;
+            justify-content: flex-end; /* 靠右对齐 */
+            align-items: flex-start; /* 靠上对齐 */
+            padding-top: 80px; /* 精准落在右上角按钮的下方 */
+            padding-right: 24px;
             opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-            transform: scale(0.95);
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            pointer-events: none;
         }
         .modal-overlay.active {
-            opacity: 1; visibility: visible; transform: scale(1);
+            opacity: 1; visibility: visible; pointer-events: auto;
         }
 
-        /* 外层居中包裹 */
         .modal-box {
-            display: flex; justify-content: center; align-items: center;
+            transform: translateY(-15px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
         }
 
+        /* 手机上让卡片居中 */
         @media (max-width: 600px) {
             .top-image-footer-left, .top-image-footer-right { font-size: 13px; bottom: 4%; max-width: 45%; }
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
@@ -92,10 +111,12 @@
             .top-actions { top: 16px; right: 16px; gap: 6px; width: 200px; }
             .top-btn { font-size: 11px; padding: 6px 4px; min-width: 40px; }
             .top-actions .top-btn { animation-duration: 0.5s; }
+            .modal-overlay { padding-top: 70px; padding-right: 12px; }
         }
     </style>
 </head>
 <body>
+    <!-- 第一屏 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
         <div class="tooltip">正在施工中，请向上滑动<div class="tooltiptext">Hi there!</div></div>
@@ -109,6 +130,7 @@
         </div>
     </div>
 
+    <!-- 第二屏 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -117,12 +139,9 @@
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
             <button class="theme-btn-title" onclick="toggleTheme(event)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
-        
         <div class="btn-grid">
             <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
             <a href="/warehouse" class="glass-btn"><span class="btn-text">查看仓库</span></a>
@@ -131,32 +150,43 @@
         </div>
     </div>
 
-    <!-- 顶部固定悬浮按钮 -->
+    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <!-- 下拉菜单的触发源 -->
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
     </div>
 
-    <!-- 🔽 登录弹窗：精准替换为 Javierrocadev 的 newsletter 组件 -->
+    <!-- ========== 登录下拉卡片（适配 Tailwind） ========== -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <!-- 直接复制 Uiverse 源码 -->
-            <form class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-around w-96 h-44 border border-neutral-500 rounded-lg bg-neutral-50 p-3 px-6">
-              <div class="before:absolute before:w-32 before:h-20 before:right-2 before:bg-rose-300 before:-z-10 before:rounded-full before:blur-xl before:-top-12 z-10 after:absolute after:w-24 after:h-24 after:bg-purple-300 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6">
-                <span class="font-extrabold text-2xl text-violet-600">Get more updates...</span>
-                <p class="text-neutral-700">
-                  Sign up for our newsletter and you'll be the first to find out about new features
-                </p>
-              </div>
-              <div class="flex gap-1">
-                <div class="relative rounded-lg w-64 overflow-hidden before:absolute before:w-12 before:h-12 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-20 after:h-20 after:content[''] after:bg-rose-300 after:right-12 after:top-3 after:rounded-full after:blur-lg">
-                  <input type="text" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5 checked:bg-emerald-500" placeholder="Mail..." />
+            <form class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-4 w-80 border border-neutral-500 rounded-lg bg-neutral-50 p-4 shadow-xl">
+                <!-- 发光背景特效 -->
+                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-rose-300 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-purple-300 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
+                    <span class="font-extrabold text-xl text-violet-600">登录或注册你的GsBot账号</span>
+                    <p class="text-neutral-700 text-xs leading-tight">绑定邮箱账号 最快的了解所有新功能</p>
                 </div>
-                <button class="bg-violet-500 text-neutral-50 p-2 rounded-lg hover:bg-violet-400">
-                  Subscribe
+
+                <!-- 第1行：邮箱 + 验证 -->
+                <div class="flex gap-2 w-full relative z-10">
+                    <div class="relative rounded-lg flex-1 overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg">
+                        <input type="text" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="邮箱" />
+                    </div>
+                    <button class="bg-violet-500 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium whitespace-nowrap relative z-10">
+                        验证
+                    </button>
+                </div>
+
+                <!-- 第2行：验证码 与第1行等宽 -->
+                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10">
+                    <input type="text" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="验证码" />
+                </div>
+
+                <!-- 第3行：注册按钮 与第1行等宽 -->
+                <button class="bg-violet-500 text-neutral-50 w-full p-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium relative z-10">
+                    注册
                 </button>
-              </div>
             </form>
         </div>
     </div>
@@ -221,9 +251,11 @@
         // ================= 弹窗交互控制 =================
         function openLoginModal() {
             document.getElementById('loginModal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // 🔽 锁定底层滚动
         }
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('active');
+            document.body.style.overflow = ''; // 🔽 恢复底层滚动
         }
         function closeLoginOnBg(event) {
             if (event.target === event.currentTarget) {
