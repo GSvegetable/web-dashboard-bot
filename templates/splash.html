@@ -86,6 +86,14 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
+        /* 修正：验证按钮禁用时颜色/动画不能变 */
+        #send-code-btn:disabled {
+            background: rgba(6, 78, 59, 0.5) !important;
+            color: #a3a3a3 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
         /* ================= 自定义无阻塞通知条 ================= */
         #custom-toast {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -159,37 +167,42 @@
     <div id="custom-toast"></div>
 
     <!-- ================= 登录表单 ================= -->
+    <!-- 修改：加上 novalidate 去掉浏览器默认提示，背景透明，配色改为深绿偏黄 -->
     <div class="modal-overlay" id="loginModal" onclick="closeLoginOnBg(event)">
         <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" class="text-neutral-800 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-neutral-500/40 rounded-lg bg-white/70 backdrop-blur-md shadow-2xl p-4">
+            <form id="authForm" onsubmit="return false;" novalidate class="text-neutral-200 py-6 relative overflow-hidden flex flex-col justify-start gap-3 w-80 border border-emerald-700/40 rounded-2xl bg-transparent backdrop-blur-sm shadow-2xl p-4">
                 
-                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-rose-300/50 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-purple-300/50 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-violet-600 anim-item">获取自己的GsBot账号</span>
-                    <p class="text-neutral-700 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                <!-- 修改：粉色和紫色光晕换成淡暗绿、暗黄色光晕 -->
+                <div class="relative z-10 before:absolute before:w-32 before:h-20 before:right-2 before:bg-emerald-800/30 before:-z-10 before:rounded-full before:blur-xl before:-top-12 after:absolute after:w-24 after:h-24 after:bg-amber-800/30 after:-z-10 after:rounded-full after:blur after:-top-12 after:-right-6 flex flex-col gap-1">
+                    <span class="font-extrabold text-xl text-amber-400/90 anim-item">获取自己的GsBot账号</span>
+                    <p class="text-emerald-400/70 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
 
                 <!-- 第1行：邮箱 + 验证 -->
+                <!-- 修改：去掉了粉色发光包装器，换成了简约深绿边框 -->
                 <div class="flex gap-2 w-full relative z-10 anim-item" id="email-wrapper">
-                    <div class="relative rounded-lg flex-1 overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg">
-                        <input type="text" id="reg-email" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="邮箱" required />
-                    </div>
-                    <button id="send-code-btn" class="bg-violet-500 text-neutral-50 px-4 py-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium whitespace-nowrap relative z-10 active:scale-95 transition-transform">
+                    <input type="text" id="reg-email" class="relative bg-neutral-900/30 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-700/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="邮箱" required />
+                    <!-- 修改：验证按钮去掉所有缩放/渐变动画，颜色不变 -->
+                    <button id="send-code-btn" class="bg-emerald-800/50 text-neutral-300 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap relative z-10">
                         验证
                     </button>
                 </div>
 
                 <!-- 第2行：验证码 -->
-                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="验证码" required />
+                <!-- 修改：去掉了粉色发光包装器，保持纯净深绿边框 -->
+                <div class="relative rounded-lg w-full anim-item" id="code-wrapper">
+                    <input type="text" id="reg-code" class="relative bg-neutral-900/30 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-700/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="验证码" required />
                 </div>
 
                 <!-- 第3行：密码 -->
-                <div class="relative rounded-lg w-full overflow-hidden before:absolute before:w-8 before:h-8 before:content[''] before:right-0 before:bg-violet-500 before:rounded-full before:blur-lg after:absolute after:z-10 after:w-14 after:h-14 after:content[''] after:bg-rose-300 after:right-8 after:top-2 after:rounded-full after:blur-lg relative z-10 anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-transparent ring-0 outline-none border border-neutral-500 text-neutral-900 placeholder-violet-700 text-sm rounded-lg focus:ring-violet-500 placeholder-opacity-60 focus:border-violet-500 block w-full p-2.5" placeholder="设置密码" required />
+                <!-- 修改：去掉了粉色发光包装器，保持纯净深绿边框 -->
+                <div class="relative rounded-lg w-full anim-item" id="password-wrapper">
+                    <input type="password" id="reg-password" class="relative bg-neutral-900/30 ring-0 outline-none border border-emerald-700/40 text-amber-100 placeholder-emerald-700/60 text-sm rounded-lg focus:ring-1 focus:ring-amber-500 block w-full p-2.5" placeholder="设置密码" required />
                 </div>
 
                 <!-- 第4行：注册/登录按钮 -->
-                <button id="submit-btn" class="bg-violet-500 text-neutral-50 w-full p-2.5 rounded-lg hover:bg-violet-400 text-sm font-medium relative z-10 active:scale-95 transition-transform anim-item">
+                <!-- 修改：按钮配色统一变为深绿偏黄灰调 -->
+                <button id="submit-btn" class="bg-emerald-800/50 text-neutral-200 w-full p-2.5 rounded-lg text-sm font-medium relative z-10 anim-item">
                     注册/登录
                 </button>
             </form>
@@ -270,11 +283,8 @@
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
-
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { 
-                x: 0, opacity: 1, duration: 0.3, stagger: 0.05, ease: "power1.out" 
-            });
+            
+            // 修改：已删除 gsap 滑动动画，卡片直接弹出
         }
 
         function closeLoginModal() {
@@ -290,7 +300,6 @@
         function shakeElement(element) {
             if(!element) return;
             element.classList.remove('shake-field');
-            // 强制重绘，让动画重新触发
             void element.offsetWidth; 
             element.classList.add('shake-field');
         }
@@ -307,8 +316,7 @@
             }
 
             const btn = this;
-            const originalText = btn.innerText;
-            btn.innerText = '发送中...';
+            // 修改：不再更换按钮文字，仅仅禁用按钮避免连点
             btn.disabled = true;
 
             try {
@@ -331,7 +339,6 @@
             } catch (e) {
                 showToast('❌ 网络请求失败，请检查后台运行状态', 'error');
             } finally {
-                btn.innerText = originalText;
                 btn.disabled = false;
             }
         });
@@ -405,4 +412,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
