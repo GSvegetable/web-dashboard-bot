@@ -60,7 +60,7 @@
             align-items: flex-start;
             justify-content: flex-start;
             z-index: 1;
-            /* 🛑 关键修复：彻底删掉 overflow: hidden，永绝“被切掉”的后患 */
+            overflow: hidden;
         }
 
         /* ================= 内部遮罩层（负责主题切换） ================= */
@@ -83,7 +83,7 @@
             flex-direction: row;
             align-items: flex-start;
             justify-content: flex-start;
-            gap: 6px; 
+            gap: 12px;
             position: relative;
             z-index: 1;
             margin-bottom: 4px; 
@@ -112,7 +112,6 @@
             transform: translateY(60px);
             flex-shrink: 0;
             margin-top: 6px;
-            margin-left: -4px;
         }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -133,12 +132,12 @@
             margin-top: 0;
             justify-items: center;
             opacity: 0;
-            transform: translateY(30px); /* 改为 30px，大幅降低被裁切的风险 */
+            transform: translateY(60px);
             position: relative;
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮（恢复入场动画） ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -165,6 +164,7 @@
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         #loginBtn { margin-left: 16px; }
 
+        /* 🔥 顶部按钮从右侧滑入的动画定义 */
         @keyframes slideInFromRight {
             0% { opacity: 0; transform: translateX(280px); }
             100% { opacity: 1; transform: translateX(0); }
@@ -279,7 +279,7 @@
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
 
-                // 展开时，文字纹理延迟 0.2 秒切换
+                // ✅ 展开时，文字纹理延迟 0.2 秒切换
                 gsap.delayedCall(0.2, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
@@ -292,7 +292,7 @@
                 // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
 
-                // 收回时，文字纹理延迟 0.35 秒切换
+                // ✅ 收回时，文字纹理延迟 0.35 秒切换（比展开慢）
                 gsap.delayedCall(0.35, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
@@ -325,19 +325,17 @@
                 }, 100);
             }, 200);
 
-            // 滚动触发动画
+            // 🔥 第二屏滚动触发动画（滑下去播放，滑上去反方向复原，再滑下来再次正向播放）
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
-                    start: "top 80%",
-                    toggleActions: "play none none none",
-                    invalidateOnRefresh: true
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
                 }
             });
-            
-            tl.fromTo(".text-group", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .fromTo(".theme-btn-title", { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .fromTo(".btn-grid .glass-btn", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
+            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
         });
 
         function toggleFullScreen() {
