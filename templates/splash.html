@@ -51,7 +51,6 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 调整上边距，保持位置舒适 */
             margin-top: 0;
             padding-top: 15vh;
             padding-left: 12%;
@@ -84,7 +83,8 @@
             flex-direction: row;
             align-items: flex-start;
             justify-content: flex-start;
-            gap: 12px;
+            /* 减小间距，让按钮更贴近文字 */
+            gap: 6px; 
             position: relative;
             z-index: 1;
             margin-bottom: 4px; 
@@ -113,6 +113,8 @@
             transform: translateY(60px);
             flex-shrink: 0;
             margin-top: 6px;
+            /* 稍微往左挪一点点，贴近宫字 */
+            margin-left: -4px;
         }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -138,7 +140,7 @@
             z-index: 1;
         }
 
-        /* ================= 屏幕顶部固定悬浮的按钮 ================= */
+        /* ================= 屏幕顶部固定悬浮的按钮（恢复右侧滑入动画） ================= */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -165,6 +167,18 @@
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         #loginBtn { margin-left: 16px; }
 
+        /* 🔥 顶部按钮从右侧滑入的动画定义 */
+        @keyframes slideInFromRight {
+            0% { opacity: 0; transform: translateX(280px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        .top-actions .top-btn {
+            opacity: 0;
+            animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; } /* 全屏显示 */
+        .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; } /* Log in */
+
         /* 底部按钮统一玻璃质感 */
         .glass-btn {
             position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px;
@@ -190,6 +204,7 @@
             .top-btn { font-size: 12px; padding: 6px 14px; }
             #loginBtn { margin-left: 8px; }
             .theme-btn-title { width: 28px; height: 28px; margin-top: 3px; }
+            .top-actions .top-btn { animation-duration: 0.5s; }
         }
     </style>
 </head>
@@ -243,7 +258,7 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
-        // ✅ 核心修复：提前在后台预加载新图片
+        // 预加载新图片（解决首次点击极卡顿问题）
         const preloadNewBg = new Image();
         preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image();
@@ -252,7 +267,7 @@
         function toggleTheme(event) {
             const btn = event.currentTarget;
             
-            // 获取按钮相对于父容器 (contentArea) 的坐标
+            // 获取按钮相对于父容器 (contentArea) 的精确坐标
             const btnRect = btn.getBoundingClientRect();
             const areaRect = contentArea.getBoundingClientRect();
             
@@ -263,11 +278,11 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】瞬间替换遮罩背景图（因为已经预加载，立刻生效不卡顿）
+                // 【展开】瞬间替换遮罩背景图
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
 
-                // 0.2 秒后切换文字纹理
+                // 展开时，文字纹理延迟 0.2 秒切换
                 gsap.delayedCall(0.2, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
@@ -280,8 +295,8 @@
                 // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
 
-                // 0.2 秒后切换回默认文字纹理
-                gsap.delayedCall(0.2, () => {
+                // 收回时，文字纹理延迟 0.35 秒切换
+                gsap.delayedCall(0.35, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
                 
@@ -289,7 +304,6 @@
                 gsap.to(themeRing, { 
                     duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
-                        // 动画完全结束后，才把背景切回原图（保证倒回无缝）
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
                 });
@@ -305,7 +319,7 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // ✅ 预渲染遮罩动画（解决首次点击极端卡顿）
+            // 预渲染遮罩动画（解决首次点击极端卡顿）
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
@@ -314,17 +328,22 @@
                 }, 100);
             }, 200);
 
-            // 滚动触发动画
+            // 🔥 第二屏滚动触发动画（修复：滑出视口复原，再滑入再次播放）
+            // toggleActions 设置为 "play reverse play reverse"
+            // 触发顺序：进入播放 -> 离开反向播放 -> 再次进入播放 -> 再次离开反向播放
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
                     start: "top 85%",
-                    toggleActions: "play none none none"
+                    toggleActions: "play reverse play reverse",
+                    invalidateOnRefresh: true
                 }
             });
+            // 两行文字和切换按钮一起出现
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+              // 底部四个按钮，使用 stagger: 0.15 让他们依次错开出现
+              .to(".btn-grid .glass-btn", { opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: "power3.out" }, 0.2);
         });
 
         function toggleFullScreen() {
