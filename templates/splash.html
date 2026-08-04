@@ -51,9 +51,9 @@
             background-size: cover;
             background-position: center center;
             background-repeat: no-repeat;
-            /* 🔥 核心修复：移除了导致居中的 justify-content，改用负 margin 强制整体上提 */
-            margin-top: -12vh;
-            padding-top: 2vh;
+            /* 🔽 修正位置：移除强制居中，把负边距从 -12vh 缩小到 -7vh，稍微往下移一点 */
+            margin-top: -7vh;
+            padding-top: 1vh;
             padding-left: 12%;
             padding-bottom: 15vh;
             display: flex;
@@ -99,7 +99,7 @@
             transform: translateY(60px); 
         }
 
-        /* 🔽 切换到右侧尺寸从 34px 缩小到 30px */
+        /* 固定在“宫水大世界”右侧的缩小版切换按钮 */
         .theme-btn-title {
             width: 30px; height: 30px; padding: 0; border-radius: 50%;
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
@@ -111,7 +111,7 @@
             opacity: 0;
             transform: translateY(60px);
             flex-shrink: 0;
-            margin-top: 6px; /* 与“宫”字头部对齐 */
+            margin-top: 6px;
         }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -180,7 +180,7 @@
 
         @media (max-width: 600px) {
             .top-image { height: 100vh; }
-            .content-area { margin-top: -5vh; padding-left: 6%; min-height: 100vh; }
+            .content-area { margin-top: -4vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
@@ -207,7 +207,7 @@
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
             
-            <!-- 固定在“宫水大世界”右侧的缩小版切换按钮 -->
+            <!-- 固定在“宫水大世界”右侧的切换按钮 -->
             <button class="theme-btn-title" onclick="toggleTheme(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="23 4 23 10 17 10"/>
@@ -240,16 +240,20 @@
         const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
+        const contentArea = document.getElementById('contentArea');
 
         const EXPAND_TEXT_DELAY = 0.4;
         const CONTRACT_TEXT_DELAY = 0.3;
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
-            // 每次点击都实时获取按钮在屏幕上的位置（完美解决滑动后的位置偏差问题）
-            const rect = btn.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
+            
+            // ⚠️ 核心修复：获取按钮相对于父容器 (contentArea) 的坐标，而不是屏幕坐标
+            const btnRect = btn.getBoundingClientRect();
+            const areaRect = contentArea.getBoundingClientRect();
+            
+            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
 
             isExpanded = !isExpanded;
             gsap.killTweensOf(themeRing);
@@ -299,7 +303,7 @@
                 }, 100);
             }, 200);
 
-            // 滚动触发动画（文字组、按钮组、标题右上角按钮同步动画）
+            // 滚动触发动画
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
