@@ -29,13 +29,14 @@
         }
         body.loaded { opacity: 1; }
 
-        /* ================= 第一屏：顶部图片区域改造 ================= */
+        /* ================= 第一屏：顶部图片区域 ================= */
         .top-image-wrapper {
             position: relative;
             width: 100vw;
             height: 100vh; 
             flex-shrink: 0;
             z-index: 1;
+            /* 因为文字绝对定位在里面，背景图撑满 */
         }
         .top-image {
             width: 100%;
@@ -46,63 +47,77 @@
             background-repeat: no-repeat;
         }
 
-        /* 🔽 第一张图片里面的新内容：左对齐，垂直居中 */
+        /* 🔽 第一张图片里面的新内容 */
         .top-image-content {
             position: absolute;
-            top: 50%;
-            left: 12%; /* 和底部文字的左间距保持一致 */
-            transform: translateY(-50%);
+            top: 15%; /* 放置在屏幕左上方的约 1/4 处 */
+            left: 12%; /* 保持和底部对齐 */
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            color: #ffffff;
-            pointer-events: none; /* 不影响穿透点击 */
+            pointer-events: none; 
             z-index: 2;
         }
-        /* 第一排：最大字体 */
+        /* 第一排：极大字体 */
         .cover-title {
-            font-size: 48px;
+            font-size: clamp(48px, 10vw, 100px);
             font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: 2px;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.8); /* 增加文字可读性 */
+            color: #ffffff; /* 纯白色，没有任何效果 */
+            text-shadow: none;
+            margin-bottom: 2vh; /* 与第二排的距离 */
         }
         /* 第二排：中等字体 + 加载动画 */
         .cover-sub-row {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 2.5vh;
         }
         .cover-subtitle {
-            font-size: 22px;
+            font-size: clamp(22px, 4vw, 42px);
             font-weight: 500;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            color: #ffffff;
+            text-shadow: none;
         }
-        /* 小加载动画 */
+        
+        /* 🔴 核心修复：精确复刻 Uiverse 的 rollingRock 弹跳动画 */
         .loader {
-            width: 18px; height: 18px;
             position: relative;
+            width: 2rem; height: 2rem;
             display: inline-block;
+            vertical-align: middle;
         }
-        .loader-inner {
+        .loader::after {
+            content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            border: 2px solid #f2a900;
-            border-top-color: transparent;
+            left: 0; bottom: 0.5rem;
+            width: 1rem; height: 1rem;
+            background-color: #f2a900; /* 橙色圆点 */
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: rollingRock 2.5s cubic-bezier(.79, 0, .47, .97) infinite;
         }
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
+        @keyframes rollingRock {
+            0% { transform: translate(0, -1rem) rotate(-45deg); }
+            5% { transform: translate(0, -1rem) rotate(-50deg); }
+            20% { transform: translate(1rem, -2rem) rotate(47deg); }
+            25% { transform: translate(1rem, -2rem) rotate(45deg); }
+            30% { transform: translate(1rem, -2rem) rotate(40deg); }
+            45% { transform: translate(2rem, -3rem) rotate(137deg); }
+            50% { transform: translate(2rem, -3rem) rotate(135deg); }
+            55% { transform: translate(2rem, -3rem) rotate(130deg); }
+            70% { transform: translate(3rem, -4rem) rotate(217deg); }
+            75% { transform: translate(3rem, -4rem) rotate(225deg); }
+            100% { transform: translate(0, -1rem) rotate(225deg); }
         }
+
         /* 第三排：最小字体 */
         .cover-hint {
-            font-size: 16px;
+            font-size: clamp(14px, 2vw, 24px);
             font-weight: 300;
-            opacity: 0.6;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            color: #ffffff;
+            opacity: 0.8;
+            text-shadow: none;
+            letter-spacing: 1px;
         }
         /* ======================================================== */
 
@@ -254,11 +269,10 @@
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
         @media (max-width: 600px) {
-            .top-image-content { left: 6%; }
-            .cover-title { font-size: 34px; margin-bottom: 8px; }
-            .cover-subtitle { font-size: 18px; }
-            .cover-hint { font-size: 14px; }
-            .loader { width: 16px; height: 16px; }
+            .top-image-content { left: 6%; top: 12%; }
+            .cover-title { margin-bottom: 1.5vh; }
+            .cover-sub-row { gap: 8px; margin-bottom: 1.5vh; }
+            .cover-subtitle { font-size: 20px; }
 
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
@@ -274,26 +288,25 @@
     </style>
 </head>
 <body>
-    <!-- 第一屏：顶部图片 + 新增文字 -->
+    <!-- 第一屏：顶部图片 + 文字 -->
     <div class="top-image-wrapper">
         <div class="top-image"></div>
         
-        <!-- 🔽 第一张图片新增内容 -->
+        <!-- 第一张图片新增内容（纯白、左对齐、精确占位比例） -->
         <div class="top-image-content">
             <h1 class="cover-title">GsBot编辑器</h1>
             <div class="cover-sub-row">
                 <h2 class="cover-subtitle">该网页施工中</h2>
-                <div class="loader"><div class="loader-inner"></div></div>
+                <div class="loader"></div>
             </div>
             <p class="cover-hint">向下滑动查看更多</p>
         </div>
     </div>
 
-    <!-- 第二屏：文字与按钮区域 -->
+    <!-- 第二屏：宫水大世界 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
 
-        <!-- 标题行：包含文字与右上角切换按钮 -->
         <div class="title-row">
             <div class="text-group">
                 <h1 class="text-pattern main-title">宫水大世界</h1>
@@ -315,7 +328,7 @@
         </div>
     </div>
 
-    <!-- 整个网页顶部悬浮的按钮 -->
+    <!-- 顶部悬浮按钮 -->
     <div class="top-actions">
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="void(0)">Log in</button>
@@ -333,7 +346,7 @@
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
 
-        // 预加载新图片（解决首次点击极卡顿问题）
+        // 预加载新图片
         const preloadNewBg = new Image();
         preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image();
@@ -341,11 +354,8 @@
 
         function toggleTheme(event) {
             const btn = event.currentTarget;
-            
-            // 获取按钮相对于父容器 (contentArea) 的精确坐标
             const btnRect = btn.getBoundingClientRect();
             const areaRect = contentArea.getBoundingClientRect();
-            
             const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
             const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
 
@@ -353,31 +363,20 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                // 【展开】瞬间替换遮罩背景图
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-
-                // 展开时，文字纹理延迟 0.2 秒切换
                 gsap.delayedCall(0.2, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; });
                 });
-                
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { 
-                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` 
-                });
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
             } else {
-                // 【收缩】
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-
-                // 收回时，文字纹理延迟 0.35 秒切换
                 gsap.delayedCall(0.35, () => {
                     textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
                 });
-                
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { 
-                    duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`,
                     onComplete: () => {
                         themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
                     }
@@ -394,7 +393,6 @@
                 if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); }
             }, 3000);
 
-            // 预渲染遮罩动画（解决首次点击极端卡顿）
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => {
                 gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` });
@@ -403,7 +401,6 @@
                 }, 100);
             }, 200);
 
-            // 第二屏滚动触发动画（滑下去播放，滑上去反方向复原，再滑下来再次正向播放）
             const tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: ".content-area",
