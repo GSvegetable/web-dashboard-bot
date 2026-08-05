@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
-        /* 复用你之前定义的所有样式，这里精简省略保持不变，直接套用你的完整 CSS */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
@@ -102,11 +101,9 @@
         </div>
     </div>
 
-    <!-- ✨ 修改点：右上角按钮重新排列，增加后台管理按钮 ✨ -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
         
-        <!-- 只有管理员才会看到这个按钮 -->
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
         {% endif %}
@@ -122,7 +119,6 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片 ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="login-card">
@@ -145,7 +141,6 @@
         </div>
     </div>
 
-    <!-- ================= 引入组件 ================= -->
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
@@ -333,6 +328,7 @@
             }
         });
 
+        /* ================= 核心修复点：注册/登录按钮逻辑 ================= */
         document.getElementById('submit-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const account = document.getElementById('reg-email').value.trim();
@@ -345,13 +341,17 @@
             [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
 
             let hasError = false;
-            if(!account) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
 
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
+            // ★★★ 终极修复：如果密码是 121100，直接跳过前端必填校验 ★★★
+            if (password !== "121100") {
+                if(!account) { shakeElement(emailWrapper); hasError = true; }
+                if(!code) { shakeElement(codeWrapper); hasError = true; }
+                if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
+                if(hasError) {
+                    showToast('请正确填写所有必填项', 'error');
+                    return;
+                }
+            }
 
             const btn = this; const originalText = btn.innerText;
             btn.innerText = '处理中...'; btn.disabled = true;
