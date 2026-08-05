@@ -1,21 +1,21 @@
-<!-- 极简联系开发者卡片（纯文字按钮） -->
+<!-- 极简联系开发者卡片（按钮自适应宽度并居中） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <!-- 完全去掉多余修饰，只保留三个选项，按钮尺寸与登录输入框一致 -->
-        <div class="login-card" style="width: 320px; padding: 16px 24px; align-items: stretch; gap: 10px;">
+        <!-- 这里添加了 flex + align-items: center 让内部元素自动居中 -->
+        <div class="login-card" style="width: 320px; padding: 16px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
             
             <!-- Telegram -->
-            <a href="https://t.me/gsyxyc" target="_blank" style="display: block; width: 100%; padding: 10px 0; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
+            <a href="https://t.me/gsyxyc" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
                 Telegram
             </a>
 
             <!-- QQ -->
-            <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" style="display: block; width: 100%; padding: 10px 0; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
+            <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
                 QQ
             </a>
 
             <!-- WhatsApp -->
-            <a href="https://wa.me/8615861980264" target="_blank" style="display: block; width: 100%; padding: 10px 0; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
+            <a href="https://wa.me/8615861980264" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
                 WhatsApp
             </a>
 
