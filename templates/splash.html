@@ -56,23 +56,18 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* ================= 全新极简音乐卡片 ================= */
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
-        
         .music-track-info { display: flex; flex-direction: column; gap: 4px; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .music-artist-name { font-size: 0.85rem; color: #9ca3af; }
-        
         .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
         .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
         .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
         .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
-        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; } /* 移动端隐藏小圆点，保持极简 */
-        
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
         .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
         .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .music-btn:active { transform: scale(0.90); opacity: 0.7; }
-        
         #play-pause-btn .icon-pause { display: none; }
         #play-pause-btn.playing .icon-play { display: none; }
         #play-pause-btn.playing .icon-pause { display: block; }
@@ -122,13 +117,11 @@
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
-        <!-- 音乐按钮：控制全新播放卡片的显隐 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
     </div>
 
-    <!-- 隐藏的真实音乐播放器（无论卡片显隐，它都在后台） -->
     <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
 
     <div id="custom-toast"></div>
@@ -156,7 +149,7 @@
         </div>
     </div>
 
-    <!-- ================= 极简音乐卡片（全新设计） ================= -->
+    <!-- ================= 极简音乐卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-card-glass">
@@ -170,7 +163,6 @@
                         <span id="music-current-time">0:00</span>
                         <span id="music-total-time">0:00</span>
                     </div>
-                    <!-- 进度条轨道，支持点击跳转 -->
                     <div class="music-progress-track" id="music-progress-track">
                         <div class="music-progress-fill" id="music-progress-fill"></div>
                         <div class="music-progress-handle" id="music-progress-handle"></div>
@@ -178,18 +170,15 @@
                 </div>
 
                 <div class="music-controls">
-                    <!-- 上一首（无列表时重置为 0） -->
                     <button class="music-btn" id="music-prev-btn">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
                     </button>
                     
-                    <!-- 播放/暂停 -->
                     <button class="music-btn" id="play-pause-btn">
                         <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>
                         <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                     </button>
                     
-                    <!-- 下一首（无列表时前进 15 秒） -->
                     <button class="music-btn" id="music-next-btn">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
                     </button>
@@ -199,9 +188,6 @@
     </div>
 
     <script>
-        // ============================================================
-        // 核心基础功能
-        // ============================================================
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -269,7 +255,15 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        /* ================= 核心交互修改点 ================= */
         function openLoginModal() {
+            // 1. 先检查并关闭音乐卡片
+            const musicModal = document.getElementById('musicModal');
+            if (musicModal && musicModal.classList.contains('active')) {
+                closeMusicModal();
+            }
+
+            // 2. 再执行打开登录卡片的逻辑
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -290,9 +284,7 @@
             element.classList.add('shake-field');
         }
 
-        // ============================================================
-        // 全新极简音乐播放器逻辑
-        // ============================================================
+        /* ================= 音乐播放器逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -308,7 +300,6 @@
             return m + ":" + (s < 10 ? "0" : "") + s;
         }
 
-        // 打开/关闭 音乐卡片
         function toggleMusicModal() {
             if (!musicModal) return;
             if (musicModal.classList.contains('active')) {
@@ -326,7 +317,6 @@
             musicModal.classList.remove('active');
         }
 
-        // 播放/暂停切换
         function togglePlayPause() {
             if (!bgAudio) return;
             if (bgAudio.paused) {
@@ -338,12 +328,10 @@
             }
         }
 
-        // 音乐加载完毕获取总时长
         bgAudio.addEventListener('loadedmetadata', () => {
             totalTimeDisplay.textContent = formatTime(bgAudio.duration);
         });
 
-        // 播放时实时更新进度
         bgAudio.addEventListener('timeupdate', () => {
             const current = bgAudio.currentTime;
             const duration = bgAudio.duration;
@@ -352,7 +340,6 @@
             progressFill.style.width = percent + '%';
         });
 
-        // 点击进度条跳转
         progressTrack.addEventListener('click', function(e) {
             const rect = this.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
@@ -361,27 +348,21 @@
             }
         });
 
-        // 上一首：归零
         document.getElementById('music-prev-btn').addEventListener('click', () => {
             if (bgAudio) bgAudio.currentTime = 0;
         });
 
-        // 下一首：快进 15 秒
         document.getElementById('music-next-btn').addEventListener('click', () => {
             if (bgAudio) bgAudio.currentTime += 15;
         });
 
-        // 绑定事件
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        // 点击音乐卡片外部关闭
         musicModal.addEventListener('click', function(e) {
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        // ============================================================
-        // 登录相关逻辑
-        // ============================================================
+        /* ================= 验证码和注册逻辑 ================= */
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
