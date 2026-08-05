@@ -1,7 +1,7 @@
 import os
 import random
 import re # 用来判断邮箱格式
-from datetime import datetime, timezone
+from datetime import datetime # 修改点：去掉 timezone
 
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -21,7 +21,7 @@ app.config['SECRET_KEY'] = os.urandom(24).hex()
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 初始化数据库（【修复点】：只初始化一次！删掉了 tg_db.init_app(app)）
+# 初始化数据库
 db.init_app(app)
 
 login_manager = LoginManager()
@@ -57,7 +57,8 @@ def send_code():
         record = EmailCode.query.filter_by(email=account).first()
         if record:
             record.code = code
-            record.created_at = datetime.now(timezone.utc)
+            # 修复点：改用 datetime.utcnow()
+            record.created_at = datetime.utcnow()
         else:
             new_record = EmailCode(email=account, code=code)
             db.session.add(new_record)
@@ -88,11 +89,13 @@ def register():
     valid_code = False
     if is_email:
         record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first()
-        if record and record.code == code and (datetime.now(timezone.utc) - record.created_at).seconds <= 300:
+        # 修复点：改用 datetime.utcnow()
+        if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300:
             valid_code = True
     else:
         record = TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
-        if record and record.code == code and (datetime.now(timezone.utc) - record.created_at).seconds <= 300:
+        # 修复点：改用 datetime.utcnow()
+        if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300:
             valid_code = True
             
     if not valid_code:
