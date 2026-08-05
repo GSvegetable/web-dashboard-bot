@@ -1,53 +1,60 @@
-// 卡片互锁逻辑（修复联系开发者卡片无法被其他按钮关闭的Bug + 新增两个占位按钮）
+// 卡片互锁逻辑（彻底重写，直接操作DOM，绝对稳定）
 document.addEventListener("DOMContentLoaded", function() {
-    // 备份原本的打开函数
-    const originalOpenLogin = window.openLoginModal;
-    const originalOpenMusic = window.openMusicModal;
-    const originalOpenContact = window.openContactModal;
-    const originalOpenUpdateLog = window.openUpdateLogModal;
-    const originalOpenBecomeFan = window.openBecomeFanModal;
-
-    // 覆盖关闭函数，解决“不带e参数无法关闭”的问题
+    // 定义所有卡片关闭函数
     window.closeLoginModal = function() {
-        const modal = document.getElementById('loginModal');
-        if (modal) modal.classList.remove('active');
+        const el = document.getElementById('loginModal');
+        if (el) el.classList.remove('active');
     };
     window.closeMusicModal = function() {
-        const modal = document.getElementById('musicModal');
-        if (modal) modal.classList.remove('active');
+        const el = document.getElementById('musicModal');
+        if (el) el.classList.remove('active');
     };
     window.closeContactModal = function() {
-        const modal = document.getElementById('contactModal');
-        if (modal) modal.classList.remove('active');
+        const el = document.getElementById('contactModal');
+        if (el) el.classList.remove('active');
     };
     window.closeUpdateLogModal = function() {
-        const modal = document.getElementById('updateLogModal');
-        if (modal) modal.classList.remove('active');
+        const el = document.getElementById('updateLogModal');
+        if (el) el.classList.remove('active');
     };
     window.closeBecomeFanModal = function() {
-        const modal = document.getElementById('becomeFanModal');
-        if (modal) modal.classList.remove('active');
+        const el = document.getElementById('becomeFanModal');
+        if (el) el.classList.remove('active');
     };
 
-    // 定义打开逻辑：带着“互锁”功能
+    // 一键关闭所有卡片的辅助函数
+    window.closeAllModals = function() {
+        const ids = ['loginModal', 'musicModal', 'contactModal', 'updateLogModal', 'becomeFanModal'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+        });
+    };
+
+    // 定义所有卡片打开函数（自带“先关闭其他”的逻辑）
     window.openLoginModal = function() {
-        closeMusicModal(); closeContactModal(); closeUpdateLogModal(); closeBecomeFanModal();
-        if (originalOpenLogin) originalOpenLogin();
+        window.closeAllModals(); // 先关掉其它所有卡片
+        const el = document.getElementById('loginModal');
+        if (el) el.classList.add('active'); // 然后打开当前卡片
     };
     window.openMusicModal = function() {
-        closeLoginModal(); closeContactModal(); closeUpdateLogModal(); closeBecomeFanModal();
-        if (originalOpenMusic) originalOpenMusic();
+        window.closeAllModals();
+        const el = document.getElementById('musicModal');
+        if (el) el.classList.add('active');
     };
     window.openContactModal = function() {
-        closeLoginModal(); closeMusicModal(); closeUpdateLogModal(); closeBecomeFanModal();
-        if (originalOpenContact) originalOpenContact();
+        window.closeAllModals();
+        const el = document.getElementById('contactModal');
+        if (el) el.classList.add('active');
     };
     window.openUpdateLogModal = function() {
-        closeLoginModal(); closeMusicModal(); closeContactModal(); closeBecomeFanModal();
-        if (originalOpenUpdateLog) originalOpenUpdateLog();
+        window.closeAllModals();
+        const el = document.getElementById('updateLogModal');
+        if (el) el.classList.add('active');
     };
     window.openBecomeFanModal = function() {
-        closeLoginModal(); closeMusicModal(); closeContactModal(); closeUpdateLogModal();
-        if (originalOpenBecomeFan) originalOpenBecomeFan();
+        window.closeAllModals();
+        const el = document.getElementById('becomeFanModal');
+        if (el) el.classList.add('active');
     };
 });
