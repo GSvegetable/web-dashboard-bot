@@ -38,14 +38,10 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ==========================================
-           ★★★ 修复 BUG 的核心 ★★★
-           GSAP 备用 CSS 动画，哪怕网络卡死，文字和按钮也会显示！
-           ========================================== */
+        /* ★★★ 修复 BUG：CSS 备用动画 ★★★ */
         .text-group, .theme-btn-title, .btn-grid {
             opacity: 0;
             transform: translateY(60px);
-            /* 使用 CSS 备用动画作为保底 */
             animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
         .theme-btn-title { animation-delay: 0s; }
@@ -142,10 +138,12 @@
         </div>
     </div>
 
+    <!-- 右上角按钮：顺序为 联系开发者、全屏、Log in、音乐 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
+        <!-- 音乐按钮 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -153,6 +151,7 @@
 
     <div id="custom-toast"></div>
 
+    <!-- ================= 登录卡片 ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="login-card">
@@ -175,6 +174,7 @@
         </div>
     </div>
 
+    <!-- ================= 音乐卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-glass-card">
@@ -230,6 +230,9 @@
         </div>
     </div>
 
+    <!-- =============================================================== -->
+    <!-- ★★★ 修复核心：所有被 onclick 调用的函数，全放在全局作用域内 ★★★ -->
+    <!-- =============================================================== -->
     <script>
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
@@ -246,6 +249,7 @@
         const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
         const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
+        // --- 1. 主题切换 ---
         function toggleTheme(event) {
             const btn = event.currentTarget;
             const btnRect = btn.getBoundingClientRect();
@@ -270,28 +274,12 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
-            bgImg.src = imgUrl;
-            bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
-
-            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
-
-            // 如果 GSAP 加载成功，会覆盖上面的 CSS 备用动画，让效果依然优雅
-            if (typeof gsap !== 'undefined') {
-                const tl = gsap.timeline();
-                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
-            }
-        });
-
+        // --- 2. 全屏显示 ---
         function toggleFullScreen() {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
 
+        // --- 3. Toast 提示 ---
         function showToast(msg, type='info') {
             toast.innerText = msg; toast.className = 'show';
             if(type === 'error') toast.classList.add('error');
@@ -301,28 +289,64 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // --- 4. 登录卡片交互 ---
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            // 如果 GSAP 未加载，直接显示，不报错
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            } else {
+                items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+            }
         }
 
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input')) return;
-            closeLoginModal();
-        });
+        // --- 5. 音乐卡片交互 ---
+        let bgAudio, playBtn, iconPlay, iconPause, currentTimeDisplay, totalTimeDisplay, progressFill, progressHandle;
 
-        const bgAudio = document.getElementById('bg-audio');
-        const playBtn = document.getElementById('play-btn');
-        const iconPlay = document.getElementById('icon-play');
-        const iconPause = document.getElementById('icon-pause');
-        const currentTimeDisplay = document.getElementById('current-time');
-        const totalTimeDisplay = document.getElementById('total-time');
-        const progressFill = document.getElementById('progress-fill');
-        const progressHandle = document.getElementById('progress-handle');
+        function initAudioElements() {
+            bgAudio = document.getElementById('bg-audio');
+            playBtn = document.getElementById('play-btn');
+            iconPlay = document.getElementById('icon-play');
+            iconPause = document.getElementById('icon-pause');
+            currentTimeDisplay = document.getElementById('current-time');
+            totalTimeDisplay = document.getElementById('total-time');
+            progressFill = document.getElementById('progress-fill');
+            progressHandle = document.getElementById('progress-handle');
+
+            if (!bgAudio) return;
+
+            bgAudio.addEventListener('loadedmetadata', () => {
+                totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+            });
+
+            playBtn.addEventListener('click', () => {
+                if (bgAudio.paused) {
+                    bgAudio.play();
+                    iconPlay.style.display = 'none';
+                    iconPause.style.display = 'block';
+                } else {
+                    bgAudio.pause();
+                    iconPlay.style.display = 'block';
+                    iconPause.style.display = 'none';
+                }
+            });
+
+            bgAudio.addEventListener('timeupdate', () => {
+                const current = bgAudio.currentTime;
+                const duration = bgAudio.duration;
+                const percent = (current / duration) * 100;
+                currentTimeDisplay.textContent = formatTime(current);
+                progressFill.style.width = percent + '%';
+                progressHandle.style.left = percent + '%';
+            });
+
+            document.getElementById('prev-btn').addEventListener('click', () => { bgAudio.currentTime = 0; });
+            document.getElementById('next-btn').addEventListener('click', () => { bgAudio.currentTime += 15; });
+        }
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -331,53 +355,52 @@
             return m + ":" + (s < 10 ? "0" : "") + s;
         }
 
-        bgAudio.addEventListener('loadedmetadata', () => {
-            totalTimeDisplay.textContent = formatTime(bgAudio.duration);
-        });
-
-        playBtn.addEventListener('click', () => {
-            if (bgAudio.paused) {
-                bgAudio.play();
-                iconPlay.style.display = 'none';
-                iconPause.style.display = 'block';
-            } else {
-                bgAudio.pause();
-                iconPlay.style.display = 'block';
-                iconPause.style.display = 'none';
-            }
-        });
-
-        bgAudio.addEventListener('timeupdate', () => {
-            const current = bgAudio.currentTime;
-            const duration = bgAudio.duration;
-            const percent = (current / duration) * 100;
-            currentTimeDisplay.textContent = formatTime(current);
-            progressFill.style.width = percent + '%';
-            progressHandle.style.left = percent + '%';
-        });
-
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            bgAudio.currentTime = 0;
-        });
-
-        document.getElementById('next-btn').addEventListener('click', () => {
-            bgAudio.currentTime += 15;
-        });
-
         function openMusicModal() {
             document.getElementById('musicModal').classList.add('active');
         }
 
         function closeMusicModal() { 
             document.getElementById('musicModal').classList.remove('active'); 
-            bgAudio.pause();
-            iconPlay.style.display = 'block';
-            iconPause.style.display = 'none';
+            if (bgAudio) {
+                bgAudio.pause();
+                if (iconPlay && iconPause) {
+                    iconPlay.style.display = 'block';
+                    iconPause.style.display = 'none';
+                }
+            }
         }
 
-        document.getElementById('musicModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
-            closeMusicModal();
+        // --- 6. DOM 加载完成后绑定事件和播放入场动画 ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+
+            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+
+            // 只要 GSAP 加载成功，用 GSAP 重写一次入场动画（覆盖 CSS 后备动画）
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            }
+
+            // 初始化音乐元素
+            initAudioElements();
+
+            // 监听点击卡片外的空白关闭
+            document.getElementById('loginModal').addEventListener('click', function(e) {
+                if (e.target.closest('button') || e.target.closest('input')) return;
+                closeLoginModal();
+            });
+
+            document.getElementById('musicModal').addEventListener('click', function(e) {
+                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
+                closeMusicModal();
+            });
         });
 
         function shakeElement(element) {
@@ -387,6 +410,7 @@
             element.classList.add('shake-field');
         }
 
+        // --- 7. 验证码和注册逻辑 ---
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
@@ -401,23 +425,4 @@
                 else { showToast('❌ ' + data.msg, 'error'); }
             } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
             finally { btn.disabled = false; }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const email = document.getElementById('reg-email').value.trim();
-            const code = document.getElementById('reg-code').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const emailWrapper = document.getElementById('email-wrapper');
-            const codeWrapper = document.getElementById('code-wrapper');
-            const passwordWrapper = document.getElementById('password-wrapper');
-            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
-
-            let hasError = false;
-            if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
-
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passR
+ 
