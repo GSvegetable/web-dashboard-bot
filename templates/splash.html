@@ -68,20 +68,6 @@
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
-        .music-track-info { display: flex; flex-direction: column; gap: 4px; }
-        .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .music-artist-name { font-size: 0.85rem; color: #9ca3af; }
-        .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
-        .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
-        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
-        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
-        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
-        .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
-        .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-        .music-btn:active { transform: scale(0.90); opacity: 0.7; }
-        #play-pause-btn .icon-pause { display: none; }
-        #play-pause-btn.playing .icon-play { display: none; }
-        #play-pause-btn.playing .icon-pause { display: block; }
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -97,7 +83,7 @@
             .top-actions { top: 12px; right: 12px; gap: 6px; }
             .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
+            .login-card { width: 280px; padding: 16px 20px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
@@ -126,9 +112,7 @@
     <!-- 右上角按钮 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
-        <!-- 新增：更新日志 -->
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
-        <!-- 新增：成为爱好者 -->
         <button class="top-btn" onclick="openBecomeFanModal()">成为爱好者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
@@ -148,7 +132,7 @@
                     <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
                 <div class="flex gap-2 w-full anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
                     <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
                 </div>
                 <div class="anim-item" id="code-wrapper">
@@ -172,7 +156,7 @@
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
-        // 保留核心的 toggleTheme 和 GSAP 初始化，其余互锁逻辑由 modal_manager.js 接管
+        // 保留核心的 toggleTheme 和 GSAP 初始化
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -226,6 +210,7 @@
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
 
+            // 音乐音量设置
             const bgAudio = document.getElementById('bg-audio');
             if (bgAudio) {
                 bgAudio.volume = 0.3; 
@@ -269,9 +254,8 @@
         }
 
         function toggleMusicModal() {
-            const modal = document.getElementById('musicModal');
-            if (!modal) return;
-            if (modal.classList.contains('active')) {
+            if (!musicModal) return;
+            if (musicModal.classList.contains('active')) {
                 window.closeMusicModal();
             } else {
                 window.openMusicModal();
@@ -318,6 +302,97 @@
         });
 
         playPauseBtn.addEventListener('click', togglePlayPause);
+
+        /* ================= 登录、验证码、注册事件绑定 ================= */
+        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const emailInput = document.getElementById('reg-email');
+            const account = emailInput.value.trim();
+            
+            // 防止空账号提交
+            if(!account) { 
+                shakeElement(document.getElementById('email-wrapper')); 
+                showToast('请输入邮箱或Telegram ID', 'error'); 
+                return; 
+            }
+
+            const btn = this;
+            btn.disabled = true; // 防止疯狂连点
+
+            try {
+                const res = await fetch('/api/send_code', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: account})
+                });
+                
+                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
+                const data = await res.json();
+                
+                if(data.ok) {
+                    showToast('✅ ' + data.msg, 'success');
+                } else {
+                    showToast('❌ ' + data.msg, 'error');
+                }
+            } catch (e) {
+                showToast('❌ 网络请求失败: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('submit-btn').addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const account = document.getElementById('reg-email').value.trim();
+            const code = document.getElementById('reg-code').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            
+            const emailWrapper = document.getElementById('email-wrapper');
+            const codeWrapper = document.getElementById('code-wrapper');
+            const passwordWrapper = document.getElementById('password-wrapper');
+            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
+
+            let hasError = false;
+            if(!account) { shakeElement(emailWrapper); hasError = true; }
+            if(!code) { shakeElement(codeWrapper); hasError = true; }
+            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
+            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
+
+            const passRegex = /^[a-zA-Z0-9_\/]+$/;
+            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
+
+            const btn = this; const originalText = btn.innerText;
+            btn.innerText = '处理中...'; btn.disabled = true;
+
+            try {
+                const formData = new URLSearchParams();
+                formData.append('email', account);
+                formData.append('password', password);
+                formData.append('confirm_password', password);
+                formData.append('code', code);
+                formData.append('cf-turnstile-response', 'dummy');
+
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: formData.toString()
+                });
+                
+                const text = await res.text();
+                
+                if(text.includes('注册成功') || text.includes('登录成功')) {
+                    showToast('🎉 ' + text, 'success');
+                    setTimeout(() => { window.closeLoginModal(); }, 1000);
+                } else {
+                    showToast('❌ ' + text, 'error');
+                }
+            } catch (e) {
+                showToast('❌ 请求异常：' + e.message, 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
