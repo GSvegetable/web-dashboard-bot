@@ -27,9 +27,13 @@ def send_verification_code(tg_id):
     
     try:
         response = requests.post(url, json=payload)
-        if response.status_code == 200:
-            return True, code
-        else:
+        # 关键修改：把真实回复打印到 Railway 日志里！
+        print(f"Telegram API 请求状态码: {response.status_code}")
+        if response.status_code != 200:
+            print(f"Telegram API 报错内容: {response.text}")
             return False, None
-    except Exception:
+        return True, code
+    except Exception as e:
+        # 打印报错信息，让你在 Railway 日志里能看见
+        print(f"发送电报验证码时发生了异常: {e}")
         return False, None
