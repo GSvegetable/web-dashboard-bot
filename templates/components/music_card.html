@@ -1,0 +1,42 @@
+<!-- 音乐卡片组件（独立存放） -->
+<div class="modal-overlay" id="musicModal">
+    <div class="modal-box">
+        <div class="music-card-glass">
+            <!-- 音频播放器始终保持全局存在 -->
+            <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
+            
+            <div class="music-track-info">
+                <div class="music-track-title" id="music-title">Theme of Mitsuha</div>
+                <div class="music-artist-name" id="music-artist">RADWIMPS</div>
+            </div>
+            
+            <div class="music-progress-area">
+                <div class="music-time-row">
+                    <span id="music-current-time">0:00</span>
+                    <span id="music-total-time">0:00</span>
+                </div>
+                <div class="music-progress-track" id="music-progress-track">
+                    <div class="music-progress-fill" id="music-progress-fill"></div>
+                    <div class="music-progress-handle" id="music-progress-handle"></div>
+                </div>
+            </div>
+
+            <div class="music-controls">
+                <button class="music-btn" id="music-prev-btn">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
+                </button>
+                
+                <button class="music-btn" id="play-pause-btn">
+                    <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                        <polygon points="6,4 19,12 6,20"></polygon>
+                    </svg>
+                    <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                </button>
+                
+                <button class="music-btn" id="music-next-btn">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
