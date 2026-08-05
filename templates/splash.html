@@ -74,34 +74,34 @@
         .playback-controls { display: flex; flex-direction: column; gap: 8px; }
         .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
         .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
-        .进度-填写 { 高度: 100%; 宽度: 0%; 背景: 线性梯度(90deg，#00c6ff，#0072ff); 边界半径: 2PX; }
-        .进度句柄 { 位置: 绝对的; 顶端: 50%; 左: 0%; 改变: 翻译(-50%, -50%); 宽度: 10PX; 高度: 10PX; 背景色: 白色的; 边界半径: 50%; 箱形阴影: 0 0 6PX RGBA(0, 0, 0, 0.5); }
-        .按钮排 { 显示: 弯曲; justify-content: 间距; 差距: 12PX; }
-        .控制按钮 { 上边距: 2%; 宽度: 52PX; 高度: 52PX; 边界半径: 50%; 边境: 没有一个; 背景: 没有一个; 显示: 弯曲; justify-content: 中心; 对齐项目: 中心; 光标: 指针; 过渡: 背景 0.2s, 改变 0.2s; 颜色：#fff；}
-        .控制按钮.播放暂停按钮:盘旋, .控制按钮.d:盘旋 { 背景: RGBA(255, 255, 255, 0.1); 改变: 规模(1.05); }
-        .主控-btns { justify-content: 中心; 对齐项目: 中心; 显示: 弯曲; 左边距: 10%; 差距: 20%; }
-        .播放暂停按钮 .图标暂停 { 显示: 没有一个; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; }
+        .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); }
+        .button-row { display: flex; justify-content: space-between; gap: 12px; }
+        .control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
+        .control-button.play-pause-button:hover, .control-button.d:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+        .main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
+        .play-pause-button .icon-pause { display: none; }
         
-        #定制烤面包 { 位置: 确定的; 底部: 40PX; 左: 50%; 改变: translateX(-50%); 背景：#1f2937；颜色：#f3f4f6；填充: 10PX 24PX; 边界半径: 8PX; 箱形阴影: 0 4PX 12PX RGBA(0,0,0,0.6); Z指数: 99999; 字体大小: 14PX; 不透明度: 0; 能见度: 隐藏的; 过渡: 所有 0.3s 缓解; 空白: noWrap; 左边框: 4PX 固体#8b5cf6；最大宽度: 90%; 空白: 正常的; 文本对齐: 中心; }
-        #定制烤面包.误差 { 左框线彩色：#ef4444；}
-        #定制烤面包.成功 { 左框线彩色：#22c55e；}
-        #定制烤面包.显示 { 不透明度: 1; 能见度: 看得见的; }
+        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
+        #custom-toast.error { border-left-color: #ef4444; }
+        #custom-toast.success { border-left-color: #22c55e; }
+        #custom-toast.show { opacity: 1; visibility: visible; }
 
-        @介质 (最大宽度: 600PX) {
-            .内容区 { 顶部衬垫: 11VH; 左填充: 6%; 最小高度: 100VH; }
-            .主要标题 { 字体大小: 44PX; }
-            .副标题 { 字体大小: 16PX; }
-            .glass-btn { 字体大小: 15PX; 填充: 12PX 0; 边界半径: 20PX; }
-            .btn-grid { 差距: 12PX; 最大宽度: 260PX; }
-            .top-actions { 顶端: 12PX; 正确的: 12PX; 差距: 6PX; }
-            .top-btn { 字体大小: 11PX; 填充: 6PX 8PX; }
-            .模态覆盖 { 顶部衬垫: 70PX; 右边填充: 12PX; }
-            .登录卡, .音乐玻璃卡 { 宽度: 280PX; 填充: 16PX; }
-            #定制烤面包 { 字体大小: 13PX; 填充: 8PX 16PX; 底部: 30PX; }
+        @media (max-width: 600px) {
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
+            .main-title { font-size: 44px; }
+            .sub-title { font-size: 16px; }
+            .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
+            .btn-grid { gap: 12px; max-width: 260px; }
+            .top-actions { top: 12px; right: 12px; gap: 6px; }
+            .top-btn { font-size: 11px; padding: 6px 8px; }
+            .modal-overlay { padding-top: 70px; padding-right: 12px; }
+            .login-card, .music-glass-card { width: 280px; padding: 16px; }
+            #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
-    </风格>
-</头>
-<身体>
+    </style>
+</head>
+<body>
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -215,11 +215,9 @@
     </div>
 
     <script>
-        // ============================================================
-        // 核心保障：所有点击触发的事件，全部挂在 window 上！
-        // 只要测试版能通，这个版本绝对不可能按键失效！
-        // ============================================================
-
+        // 保证所有函数暴露在 window 上，所有代码均是安全的原生语法，确保 Jinja2 模板不出错。
+        // 修复核心：去掉了所有的箭头函数闭包尾逗号(,)，换成传统的 function() 回调！
+        
         window.toggleTheme = function(event) {
             const themeRing = document.getElementById('theme-ring');
             const contentArea = document.getElementById('contentArea');
@@ -244,16 +242,24 @@
             gsap.killTweensOf(themeRing);
 
             if (isExpanded) {
-                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                themeRing.style.backgroundImage = 'url("' + newBgUrl + '")';
+                gsap.set(themeRing, { clipPath: 'circle(0% at ' + x + 'px ' + y + 'px)' });
+                gsap.delayedCall(0.2, function() {
+                    textElements.forEach(function(el) { el.style.backgroundImage = 'url("' + newTextUrl + '")'; });
+                });
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: 'circle(150% at ' + x + 'px ' + y + 'px)' });
             } else {
-                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                gsap.set(themeRing, { clipPath: 'circle(150% at ' + x + 'px ' + y + 'px)' });
+                gsap.delayedCall(0.35, function() {
+                    textElements.forEach(function(el) { el.style.backgroundImage = 'url("' + defaultTextUrl + '")'; });
+                });
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: 'circle(0% at ' + x + 'px ' + y + 'px)' });
+                // 解决崩溃重点：去掉 `gsap.to` 中的 `onComplete`，改用独立的 `delayedCall`！
+                gsap.delayedCall(0.9, function() {
+                    themeRing.style.backgroundImage = 'url("' + defaultBgUrl + '")';
+                });
             }
         };
 
@@ -261,153 +267,147 @@
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         };
 
-        window.showToast = function(msg, type='info') {
-            const toast = document.getElementById('custom-toast');
+        window.showToast = function(msg, type) {
+            if (!type) type = 'info';
+            var toast = document.getElementById('custom-toast');
             if (!toast) return;
             toast.innerText = msg; toast.className = 'show';
             if(type === 'error') toast.classList.add('error');
             else if(type === 'success') toast.classList.add('success');
             else toast.classList.remove('error', 'success');
             clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 3000);
+            toast._timer = setTimeout(function() { toast.classList.remove('show'); }, 3000);
         };
 
         window.openLoginModal = function() {
-            const modal = document.getElementById('loginModal');
+            var modal = document.getElementById('loginModal');
             if (!modal) return;
             modal.classList.add('active');
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            // 用 GSAP 做个柔和过渡，就算崩了，纯属视觉，不会影响开启
+            var items = document.querySelectorAll('#loginModal .anim-item');
             try {
-                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
-            } catch (e) {}
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+                } else {
+                    for (var i=0; i<items.length; i++) { items[i].style.opacity = '1'; items[i].style.transform = 'translateX(0)'; }
+                }
+            } catch (e) {
+                for (var i=0; i<items.length; i++) { items[i].style.opacity = '1'; items[i].style.transform = 'translateX(0)'; }
+            }
         };
 
         window.closeLoginModal = function() { 
-            const modal = document.getElementById('loginModal');
+            var modal = document.getElementById('loginModal');
             if (modal) modal.classList.remove('active'); 
         };
 
         window.openMusicModal = function() { 
-            const modal = document.getElementById('musicModal');
+            var modal = document.getElementById('musicModal');
             if (modal) modal.classList.add('active'); 
         };
 
         window.closeMusicModal = function() { 
-            const modal = document.getElementById('musicModal');
+            var modal = document.getElementById('musicModal');
             if (modal) modal.classList.remove('active'); 
-            const bgAudio = document.getElementById('bg-audio');
+            var bgAudio = document.getElementById('bg-audio');
             if (bgAudio) {
                 bgAudio.pause();
-                const iconPlay = document.getElementById('icon-play');
-                const iconPause = document.getElementById('icon-pause');
+                var iconPlay = document.getElementById('icon-play');
+                var iconPause = document.getElementById('icon-pause');
                 if (iconPlay) iconPlay.style.display = 'block';
                 if (iconPause) iconPause.style.display = 'none';
             }
         };
 
         window.toggleMusicPlayPause = function() {
-            const bgAudio = document.getElementById('bg-audio');
+            var bgAudio = document.getElementById('bg-audio');
             if (!bgAudio) return;
-            const iconPlay = document.getElementById('icon-play');
-            const iconPause = document.getElementById('icon-pause');
+            var iconPlay = document.getElementById('icon-play');
+            var iconPause = document.getElementById('icon-pause');
             if (bgAudio.paused) {
-                // 核心：加上 .catch，哪怕手机限制自动播放，也绝不崩溃！
-                bgAudio.play().catch(e => console.log("播放交互受限:", e));
+                bgAudio.play()["catch"](function(e) { console.log("播放交互受限:", e); });
                 if(iconPlay) iconPlay.style.display = 'none';
                 if(iconPause) iconPause.style.display = 'block';
-            } 其他 {
-                bgAudio.暂停();
-                如果(iconPlay) iconPlay.风格.显示='块';
-                如果(iconPause) iconPause.风格.显示='无';
+            } else {
+                bgAudio.pause();
+                if(iconPlay) iconPlay.style.display = 'block';
+                if(iconPause) iconPause.style.display = 'none';
             }
         };
 
-        //============================================================
-        // DOM 加载后的附属逻辑
-        //============================================================
-        文件.addEventListener("DOMContentLoaded", 功能() {
-            // 加载背景
-            ConstbgImg=新的图像(); 
-            Constimgurl="{{url_for('static'，filename='bg.png')}}";
-            bgImg.src=imgurl;
-            bgImg.onload=功能() { 文件.身体.classList.添加('已加载'); };
-            setTimeout(()=>{ 如果(!文件.身体.classList.包含('已加载')) { 文件.身体.classList.添加('已加载'); } }, 3000);
+        // ================= DOM 加载后的附属逻辑 =================
+        document.addEventListener("DOMContentLoaded", function() {
+            var bgImg = new Image(); 
+            var imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(function() { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-            // 预执行一次背景动画防卡顿
-            Const主题化=文件.getElementById('主题环');
-            如果 (主题化) {
-                GSAP.设置(主题化, { clipPath: '圆形(0%at00)' });
-                setTimeout(()=>{ 
-                    GSAP.设置(主题化, { clipPath: '圆形(在00时为150%)' }); 
-                    setTimeout(()=>{ GSAP.设置(主题化, { clipPath: '圆形(0%at00)' }); }, 100); 
+            var themeRing = document.getElementById('theme-ring');
+            if (themeRing) {
+                gsap.set(themeRing, { clipPath: 'circle(0% at 0 0)' });
+                setTimeout(function() { 
+                    gsap.set(themeRing, { clipPath: 'circle(150% at 0 0)' }); 
+                    setTimeout(function() { gsap.set(themeRing, { clipPath: 'circle(0% at 0 0)' }); }, 100); 
                 }, 200);
             }
 
-            // 入场动画
-            如果 (typeof GSAP!=='未定义') {
-                ConstTL=GSAP.时间线();
-                TL.到(".text-group", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
-                  .到("#themeToggleBtn", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
-                  .到(".btn-grid", { 不透明度: 1, y: 0, 持续: 1.2, 延期: 0.2, 缓解: "power3.out" }, 0.2);
+            if (typeof gsap !== 'undefined') {
+                var tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
             }
 
-            //音乐真实进度监听//音乐真实进度监听常量包装=文件。getElementById('电子邮件包装器')；常量wrapper=document.getElementById('email-wrapper')；
-文件。getElementById('send-code-btn')。addEventListener('单击'，异步函数(e){文件.getElementById('send-code-btn').addEventListener('单击'，异步函数(e){
-                        =
-bg音频.addEventListener('timeupdate'，()=>{bgAudio.addEventListener('timeupdate'，()=>{.addEventListener('timeupdate'，()=>{bgAudio.addEventListener('timeupdate',()=>{.addEventListener('timeupdate'，()=>{bg音频。addEventListener('timeupdate'，()=>{.addEventListener('timeupdate'，()=>{bg音频。addEventListener('timeupdate',()=>{
-Const 
-如果(totalTimeDisplay){如果 (totalTimeDisplay) {
-totalTimeDisplay
-常数=数学下限(bg音频持续时间%60)；常数s=数学.地板(bgAudio.持续%60)；=数学下限(bg音频持续时间%60)；常数s=数学.地板(bgAudio.持续 % 60);
-totalTimeDisplay
-totalTimeDisplay
-                
-
-Const 
-Const当前=bgAudio.currentTime；常量当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量 当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量 当前=bgAudio.currentTime;
-Const持续时间=bg音频持续时间；const持续时间=bg音频持续时间；持续=bg音频。持续时间；常数持续=bg音频。持续；=bg音频持续时间；const持续时间=bg音频持续时间；持续=bgAudio.持续时间；常数 持续=bgAudio.持续;
-常数百分比=(电流/持续时间)*100；常数百分比=(电流/持续时间)*100；=(电流/持续时间)*100；常数百分比=(当前 / 持续) * 100;=(电流/持续时间)*100；常数百分比=(电流/持续时间)*100；=(电流/持续时间)*100；常数百分比=(当前 / 持续) * 100;
-ConstcurrentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；currentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；currentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；
-Const progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充');
-Const progressHandle=文件.get元素BYID('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.getElementById('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.get元素 BYID('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.getElementById('进程句柄')；常数progressHandle=文件.getElementById('进程句柄');
-                    
-如果(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果 (currentTimeDisplay) {
-Const米=数学下限(当前/60)；常数米=数学.地板(当前/60)；米=数学下限(当前/60)；常数米=数学.地板(当前/60)；米=数学下限(当前/60)；常数米=数学.地板(当前/60)； 米=数学下限(当前/60)；常数米=数学.地板(当前 / 60);
-Const s=数学下限(当前%60)；常数s=数学.地板(当前%60)；s=数学下限(当前%60)；常数s=数学.地板(当前 % 60);
-currentTimeDisplay.textContent=米+"："+(s<10？"0"："")+s；currentTimeDisplay.textContent=m+"："+(s<10？"0"："")+s；.textContent=m+"："+(s<10？"0"："")+s；currentTimeDisplay。textContent=m+"："+(s<10？"0"："")+s；0"："")+s；.textContent=m+"："+(s<10？"0"："")+s；currentTimeDisplay.textContent=m+"："+(s<10？"0"："")+s；
+            var bgAudio = document.getElementById('bg-audio');
+            if (bgAudio) {
+                bgAudio.addEventListener('loadedmetadata', function() {
+                    var totalTimeDisplay = document.getElementById('total-time');
+                    if (totalTimeDisplay) {
+                        var m = Math.floor(bgAudio.duration / 60);
+                        var s = Math.floor(bgAudio.duration % 60);
+                        totalTimeDisplay.textContent = m + ":" + (s < 10 ? "0" : "") + s;
                     }
-if(progressFill)progressFill。风格。宽度=百分比+“%”；如果(progressFill)progressFill。风格。宽度=%+'%'；(progressFill)progressFill。风格。宽度=百分比+'%'；if(progressFill)progressFill.style.width=百分比+'%'；(progressFill)progressFill。风格。宽度=百分比+“%”；如果(progressFill)progressFill.style.width=%+'%'；(progressFill)progressFill.style.width=percent+'%'；if (progressFill) progressFill.style.width = percent + '%';
-if(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。left=%+'%'；if(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle.风格。左=%+'%'；
+                });
+
+                bgAudio.addEventListener('timeupdate', function() {
+                    var current = bgAudio.currentTime;
+                    var duration = bgAudio.duration;
+                    var percent = (current / duration) * 100;
+                    var currentTimeDisplay = document.getElementById('current-time');
+                    var progressFill = document.getElementById('progress-fill');
+                    var progressHandle = document.getElementById('progress-handle');
+                    
+                    if (currentTimeDisplay) {
+                        var m = Math.floor(current / 60);
+                        var s = Math.floor(current % 60);
+                        currentTimeDisplay.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+                    }
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressHandle) progressHandle.style.left = percent + '%';
                 });
             }
 
-Const prevBtn=document.getElementById('prev-btn')；const prevBtn=文档。getElementById('prev-btn')；prevBtn=文档.getElementById('prev-btn')；常量prevBtn=文档.getElementById('prev-btn')；prevBtn=文档.getElementById('prev-btn')；常量prevBtn=document.getElementById('prev-btn')；prevBtn=文件.getElementById('prev-btn')；常量prevBtn=文档.getElementById('prev-btn')；
-const nextBtn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；nextBtn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；next Btn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；nextB ttn=document.getElement BYID('next-btn')；const nextBtn=document.getElement ById('next-btn')；
-if(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档.getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档.getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn.AddEventListener('click'，()=>{consta=document。getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；
-if(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-音频')；如果(a)a.currentTime+=15；})；if(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElement BYID('bg-音频')；如果(a)a.currentTime+=15；})；如果(nextBtn)nextBtn.addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-音频')；如果(a)a.currentTime+=15；})；if(nextBtn)nextBtn。addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document。getElementById('bg-音频')；如果(a)a.currentTime+=15；})；如果(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；
+            var prevBtn = document.getElementById('prev-btn');
+            var nextBtn = document.getElementById('next-btn');
+            if (prevBtn) prevBtn.addEventListener('click', function() { var a = document.getElementById('bg-audio'); if (a) a.currentTime = 0; });
+            if (nextBtn) nextBtn.addEventListener('click', function() { var a = document.getElementById('bg-audio'); if (a) a.currentTime += 15; });
 
-            // 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）
-Const loginModal=文档。getElementById('loginModal')；常量loginModal=文档。getElementById('loginModal')；loginModal=文档。getElementById('loginModal')；常量loginModal=document.getElementById('loginModal')；
-if(loginModal){if(loginModal){(loginModal){if(loginModal){
-loginModal.addEventListener('click'，函数(e){loginModal.addEventListener('click'，函数(e){.addEventListener('click'，函数(e){loginModal.addEventListener('click'，函数(e){
-if(e.target===e.currenttarget)窗口closeLoginModal()；if(e.target===e.currenttarget)窗口。closeLoginModal()；(e.target===e.currenttarget)窗口。closeLoginModal()；if(e.目标===e.当前目标)窗口。closeLoginModal()；
+            var loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.addEventListener('click', function(e) {
+                    if (e.target === e.currentTarget) window.closeLoginModal();
                 });
             }
-Const musicModal=文档.getElementById('musicModal')；const musicModal=document.getElementById('musicModal')；musicModal=文档。getElementById('musicModal')；const musicModal=文档。getElementById('musicModal')；
-if(musicModal){if(musicModal){(musicModal){if(musicModal){
-函数(e){musicModal.addEventListener('click'，函数(e){(e){musicModal.addEventListener('click'，函数(e){
-关闭MusicModal()；if(e.target===e.currenttarget)窗口。closeMusicModal()；(e.target===e.currenttarget)窗口。closeMusicModal()；if(e.目标===e.当前目标)窗口。closeMusicModal()；
+            var musicModal = document.getElementById('musicModal');
+            if (musicModal) {
+                musicModal.addEventListener('click', function(e) {
+                    if (e.target === e.currentTarget) window.closeMusicModal();
                 });
             }
 
-// 发送验证码和注册// 发送验证码和注册
-文件。getElementById('send-code-btn')。addEventListener('click'，异步函数(e){document.getElementById('send-code-btn')。addEventListener('click'，异步函数(e){('send-code-btn').addEventListener('click'，异步函数(e){document.getElementById('send-code-btn').addEventListener('click'，异步函数(e){
-E。停止传播()；e.stopPropagation()；()；e.stopPropagation()；
-Const emailInput=文档。getElementById('reg-mail')；const emailInput=文档。getElementById('reg-mail')；emailInput=文档。getElementById('reg-mail')；常量emailInput=document。getElementById('reg-mail')；
-const email=emailInput.value.trim()；const email=emailInput.value.trim()；email=emailInput.value.trim()；const email=emailInput.value.trim()；
-if(！电子邮件){if(！email){(！电子邮件){if(！email){
-！email
-'shake-field'，500)；}if(wrapper){wrapper.add('shake-field')；setTimeout(()=>包装器。删除('shake-field')，500)；}，500)；}if(wrapper){wrapper.add('shake-field')；setTimeout(()=>包装器.classList.删除('shake-field')，500)；}
-window.showToast('邮政信箱地址'，'error')；window.showToast('请输入邮箱地址', 'error'); 
-                  
+            document.getElementById('send-code-btn').addEventListener('click', async function(e) {
+                e.stopPropagation();
+                var emailInput = document.getElementById('reg-email');
+                var email = emailInput.value.trim();
+                if(!email) { 
+                    var wrapper = document.getEl
