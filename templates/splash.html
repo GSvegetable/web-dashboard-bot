@@ -339,26 +339,11 @@
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        /* ================= 联系开发者卡片逻辑（动画修复版） ================= */
+        /* ================= 联系开发者卡片逻辑（已移除动画） ================= */
         function openContactModal() {
             const modal = document.getElementById('contactModal');
-            if (!modal) return;
-            
-            modal.classList.add('active');
-            
-            const items = document.querySelectorAll('#contactModal .anim-item');
-            
-            if (typeof gsap !== 'undefined') {
-                // 修复：x 从 20 改为 16（因为卡片变窄了），stagger 从 0.08 改为 0.12（因为元素少了），让动画节奏完全对齐登录卡片！
-                gsap.fromTo(items, { x: 16, opacity: 0 }, { 
-                    x: 0, 
-                    opacity: 1, 
-                    duration: 0.4, 
-                    stagger: 0.12, 
-                    ease: "power2.out" 
-                });
-            } else {
-                items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+            if (modal) {
+                modal.classList.add('active');
             }
         }
 
