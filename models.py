@@ -7,7 +7,8 @@ db = SQLAlchemy()
 # 用户表
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=True) # 允许为空
+    telegram_id = db.Column(db.String(50), unique=True, nullable=True) # 新增：电报ID
     password_hash = db.Column(db.String(512), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
@@ -25,7 +26,7 @@ class BotConfig(db.Model):
     response = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 邮箱验证码表（用于注册验证）
+# 邮箱验证码表（保持不变）
 class EmailCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
