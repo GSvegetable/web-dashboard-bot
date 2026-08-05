@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件（独立存放） -->
+<!-- 音乐卡片组件（完美恢复原版排版） -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -6,8 +6,22 @@
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
             
             <div class="music-track-info">
-                <div class="music-track-title" id="music-title">Theme of Mitsuha</div>
-                <div class="music-artist-name" id="music-artist">RADWIMPS</div>
+                <div class="album-art"></div>
+                <div class="track-details">
+                    <div class="music-track-title" id="music-title">Theme of Mitsuha</div>
+                    <div class="music-artist-name" id="music-artist">RADWIMPS</div>
+                </div>
+                <!-- 音量条（律动柱） -->
+                <div class="volume-bars">
+                    <div class="bar" style="--delay:0s"></div>
+                    <div class="bar" style="--delay:0.1s"></div>
+                    <div class="bar" style="--delay:0.2s"></div>
+                    <div class="bar" style="--delay:0.3s"></div>
+                    <div class="bar" style="--delay:0.4s"></div>
+                    <div class="bar" style="--delay:0.5s"></div>
+                    <div class="bar" style="--delay:0.6s"></div>
+                    <div class="bar" style="--delay:0.7s"></div>
+                </div>
             </div>
             
             <div class="music-progress-area">
