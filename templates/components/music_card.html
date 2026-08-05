@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：新封面、新名字、支持真频谱跳动 -->
+<!-- 音乐卡片组件：新封面、歌手名改为纯音乐 -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -9,12 +9,11 @@
                 <!-- 替换为你上传的真实封面图 -->
                 <div class="album-art" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
                 <div class="track-details">
-                    <!-- 歌名改成你的名字 -->
                     <div class="music-track-title" id="music-title">你的名字</div>
-                    <!-- 艺术家这里也改成你的名字 -->
-                    <div class="music-artist-name" id="music-artist">你的名字</div>
+                    <!-- 修改：歌手名改为纯音乐 -->
+                    <div class="music-artist-name" id="music-artist">纯音乐</div>
                 </div>
-                <!-- 音量条（律动柱）：去掉了纯CSS动画，等待JS接管） -->
+                <!-- 音量条（律动柱） -->
                 <div class="volume-bars" id="audio-visualizer">
                     <div class="bar" style="--delay:0s"></div>
                     <div class="bar" style="--delay:0.1s"></div>
