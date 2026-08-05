@@ -1,0 +1,24 @@
+<!-- 联系开发者卡片（专门独立存放的组件） -->
+<div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
+    <div class="modal-box">
+        <!-- 保持与你原有的登录/音乐卡片一样的高斯模糊玻璃风格 -->
+        <div class="login-card" style="width: 340px; align-items: center; text-align: center;">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center text-3xl mb-2">
+                💬
+            </div>
+            <span class="font-extrabold text-xl text-white">联系开发者</span>
+            <p class="text-gray-400 text-sm leading-tight">如果在使用过程中遇到 Bug，<br>或者有好的建议，欢迎随时反馈。</p>
+            
+            <div style="width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
+                <!-- 跳转你的 Telegram -->
+                <a href="https://t.me/gsyxyc" target="_blank" style="display: block; width: 100%; padding: 12px 0; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+                    📱 打开 Telegram
+                </a>
+            </div>
+            
+            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
+                提示：点击卡片空白处即可关闭此窗口
+            </div>
+        </div>
+    </div>
+</div>
