@@ -26,29 +26,38 @@
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
-        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
-        .theme-btn-title { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        .theme-btn-title { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; margin-top: 6px; }
         .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; opacity: 0; transform: translateY(60px); position: relative; z-index: 1; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; position: relative; z-index: 1; }
         .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
-        .top-btn { 
-            text-align: center; padding: 8px 12px; border-radius: 30px; 
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); 
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); 
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
-            color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; 
-            display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; 
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; 
-            flex-shrink: 0; width: auto; min-width: auto;
+        /* ==========================================
+           ★★★ 修复 BUG 的核心 ★★★
+           GSAP 备用 CSS 动画，哪怕网络卡死，文字和按钮也会显示！
+           ========================================== */
+        .text-group, .theme-btn-title, .btn-grid {
+            opacity: 0;
+            transform: translateY(60px);
+            /* 使用 CSS 备用动画作为保底 */
+            animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
+        .theme-btn-title { animation-delay: 0s; }
+        .btn-grid { animation-delay: 0.2s; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
+        .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
         @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
@@ -69,7 +78,6 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* 音乐卡片（静态样式保留，JS动态驱动进度） */
         .music-glass-card { max-width: 420px; width: 90%; padding: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; gap: 14px; }
         .track-info { display: flex; align-items: center; gap: 12px; }
         .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
@@ -83,7 +91,6 @@
         .playback-controls { display: flex; flex-direction: column; gap: 8px; }
         .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
         
-        /* 进度条改造为 JS 驱动 */
         .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; }
         .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); }
@@ -94,7 +101,6 @@
         .main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
         
         .play-pause-button .icon-pause { display: none; }
-        /* 播放状态控制只靠 JS，不再依赖 input checkbox */
         
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -136,12 +142,10 @@
         </div>
     </div>
 
-    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
-        <!-- 真实的音乐按钮，开联动 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -149,7 +153,6 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片 ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="login-card">
@@ -172,11 +175,9 @@
         </div>
     </div>
 
-    <!-- ================= 真实音乐播放器卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-glass-card">
-                <!-- 存放真正音频的标签，指向 static 里的音乐文件 -->
                 <audio id="bg-audio" src="{{ url_for('static', filename='music.mp3') }}" preload="auto" loop></audio>
                 
                 <div class="track-info">
@@ -278,10 +279,13 @@
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
-            const tl = gsap.timeline();
-            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            // 如果 GSAP 加载成功，会覆盖上面的 CSS 备用动画，让效果依然优雅
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            }
         });
 
         function toggleFullScreen() {
@@ -297,7 +301,6 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // ================= 登录卡片交互 =================
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
@@ -312,8 +315,6 @@
             closeLoginModal();
         });
 
-
-        // ================= 真实音乐卡片交互 (核心逻辑) =================
         const bgAudio = document.getElementById('bg-audio');
         const playBtn = document.getElementById('play-btn');
         const iconPlay = document.getElementById('icon-play');
@@ -323,9 +324,6 @@
         const progressFill = document.getElementById('progress-fill');
         const progressHandle = document.getElementById('progress-handle');
 
-        let isPlaying = false;
-
-        // 格式化时间 (秒 -> m:ss)
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
             const m = Math.floor(seconds / 60);
@@ -333,38 +331,31 @@
             return m + ":" + (s < 10 ? "0" : "") + s;
         }
 
-        // 加载元数据时获取总时长
         bgAudio.addEventListener('loadedmetadata', () => {
             totalTimeDisplay.textContent = formatTime(bgAudio.duration);
         });
 
-        // 播放/暂停按钮点击事件
         playBtn.addEventListener('click', () => {
             if (bgAudio.paused) {
                 bgAudio.play();
-                isPlaying = true;
                 iconPlay.style.display = 'none';
                 iconPause.style.display = 'block';
             } else {
                 bgAudio.pause();
-                isPlaying = false;
                 iconPlay.style.display = 'block';
                 iconPause.style.display = 'none';
             }
         });
 
-        // 实时更新进度条和时间
         bgAudio.addEventListener('timeupdate', () => {
             const current = bgAudio.currentTime;
             const duration = bgAudio.duration;
             const percent = (current / duration) * 100;
-            
             currentTimeDisplay.textContent = formatTime(current);
             progressFill.style.width = percent + '%';
             progressHandle.style.left = percent + '%';
         });
 
-        // 上一首 / 下一首（目前只有一首歌，设定为 重置 和 快进15秒 ）
         document.getElementById('prev-btn').addEventListener('click', () => {
             bgAudio.currentTime = 0;
         });
@@ -373,17 +364,13 @@
             bgAudio.currentTime += 15;
         });
 
-        // 打开音乐卡片时，如果之前暂停了，就保持暂停
-        // 如果卡片没打开，暂停也不消耗电量
         function openMusicModal() {
             document.getElementById('musicModal').classList.add('active');
         }
 
         function closeMusicModal() { 
             document.getElementById('musicModal').classList.remove('active'); 
-            // 增加一个细节：关闭卡片时自动暂停音乐
             bgAudio.pause();
-            isPlaying = false;
             iconPlay.style.display = 'block';
             iconPause.style.display = 'none';
         }
@@ -400,7 +387,6 @@
             element.classList.add('shake-field');
         }
 
-        // ================= 验证码和注册逻辑 =================
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
@@ -429,4 +415,9 @@
 
             let hasError = false;
             if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { 
+            if(!code) { shakeElement(codeWrapper); hasError = true; }
+            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
+            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
+
+            const passRegex = /^[a-zA-Z0-9_\/]+$/;
+            if(!passR
