@@ -56,27 +56,24 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* ================= 全新极简音乐卡片 ================= */
+        /* ================= 音乐卡片调整区 ================= */
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; transform-origin: right top; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .music-card-glass.dragging { transform: scale(1.5) !important; transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        
+        .music-card-glass.is-dragging { transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1); /* 按下时更快响应 */ }
         .music-track-info { display: flex; flex-direction: column; gap: 4px; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .music-artist-name { font-size: 0.85rem; color: #9ca3af; }
-        
         .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
         .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
-        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; touch-action: none; } /* touch-action: none 防止触摸时页面滑动 */
-        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; pointer-events: none; }
-        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; pointer-events: none; }
-        
-        .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
-        .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
+        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.05s linear; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 30px; margin-top: 4px; }
+        .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .music-btn:active { transform: scale(0.90); opacity: 0.7; }
-        
         #play-pause-btn .icon-pause { display: none; }
         #play-pause-btn.playing .icon-play { display: none; }
         #play-pause-btn.playing .icon-pause { display: block; }
+        /* ================= 音乐卡片调整结束 ================= */
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -155,7 +152,7 @@
         </div>
     </div>
 
-    <!-- ================= 音乐卡片 ================= -->
+    <!-- ================= 音乐卡片（修改了图标和交互） ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-card-glass" id="musicCardGlass">
@@ -176,20 +173,20 @@
                 </div>
 
                 <div class="music-controls">
-                    <!-- 修改1：向左箭头改成单个 < -->
+                    <!-- 左侧：改成了单箭头（归零） -->
                     <button class="music-btn" id="music-prev-btn">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6 L9 12 L15 18"></path></svg>
                     </button>
                     
-                    <!-- 修改2：中间暂停三角圆润处理 -->
+                    <!-- 中间：三角形三个角增加圆润 -->
                     <button class="music-btn" id="play-pause-btn">
-                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 4 L16 12 L6 20 Z"/></svg>
-                        <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="4" width="3" height="16" rx="1.5"/><rect x="14" y="4" width="3" height="16" rx="1.5"/></svg>
+                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 4 L19.5 12 L6.5 20 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+                        <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="7.5" y="5" width="3" height="14" rx="1"></rect><rect x="13.5" y="5" width="3" height="14" rx="1"></rect></svg>
                     </button>
                     
-                    <!-- 修改3：向右箭头改成单个 > -->
+                    <!-- 右侧：改成了单箭头（快进15秒） -->
                     <button class="music-btn" id="music-next-btn">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 L15 12 L9 18"></path></svg>
                     </button>
                 </div>
             </div>
@@ -264,7 +261,7 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 卡片互斥逻辑 ================= */
+        /* ================= 互斥卡片逻辑 ================= */
         function openLoginModal() {
             const musicModal = document.getElementById('musicModal');
             if (musicModal && musicModal.classList.contains('active')) {
@@ -290,17 +287,18 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器逻辑 ================= */
+        /* ================= 音乐播放器逻辑（修复长按拖拽与放大） ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
-        const musicCardGlass = document.getElementById('musicCardGlass');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const progressFill = document.getElementById('music-progress-fill');
         const currentTimeDisplay = document.getElementById('music-current-time');
         const totalTimeDisplay = document.getElementById('music-total-time');
         const progressTrack = document.getElementById('music-progress-track');
+        const musicCard = document.getElementById('musicCardGlass');
 
         let isDragging = false;
+        let dragScale = 1.5;
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -309,14 +307,68 @@
             return m + ":" + (s < 10 ? "0" : "") + s;
         }
 
-        function updateProgressFromEvent(e) {
-            if (!bgAudio || !bgAudio.duration) return;
-            const rect = progressTrack.getBoundingClientRect();
-            let x = e.clientX || e.touches[0].clientX;
-            let percent = (x - rect.left) / rect.width;
-            percent = Math.max(0, Math.min(1, percent));
-            bgAudio.currentTime = percent * bgAudio.duration;
+        // 基于屏幕宽度动态调整放大比例，防止在小屏幕手机上超出边界
+        function updateDragScale() {
+            dragScale = window.innerWidth < 600 ? 1.25 : 1.5;
         }
+        updateDragScale();
+        window.addEventListener('resize', updateDragScale);
+
+        function getProgressPercent(e) {
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            if (!clientX) return 0;
+            const rect = progressTrack.getBoundingClientRect();
+            let percent = (clientX - rect.left) / rect.width;
+            return Math.min(1, Math.max(0, percent));
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            musicCard.classList.add('is-dragging');
+            musicCard.style.transform = `scale(${dragScale})`;
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, {passive: false});
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            updateProgress(e);
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            updateProgress(e);
+        }
+
+        function endDrag() {
+            if (isDragging) {
+                isDragging = false;
+                musicCard.classList.remove('is-dragging');
+                musicCard.style.transform = 'scale(1)';
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('mouseup', endDrag);
+                document.removeEventListener('touchend', endDrag);
+            }
+        }
+
+        function updateProgress(e) {
+            const percent = getProgressPercent(e);
+            if (bgAudio && bgAudio.duration) {
+                bgAudio.currentTime = percent * bgAudio.duration;
+            }
+            // UI 更新交给 timeupdate 事件处理
+        }
+
+        // 监听点击和拖拽开始
+        progressTrack.addEventListener('mousedown', startDrag);
+        progressTrack.addEventListener('touchstart', startDrag, {passive: false});
+
+        // 点击进度条时，如果不拖拽，直接跳转
+        progressTrack.addEventListener('click', function(e) {
+            if (!isDragging) {
+                updateProgress(e);
+            }
+        });
 
         function toggleMusicModal() {
             if (!musicModal) return;
@@ -337,8 +389,8 @@
 
         function closeMusicModal() {
             musicModal.classList.remove('active');
-            musicCardGlass.classList.remove('dragging');
-            isDragging = false;
+            // 关闭时强制取消拖拽状态，清空缩放
+            if (isDragging) { endDrag(); }
         }
 
         function togglePlayPause() {
@@ -362,44 +414,8 @@
             const percent = (current / duration) * 100;
             currentTimeDisplay.textContent = formatTime(current);
             progressFill.style.width = percent + '%';
-        });
-
-        /* 修改4 & 5：点击和长按拖拽支持 + 卡片丝滑放大 1.5 倍 */
-        // 开始拖拽
-        function onPointerDown(e) {
-            isDragging = true;
-            musicCardGlass.classList.add('dragging');
-            updateProgressFromEvent(e);
-        }
-
-        // 移动拖拽
-        function onPointerMove(e) {
-            if (isDragging) {
-                e.preventDefault(); // 防止页面在手机上滚动
-                updateProgressFromEvent(e);
-            }
-        }
-
-        // 结束拖拽
-        function onPointerUp() {
-            if (isDragging) {
-                isDragging = false;
-                musicCardGlass.classList.remove('dragging');
-            }
-        }
-
-        // 兼容鼠标和触摸事件
-        progressTrack.addEventListener('mousedown', onPointerDown);
-        progressTrack.addEventListener('touchstart', onPointerDown, { passive: true });
-        document.addEventListener('mousemove', onPointerMove);
-        document.addEventListener('touchmove', onPointerMove, { passive: false });
-        document.addEventListener('mouseup', onPointerUp);
-        document.addEventListener('touchend', onPointerUp);
-
-        // 点击跳转保底
-        progressTrack.addEventListener('click', function(e) {
             if (!isDragging) {
-                updateProgressFromEvent(e);
+                // 只有不拖拽时才顺手更新进度条，否则会被拖拽锁定
             }
         });
 
@@ -451,14 +467,4 @@
             if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
 
             const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-       
+            if(!passRegex.t
