@@ -177,7 +177,7 @@
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-glass-card">
-                <!-- ★★★ 修复路径：直接对应你上传的实际文件名 ★★★ -->
+                <!-- 使用你已经上传的长文件名 -->
                 <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
                 
                 <div class="track-info">
@@ -234,182 +234,170 @@
         gsap.registerPlugin(ScrollTrigger);
 
         document.addEventListener("DOMContentLoaded", function() {
-            // ★★★ 增加防崩溃处理：用变量获取元素，如果没拿到就跳过绑定 ★★★
-            const themeRing = document.getElementById('theme-ring');
-            const contentArea = document.getElementById('contentArea');
-            const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
-            const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
-            const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
-            const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
-            const textElements = document.querySelectorAll('.text-pattern');
-            const toast = document.getElementById('custom-toast');
-            const themeToggleBtn = document.getElementById('themeToggleBtn');
-            const fullScreenBtn = document.getElementById('fullScreenBtn');
-            const loginBtn = document.getElementById('loginBtn');
-            const musicBtn = document.getElementById('musicBtn');
-            
-            let isExpanded = false;
-            let toastTimer;
+            // ★★★ 终极防御：用 try...catch 包裹所有 JS，彻底防止崩溃 ★★★
+            try {
+                const themeRing = document.getElementById('theme-ring');
+                const contentArea = document.getElementById('contentArea');
+                const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+                const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+                const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+                const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+                const textElements = document.querySelectorAll('.text-pattern');
+                const toast = document.getElementById('custom-toast');
+                const themeToggleBtn = document.getElementById('themeToggleBtn');
+                const fullScreenBtn = document.getElementById('fullScreenBtn');
+                const loginBtn = document.getElementById('loginBtn');
+                const musicBtn = document.getElementById('musicBtn');
+                
+                let isExpanded = false;
+                let toastTimer;
 
-            const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
-            const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
+                const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
+                const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
-            function toggleTheme(event) {
-                const btn = event.currentTarget;
-                const btnRect = btn.getBoundingClientRect();
-                const areaRect = contentArea.getBoundingClientRect();
-                const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
-                const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
+                function toggleTheme(event) {
+                    const btn = event.currentTarget;
+                    const btnRect = btn.getBoundingClientRect();
+                    const areaRect = contentArea.getBoundingClientRect();
+                    const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+                    const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
 
-                isExpanded = !isExpanded;
-                gsap.killTweensOf(themeRing);
+                    isExpanded = !isExpanded;
+                    gsap.killTweensOf(themeRing);
 
-                if (isExpanded) {
-                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                    gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                    gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
-                    void themeRing.offsetHeight; 
-                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
-                } else {
-                    gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                    gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
-                    void themeRing.offsetHeight; 
-                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
-                }
-            }
-
-            function toggleFullScreen() {
-                if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
-            }
-
-            function showToast(msg, type='info') {
-                toast.innerText = msg; toast.className = 'show';
-                if(type === 'error') toast.classList.add('error');
-                else if(type === 'success') toast.classList.add('success');
-                else toast.classList.remove('error', 'success');
-                clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-            }
-
-            function openLoginModal() {
-                const modal = document.getElementById('loginModal');
-                modal.classList.add('active');
-                const items = document.querySelectorAll('#loginModal .anim-item');
-                // ★★★ 增加 GSAP 保护 ★★★
-                try {
-                    if (typeof gsap !== 'undefined') {
-                        gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+                    if (isExpanded) {
+                        themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                        gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                        gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                        void themeRing.offsetHeight; 
+                        gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
                     } else {
+                        gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                        gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                        void themeRing.offsetHeight; 
+                        gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
+                    }
+                }
+
+                function toggleFullScreen() {
+                    if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+                }
+
+                function showToast(msg, type='info') {
+                    toast.innerText = msg; toast.className = 'show';
+                    if(type === 'error') toast.classList.add('error');
+                    else if(type === 'success') toast.classList.add('success');
+                    else toast.classList.remove('error', 'success');
+                    clearTimeout(toastTimer);
+                    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+
+                function openLoginModal() {
+                    const modal = document.getElementById('loginModal');
+                    modal.classList.add('active');
+                    const items = document.querySelectorAll('#loginModal .anim-item');
+                    try {
+                        if (typeof gsap !== 'undefined') {
+                            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+                        } else {
+                            items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+                        }
+                    } catch (e) {
                         items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
                     }
-                } catch (e) {
-                    items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
                 }
-            }
 
-            function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+                function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-            // --- 音乐 ---
-            const bgAudio = document.getElementById('bg-audio');
-            const playBtn = document.getElementById('play-btn');
-            const iconPlay = document.getElementById('icon-play');
-            const iconPause = document.getElementById('icon-pause');
-            const currentTimeDisplay = document.getElementById('current-time');
-            const totalTimeDisplay = document.getElementById('total-time');
-            const progressFill = document.getElementById('progress-fill');
-            const progressHandle = document.getElementById('progress-handle');
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
+                // --- 音乐 ---
+                const bgAudio = document.getElementById('bg-audio');
+                const playBtn = document.getElementById('play-btn');
+                const iconPlay = document.getElementById('icon-play');
+                const iconPause = document.getElementById('icon-pause');
+                const currentTimeDisplay = document.getElementById('current-time');
+                const totalTimeDisplay = document.getElementById('total-time');
+                const progressFill = document.getElementById('progress-fill');
+                const progressHandle = document.getElementById('progress-handle');
+                const prevBtn = document.getElementById('prev-btn');
+                const nextBtn = document.getElementById('next-btn');
 
-            function formatTime(seconds) {
-                if (isNaN(seconds)) return "0:00";
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return m + ":" + (s < 10 ? "0" : "") + s;
-            }
+                function formatTime(seconds) {
+                    if (isNaN(seconds)) return "0:00";
+                    const m = Math.floor(seconds / 60);
+                    const s = Math.floor(seconds % 60);
+                    return m + ":" + (s < 10 ? "0" : "") + s;
+                }
 
-            // ★★★ 核心：只有对应的元素真实存在才去绑定，绝对不会让 JS 崩掉 ★★★
-            if (bgAudio) {
-                bgAudio.addEventListener('loadedmetadata', () => {
-                    if (totalTimeDisplay) totalTimeDisplay.textContent = formatTime(bgAudio.duration);
-                });
+                if (bgAudio) {
+                    bgAudio.addEventListener('loadedmetadata', () => {
+                        if (totalTimeDisplay) totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+                    });
 
-                if (playBtn) {
-                    playBtn.addEventListener('click', () => {
-                        if (bgAudio.paused) {
-                            bgAudio.play();
-                            if(iconPlay) iconPlay.style.display = 'none';
-                            if(iconPause) iconPause.style.display = 'block';
-                        } else {
-                            bgAudio.pause();
-                            if(iconPlay) iconPlay.style.display = 'block';
-                            if(iconPause) iconPause.style.display = 'none';
-                        }
+                    if (playBtn) {
+                        playBtn.addEventListener('click', () => {
+                            if (bgAudio) {
+                                if (bgAudio.paused) {
+                                    // ★★★ 修复核心：给 play() 加上 catch，防止手机端自动播放限制导致 JS 崩掉 ★★★
+                                    bgAudio.play().catch(e => console.log("播放需要用户主动点击触发:", e));
+                                    if(iconPlay) iconPlay.style.display = 'none';
+                                    if(iconPause) iconPause.style.display = 'block';
+                                } else {
+                                    bgAudio.pause();
+                                    if(iconPlay) iconPlay.style.display = 'block';
+                                    if(iconPause) iconPause.style.display = 'none';
+                                }
+                            }
+                        });
+                    }
+
+                    bgAudio.addEventListener('timeupdate', () => {
+                        const current = bgAudio.currentTime;
+                        const duration = bgAudio.duration;
+                        const percent = (current / duration) * 100;
+                        if (currentTimeDisplay) currentTimeDisplay.textContent = formatTime(current);
+                        if (progressFill) progressFill.style.width = percent + '%';
+                        if (progressHandle) progressHandle.style.left = percent + '%';
                     });
                 }
 
-                bgAudio.addEventListener('timeupdate', () => {
-                    const current = bgAudio.currentTime;
-                    const duration = bgAudio.duration;
-                    const percent = (current / duration) * 100;
-                    if (currentTimeDisplay) currentTimeDisplay.textContent = formatTime(current);
-                    if (progressFill) progressFill.style.width = percent + '%';
-                    if (progressHandle) progressHandle.style.left = percent + '%';
-                });
-            }
+                if (prevBtn) prevBtn.addEventListener('click', () => { if (bgAudio) bgAudio.currentTime = 0; });
+                if (nextBtn) nextBtn.addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
 
-            if (prevBtn) prevBtn.addEventListener('click', () => { if (bgAudio) bgAudio.currentTime = 0; });
-            if (nextBtn) nextBtn.addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
-
-            function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
-            function closeMusicModal() { 
-                document.getElementById('musicModal').classList.remove('active'); 
-                if (bgAudio) {
-                    bgAudio.pause();
-                    if (iconPlay && iconPause) {
-                        iconPlay.style.display = 'block';
-                        iconPause.style.display = 'none';
+                function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
+                function closeMusicModal() { 
+                    document.getElementById('musicModal').classList.remove('active'); 
+                    if (bgAudio) {
+                        bgAudio.pause();
+                        if (iconPlay && iconPause) {
+                            iconPlay.style.display = 'block';
+                            iconPause.style.display = 'none';
+                        }
                     }
                 }
-            }
 
-            // ★★★ 4个主按钮绑定 ★★★
-            if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
-            if(fullScreenBtn) fullScreenBtn.addEventListener('click', toggleFullScreen);
-            if(loginBtn) loginBtn.addEventListener('click', openLoginModal);
-            if(musicBtn) musicBtn.addEventListener('click', openMusicModal);
+                // ★★★ 4个主按钮绑定 ★★★
+                if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+                if(fullScreenBtn) fullScreenBtn.addEventListener('click', toggleFullScreen);
+                if(loginBtn) loginBtn.addEventListener('click', openLoginModal);
+                if(musicBtn) musicBtn.addEventListener('click', openMusicModal);
 
-            document.getElementById('loginModal').addEventListener('click', function(e) {
-                if (e.target.closest('button') || e.target.closest('input')) return;
-                closeLoginModal();
-            });
+                document.getElementById('loginModal').addEventListener('click', function(e) {
+                    if (e.target.closest('button') || e.target.closest('input')) return;
+                    closeLoginModal();
+                });
 
-            document.getElementById('musicModal').addEventListener('click', function(e) {
-                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
-                closeMusicModal();
-            });
+                document.getElementById('musicModal').addEventListener('click', function(e) {
+                    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
+                    closeMusicModal();
+                });
 
-            // --- 背景预加载与入场动画 ---
-            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
-            bgImg.src = imgUrl;
-            bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+                // --- 背景预加载与入场动画 ---
+                const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+                bgImg.src = imgUrl;
+                bgImg.onload = function() { document.body.classList.add('loaded'); };
+                setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-            if (themeRing) {
-                gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-                setTimeout(() => { 
-                    gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); 
-                    setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); 
-                }, 200);
-            }
-
-            if (typeof gsap !== 'undefined') {
-                const tl = gsap.timeline();
-                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
-            }
-
-            function shakeElement(element) {
-                if(!element) return;
-                element.classList.remove('shake-fiel
+                if (themeRing) {
+                    gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+                    setTimeout(() => { 
+                        gsap.set(themeRing, { 
