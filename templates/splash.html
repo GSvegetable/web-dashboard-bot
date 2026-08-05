@@ -65,10 +65,11 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* ================= 登录/音乐卡片基础样式 ================= */
+        /* 登录卡片 */
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
+        /* 音乐卡片 */
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
         .music-track-info { display: flex; flex-direction: column; gap: 4px; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -85,13 +86,16 @@
         #play-pause-btn.playing .icon-play { display: none; }
         #play-pause-btn.playing .icon-pause { display: block; }
 
-        /* ================= 全新「联系开发者」极简卡片 ================= */
+        /* ================= 联系开发者卡片 (新增) ================= */
         .contact-card-glass { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
-        .contact-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; text-align: center; margin-bottom: 4px; }
-        .contact-subtitle { font-size: 0.85rem; color: #9ca3af; text-align: center; margin-bottom: 8px; }
-        .contact-btn { display: block; width: 100%; padding: 12px 0; text-align: center; color: #ffffff; background: transparent; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 12px; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; }
-        .contact-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
-        .contact-btn-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        .contact-card-glass h3 { font-size: 1.1rem; font-weight: 600; color: #ffffff; margin-bottom: 4px; }
+        .contact-card-glass .sub { font-size: 0.85rem; color: #9ca3af; margin-bottom: 12px; }
+        .contact-link { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); transition: all 0.2s; color: #e5e7eb; text-decoration: none; }
+        .contact-link:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
+        .contact-link svg { width: 22px; height: 22px; flex-shrink: 0; }
+        .contact-link .link-text { font-size: 0.9rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .close-contact-btn { width: 100%; margin-top: 8px; padding: 10px 0; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; background: transparent; color: #ffffff; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+        .close-contact-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -135,9 +139,9 @@
 
     <!-- 右上角按钮 -->
     <div class="top-actions">
-        <!-- 修改：联系开发者改为按钮，触发卡片 -->
+        <!-- 新增：联系开发者改为打开卡片 -->
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        <button class="top-btn" onclick="toggleFullScreen()">全屏显示</button>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -211,26 +215,24 @@
         </div>
     </div>
 
-    <!-- ================= 全新联系开发者卡片 ================= -->
+    <!-- ================= 联系开发者卡片 (新增) ================= -->
     <div class="modal-overlay" id="contactModal">
         <div class="modal-box">
             <div class="contact-card-glass">
-                <div class="contact-title">联系开发者</div>
-                <div class="contact-subtitle">请选择您想使用的联系平台</div>
-                <div class="contact-btn-wrapper">
-                    <!-- 1. Telegram -->
-                    <a href="https://t.me/gsyxyc" target="_blank" class="contact-btn">
-                        Telegram (@gsyxyc)
-                    </a>
-                    <!-- 2. QQ -->
-                    <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="contact-btn">
-                        QQ (3301296046)
-                    </a>
-                    <!-- 3. WhatsApp -->
-                    <a href="https://wa.me/8615861980264" target="_blank" class="contact-btn">
-                        WhatsApp (+86 15861980264)
-                    </a>
-                </div>
+                <h3>联系开发者</h3>
+                <p class="sub">如有问题或建议，欢迎通过以下方式联系。</p>
+                
+                <a href="https://t.me/gsyxyc" target="_blank" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    <span class="link-text">Telegram: @gsyxyc</span>
+                </a>
+                
+                <a href="mailto:3301296046@qq.com" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <span class="link-text">Email: 3301296046@qq.com</span>
+                </a>
+
+                <button class="close-contact-btn" onclick="closeContactModal()">关 闭</button>
             </div>
         </div>
     </div>
@@ -308,20 +310,54 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 弹窗互锁逻辑 (升级支持 3 个卡片) ================= */
+        /* ================= 卡片三向互锁逻辑 ================= */
+        // 1. 登录卡片
         function openLoginModal() {
-            const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) closeMusicModal();
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
-
+            if (document.getElementById('musicModal').classList.contains('active')) closeMusicModal();
+            if (document.getElementById('contactModal').classList.contains('active')) closeContactModal();
+            
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
             gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
         }
-
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+
+        // 2. 音乐卡片
+        function toggleMusicModal() {
+            if (document.getElementById('loginModal').classList.contains('active')) closeLoginModal();
+            if (document.getElementById('contactModal').classList.contains('active')) closeContactModal();
+
+            const modal = document.getElementById('musicModal');
+            if (modal.classList.contains('active')) closeMusicModal();
+            else openMusicModal();
+        }
+        function openMusicModal() {
+            if (document.getElementById('loginModal').classList.contains('active')) closeLoginModal();
+            if (document.getElementById('contactModal').classList.contains('active')) closeContactModal();
+            document.getElementById('musicModal').classList.add('active');
+        }
+        function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
+
+        // 3. 联系开发者卡片 (新增)
+        function openContactModal() {
+            if (document.getElementById('loginModal').classList.contains('active')) closeLoginModal();
+            if (document.getElementById('musicModal').classList.contains('active')) closeMusicModal();
+            document.getElementById('contactModal').classList.add('active');
+        }
+        function closeContactModal() { document.getElementById('contactModal').classList.remove('active'); }
+
+        /* ================= 点击空白处关闭卡片逻辑 ================= */
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            closeLoginModal();
+        });
+        document.getElementById('musicModal').addEventListener('click', function(e) {
+            if (e.target === e.currentTarget) closeMusicModal();
+        });
+        document.getElementById('contactModal').addEventListener('click', function(e) {
+            if (e.target === e.currentTarget) closeContactModal();
+        });
 
         function shakeElement(element) {
             if(!element) return;
@@ -330,7 +366,7 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器与卡片逻辑 ================= */
+        /* ================= 音乐播放器逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -345,30 +381,6 @@
             const s = Math.floor(seconds % 60);
             return m + ":" + (s < 10 ? "0" : "") + s;
         }
-
-        function toggleMusicModal() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
-
-            if (!musicModal) return;
-            if (musicModal.classList.contains('active')) {
-                closeMusicModal();
-            } else {
-                openMusicModal();
-            }
-        }
-
-        function openMusicModal() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
-            musicModal.classList.add('active');
-        }
-
-        function closeMusicModal() { musicModal.classList.remove('active'); }
 
         function togglePlayPause() {
             if (!bgAudio) return;
@@ -401,49 +413,17 @@
             }
         });
 
-        document.getElementById('music-prev-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime = 0; });
-        document.getElementById('music-next-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
+        document.getElementById('music-prev-btn').addEventListener('click', () => {
+            if (bgAudio) bgAudio.currentTime = 0;
+        });
+
+        document.getElementById('music-next-btn').addEventListener('click', () => {
+            if (bgAudio) bgAudio.currentTime += 15;
+        });
 
         playPauseBtn.addEventListener('click', togglePlayPause);
-
-        musicModal.addEventListener('click', function(e) {
-            if (e.target === e.currentTarget) closeMusicModal();
-        });
-
-        /* ================= 全新联系开发者卡片逻辑 ================= */
-        function openContactModal() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
-            const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) closeMusicModal();
-
-            const modal = document.getElementById('contactModal');
-            modal.classList.add('active');
-        }
-
-        function closeContactModal() {
-            document.getElementById('contactModal').classList.remove('active');
-        }
-
-        document.getElementById('contactModal').addEventListener('click', function(e) {
-            if (e.target === e.currentTarget) closeContactModal();
-        });
 
         /* ================= 登录验证码逻辑 ================= */
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
-            const emailInput = document.getElementById('reg-email');
-            const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
-                else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
-            finally { btn.disabled = false; }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', 
+            const emailInput = document.getE
