@@ -23,6 +23,7 @@
         }
         body.loaded { opacity: 1; }
 
+        /* 核心内容区（确保这里的内容 100% 不会丢失） */
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -38,17 +39,19 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ================= 顶部按钮区域 ================= */
-        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
+        /* ------------------------------
+           修改点：顶部按钮完美自适应
+           ------------------------------ */
+        .top-actions { position: fixed; top: 20px; right: 16px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: auto; justify-content: flex-end; }
         .top-btn { 
-            text-align: center; padding: 8px 10px; border-radius: 30px; 
+            text-align: center; padding: 8px 12px; border-radius: 30px; 
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); 
             backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); 
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); 
             color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; 
             display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; 
             transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; 
-            flex-shrink: 0; min-width: auto;
+            flex-shrink: 0; width: auto; min-width: auto;
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
@@ -62,8 +65,7 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* ================= 弹窗卡片 ================= */
-        /* 重点修改：背景模糊采用过渡动画，匹配 GSAP 动画时长 */
+        /* ============== 弹窗与玻璃卡片 ============== */
         .modal-overlay { 
             position: fixed; inset: 0; background: rgba(0,0,0,0.3);
             backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
@@ -78,29 +80,11 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 登录卡片 */
-        .login-card {
-            position: relative; width: 320px; padding: 24px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            color: #e5e7eb; display: flex; flex-direction: column; gap: 14px;
-        }
-
+        .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
         /* 音乐卡片 */
-        .music-glass-card {
-            max-width: 420px; width: 90%;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            color: white; font-family: -apple-system, system-ui, sans-serif;
-            display: flex; flex-direction: column; gap: 14px;
-        }
+        .music-glass-card { max-width: 420px; width: 90%; padding: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; gap: 14px; }
         .track-info { display: flex; align-items: center; gap: 12px; }
         .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
         .album-art:hover { transform: scale(1.05); }
@@ -110,21 +94,17 @@
         .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; }
         .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
         @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
-
         .playback-controls { display: flex; flex-direction: column; gap: 8px; }
         .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
         .current-time::before { content: "0:00"; animation: timer 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
         .remaining-time::before { content: "0:45"; animation: timerDown 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-
         @keyframes timer { 0% { content: "0:00"; } 100% { content: "0:45"; } }
         @keyframes timerDown { 0% { content: "0:45"; } 100% { content: "0:00"; } }
-
         .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
         .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; animation: progressAnim 45s linear infinite; animation-play-state: running; }
         .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); animation: handleAnim 45s linear infinite; animation-play-state: running; }
         @keyframes progressAnim { from { width: 0; } to { width: 100%; } }
         @keyframes handleAnim { from { left: 0%; } to { left: 100%; } }
-
         .button-row { display: flex; justify-content: space-between; gap: 12px; }
         .control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
         .control-button.play-pause-button:hover, .control-button.d:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
@@ -133,8 +113,7 @@
 
         #play-toggle:checked ~ .track-info .volume-bars .bar { animation-play-state: paused; }
         #play-toggle:checked ~ .playback-controls .progress-fill, #play-toggle:checked ~ .playback-controls .progress-handle { animation-play-state: paused; }
-        .music-glass-card:has(#play-toggle:checked) .time-info .current-time::before,
-        .music-glass-card:has(#play-toggle:checked) .time-info .remaining-time::before { animation-play-state: paused; }
+        .music-glass-card:has(#play-toggle:checked) .time-info .current-time::before, .music-glass-card:has(#play-toggle:checked) .time-info .remaining-time::before { animation-play-state: paused; }
         #play-toggle:checked ~ .playback-controls .play-pause-button .icon-play { display: block; }
         #play-toggle:checked ~ .playback-controls .play-pause-button .icon-pause { display: none; }
         #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-play { display: none; }
@@ -151,8 +130,8 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 16px; right: 16px; gap: 6px; }
-            .top-btn { font-size: 11px; padding: 6px 8px; }
+            .top-actions { top: 12px; right: 12px; gap: 5px; }
+            .top-btn { font-size: 11px; padding: 5px 10px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card, .music-glass-card { width: 280px; padding: 16px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
@@ -160,6 +139,8 @@
     </style>
 </head>
 <body>
+    
+    <!-- 重要：两大行文字、切换按钮、四大按钮 都在这里 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -179,13 +160,13 @@
         </div>
     </div>
 
-    <!-- 顶部按钮：顺序调整，文字自适应，音乐改为正圆形 -->
+    <!-- 修改后：全新排序的顶部按钮（宽度自适应） -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
-        <!-- 修改：音乐按钮改为正圆形，保证能放下图标 -->
-        <button class="top-btn !w-8 !h-8 !rounded-full !p-0" id="musicBtn" onclick="openMusicModal()">
+        <!-- 修改：这里就是那个正圆形的音乐图标按钮 -->
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
     </div>
@@ -200,25 +181,17 @@
                     <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
                     <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                 </div>
-
                 <div class="flex gap-2 w-full anim-item" id="email-wrapper">
                     <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">
-                        验证
-                    </button>
+                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
                 </div>
-
                 <div class="anim-item" id="code-wrapper">
                     <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                 </div>
-
                 <div class="anim-item" id="password-wrapper">
                     <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                 </div>
-
-                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">
-                    注册/登录
-                </button>
+                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
             </form>
         </div>
     </div>
@@ -246,32 +219,18 @@
                     </div>
                 </div>
                 <div class="playback-controls">
-                    <div class="time-info">
-                        <span class="current-time"></span>
-                        <span class="remaining-time"></span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
-                        <div class="progress-handle"></div>
-                    </div>
+                    <div class="time-info"><span class="current-time"></span><span class="remaining-time"></span></div>
+                    <div class="progress-bar"><div class="progress-fill"></div><div class="progress-handle"></div></div>
                     <div class="button-row">
                         <div class="main-control-btns">
-                            <button class="control-button back">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg>
-                            </button>
-                            <div class="play-pause-btns">
-                                <label for="play-toggle" class="control-button play-pause-button">
-                                    <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
-                                    <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
-                                </label>
-                            </div>
-                            <button class="control-button next">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg>
-                            </button>
+                            <button class="control-button back"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg></button>
+                            <div class="play-pause-btns"><label for="play-toggle" class="control-button play-pause-button">
+                                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
+                                <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
+                            </label></div>
+                            <button class="control-button next"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg></button>
                         </div>
-                        <button class="control-button d">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
-                        </button>
+                        <button class="control-button d"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg></button>
                     </div>
                 </div>
             </div>
@@ -346,28 +305,18 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // ================= 卡片交互 =================
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
-            // 动画放完大约0.7秒，modal-overlay的blur过渡也正好是0.7秒
             gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
         }
 
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.remove('active');
-        }
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        // 音乐卡片开关
-        function openMusicModal() {
-            document.getElementById('musicModal').classList.add('active');
-        }
-        function closeMusicModal() {
-            document.getElementById('musicModal').classList.remove('active');
-        }
+        function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
+        function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
 
-        // 点击网页任意位置关闭卡片，除了按钮和输入框
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('input')) return;
             closeLoginModal();
@@ -385,7 +334,6 @@
             element.classList.add('shake-field');
         }
 
-        // ================= 验证码逻辑 =================
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
@@ -402,7 +350,6 @@
             finally { btn.disabled = false; }
         });
 
-        // ================= 注册/登录提交逻辑 =================
         document.getElementById('submit-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const email = document.getElementById('reg-email').value.trim();
@@ -422,4 +369,17 @@
             const passRegex = /^[a-zA-Z0-9_\/]+$/;
             if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
 
-            const btn = this; const originalText = btn.innerT
+            const btn = this; const originalText = btn.innerText;
+            btn.innerText = '处理中...'; btn.disabled = true;
+            try {
+                const formData = new URLSearchParams();
+                formData.append('email', email); formData.append('password', password);
+                formData.append('confirm_password', password); formData.append('code', code);
+                formData.append('cf-turnstile-response', 'dummy');
+                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
+                const text = await res.text();
+                if(text.includes('注册成功') || text.includes('登录成功')) {
+                    showToast('🎉 注册/登录成功！', 'success');
+                    setTimeout(() => { closeLoginModal(); }, 1000);
+                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
+              
