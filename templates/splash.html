@@ -48,7 +48,6 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* 核心修复：弹窗背景层加模糊 */
         .modal-overlay { 
             position: fixed; inset: 0; 
             background: rgba(0, 0, 0, 0.1); 
@@ -65,7 +64,6 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 移除卡片自身的模糊 */
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
@@ -125,7 +123,6 @@
         </div>
     </div>
 
-    <!-- 【第2步修改】右上角按钮：将 a 标签换成 button 弹窗 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -202,7 +199,7 @@
         </div>
     </div>
 
-    <!-- 【第2步修改】嵌入联系开发者卡片组件 -->
+    <!-- ================= 嵌入联系开发者卡片组件 ================= -->
     {% include 'components/contact_card.html' %}
 
     <script>
@@ -278,13 +275,20 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 弹窗互锁与卡片逻辑 ================= */
+        /* ================= 三卡片互锁逻辑 ================= */
         
         function openLoginModal() {
+            // 关音乐
             const musicModal = document.getElementById('musicModal');
             if (musicModal && musicModal.classList.contains('active')) {
                 closeMusicModal();
             }
+            // 关联系开发者
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) {
+                closeContactModal();
+            }
+            // 开登录
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -298,7 +302,7 @@
             closeLoginModal();
         });
 
-        /* ================= 音乐播放器逻辑 ================= */
+        /* ================= 音乐播放器与卡片逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -315,10 +319,17 @@
         }
 
         function toggleMusicModal() {
+            // 关登录
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) {
                 closeLoginModal();
             }
+            // 关联系开发者
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) {
+                closeContactModal();
+            }
+            // 开/关音乐
             if (!musicModal) return;
             if (musicModal.classList.contains('active')) {
                 closeMusicModal();
@@ -328,9 +339,15 @@
         }
 
         function openMusicModal() {
+            // 关登录
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) {
                 closeLoginModal();
+            }
+            // 关联系开发者
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) {
+                closeContactModal();
             }
             musicModal.classList.add('active');
         }
@@ -384,16 +401,31 @@
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        /* ================= 【第3步修改】联系开发者卡片逻辑 ================= */
+        /* ================= 联系开发者卡片逻辑 ================= */
         function openContactModal() {
+            // 关登录
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal && loginModal.classList.contains('active')) {
+                closeLoginModal();
+            }
+            // 关音乐
+            const musicModal = document.getElementById('musicModal');
+            if (musicModal && musicModal.classList.contains('active')) {
+                closeMusicModal();
+            }
+            // 开联系开发者
             const modal = document.getElementById('contactModal');
             if (modal) modal.classList.add('active');
         }
 
         function closeContactModal(e) {
             const modal = document.getElementById('contactModal');
-            if (modal && e && e.target === e.currentTarget) {
-                modal.classList.remove('active');
+            if (e) {
+                if (modal && e.target === e.currentTarget) {
+                    modal.classList.remove('active');
+                }
+            } else {
+                if (modal) modal.classList.remove('active');
             }
         }
 
@@ -440,15 +472,3 @@
                 formData.append('email', email); formData.append('password', password);
                 formData.append('confirm_password', password); formData.append('code', code);
                 formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-    </script>
-</body>
-</html>
