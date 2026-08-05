@@ -123,8 +123,13 @@
         </div>
     </div>
 
+    <!-- 右上角按钮 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
+        <!-- 新增：更新日志 -->
+        <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
+        <!-- 新增：成为爱好者 -->
+        <button class="top-btn" onclick="openBecomeFanModal()">成为爱好者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
@@ -160,8 +165,14 @@
     <!-- ================= 引入组件 ================= -->
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
+    {% include 'components/update_log_card.html' %}
+    {% include 'components/become_fan_card.html' %}
+
+    <!-- 引入互锁逻辑的 JS -->
+    <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
+        // 保留核心的 toggleTheme 和 GSAP 初始化，其余互锁逻辑由 modal_manager.js 接管
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -234,26 +245,14 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 弹窗互锁与卡片逻辑 ================= */
-        function openLoginModal() {
-            const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) {
-                closeMusicModal();
-            }
-            const modal = document.getElementById('loginModal');
-            modal.classList.add('active');
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+        function shakeElement(element) {
+            if(!element) return;
+            element.classList.remove('shake-field');
+            void element.offsetWidth; 
+            element.classList.add('shake-field');
         }
 
-        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
-
-        document.getElementById('loginModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input')) return;
-            closeLoginModal();
-        });
-
-        /* ================= 音乐播放器逻辑 ================= */
+        /* ================= 音乐播放器原生逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -270,28 +269,13 @@
         }
 
         function toggleMusicModal() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                closeLoginModal();
-            }
-            if (!musicModal) return;
-            if (musicModal.classList.contains('active')) {
-                closeMusicModal();
+            const modal = document.getElementById('musicModal');
+            if (!modal) return;
+            if (modal.classList.contains('active')) {
+                window.closeMusicModal();
             } else {
-                openMusicModal();
+                window.openMusicModal();
             }
-        }
-
-        function openMusicModal() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                closeLoginModal();
-            }
-            musicModal.classList.add('active');
-        }
-
-        function closeMusicModal() {
-            musicModal.classList.remove('active');
         }
 
         function togglePlayPause() {
@@ -334,86 +318,6 @@
         });
 
         playPauseBtn.addEventListener('click', togglePlayPause);
-
-        musicModal.addEventListener('click', function(e) {
-            if (e.target === e.currentTarget) closeMusicModal();
-        });
-
-        /* ================= 联系开发者卡片逻辑（已移除动画） ================= */
-        function openContactModal() {
-            const modal = document.getElementById('contactModal');
-            if (modal) {
-                modal.classList.add('active');
-            }
-        }
-
-        function closeContactModal(e) {
-            const modal = document.getElementById('contactModal');
-            if (modal && e && e.target === e.currentTarget) {
-                modal.classList.remove('active');
-            }
-        }
-
-        /* ================= 登录验证码逻辑 ================= */
-        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const emailInput = document.getElementById('reg-email');
-            const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
-                else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
-            finally { btn.disabled = false; }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const email = document.getElementById('reg-email').value.trim();
-            const code = document.getElementById('reg-code').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const emailWrapper = document.getElementById('email-wrapper');
-            const codeWrapper = document.getElementById('code-wrapper');
-            const passwordWrapper = document.getElementById('password-wrapper');
-            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
-
-            let hasError = false;
-            if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
-
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-
-        function shakeElement(element) {
-            if(!element) return;
-            element.classList.remove('shake-field');
-            void element.offsetWidth; 
-            element.classList.add('shake-field');
-        }
     </script>
-    <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 </body>
 </html>
