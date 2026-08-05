@@ -38,7 +38,6 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* --- 修改点：右上角按钮自适应 --- */
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
         .top-btn { 
             text-align: center; padding: 8px 12px; border-radius: 30px; 
@@ -62,7 +61,6 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* --- 弹窗与玻璃卡片 --- */
         .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -71,7 +69,7 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* 音乐卡片 */
+        /* 音乐卡片（静态样式保留，JS动态驱动进度） */
         .music-glass-card { max-width: 420px; width: 90%; padding: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; gap: 14px; }
         .track-info { display: flex; align-items: center; gap: 12px; }
         .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
@@ -84,29 +82,20 @@
         @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
         .playback-controls { display: flex; flex-direction: column; gap: 8px; }
         .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
-        .current-time::before { content: "0:00"; animation: timer 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-        .remaining-time::before { content: "0:45"; animation: timerDown 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-        @keyframes timer { 0% { content: "0:00"; } 100% { content: "0:45"; } }
-        @keyframes timerDown { 0% { content: "0:45"; } 100% { content: "0:00"; } }
+        
+        /* 进度条改造为 JS 驱动 */
         .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; animation: progressAnim 45s linear infinite; animation-play-state: running; }
-        .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); animation: handleAnim 45s linear infinite; animation-play-state: running; }
-        @keyframes progressAnim { from { width: 0; } to { width: 100%; } }
-        @keyframes handleAnim { from { left: 0%; } to { left: 100%; } }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; }
+        .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); }
+        
         .button-row { display: flex; justify-content: space-between; gap: 12px; }
         .control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
         .control-button.play-pause-button:hover, .control-button.d:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
         .main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
+        
         .play-pause-button .icon-pause { display: none; }
-
-        #play-toggle:checked ~ .track-info .volume-bars .bar { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .progress-fill, #play-toggle:checked ~ .playback-controls .progress-handle { animation-play-state: paused; }
-        .music-glass-card:has(#play-toggle:checked) .time-info .current-time::before, .music-glass-card:has(#play-toggle:checked) .time-info .remaining-time::before { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-play { display: block; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-pause { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-play { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-pause { display: block; }
-
+        /* 播放状态控制只靠 JS，不再依赖 input checkbox */
+        
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
         #custom-toast.success { border-left-color: #22c55e; }
@@ -128,7 +117,6 @@
 </head>
 <body>
     
-    <!-- 两行文字、切换按钮、四个大按钮都在这里 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -148,12 +136,12 @@
         </div>
     </div>
 
-    <!-- 修改后：全新排序且自适应的顶部按钮 -->
+    <!-- 顶部按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
-        <!-- 改成了正圆形的音符图标 -->
+        <!-- 真实的音乐按钮，开联动 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -184,16 +172,18 @@
         </div>
     </div>
 
-    <!-- ================= 音乐卡片 ================= -->
+    <!-- ================= 真实音乐播放器卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-glass-card">
-                <input type="checkbox" id="play-toggle" hidden="" />
+                <!-- 存放真正音频的标签，指向 static 里的音乐文件 -->
+                <audio id="bg-audio" src="{{ url_for('static', filename='music.mp3') }}" preload="auto" loop></audio>
+                
                 <div class="track-info">
                     <div class="album-art"></div>
                     <div class="track-details">
-                        <div class="track-title">Glow</div>
-                        <div class="artist-name">Echo</div>
+                        <div class="track-title">Theme of Mitsuha</div>
+                        <div class="artist-name">RADWIMPS</div>
                     </div>
                     <div class="volume-bars">
                         <div class="bar" style="--delay:0s"></div>
@@ -207,18 +197,32 @@
                     </div>
                 </div>
                 <div class="playback-controls">
-                    <div class="time-info"><span class="current-time"></span><span class="remaining-time"></span></div>
-                    <div class="progress-bar"><div class="progress-fill"></div><div class="progress-handle"></div></div>
+                    <div class="time-info">
+                        <span id="current-time">0:00</span>
+                        <span id="total-time">0:00</span>
+                    </div>
+                    <div class="progress-bar" id="progress-wrapper">
+                        <div class="progress-fill" id="progress-fill"></div>
+                        <div class="progress-handle" id="progress-handle"></div>
+                    </div>
                     <div class="button-row">
                         <div class="main-control-btns">
-                            <button class="control-button back"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg></button>
-                            <div class="play-pause-btns"><label for="play-toggle" class="control-button play-pause-button">
-                                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
-                                <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
-                            </label></div>
-                            <button class="control-button next"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg></button>
+                            <button class="control-button back" id="prev-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg>
+                            </button>
+                            <div class="play-pause-btns">
+                                <button class="control-button play-pause-button" id="play-btn">
+                                    <svg class="icon-play" id="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
+                                    <svg class="icon-pause" id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
+                                </button>
+                            </div>
+                            <button class="control-button next" id="next-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg>
+                            </button>
                         </div>
-                        <button class="control-button d"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg></button>
+                        <button class="control-button d">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -293,6 +297,7 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
+        // ================= 登录卡片交互 =================
         function openLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
@@ -302,13 +307,86 @@
 
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
-        function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
-
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('input')) return;
             closeLoginModal();
         });
+
+
+        // ================= 真实音乐卡片交互 (核心逻辑) =================
+        const bgAudio = document.getElementById('bg-audio');
+        const playBtn = document.getElementById('play-btn');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        const currentTimeDisplay = document.getElementById('current-time');
+        const totalTimeDisplay = document.getElementById('total-time');
+        const progressFill = document.getElementById('progress-fill');
+        const progressHandle = document.getElementById('progress-handle');
+
+        let isPlaying = false;
+
+        // 格式化时间 (秒 -> m:ss)
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ":" + (s < 10 ? "0" : "") + s;
+        }
+
+        // 加载元数据时获取总时长
+        bgAudio.addEventListener('loadedmetadata', () => {
+            totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+        });
+
+        // 播放/暂停按钮点击事件
+        playBtn.addEventListener('click', () => {
+            if (bgAudio.paused) {
+                bgAudio.play();
+                isPlaying = true;
+                iconPlay.style.display = 'none';
+                iconPause.style.display = 'block';
+            } else {
+                bgAudio.pause();
+                isPlaying = false;
+                iconPlay.style.display = 'block';
+                iconPause.style.display = 'none';
+            }
+        });
+
+        // 实时更新进度条和时间
+        bgAudio.addEventListener('timeupdate', () => {
+            const current = bgAudio.currentTime;
+            const duration = bgAudio.duration;
+            const percent = (current / duration) * 100;
+            
+            currentTimeDisplay.textContent = formatTime(current);
+            progressFill.style.width = percent + '%';
+            progressHandle.style.left = percent + '%';
+        });
+
+        // 上一首 / 下一首（目前只有一首歌，设定为 重置 和 快进15秒 ）
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            bgAudio.currentTime = 0;
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            bgAudio.currentTime += 15;
+        });
+
+        // 打开音乐卡片时，如果之前暂停了，就保持暂停
+        // 如果卡片没打开，暂停也不消耗电量
+        function openMusicModal() {
+            document.getElementById('musicModal').classList.add('active');
+        }
+
+        function closeMusicModal() { 
+            document.getElementById('musicModal').classList.remove('active'); 
+            // 增加一个细节：关闭卡片时自动暂停音乐
+            bgAudio.pause();
+            isPlaying = false;
+            iconPlay.style.display = 'block';
+            iconPause.style.display = 'none';
+        }
 
         document.getElementById('musicModal').addEventListener('click', function(e) {
             if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
@@ -322,6 +400,7 @@
             element.classList.add('shake-field');
         }
 
+        // ================= 验证码和注册逻辑 =================
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
@@ -350,29 +429,4 @@
 
             let hasError = false;
             if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
-
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-    </script>
-</body>
-</html>
+            if(!code) { 
