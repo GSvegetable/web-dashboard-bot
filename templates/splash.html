@@ -175,7 +175,7 @@
                     </button>
                     
                     <button class="music-btn" id="play-pause-btn">
-                        <!-- 修改：播放按钮添加圆润的描边效果 -->
+                        <!-- 圆角的播放三角形 -->
                         <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
                             <polygon points="6,4 19,12 6,20"></polygon>
                         </svg>
@@ -243,6 +243,13 @@
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+
+            /* ================= 初始化音乐播放器 ================= */
+            const bgAudio = document.getElementById('bg-audio');
+            if (bgAudio) {
+                // ★★★ 核心修改：将默认音量设置为 30% (0.0 是静音，1.0 是最大声) ★★★
+                bgAudio.volume = 0.3; 
+            }
         });
 
         function toggleFullScreen() {
@@ -258,7 +265,7 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 双向互锁逻辑 (核心修复) ================= */
+        /* ================= 双向互锁逻辑 ================= */
         
         function openLoginModal() {
             // 如果音乐卡片开着，先关掉音乐卡片
