@@ -255,15 +255,15 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 核心交互修改点 ================= */
+        /* ================= 互斥卡片逻辑 ================= */
         function openLoginModal() {
-            // 1. 先检查并关闭音乐卡片
+            // 如果音乐卡片开着，先关掉它
             const musicModal = document.getElementById('musicModal');
             if (musicModal && musicModal.classList.contains('active')) {
                 closeMusicModal();
             }
 
-            // 2. 再执行打开登录卡片的逻辑
+            // 再打开登录卡片
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -309,7 +309,15 @@
             }
         }
 
+        /* 重点更新：打开音乐卡片时，先主动关闭登录卡片 */
         function openMusicModal() {
+            // 如果登录卡片开着，先关掉它
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal && loginModal.classList.contains('active')) {
+                closeLoginModal();
+            }
+
+            // 再打开音乐卡片
             musicModal.classList.add('active');
         }
 
