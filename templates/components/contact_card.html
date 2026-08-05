@@ -1,23 +1,24 @@
-<!-- 联系开发者卡片（结构保持240px宽度） -->
+<!-- 联系开发者卡片（移除动画，左右内边距缩短1/4） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <div class="login-card" style="width: 240px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+        <!-- 外层卡片：左右内边距从 24px 降为 18px -->
+        <div class="login-card" style="width: 240px; padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
             
-            <!-- 标题：左对齐 -->
-            <span class="font-extrabold text-xl text-white anim-item" style="width: 100%; text-align: left;">请选择联系方式</span>
+            <!-- 标题：移除 anim-item，左对齐，与按钮边缘齐平 -->
+            <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left;">请选择联系方式</span>
             
-            <!-- 按钮组 -->
+            <!-- 按钮组：保持和以前一样的宽度与居中 -->
             <div class="flex flex-col gap-3 w-full items-center">
                 
-                <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
+                <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
                     Telegram
                 </a>
 
-                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
+                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
                     QQ
                 </a>
 
-                <a href="https://wa.me/8615861980264" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
+                <a href="https://wa.me/8615861980264" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
                     WhatsApp
                 </a>
 
