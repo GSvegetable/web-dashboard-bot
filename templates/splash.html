@@ -48,7 +48,7 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* 核心修复：弹窗背景层加模糊 */
+        /* 弹窗背景层加模糊 */
         .modal-overlay { 
             position: fixed; inset: 0; 
             background: rgba(0, 0, 0, 0.1); 
@@ -125,7 +125,7 @@
         </div>
     </div>
 
-    <!-- 【第2步修改】右上角按钮：将 a 标签换成 button 弹窗 -->
+    <!-- 右上角按钮 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -202,7 +202,7 @@
         </div>
     </div>
 
-    <!-- 【第2步修改】嵌入联系开发者卡片组件 -->
+    <!-- 嵌入联系开发者卡片组件 -->
     {% include 'components/contact_card.html' %}
 
     <script>
@@ -278,13 +278,16 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 弹窗互锁与卡片逻辑 ================= */
-        
+        /* ================= 完美互锁逻辑 (修改点) ================= */
+
+        // 1. 打开登录卡片：先关音乐和开发者
         function openLoginModal() {
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
+
             const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) {
-                closeMusicModal();
-            }
+            if (musicModal && musicModal.classList.contains('active')) closeMusicModal();
+
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -298,7 +301,7 @@
             closeLoginModal();
         });
 
-        /* ================= 音乐播放器逻辑 ================= */
+        // 2. 音乐卡片开关：先关登录和开发者
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -315,10 +318,12 @@
         }
 
         function toggleMusicModal() {
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
+
             const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                closeLoginModal();
-            }
+            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
+
             if (!musicModal) return;
             if (musicModal.classList.contains('active')) {
                 closeMusicModal();
@@ -328,10 +333,12 @@
         }
 
         function openMusicModal() {
+            const contactModal = document.getElementById('contactModal');
+            if (contactModal && contactModal.classList.contains('active')) closeContactModal();
+            
             const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                closeLoginModal();
-            }
+            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
+            
             musicModal.classList.add('active');
         }
 
@@ -384,8 +391,14 @@
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        /* ================= 【第3步修改】联系开发者卡片逻辑 ================= */
+        // 3. 联系开发者卡片：先关登录和音乐
         function openContactModal() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
+
+            const musicModal = document.getElementById('musicModal');
+            if (musicModal && musicModal.classList.contains('active')) closeMusicModal();
+
             const modal = document.getElementById('contactModal');
             if (modal) modal.classList.add('active');
         }
@@ -447,8 +460,4 @@
                     setTimeout(() => { closeLoginModal(); }, 1000);
                 } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
                 } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-    </script>
-</body>
-                    </html>
+       
