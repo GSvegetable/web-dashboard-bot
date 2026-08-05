@@ -8,21 +8,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
+        /* 复用你之前定义的所有样式，这里精简省略保持不变，直接套用你的完整 CSS */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
-
-        :root {
-            --bg-img: url("{{ url_for('static', filename='bg.png') }}");
-            --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
-        }
-
-        body {
-            width: 100vw; height: 100vh; overflow: hidden;
-            background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-        }
+        :root { --bg-img: url("{{ url_for('static', filename='bg.png') }}"); --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); }
+        body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
         body.loaded { opacity: 1; }
-
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -32,7 +24,6 @@
         .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
-
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; opacity: 0; transform: translateY(60px); position: relative; z-index: 1; }
         .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .glass-btn:active { transform: scale(0.94); }
@@ -41,25 +32,13 @@
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
         .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-
         @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
         .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        .modal-overlay { 
-            position: fixed; inset: 0; 
-            background: rgba(0, 0, 0, 0.1); 
-            backdrop-filter: blur(6px); 
-            -webkit-backdrop-filter: blur(6px); 
-            z-index: 9998; 
-            display: flex; justify-content: flex-end; align-items: flex-start; 
-            padding-top: 80px; padding-right: 24px; 
-            opacity: 0; visibility: hidden; 
-            transition: opacity 0.3s ease, visibility 0.3s ease; 
-            pointer-events: none; 
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
@@ -68,6 +47,20 @@
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
+        .music-track-info { display: flex; flex-direction: column; gap: 4px; }
+        .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-artist-name { font-size: 0.85rem; color: #9ca3af; }
+        .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
+        .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
+        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
+        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
+        .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .music-btn:active { transform: scale(0.90); opacity: 0.7; }
+        #play-pause-btn .icon-pause { display: none; }
+        #play-pause-btn.playing .icon-play { display: none; }
+        #play-pause-btn.playing .icon-pause { display: block; }
 
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
@@ -83,7 +76,7 @@
             .top-actions { top: 12px; right: 12px; gap: 6px; }
             .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .login-card { width: 280px; padding: 16px 20px; }
+            .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
@@ -109,9 +102,15 @@
         </div>
     </div>
 
-    <!-- 右上角按钮 -->
+    <!-- ✨ 修改点：右上角按钮重新排列，增加后台管理按钮 ✨ -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
+        
+        <!-- 只有管理员才会看到这个按钮 -->
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="/admin/dashboard" class="top-btn">后台管理</a>
+        {% endif %}
+        
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openBecomeFanModal()">成为爱好者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -152,11 +151,9 @@
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
 
-    <!-- 引入互锁逻辑的 JS -->
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
-        // 保留核心的 toggleTheme 和 GSAP 初始化
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
@@ -210,15 +207,13 @@
               .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
               .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
 
-            // 音乐音量设置
             const bgAudio = document.getElementById('bg-audio');
-            if (bgAudio) {
-                bgAudio.volume = 0.3; 
-            }
+            if (bgAudio) bgAudio.volume = 0.3; 
         });
 
         function toggleFullScreen() {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
         }
 
         function showToast(msg, type='info') {
@@ -237,7 +232,6 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器原生逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -303,13 +297,11 @@
 
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        /* ================= 登录、验证码、注册事件绑定 ================= */
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const emailInput = document.getElementById('reg-email');
             const account = emailInput.value.trim();
             
-            // 防止空账号提交
             if(!account) { 
                 shakeElement(document.getElementById('email-wrapper')); 
                 showToast('请输入邮箱或Telegram ID', 'error'); 
@@ -317,7 +309,7 @@
             }
 
             const btn = this;
-            btn.disabled = true; // 防止疯狂连点
+            btn.disabled = true;
 
             try {
                 const res = await fetch('/api/send_code', {
@@ -383,6 +375,8 @@
                 if(text.includes('注册成功') || text.includes('登录成功')) {
                     showToast('🎉 ' + text, 'success');
                     setTimeout(() => { window.closeLoginModal(); }, 1000);
+                    // 立即刷新页面，让「后台管理」按钮出现
+                    setTimeout(() => { window.location.reload(); }, 1200);
                 } else {
                     showToast('❌ ' + text, 'error');
                 }
