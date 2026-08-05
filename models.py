@@ -4,20 +4,21 @@ from datetime import datetime
 
 db = SQLAlchemy()
 
-# 用户表
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=True) # 允许为空
-    telegram_id = db.Column(db.String(50), unique=True, nullable=True) # 新增：电报ID
+    email = db.Column(db.String(120), unique=True, nullable=True)
+    telegram_id = db.Column(db.String(50), unique=True, nullable=True)
     password_hash = db.Column(db.String(512), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_vip = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # 新增：记录最近一次上线时间
+    last_login = db.Column(db.DateTime, nullable=True) 
     
     bot_configs = db.relationship('BotConfig', backref='user', lazy=True)
 
-# 机器人配置表
+# (BotConfig 和 EmailCode 表保持不变)
 class BotConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -26,7 +27,6 @@ class BotConfig(db.Model):
     response = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 邮箱验证码表（保持不变）
 class EmailCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
