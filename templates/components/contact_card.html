@@ -1,25 +1,25 @@
-<!-- 联系开发者卡片（统一大小 + 动画支持） -->
+<!-- 联系开发者卡片（完全对齐登录卡片的尺寸与样式） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <!-- 整体风格完全复制登录卡片，内边距合理 -->
-        <div class="login-card" style="width: 320px; padding: 24px 20px; align-items: center; gap: 16px;">
+        <!-- 外层：宽度、内边距、列间距全面参考登录卡片，并靠左对齐 -->
+        <div class="login-card" style="width: 320px; padding: 24px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
             
-            <!-- 添加标题，使用和登录卡片一模一样的文字样式，加上 anim-item 支持动画 -->
-            <span class="font-extrabold text-xl text-white anim-item">请选择联系方式</span>
+            <!-- 标题：左对齐，字号与登录卡片一模一样 -->
+            <span class="font-extrabold text-xl text-white anim-item" style="width: 100%; text-align: left;">请选择联系方式</span>
             
-            <!-- 按钮组：设置 flex 和 items-center 保证居中，设定相同宽度 -->
-            <div class="flex flex-col items-center gap-3 w-full">
+            <!-- 按钮组，保持与登录卡片输入框一样的间距 -->
+            <div class="flex flex-col gap-3 w-full">
                 
-                <!-- 所有按钮统一样式：宽度固定为 160px，高度一致 -->
-                <a href="https://t.me/gsyxyc" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                <!-- 按钮：应用了和登录卡片输入框完全一样的 w-full p-2.5 样式，大小一致 -->
+                <a href="https://t.me/gsyxyc" target="_blank" class="block w-full p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
                     Telegram
                 </a>
 
-                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="block w-full p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
                     QQ
                 </a>
 
-                <a href="https://wa.me/8615861980264" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                <a href="https://wa.me/8615861980264" target="_blank" class="block w-full p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95 anim-item">
                     WhatsApp
                 </a>
 
