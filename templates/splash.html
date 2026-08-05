@@ -45,17 +45,16 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* ★★★ 音乐卡片的关键 CSS，修复布局错乱 ★★★ */
+        /* ★★★ 音乐卡片的关键 CSS ★★★ */
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
         .music-track-info { display: flex; align-items: center; gap: 12px; }
-        .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
+        .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; transition: transform 0.3s ease; }
         .album-art:hover { transform: scale(1.05); }
         .track-details { flex-grow: 1; overflow: hidden; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .music-artist-name { font-size: 0.85rem; color: #9ca3af; margin-top: 2px; }
         .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; flex-shrink: 0; }
-        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
-        @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
+        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; transition: height 0.05s linear; } /* 增加一点平滑过渡 */
         
         .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
         .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
@@ -153,6 +152,8 @@
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
 
+    <!-- ★★★ 引入新文件：处理真实频谱弹跳的 JS ★★★ -->
+    <script src="{{ url_for('static', filename='js/audio_visualizer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
@@ -227,7 +228,7 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器 ================= */
+        /* ================= 音乐播放器内置操作（时间、进度条等） ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -311,7 +312,7 @@
             } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
         });
 
-        /* ================= 点击空白关闭卡片（保持原版） ================= */
+        /* ================= 点击空白关闭卡片 ================= */
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('.modal-box')) return;
             closeLoginModal();
