@@ -23,7 +23,6 @@
         }
         body.loaded { opacity: 1; }
 
-        /* 核心内容区（确保这里的内容 100% 不会丢失） */
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
@@ -39,10 +38,8 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ------------------------------
-           修改点：顶部按钮完美自适应
-           ------------------------------ */
-        .top-actions { position: fixed; top: 20px; right: 16px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: auto; justify-content: flex-end; }
+        /* --- 修改点：右上角按钮自适应 --- */
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
         .top-btn { 
             text-align: center; padding: 8px 12px; border-radius: 30px; 
             background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); 
@@ -60,23 +57,14 @@
         .top-actions .top-btn:nth-child(1) { animation-delay: 0.2s; }
         .top-actions .top-btn:nth-child(2) { animation-delay: 0.4s; }
         .top-actions .top-btn:nth-child(3) { animation-delay: 0.6s; }
-        .top-actions .top-btn:nth-child(4) { animation-delay: 0.6s; }
+        .top-actions .top-btn:nth-child(4) { animation-delay: 0.8s; }
 
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* ============== 弹窗与玻璃卡片 ============== */
-        .modal-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
-            z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; 
-            opacity: 0; visibility: hidden; 
-            transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.7s ease; pointer-events: none; 
-        }
-        .modal-overlay.active { 
-            opacity: 1; visibility: visible; pointer-events: auto; 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
+        /* --- 弹窗与玻璃卡片 --- */
+        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
+        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
@@ -130,8 +118,8 @@
             .sub-title { font-size: 16px; }
             .glass-btn { font-size: 15px; padding: 12px 0; border-radius: 20px; }
             .btn-grid { gap: 12px; max-width: 260px; }
-            .top-actions { top: 12px; right: 12px; gap: 5px; }
-            .top-btn { font-size: 11px; padding: 5px 10px; }
+            .top-actions { top: 12px; right: 12px; gap: 6px; }
+            .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card, .music-glass-card { width: 280px; padding: 16px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
@@ -140,7 +128,7 @@
 </head>
 <body>
     
-    <!-- 重要：两大行文字、切换按钮、四大按钮 都在这里 -->
+    <!-- 两行文字、切换按钮、四个大按钮都在这里 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -160,12 +148,12 @@
         </div>
     </div>
 
-    <!-- 修改后：全新排序的顶部按钮（宽度自适应） -->
+    <!-- 修改后：全新排序且自适应的顶部按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
-        <!-- 修改：这里就是那个正圆形的音乐图标按钮 -->
+        <!-- 改成了正圆形的音符图标 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
@@ -382,4 +370,9 @@
                     showToast('🎉 注册/登录成功！', 'success');
                     setTimeout(() => { closeLoginModal(); }, 1000);
                 } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-              
+                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
+            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
