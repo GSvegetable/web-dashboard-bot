@@ -53,10 +53,43 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 登录卡片：加了一点点模糊感 */
+        /* 登录卡片（加入了极淡的模糊） */
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
+        /* ---------- 真实的音乐卡片 CSS ---------- */
+        .music-glass-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; gap: 14px; }
+        
+        .music-track-info { display: flex; align-items: center; gap: 12px; }
+        .music-album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
+        .music-album-art:hover { transform: scale(1.05); }
+        .music-track-details { flex-grow: 1; overflow: hidden; }
+        .music-track-title { font-size: 1.3em; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .music-artist-name { font-size: 0.9em; color: #d1d1d6; margin-top: 2px; }
+        .music-volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; }
+        .music-volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
+        @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
+        
+        .music-playback-controls { display: flex; flex-direction: column; gap: 8px; }
+        .music-time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
+        
+        .music-progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; cursor: pointer; }
+        .music-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); pointer-events: none; }
+        
+        .music-button-row { display: flex; justify-content: space-between; gap: 12px; }
+        .music-control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
+        .music-control-button:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+        .music-main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
+        
+        .music-play-pause-button .icon-pause { display: none; }
+
+        /* 控制图标状态 */
+        .music-play-pause-button.is-playing .icon-play { display: none; }
+        .music-play-pause-button.is-playing .icon-pause { display: block; }
+        .music-play-pause-button:not(.is-playing) .icon-play { display: block; }
+        .music-play-pause-button:not(.is-playing) .icon-pause { display: none; }
+        
         #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
         #custom-toast.error { border-left-color: #ef4444; }
         #custom-toast.success { border-left-color: #22c55e; }
@@ -71,7 +104,7 @@
             .top-actions { top: 12px; right: 12px; gap: 6px; }
             .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .login-card { width: 280px; padding: 16px; }
+            .login-card, .music-glass-card { width: 280px; padding: 16px; }
             #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
@@ -102,14 +135,11 @@
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
-        <!-- 音乐按钮：改为直接控制真实音频播放/暂停，不弹出卡片 -->
-        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleGlobalMusic()">
+        <!-- 音符按钮：现在的逻辑是弹出卡片，而不是全局播放 -->
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="openMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
     </div>
-
-    <!-- 隐藏的真实音乐播放器 -->
-    <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
 
     <div id="custom-toast"></div>
 
@@ -133,6 +163,64 @@
                 </div>
                 <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
             </form>
+        </div>
+    </div>
+
+    <!-- ================= 真实音乐卡片 ================= -->
+    <div class="modal-overlay" id="musicModal">
+        <div class="modal-box">
+            <div class="music-glass-card">
+                <!-- 真实的 MP3 播放源 -->
+                <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="metadata" loop></audio>
+                
+                <div class="music-track-info">
+                    <div class="music-album-art"></div>
+                    <div class="music-track-details">
+                        <div class="music-track-title">Theme of Mitsuha</div>
+                        <div class="music-artist-name">RADWIMPS</div>
+                    </div>
+                    <div class="music-volume-bars">
+                        <div class="bar" style="--delay:0s"></div>
+                        <div class="bar" style="--delay:0.1s"></div>
+                        <div class="bar" style="--delay:0.2s"></div>
+                        <div class="bar" style="--delay:0.3s"></div>
+                        <div class="bar" style="--delay:0.4s"></div>
+                        <div class="bar" style="--delay:0.5s"></div>
+                        <div class="bar" style="--delay:0.6s"></div>
+                        <div class="bar" style="--delay:0.7s"></div>
+                    </div>
+                </div>
+
+                <div class="music-playback-controls">
+                    <div class="music-time-info">
+                        <span id="music-current-time">0:00</span>
+                        <span id="music-total-time">0:00</span>
+                    </div>
+                    <div class="music-progress-bar" id="music-progress-wrapper">
+                        <div class="music-progress-fill" id="music-progress-fill"></div>
+                        <div class="music-progress-handle" id="music-progress-handle"></div>
+                    </div>
+                    <div class="music-button-row">
+                        <div class="music-main-control-btns">
+                            <button class="music-control-button" id="music-prev-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg>
+                            </button>
+                            <div class="music-play-pause-btns">
+                                <button class="music-control-button music-play-pause-button" id="music-play-btn">
+                                    <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
+                                    <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
+                                </button>
+                            </div>
+                            <button class="music-control-button" id="music-next-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg>
+                            </button>
+                        </div>
+                        <button class="music-control-button" id="music-info-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -165,14 +253,18 @@
             if (isExpanded) {
                 themeRing.style.backgroundImage = `url("${newBgUrl}")`;
                 gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                gsap.delayedCall(0.2, function() { textElements.forEach(function(el) { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
                 void themeRing.offsetHeight; 
                 gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
             } else {
                 gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                gsap.delayedCall(0.35, function() { textElements.forEach(function(el) { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
                 void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                // 修复关键：去除 onComplete 尾随逗号，改用独立的 delayedCall
+                gsap.delayedCall(0.9, function() {
+                    themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                });
             }
         }
 
@@ -180,10 +272,10 @@
             const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl;
             bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+            setTimeout(function() { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+            setTimeout(function() { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(function() { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
             const tl = gsap.timeline();
             tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
@@ -195,33 +287,37 @@
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         }
 
-        function showToast(msg, type='info') {
+        function showToast(msg, type) {
+            if (!type) type = 'info';
             toast.innerText = msg; toast.className = 'show';
             if(type === 'error') toast.classList.add('error');
             else if(type === 'success') toast.classList.add('success');
             else toast.classList.remove('error', 'success');
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+            toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 3000);
         }
 
+        // ==========================================================
+        // 登录和音乐卡片的交互
+        // ==========================================================
         function openLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.classList.add('active');
+            document.getElementById('loginModal').classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            try {
+                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            } catch (e) {}
         }
 
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        // 替换了之前的音乐卡片逻辑，现在直接控制全局音频播放/暂停
-        function toggleGlobalMusic() {
-            const bgAudio = document.getElementById('bg-audio');
-            if (!bgAudio) return;
-            
-            if (bgAudio.paused) {
-                bgAudio.play().catch(e => console.log("播放受限:", e));
-            } else {
+        function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
+        function closeMusicModal() { 
+            document.getElementById('musicModal').classList.remove('active');
+            var bgAudio = document.getElementById('bg-audio');
+            if (bgAudio && !bgAudio.paused) {
                 bgAudio.pause();
+                var playBtn = document.getElementById('music-play-btn');
+                if (playBtn) playBtn.classList.remove('is-playing');
             }
         }
 
@@ -230,64 +326,93 @@
             closeLoginModal();
         });
 
+        document.getElementById('musicModal').addEventListener('click', function(e) {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            closeMusicModal();
+        });
+
+        // ==========================================================
+        // 真实音乐播放器逻辑
+        // ==========================================================
+        var bgAudio = document.getElementById('bg-audio');
+        var playBtn = document.getElementById('music-play-btn');
+        var prevBtn = document.getElementById('music-prev-btn');
+        var nextBtn = document.getElementById('music-next-btn');
+        var progressWrapper = document.getElementById('music-progress-wrapper');
+        var progressFill = document.getElementById('music-progress-fill');
+        var progressHandle = document.getElementById('music-progress-handle');
+        var currentTimeDisplay = document.getElementById('music-current-time');
+        var totalTimeDisplay = document.getElementById('music-total-time');
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            var m = Math.floor(seconds / 60);
+            var s = Math.floor(seconds % 60);
+            return m + ":" + (s < 10 ? "0" : "") + s;
+        }
+
+        if (bgAudio) {
+            // 加载完成时获取总时长
+            bgAudio.addEventListener('loadedmetadata', function() {
+                totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+            });
+            // 偶尔会出现 metadata 加载延迟，为了保险加个 oncanplaythrough
+            bgAudio.addEventListener('canplaythrough', function() {
+                if (bgAudio.duration > 0) {
+                    totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+                }
+            });
+
+            // 播放/暂停控制
+            if (playBtn) {
+                playBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (bgAudio.paused) {
+                        bgAudio.play()["catch"](function(err) { console.log("播放受阻:", err); });
+                        playBtn.classList.add('is-playing');
+                    } else {
+                        bgAudio.pause();
+                        playBtn.classList.remove('is-playing');
+                    }
+                });
+            }
+
+            // 更新进度条和时间
+            bgAudio.addEventListener('timeupdate', function() {
+                var current = bgAudio.currentTime;
+                var duration = bgAudio.duration;
+                var percent = (current / duration) * 100;
+                if (currentTimeDisplay) currentTimeDisplay.textContent = formatTime(current);
+                if (progressFill) progressFill.style.width = percent + '%';
+                if (progressHandle) progressHandle.style.left = percent + '%';
+            });
+
+            // 播放结束自动回到下一首（这里设为回到开头重置播放）
+            bgAudio.addEventListener('ended', function() {
+                if (playBtn) playBtn.classList.remove('is-playing');
+                bgAudio.currentTime = 0;
+            });
+
+            // 上一首/下一首
+            if (prevBtn) prevBtn.addEventListener('click', function(e) { e.stopPropagation(); bgAudio.currentTime = 0; });
+            if (nextBtn) nextBtn.addEventListener('click', function(e) { e.stopPropagation(); bgAudio.currentTime += 15; });
+
+            // 点击进度条跳转
+            if (progressWrapper) {
+                progressWrapper.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var rect = this.getBoundingClientRect();
+                    var x = e.clientX - rect.left;
+                    var percent = (x / rect.width);
+                    if (bgAudio.duration) {
+                        bgAudio.currentTime = percent * bgAudio.duration;
+                    }
+                });
+            }
+        }
+
         function shakeElement(element) {
             if(!element) return;
             element.classList.remove('shake-field');
             void element.offsetWidth; 
-            element.classList.add('shake-field');
-        }
-
-        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const emailInput = document.getElementById('reg-email');
-            const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
-                else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
-            finally { btn.disabled = false; }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const email = document.getElementById('reg-email').value.trim();
-            const code = document.getElementById('reg-code').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const emailWrapper = document.getElementById('email-wrapper');
-            const codeWrapper = document.getElementById('code-wrapper');
-            const passwordWrapper = document.getElementById('password-wrapper');
-            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
-
-            let hasError = false;
-            if(!email) { shakeElement(emailWrapper); hasError = true; }
-            if(!code) { shakeElement(codeWrapper); hasError = true; }
-            if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-            if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
-
-            const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-    </script>
-</body>
-</html>
+            element.classList.ad
