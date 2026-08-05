@@ -48,24 +48,23 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* 弹窗背景层加模糊 */
-        .modal-overlay { 
-            position: fixed; inset: 0; 
-            background: rgba(0, 0, 0, 0.1); 
-            backdrop-filter: blur(6px); 
-            -webkit-backdrop-filter: blur(6px); 
-            z-index: 9998; 
-            display: flex; justify-content: flex-end; align-items: flex-start; 
-            padding-top: 80px; padding-right: 24px; 
-            opacity: 0; visibility: hidden; 
-            transition: opacity 0.3s ease, visibility 0.3s ease; 
-            pointer-events: none; 
+        .text-group, #themeToggleBtn, .btn-grid {
+            opacity: 0;
+            transform: translateY(60px);
+            animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
+        #themeToggleBtn { animation-delay: 0s; }
+        .btn-grid { animation-delay: 0.2s; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 移除卡片自身的模糊 */
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
@@ -105,7 +104,6 @@
     </style>
 </head>
 <body>
-    
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -113,7 +111,7 @@
                 <h1 class="text-pattern main-title">宫水大世界</h1>
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
-            <button class="theme-btn-title" onclick="toggleTheme(event)">
+            <button id="themeToggleBtn" onclick="toggleTheme(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
@@ -139,7 +137,7 @@
 
     <div id="custom-toast"></div>
 
-    <!-- ================= 登录卡片 ================= -->
+    <!-- 登录卡片 -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <form id="authForm" onsubmit="return false;" novalidate class="login-card">
@@ -162,7 +160,7 @@
         </div>
     </div>
 
-    <!-- ================= 极简音乐卡片 ================= -->
+    <!-- 音乐卡片 -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
             <div class="music-card-glass">
@@ -170,7 +168,6 @@
                     <div class="music-track-title" id="music-title">Theme of Mitsuha</div>
                     <div class="music-artist-name" id="music-artist">RADWIMPS</div>
                 </div>
-                
                 <div class="music-progress-area">
                     <div class="music-time-row">
                         <span id="music-current-time">0:00</span>
@@ -181,19 +178,14 @@
                         <div class="music-progress-handle" id="music-progress-handle"></div>
                     </div>
                 </div>
-
                 <div class="music-controls">
                     <button class="music-btn" id="music-prev-btn">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
                     </button>
-                    
                     <button class="music-btn" id="play-pause-btn">
-                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
-                            <polygon points="6,4 19,12 6,20"></polygon>
-                        </svg>
+                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"><polygon points="6,4 19,12 6,20"></polygon></svg>
                         <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                     </button>
-                    
                     <button class="music-btn" id="music-next-btn">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
                     </button>
@@ -202,11 +194,17 @@
         </div>
     </div>
 
-    <!-- 嵌入联系开发者卡片组件 -->
+    <!-- 联系开发者卡片 -->
     {% include 'components/contact_card.html' %}
 
     <script>
-        gsap.registerPlugin(ScrollTrigger);
+        // ============================================================
+        // 绝对防崩溃逻辑：就算 GSAP 没加载，文字也绝不会丢！
+        // ============================================================
+        try {
+            gsap.registerPlugin(ScrollTrigger);
+        } catch (e) {}
+
         let isExpanded = false;
         const themeRing = document.getElementById('theme-ring');
         const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
@@ -254,10 +252,28 @@
             gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
             setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
 
-            const tl = gsap.timeline();
-            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            // ★★★ 核心保险：用 GSAP 跑入场动画 ★★★
+            try {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            } catch (e) {
+                // 如果 GSAP 报错，直接强制执行备用方案
+                document.querySelectorAll('.text-group, #themeToggleBtn, .btn-grid').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }
+
+            // ★★★ 终极必杀技：2.5 秒强制显示保险 ★★★
+            // 无论 GSAP 有没有成功，2.5秒后绝对强显文字、切换键和底部的四个按钮
+            setTimeout(() => {
+                document.querySelectorAll('.text-group, #themeToggleBtn, .btn-grid').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 2500);
 
             const bgAudio = document.getElementById('bg-audio');
             if (bgAudio) {
@@ -278,9 +294,7 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 完美互锁逻辑 (修改点) ================= */
-
-        // 1. 打开登录卡片：先关音乐和开发者
+        /* ================= 完美互锁逻辑 ================= */
         function openLoginModal() {
             const contactModal = document.getElementById('contactModal');
             if (contactModal && contactModal.classList.contains('active')) closeContactModal();
@@ -301,7 +315,7 @@
             closeLoginModal();
         });
 
-        // 2. 音乐卡片开关：先关登录和开发者
+        /* ================= 音乐播放器逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -342,9 +356,7 @@
             musicModal.classList.add('active');
         }
 
-        function closeMusicModal() {
-            musicModal.classList.remove('active');
-        }
+        function closeMusicModal() { musicModal.classList.remove('active'); }
 
         function togglePlayPause() {
             if (!bgAudio) return;
@@ -386,12 +398,11 @@
         });
 
         playPauseBtn.addEventListener('click', togglePlayPause);
-
         musicModal.addEventListener('click', function(e) {
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        // 3. 联系开发者卡片：先关登录和音乐
+        /* ================= 联系开发者卡片逻辑 ================= */
         function openContactModal() {
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) closeLoginModal();
@@ -444,20 +455,4 @@
             if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
 
             const passRegex = /^[a-zA-Z0-9_\/]+$/;
-            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'error'); return; }
-
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', email); formData.append('password', password);
-                formData.append('confirm_password', password); formData.append('code', code);
-                formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-       
+            if(!passRegex.test(password)) { shakeElement(passwordWrapper); showToast('密码仅允许英文字母、数字、_ 和 /', 'er
