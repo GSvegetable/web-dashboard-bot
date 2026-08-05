@@ -27,8 +27,9 @@
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-        .theme-btn-title { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; margin-top: 6px; }
-        .theme-btn-title:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+        /* 添加了 id 供 JS 捕捉 */
+        #themeToggleBtn { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; margin-top: 6px; }
+        #themeToggleBtn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
@@ -38,13 +39,13 @@
         .glass-btn:active { transform: scale(0.94); }
         .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
 
-        /* ★★★ 修复 BUG：CSS 备用动画 ★★★ */
-        .text-group, .theme-btn-title, .btn-grid {
+        /* ★★★ CSS 备用动画 ★★★ */
+        .text-group, #themeToggleBtn, .btn-grid {
             opacity: 0;
             transform: translateY(60px);
             animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
-        .theme-btn-title { animation-delay: 0s; }
+        #themeToggleBtn { animation-delay: 0s; }
         .btn-grid { animation-delay: 0.2s; }
         
         @keyframes fadeInUp {
@@ -52,6 +53,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* 右上角按钮 */
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
         .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
@@ -126,7 +128,8 @@
                 <h1 class="text-pattern main-title">宫水大世界</h1>
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
             </div>
-            <button class="theme-btn-title" onclick="toggleTheme(event)">
+            <!-- 修改点：增加 id="themeToggleBtn" -->
+            <button id="themeToggleBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
@@ -138,13 +141,13 @@
         </div>
     </div>
 
-    <!-- 右上角按钮：顺序为 联系开发者、全屏、Log in、音乐 -->
+    <!-- 右上角按钮 -->
     <div class="top-actions">
         <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="openLoginModal()">Log in</button>
-        <!-- 音乐按钮 -->
-        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn" onclick="openMusicModal()">
+        <!-- 修改点：增加 id="fullScreenBtn" -->
+        <a href="javascript:void(0)" id="fullScreenBtn" class="top-btn">全屏显示</a>
+        <button class="top-btn" id="loginBtn">Log in</button>
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" id="musicBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
     </div>
@@ -230,168 +233,151 @@
         </div>
     </div>
 
-    <!-- =============================================================== -->
-    <!-- ★★★ 修复核心：所有被 onclick 调用的函数，全放在全局作用域内 ★★★ -->
-    <!-- =============================================================== -->
     <script>
+        // 为了让底部的文字动画刷新，保留 GSAP 注册
         gsap.registerPlugin(ScrollTrigger);
-        let isExpanded = false;
-        const themeRing = document.getElementById('theme-ring');
-        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
-        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
-        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
-        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
-        const textElements = document.querySelectorAll('.text-pattern');
-        const contentArea = document.getElementById('contentArea');
-        const toast = document.getElementById('custom-toast');
-        let toastTimer;
 
-        const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
-        const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
-
-        // --- 1. 主题切换 ---
-        function toggleTheme(event) {
-            const btn = event.currentTarget;
-            const btnRect = btn.getBoundingClientRect();
-            const areaRect = contentArea.getBoundingClientRect();
-            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
-            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
-
-            isExpanded = !isExpanded;
-            gsap.killTweensOf(themeRing);
-
-            if (isExpanded) {
-                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
-                void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
-            } else {
-                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
-                void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
-            }
-        }
-
-        // --- 2. 全屏显示 ---
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
-        }
-
-        // --- 3. Toast 提示 ---
-        function showToast(msg, type='info') {
-            toast.innerText = msg; toast.className = 'show';
-            if(type === 'error') toast.classList.add('error');
-            else if(type === 'success') toast.classList.add('success');
-            else toast.classList.remove('error', 'success');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        // --- 4. 登录卡片交互 ---
-        function openLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.classList.add('active');
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            // 如果 GSAP 未加载，直接显示，不报错
-            if (typeof gsap !== 'undefined') {
-                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
-            } else {
-                items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
-            }
-        }
-
-        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
-
-        // --- 5. 音乐卡片交互 ---
-        let bgAudio, playBtn, iconPlay, iconPause, currentTimeDisplay, totalTimeDisplay, progressFill, progressHandle;
-
-        function initAudioElements() {
-            bgAudio = document.getElementById('bg-audio');
-            playBtn = document.getElementById('play-btn');
-            iconPlay = document.getElementById('icon-play');
-            iconPause = document.getElementById('icon-pause');
-            currentTimeDisplay = document.getElementById('current-time');
-            totalTimeDisplay = document.getElementById('total-time');
-            progressFill = document.getElementById('progress-fill');
-            progressHandle = document.getElementById('progress-handle');
-
-            if (!bgAudio) return;
-
-            bgAudio.addEventListener('loadedmetadata', () => {
-                totalTimeDisplay.textContent = formatTime(bgAudio.duration);
-            });
-
-            playBtn.addEventListener('click', () => {
-                if (bgAudio.paused) {
-                    bgAudio.play();
-                    iconPlay.style.display = 'none';
-                    iconPause.style.display = 'block';
-                } else {
-                    bgAudio.pause();
-                    iconPlay.style.display = 'block';
-                    iconPause.style.display = 'none';
-                }
-            });
-
-            bgAudio.addEventListener('timeupdate', () => {
-                const current = bgAudio.currentTime;
-                const duration = bgAudio.duration;
-                const percent = (current / duration) * 100;
-                currentTimeDisplay.textContent = formatTime(current);
-                progressFill.style.width = percent + '%';
-                progressHandle.style.left = percent + '%';
-            });
-
-            document.getElementById('prev-btn').addEventListener('click', () => { bgAudio.currentTime = 0; });
-            document.getElementById('next-btn').addEventListener('click', () => { bgAudio.currentTime += 15; });
-        }
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return "0:00";
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return m + ":" + (s < 10 ? "0" : "") + s;
-        }
-
-        function openMusicModal() {
-            document.getElementById('musicModal').classList.add('active');
-        }
-
-        function closeMusicModal() { 
-            document.getElementById('musicModal').classList.remove('active'); 
-            if (bgAudio) {
-                bgAudio.pause();
-                if (iconPlay && iconPause) {
-                    iconPlay.style.display = 'block';
-                    iconPause.style.display = 'none';
-                }
-            }
-        }
-
-        // --- 6. DOM 加载完成后绑定事件和播放入场动画 ---
+        // 所有的 JS 逻辑全部包裹在 DOMContentLoaded 中，确保页面加载完毕后再绑定事件
         document.addEventListener("DOMContentLoaded", function() {
-            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
-            bgImg.src = imgUrl;
-            bgImg.onload = function() { document.body.classList.add('loaded'); };
-            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
+            // --- DOM 元素获取 ---
+            const themeRing = document.getElementById('theme-ring');
+            const contentArea = document.getElementById('contentArea');
+            const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+            const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+            const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+            const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+            const textElements = document.querySelectorAll('.text-pattern');
+            const toast = document.getElementById('custom-toast');
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const fullScreenBtn = document.getElementById('fullScreenBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            const musicBtn = document.getElementById('musicBtn');
+            
+            let isExpanded = false;
+            let toastTimer;
 
-            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+            const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
+            const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
 
-            // 只要 GSAP 加载成功，用 GSAP 重写一次入场动画（覆盖 CSS 后备动画）
-            if (typeof gsap !== 'undefined') {
-                const tl = gsap.timeline();
-                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            // --- 主题切换逻辑 (绑定到 themeToggleBtn) ---
+            function toggleTheme(event) {
+                const btn = event.currentTarget;
+                const btnRect = btn.getBoundingClientRect();
+                const areaRect = contentArea.getBoundingClientRect();
+                const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+                const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
+
+                isExpanded = !isExpanded;
+                gsap.killTweensOf(themeRing);
+
+                if (isExpanded) {
+                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                    gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                } else {
+                    gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
+                }
             }
 
-            // 初始化音乐元素
-            initAudioElements();
+            // --- 全屏切换逻辑 (绑定到 fullScreenBtn) ---
+            function toggleFullScreen() {
+                if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+            }
 
-            // 监听点击卡片外的空白关闭
+            // --- Toast 提示 ---
+            function showToast(msg, type='info') {
+                toast.innerText = msg; toast.className = 'show';
+                if(type === 'error') toast.classList.add('error');
+                else if(type === 'success') toast.classList.add('success');
+                else toast.classList.remove('error', 'success');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            // --- 登录卡片 ---
+            function openLoginModal() {
+                const modal = document.getElementById('loginModal');
+                modal.classList.add('active');
+                const items = document.querySelectorAll('#loginModal .anim-item');
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+                } else {
+                    items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+                }
+            }
+
+            function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+
+            // --- 音乐卡片 ---
+            const bgAudio = document.getElementById('bg-audio');
+            const playBtn = document.getElementById('play-btn');
+            const iconPlay = document.getElementById('icon-play');
+            const iconPause = document.getElementById('icon-pause');
+            const currentTimeDisplay = document.getElementById('current-time');
+            const totalTimeDisplay = document.getElementById('total-time');
+            const progressFill = document.getElementById('progress-fill');
+            const progressHandle = document.getElementById('progress-handle');
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "0:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            if(bgAudio) {
+                bgAudio.addEventListener('loadedmetadata', () => {
+                    totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+                });
+
+                playBtn.addEventListener('click', () => {
+                    if (bgAudio.paused) {
+                        bgAudio.play();
+                        iconPlay.style.display = 'none';
+                        iconPause.style.display = 'block';
+                    } else {
+                        bgAudio.pause();
+                        iconPlay.style.display = 'block';
+                        iconPause.style.display = 'none';
+                    }
+                });
+
+                bgAudio.addEventListener('timeupdate', () => {
+                    const current = bgAudio.currentTime;
+                    const duration = bgAudio.duration;
+                    const percent = (current / duration) * 100;
+                    currentTimeDisplay.textContent = formatTime(current);
+                    progressFill.style.width = percent + '%';
+                    progressHandle.style.left = percent + '%';
+                });
+
+                document.getElementById('prev-btn').addEventListener('click', () => { bgAudio.currentTime = 0; });
+                document.getElementById('next-btn').addEventListener('click', () => { bgAudio.currentTime += 15; });
+            }
+
+            function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
+            function closeMusicModal() { 
+                document.getElementById('musicModal').classList.remove('active'); 
+                if (bgAudio) {
+                    bgAudio.pause();
+                    if (iconPlay && iconPause) {
+                        iconPlay.style.display = 'block';
+                        iconPause.style.display = 'none';
+                    }
+                }
+            }
+
+            // ★★★ 核心修复：去掉 onclick，直接在这里用 addEventListener 绑定 ★★★
+            if(themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+            if(fullScreenBtn) fullScreenBtn.addEventListener('click', toggleFullScreen);
+            if(loginBtn) loginBtn.addEventListener('click', openLoginModal);
+            if(musicBtn) musicBtn.addEventListener('click', openMusicModal);
+
             document.getElementById('loginModal').addEventListener('click', function(e) {
                 if (e.target.closest('button') || e.target.closest('input')) return;
                 closeLoginModal();
@@ -401,28 +387,33 @@
                 if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button') || e.target.closest('label')) return;
                 closeMusicModal();
             });
-        });
 
-        function shakeElement(element) {
-            if(!element) return;
-            element.classList.remove('shake-field');
-            void element.offsetWidth; 
-            element.classList.add('shake-field');
-        }
+            // --- 背景预加载与入场动画 ---
+            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
+            bgImg.src = imgUrl;
+            bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-        // --- 7. 验证码和注册逻辑 ---
-        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const emailInput = document.getElementById('reg-email');
-            const email = emailInput.value.trim();
-            if(!email) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱地址', 'error'); return; }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } 
-                else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败，请检查后台运行状态', 'error'); } 
-            finally { btn.disabled = false; }
- 
+            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            }
+
+            // --- 抖动函数 ---
+            function shakeElement(element) {
+                if(!element) return;
+                element.classList.remove('shake-field');
+                void element.offsetWidth; 
+                element.classList.add('shake-field');
+            }
+
+            // --- 验证码与注册 ---
+            document.getElementById('send-code-btn').addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const emailInput = document.getElementById('reg-email');
+                con
