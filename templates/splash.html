@@ -3,68 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>gsbot 启动页 - 极简测试</title>
+    <title>gsbot 启动页</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
+        button:focus, a:focus, input:focus { outline: none; }
+
+        :root {
+            --bg-img: url("{{ url_for('static', filename='bg.png') }}");
+            --new-bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}");
+        }
+
         body {
-            background-color: #000000; width: 100vw; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; color: #ffffff;
-            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            width: 100vw; height: 100vh; overflow: hidden;
+            background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
         }
-        .btn-group { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 300px; padding: 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; }
-        .btn-group h2 { text-align: center; color: #e5e7eb; margin-bottom: 10px; font-weight: 600; }
-        .btn {
-            width: 100%; padding: 15px 0; border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff; font-size: 18px; font-weight: 500; cursor: pointer; text-align: center;
-            transition: all 0.2s;
+        body.loaded { opacity: 1; }
+
+        .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+        #themeToggleBtn { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; margin-top: 6px; }
+        #themeToggleBtn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 320px; margin-top: 0; justify-items: center; position: relative; z-index: 1; }
+        .glass-btn { position: relative; padding: 14px 0; width: 90%; text-align: center; border-radius: 24px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 18px; font-weight: 600; cursor: pointer; letter-spacing: 1px; text-decoration: none; display: inline-block; z-index: 1; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .glass-btn:active { transform: scale(0.94); }
+        .btn-text { position: relative; z-index: 2; color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
+
+        .text-group, #themeToggleBtn, .btn-grid { opacity: 0; transform: translateY(60px); animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        #themeToggleBtn { animation-delay: 0s; }
+        .btn-grid { animation-delay: 0.2s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
+
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
+        .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
+        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+
+        @keyframes slideInFromRight { 0% { opacity: 0; transform: translateX(280px); } 100% { opacity: 1; transform: translateX(0); } }
+        .top-actions .top-btn { opacity: 0; animation: slideInFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
+        .shake-field { animation: shakeField 0.2s ease-in-out 2; }
+
+        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
+        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
+
+        .music-glass-card { max-width: 420px; width: 90%; padding: 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; flex-direction: column; gap: 14px; }
+        .track-info { display: flex; align-items: center; gap: 12px; }
+        .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
+        .album-art:hover { transform: scale(1.05); }
+        .track-details { flex-grow: 1; overflow: hidden; }
+        .track-title { font-size: 1.3em; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .artist-name { font-size: 0.9em; color: #d1d1d6; margin-top: 2px; }
+        .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; }
+        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
+        @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
+        .playback-controls { display: flex; flex-direction: column; gap: 8px; }
+        .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
+        .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
+        .进度-填写 { 高度: 100%; 宽度: 0%; 背景: 线性梯度(90deg，#00c6ff，#0072ff); 边界半径: 2PX; }
+        .进度句柄 { 位置: 绝对的; 顶端: 50%; 左: 0%; 改变: 翻译(-50%, -50%); 宽度: 10PX; 高度: 10PX; 背景色: 白色的; 边界半径: 50%; 箱形阴影: 0 0 6PX RGBA(0, 0, 0, 0.5); }
+        .按钮排 { 显示: 弯曲; justify-content: 间距; 差距: 12PX; }
+        .控制按钮 { 上边距: 2%; 宽度: 52PX; 高度: 52PX; 边界半径: 50%; 边境: 没有一个; 背景: 没有一个; 显示: 弯曲; justify-content: 中心; 对齐项目: 中心; 光标: 指针; 过渡: 背景 0.2s, 改变 0.2s; 颜色：#fff；}
+        .控制按钮.播放暂停按钮:盘旋, .控制按钮.d:盘旋 { 背景: RGBA(255, 255, 255, 0.1); 改变: 规模(1.05); }
+        .主控-btns { justify-content: 中心; 对齐项目: 中心; 显示: 弯曲; 左边距: 10%; 差距: 20%; }
+        .播放暂停按钮 .图标暂停 { 显示: 没有一个; }
+        
+        #定制烤面包 { 位置: 确定的; 底部: 40PX; 左: 50%; 改变: translateX(-50%); 背景：#1f2937；颜色：#f3f4f6；填充: 10PX 24PX; 边界半径: 8PX; 箱形阴影: 0 4PX 12PX RGBA(0,0,0,0.6); Z指数: 99999; 字体大小: 14PX; 不透明度: 0; 能见度: 隐藏的; 过渡: 所有 0.3s 缓解; 空白: noWrap; 左边框: 4PX 固体#8b5cf6；最大宽度: 90%; 空白: 正常的; 文本对齐: 中心; }
+        #定制烤面包.误差 { 左框线彩色：#ef4444；}
+        #定制烤面包.成功 { 左框线彩色：#22c55e；}
+        #定制烤面包.显示 { 不透明度: 1; 能见度: 看得见的; }
+
+        @介质 (最大宽度: 600PX) {
+            .内容区 { 顶部衬垫: 11VH; 左填充: 6%; 最小高度: 100VH; }
+            .主要标题 { 字体大小: 44PX; }
+            .副标题 { 字体大小: 16PX; }
+            .glass-btn { 字体大小: 15PX; 填充: 12PX 0; 边界半径: 20PX; }
+            .btn-grid { 差距: 12PX; 最大宽度: 260PX; }
+            .top-actions { 顶端: 12PX; 正确的: 12PX; 差距: 6PX; }
+            .top-btn { 字体大小: 11PX; 填充: 6PX 8PX; }
+            .模态覆盖 { 顶部衬垫: 70PX; 右边填充: 12PX; }
+            .登录卡, .音乐玻璃卡 { 宽度: 280PX; 填充: 16PX; }
+            #定制烤面包 { 字体大小: 13PX; 填充: 8PX 16PX; 底部: 30PX; }
         }
-        .btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.15); }
-        #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; display: none; border-left: 4px solid #22c55e; }
-        #toast.error { border-left-color: #ef4444; }
-    </style>
-</head>
-<body>
-
-    <!-- 第一屏 -->
-    <h1 style="font-size: 2rem; margin-bottom: 20px;">宫水大世界</h1>
-
-    <!-- 测试用的按钮组 -->
-    <div class="btn-group">
-        <h2>原生测试按钮</h2>
-        <!-- 全部使用原生 onclick -->
-        <button class="btn" onclick="window.testTheme()">1. 切换主题按钮</button>
-        <button class="btn" onclick="window.testFullscreen()">2. 全屏显示按钮</button>
-        <button class="btn" onclick="window.testLogin()">3. Log in 按钮</button>
-        <button class="btn" onclick="window.testMusic()">4. 音乐按钮</button>
+    </风格>
+</头>
+<身体>
+    <div class="content-area" id="contentArea">
+        <div id="theme-ring"></div>
+        <div class="title-row">
+            <div class="text-group">
+                <h1 class="text-pattern main-title">宫水大世界</h1>
+                <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
+            </div>
+            <!-- 切换按钮 -->
+            <button id="themeToggleBtn" onclick="window.toggleTheme(event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+        </div>
+        <div class="btn-grid">
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">创建作品</span></a>
+            <a href="/warehouse" class="glass-btn" onclick="event.preventDefault(); window.location.href='/warehouse';"><span class="btn-text">查看仓库</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">加入社区</span></a>
+            <a href="javascript:void(0);" class="glass-btn"><span class="btn-text">AGent</span></a>
+        </div>
     </div>
 
-    <div id="toast">测试提示</div>
+    <!-- 右上角按钮 -->
+    <div class="top-actions">
+        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
+        <a href="javascript:void(0)" class="top-btn" onclick="window.toggleFullScreen()">全屏显示</a>
+        <button class="top-btn" onclick="window.openLoginModal()">Log in</button>
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="window.openMusicModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
+    </div>
+
+    <div id="custom-toast"></div>
+
+    <!-- ================= 登录卡片 ================= -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <form id="authForm" onsubmit="return false;" novalidate class="login-card">
+                <div class="flex flex-col gap-1">
+                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                </div>
+                <div class="flex gap-2 w-full anim-item" id="email-wrapper">
+                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
+                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                </div>
+                <div class="anim-item" id="code-wrapper">
+                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                </div>
+                <div class="anim-item" id="password-wrapper">
+                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                </div>
+                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= 音乐卡片 ================= -->
+    <div class="modal-overlay" id="musicModal">
+        <div class="modal-box">
+            <div class="music-glass-card">
+                <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
+                
+                <div class="track-info">
+                    <div class="album-art"></div>
+                    <div class="track-details">
+                        <div class="track-title">Theme of Mitsuha</div>
+                        <div class="artist-name">RADWIMPS</div>
+                    </div>
+                    <div class="volume-bars">
+                        <div class="bar" style="--delay:0s"></div>
+                        <div class="bar" style="--delay:0.1s"></div>
+                        <div class="bar" style="--delay:0.2s"></div>
+                        <div class="bar" style="--delay:0.3s"></div>
+                        <div class="bar" style="--delay:0.4s"></div>
+                        <div class="bar" style="--delay:0.5s"></div>
+                        <div class="bar" style="--delay:0.6s"></div>
+                        <div class="bar" style="--delay:0.7s"></div>
+                    </div>
+                </div>
+                <div class="playback-controls">
+                    <div class="time-info">
+                        <span id="current-time">0:00</span>
+                        <span id="total-time">0:00</span>
+                    </div>
+                    <div class="progress-bar" id="progress-wrapper">
+                        <div class="progress-fill" id="progress-fill"></div>
+                        <div class="progress-handle" id="progress-handle"></div>
+                    </div>
+                    <div class="button-row">
+                        <div class="main-control-btns">
+                            <button class="control-button back" id="prev-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg>
+                            </button>
+                            <div class="play-pause-btns">
+                                <!-- 播放/暂停按钮 -->
+                                <button class="control-button play-pause-button" onclick="window.toggleMusicPlayPause()">
+                                    <svg class="icon-play" id="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
+                                    <svg class="icon-pause" id="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
+                                </button>
+                            </div>
+                            <button class="control-button next" id="next-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg>
+                            </button>
+                        </div>
+                        <button class="control-button d">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // 极度精简，全部挂载在 window 上
-        function showToast(msg, isError=false) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.className = isError ? 'error' : '';
-            t.style.display = 'block';
-            clearTimeout(t._timer);
-            t._timer = setTimeout(() => { t.style.display = 'none'; }, 3000);
-        }
+        // ============================================================
+        // 核心保障：所有点击触发的事件，全部挂在 window 上！
+        // 只要测试版能通，这个版本绝对不可能按键失效！
+        // ============================================================
 
-        window.testTheme = function() {
-            showToast("✅ 切换主题按钮被正常点击！");
+        window.toggleTheme = function(event) {
+            const themeRing = document.getElementById('theme-ring');
+            const contentArea = document.getElementById('contentArea');
+            if (!themeRing || !contentArea) return;
+
+            const btn = event.currentTarget;
+            const btnRect = btn.getBoundingClientRect();
+            const areaRect = contentArea.getBoundingClientRect();
+            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
+
+            const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+            const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+            const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+            const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+            const textElements = document.querySelectorAll('.text-pattern');
+
+            let isExpanded = window.__gsapExpanded || false;
+            isExpanded = !isExpanded;
+            window.__gsapExpanded = isExpanded;
+
+            gsap.killTweensOf(themeRing);
+
+            if (isExpanded) {
+                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+            } else {
+                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                void themeRing.offsetHeight; 
+                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
+            }
         };
-        window.testFullscreen = function() {
-            showToast("✅ 全屏按钮被正常点击！");
+
+        window.toggleFullScreen = function() {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
         };
-        window.testLogin = function() {
-            showToast("✅ 登录按钮被正常点击！");
+
+        window.showToast = function(msg, type='info') {
+            const toast = document.getElementById('custom-toast');
+            if (!toast) return;
+            toast.innerText = msg; toast.className = 'show';
+            if(type === 'error') toast.classList.add('error');
+            else if(type === 'success') toast.classList.add('success');
+            else toast.classList.remove('error', 'success');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 3000);
         };
-        window.testMusic = function() {
-            showToast("✅ 音乐按钮被正常点击！");
+
+        window.openLoginModal = function() {
+            const modal = document.getElementById('loginModal');
+            if (!modal) return;
+            modal.classList.add('active');
+            const items = document.querySelectorAll('#loginModal .anim-item');
+            // 用 GSAP 做个柔和过渡，就算崩了，纯属视觉，不会影响开启
+            try {
+                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+            } catch (e) {}
         };
-    </script>
-</body>
-</html>
+
+        window.closeLoginModal = function() { 
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.classList.remove('active'); 
+        };
+
+        window.openMusicModal = function() { 
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.add('active'); 
+        };
+
+        window.closeMusicModal = function() { 
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.remove('active'); 
+            const bgAudio = document.getElementById('bg-audio');
+            if (bgAudio) {
+                bgAudio.pause();
+                const iconPlay = document.getElementById('icon-play');
+                const iconPause = document.getElementById('icon-pause');
+                if (iconPlay) iconPlay.style.display = 'block';
+                if (iconPause) iconPause.style.display = 'none';
+            }
+        };
+
+        window.toggleMusicPlayPause = function() {
+            const bgAudio = document.getElementById('bg-audio');
+            if (!bgAudio) return;
+            const iconPlay = document.getElementById('icon-play');
+            const iconPause = document.getElementById('icon-pause');
+            if (bgAudio.paused) {
+                // 核心：加上 .catch，哪怕手机限制自动播放，也绝不崩溃！
+                bgAudio.play().catch(e => console.log("播放交互受限:", e));
+                if(iconPlay) iconPlay.style.display = 'none';
+                if(iconPause) iconPause.style.display = 'block';
+            } 其他 {
+                bgAudio.暂停();
+                如果(iconPlay) iconPlay.风格.显示='块';
+                如果(iconPause) iconPause.风格.显示='无';
+            }
+        };
+
+        //============================================================
+        // DOM 加载后的附属逻辑
+        //============================================================
+        文件.addEventListener("DOMContentLoaded", 功能() {
+            // 加载背景
+            ConstbgImg=新的图像(); 
+            Constimgurl="{{url_for('static'，filename='bg.png')}}";
+            bgImg.src=imgurl;
+            bgImg.onload=功能() { 文件.身体.classList.添加('已加载'); };
+            setTimeout(()=>{ 如果(!文件.身体.classList.包含('已加载')) { 文件.身体.classList.添加('已加载'); } }, 3000);
+
+            // 预执行一次背景动画防卡顿
+            Const主题化=文件.getElementById('主题环');
+            如果 (主题化) {
+                GSAP.设置(主题化, { clipPath: '圆形(0%at00)' });
+                setTimeout(()=>{ 
+                    GSAP.设置(主题化, { clipPath: '圆形(在00时为150%)' }); 
+                    setTimeout(()=>{ GSAP.设置(主题化, { clipPath: '圆形(0%at00)' }); }, 100); 
+                }, 200);
+            }
+
+            // 入场动画
+            如果 (typeof GSAP!=='未定义') {
+                ConstTL=GSAP.时间线();
+                TL.到(".text-group", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
+                  .到("#themeToggleBtn", { 不透明度: 1, y: 0, 持续: 1.2, 缓解: "power3.out" }, 0)
+                  .到(".btn-grid", { 不透明度: 1, y: 0, 持续: 1.2, 延期: 0.2, 缓解: "power3.out" }, 0.2);
+            }
+
+            //音乐真实进度监听//音乐真实进度监听常量包装=文件。getElementById('电子邮件包装器')；常量wrapper=document.getElementById('email-wrapper')；
+文件。getElementById('send-code-btn')。addEventListener('单击'，异步函数(e){文件.getElementById('send-code-btn').addEventListener('单击'，异步函数(e){
+                        =
+bg音频.addEventListener('timeupdate'，()=>{bgAudio.addEventListener('timeupdate'，()=>{.addEventListener('timeupdate'，()=>{bgAudio.addEventListener('timeupdate',()=>{.addEventListener('timeupdate'，()=>{bg音频。addEventListener('timeupdate'，()=>{.addEventListener('timeupdate'，()=>{bg音频。addEventListener('timeupdate',()=>{
+Const 
+如果(totalTimeDisplay){如果 (totalTimeDisplay) {
+totalTimeDisplay
+常数=数学下限(bg音频持续时间%60)；常数s=数学.地板(bgAudio.持续%60)；=数学下限(bg音频持续时间%60)；常数s=数学.地板(bgAudio.持续 % 60);
+totalTimeDisplay
+totalTimeDisplay
+                
+
+Const 
+Const当前=bgAudio.currentTime；常量当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量 当前=bgAudio.currentTime；当前=bgAudio.currentTime；常量 当前=bgAudio.currentTime;
+Const持续时间=bg音频持续时间；const持续时间=bg音频持续时间；持续=bg音频。持续时间；常数持续=bg音频。持续；=bg音频持续时间；const持续时间=bg音频持续时间；持续=bgAudio.持续时间；常数 持续=bgAudio.持续;
+常数百分比=(电流/持续时间)*100；常数百分比=(电流/持续时间)*100；=(电流/持续时间)*100；常数百分比=(当前 / 持续) * 100;=(电流/持续时间)*100；常数百分比=(电流/持续时间)*100；=(电流/持续时间)*100；常数百分比=(当前 / 持续) * 100;
+ConstcurrentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；currentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；currentTimeDisplay=文件.getElementById('当前时间')；常数currentTimeDisplay=文件.getElementById('当前时间')；
+Const progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充')；progressFill=文件.getElementById('进度填充')；常数progressFill=文件.getElementById('进度填充');
+Const progressHandle=文件.get元素BYID('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.getElementById('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.get元素 BYID('进程句柄')；常数progressHandle=文件.getElementById('进程句柄')；progressHandle=文件.getElementById('进程句柄')；常数progressHandle=文件.getElementById('进程句柄');
+                    
+如果(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果(currentTimeDisplay){(currentTimeDisplay){如果 (currentTimeDisplay) {
+Const米=数学下限(当前/60)；常数米=数学.地板(当前/60)；米=数学下限(当前/60)；常数米=数学.地板(当前/60)；米=数学下限(当前/60)；常数米=数学.地板(当前/60)； 米=数学下限(当前/60)；常数米=数学.地板(当前 / 60);
+Const s=数学下限(当前%60)；常数s=数学.地板(当前%60)；s=数学下限(当前%60)；常数s=数学.地板(当前 % 60);
+currentTimeDisplay.textContent=米+"："+(s<10？"0"："")+s；currentTimeDisplay.textContent=m+"："+(s<10？"0"："")+s；.textContent=m+"："+(s<10？"0"："")+s；currentTimeDisplay。textContent=m+"："+(s<10？"0"："")+s；0"："")+s；.textContent=m+"："+(s<10？"0"："")+s；currentTimeDisplay.textContent=m+"："+(s<10？"0"："")+s；
+                    }
+if(progressFill)progressFill。风格。宽度=百分比+“%”；如果(progressFill)progressFill。风格。宽度=%+'%'；(progressFill)progressFill。风格。宽度=百分比+'%'；if(progressFill)progressFill.style.width=百分比+'%'；(progressFill)progressFill。风格。宽度=百分比+“%”；如果(progressFill)progressFill.style.width=%+'%'；(progressFill)progressFill.style.width=percent+'%'；if (progressFill) progressFill.style.width = percent + '%';
+if(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。left=%+'%'；if(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle。风格。left=%+'%'；(progressHandle)progressHandle。风格。左=%+'%'；如果(progressHandle)progressHandle.风格。左=%+'%'；
+                });
+            }
+
+Const prevBtn=document.getElementById('prev-btn')；const prevBtn=文档。getElementById('prev-btn')；prevBtn=文档.getElementById('prev-btn')；常量prevBtn=文档.getElementById('prev-btn')；prevBtn=文档.getElementById('prev-btn')；常量prevBtn=document.getElementById('prev-btn')；prevBtn=文件.getElementById('prev-btn')；常量prevBtn=文档.getElementById('prev-btn')；
+const nextBtn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；nextBtn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；next Btn=document.getElement BYID('next-btn')；const nextBtn=document.getElement BYID('next-btn')；nextB ttn=document.getElement BYID('next-btn')；const nextBtn=document.getElement ById('next-btn')；
+if(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档.getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档.getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn.AddEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn.AddEventListener('click'，()=>{consta=document。getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn.addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime=0；})；(prevBtn)prevBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；if(prevBtn)prevBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime=0；})；
+if(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-音频')；如果(a)a.currentTime+=15；})；if(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document.getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElement BYID('bg-音频')；如果(a)a.currentTime+=15；})；如果(nextBtn)nextBtn.addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn。addEventListener('click'，()=>{const a=document.getElementById('bg-音频')；如果(a)a.currentTime+=15；})；if(nextBtn)nextBtn。addEventListener('click'，()=>{const a=文档。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document。getElementById('bg-音频')；如果(a)a.currentTime+=15；})；如果(nextBtn)nextBtn.addEventListener('click'，()=>{const a=document。getElementById('bg-audio')；如果(a)a.currentTime+=15；})；
+
+            // 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）// 点击外部空白关闭卡片（绝对防误触代码）
+Const loginModal=文档。getElementById('loginModal')；常量loginModal=文档。getElementById('loginModal')；loginModal=文档。getElementById('loginModal')；常量loginModal=document.getElementById('loginModal')；
+if(loginModal){if(loginModal){(loginModal){if(loginModal){
+loginModal.addEventListener('click'，函数(e){loginModal.addEventListener('click'，函数(e){.addEventListener('click'，函数(e){loginModal.addEventListener('click'，函数(e){
+if(e.target===e.currenttarget)窗口closeLoginModal()；if(e.target===e.currenttarget)窗口。closeLoginModal()；(e.target===e.currenttarget)窗口。closeLoginModal()；if(e.目标===e.当前目标)窗口。closeLoginModal()；
+                });
+            }
+Const musicModal=文档.getElementById('musicModal')；const musicModal=document.getElementById('musicModal')；musicModal=文档。getElementById('musicModal')；const musicModal=文档。getElementById('musicModal')；
+if(musicModal){if(musicModal){(musicModal){if(musicModal){
+函数(e){musicModal.addEventListener('click'，函数(e){(e){musicModal.addEventListener('click'，函数(e){
+关闭MusicModal()；if(e.target===e.currenttarget)窗口。closeMusicModal()；(e.target===e.currenttarget)窗口。closeMusicModal()；if(e.目标===e.当前目标)窗口。closeMusicModal()；
+                });
+            }
+
+// 发送验证码和注册// 发送验证码和注册
+文件。getElementById('send-code-btn')。addEventListener('click'，异步函数(e){document.getElementById('send-code-btn')。addEventListener('click'，异步函数(e){('send-code-btn').addEventListener('click'，异步函数(e){document.getElementById('send-code-btn').addEventListener('click'，异步函数(e){
+E。停止传播()；e.stopPropagation()；()；e.stopPropagation()；
+Const emailInput=文档。getElementById('reg-mail')；const emailInput=文档。getElementById('reg-mail')；emailInput=文档。getElementById('reg-mail')；常量emailInput=document。getElementById('reg-mail')；
+const email=emailInput.value.trim()；const email=emailInput.value.trim()；email=emailInput.value.trim()；const email=emailInput.value.trim()；
+if(！电子邮件){if(！email){(！电子邮件){if(！email){
+！email
+'shake-field'，500)；}if(wrapper){wrapper.add('shake-field')；setTimeout(()=>包装器。删除('shake-field')，500)；}，500)；}if(wrapper){wrapper.add('shake-field')；setTimeout(()=>包装器.classList.删除('shake-field')，500)；}
+window.showToast('邮政信箱地址'，'error')；window.showToast('请输入邮箱地址', 'error'); 
+                  
