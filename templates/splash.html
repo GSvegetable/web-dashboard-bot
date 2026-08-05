@@ -125,7 +125,7 @@
         </div>
     </div>
 
-    <!-- 右上角按钮 -->
+    <!-- 【第2步修改】右上角按钮：将 a 标签换成 button 弹窗 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -202,7 +202,7 @@
         </div>
     </div>
 
-    <!-- 嵌入联系开发者卡片组件 -->
+    <!-- 【第2步修改】嵌入联系开发者卡片组件 -->
     {% include 'components/contact_card.html' %}
 
     <script>
@@ -278,20 +278,13 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 完美互锁逻辑 ================= */
+        /* ================= 弹窗互锁与卡片逻辑 ================= */
         
         function openLoginModal() {
-            // ★★★ 修改点：打开登录前，先强制关掉联系开发者卡片 ★★★
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) {
-                contactModal.classList.remove('active');
-            }
-
             const musicModal = document.getElementById('musicModal');
             if (musicModal && musicModal.classList.contains('active')) {
                 closeMusicModal();
             }
-
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -306,8 +299,8 @@
         });
 
         /* ================= 音乐播放器逻辑 ================= */
-        const musicModal = document.getElementById('musicModal');
         const bgAudio = document.getElementById('bg-audio');
+        const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const progressFill = document.getElementById('music-progress-fill');
         const currentTimeDisplay = document.getElementById('music-current-time');
@@ -322,17 +315,10 @@
         }
 
         function toggleMusicModal() {
-            // ★★★ 修改点：打开音乐前，先强制关掉联系开发者卡片 ★★★
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) {
-                contactModal.classList.remove('active');
-            }
-
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) {
                 closeLoginModal();
             }
-
             if (!musicModal) return;
             if (musicModal.classList.contains('active')) {
                 closeMusicModal();
@@ -342,12 +328,6 @@
         }
 
         function openMusicModal() {
-            // ★★★ 修改点：打开音乐前，先强制关掉联系开发者卡片 ★★★
-            const contactModal = document.getElementById('contactModal');
-            if (contactModal && contactModal.classList.contains('active')) {
-                contactModal.classList.remove('active');
-            }
-
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) {
                 closeLoginModal();
@@ -404,19 +384,8 @@
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        /* ================= 联系开发者卡片逻辑 ================= */
+        /* ================= 【第3步修改】联系开发者卡片逻辑 ================= */
         function openContactModal() {
-            // ★★★ 修改点：打开开发者卡片前，先强制关掉登录和音乐卡片 ★★★
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                closeLoginModal();
-            }
-
-            const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) {
-                closeMusicModal();
-            }
-
             const modal = document.getElementById('contactModal');
             if (modal) modal.classList.add('active');
         }
@@ -471,4 +440,15 @@
                 formData.append('email', email); formData.append('password', password);
                 formData.append('confirm_password', password); formData.append('code', code);
                 formData.append('cf-turnstile-response', 'dummy');
-                const res = await fetch('/register', { method: 'POST', h
+                const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
+                const text = await res.text();
+                if(text.includes('注册成功') || text.includes('登录成功')) {
+                    showToast('🎉 注册/登录成功！', 'success');
+                    setTimeout(() => { closeLoginModal(); }, 1000);
+                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
+                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
+            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+        });
+    </script>
+</body>
+</html>
