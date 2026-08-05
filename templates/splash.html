@@ -48,7 +48,6 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
 
-        /* 弹窗背景层（加模糊） */
         .modal-overlay { 
             position: fixed; inset: 0; 
             background: rgba(0, 0, 0, 0.1); 
@@ -65,7 +64,6 @@
         .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { transform: translateY(0); }
 
-        /* 卡片去掉本身模糊 */
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
@@ -125,7 +123,6 @@
         </div>
     </div>
 
-    <!-- 右上角按钮 -->
     <div class="top-actions">
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
@@ -342,28 +339,25 @@
             if (e.target === e.currentTarget) closeMusicModal();
         });
 
-        /* ================= 【第3步修改】联系开发者卡片逻辑 ================= */
+        /* ================= 联系开发者卡片逻辑（动画修复版） ================= */
         function openContactModal() {
             const modal = document.getElementById('contactModal');
             if (!modal) return;
             
-            // 1. 卡片先浮出来
             modal.classList.add('active');
             
-            // 2. 获取卡片内部带有 anim-item 类的元素（标题和三个按钮）
             const items = document.querySelectorAll('#contactModal .anim-item');
             
-            // 3. 执行和登录卡片一样的 GSAP 滑动动画
             if (typeof gsap !== 'undefined') {
-                gsap.fromTo(items, { x: 20, opacity: 0 }, { 
+                // 修复：x 从 20 改为 16（因为卡片变窄了），stagger 从 0.08 改为 0.12（因为元素少了），让动画节奏完全对齐登录卡片！
+                gsap.fromTo(items, { x: 16, opacity: 0 }, { 
                     x: 0, 
                     opacity: 1, 
                     duration: 0.4, 
-                    stagger: 0.08, 
+                    stagger: 0.12, 
                     ease: "power2.out" 
                 });
             } else {
-                // 如果 GSAP 没加载出来，直接显示，保证功能不丢失
                 items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
             }
         }
