@@ -56,18 +56,24 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
+        /* ================= 全新极简音乐卡片 ================= */
+        .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; transform-origin: right top; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .music-card-glass.dragging { transform: scale(1.5) !important; transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
         .music-track-info { display: flex; flex-direction: column; gap: 4px; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .music-artist-name { font-size: 0.85rem; color: #9ca3af; }
+        
         .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
         .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
-        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
-        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
-        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
+        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; touch-action: none; } /* touch-action: none 防止触摸时页面滑动 */
+        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; pointer-events: none; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; pointer-events: none; }
+        
         .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
         .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .music-btn:active { transform: scale(0.90); opacity: 0.7; }
+        
         #play-pause-btn .icon-pause { display: none; }
         #play-pause-btn.playing .icon-play { display: none; }
         #play-pause-btn.playing .icon-pause { display: block; }
@@ -149,10 +155,10 @@
         </div>
     </div>
 
-    <!-- ================= 极简音乐卡片 ================= -->
+    <!-- ================= 音乐卡片 ================= -->
     <div class="modal-overlay" id="musicModal">
         <div class="modal-box">
-            <div class="music-card-glass">
+            <div class="music-card-glass" id="musicCardGlass">
                 <div class="music-track-info">
                     <div class="music-track-title" id="music-title">Theme of Mitsuha</div>
                     <div class="music-artist-name" id="music-artist">RADWIMPS</div>
@@ -170,17 +176,20 @@
                 </div>
 
                 <div class="music-controls">
+                    <!-- 修改1：向左箭头改成单个 < -->
                     <button class="music-btn" id="music-prev-btn">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                     </button>
                     
+                    <!-- 修改2：中间暂停三角圆润处理 -->
                     <button class="music-btn" id="play-pause-btn">
-                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"></polygon></svg>
-                        <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                        <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M6 4 L16 12 L6 20 Z"/></svg>
+                        <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="4" width="3" height="16" rx="1.5"/><rect x="14" y="4" width="3" height="16" rx="1.5"/></svg>
                     </button>
                     
+                    <!-- 修改3：向右箭头改成单个 > -->
                     <button class="music-btn" id="music-next-btn">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                     </button>
                 </div>
             </div>
@@ -255,15 +264,12 @@
             toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        /* ================= 互斥卡片逻辑 ================= */
+        /* ================= 卡片互斥逻辑 ================= */
         function openLoginModal() {
-            // 如果音乐卡片开着，先关掉它
             const musicModal = document.getElementById('musicModal');
             if (musicModal && musicModal.classList.contains('active')) {
                 closeMusicModal();
             }
-
-            // 再打开登录卡片
             const modal = document.getElementById('loginModal');
             modal.classList.add('active');
             const items = document.querySelectorAll('#loginModal .anim-item');
@@ -287,17 +293,29 @@
         /* ================= 音乐播放器逻辑 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
+        const musicCardGlass = document.getElementById('musicCardGlass');
         const playPauseBtn = document.getElementById('play-pause-btn');
         const progressFill = document.getElementById('music-progress-fill');
         const currentTimeDisplay = document.getElementById('music-current-time');
         const totalTimeDisplay = document.getElementById('music-total-time');
         const progressTrack = document.getElementById('music-progress-track');
 
+        let isDragging = false;
+
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
             return m + ":" + (s < 10 ? "0" : "") + s;
+        }
+
+        function updateProgressFromEvent(e) {
+            if (!bgAudio || !bgAudio.duration) return;
+            const rect = progressTrack.getBoundingClientRect();
+            let x = e.clientX || e.touches[0].clientX;
+            let percent = (x - rect.left) / rect.width;
+            percent = Math.max(0, Math.min(1, percent));
+            bgAudio.currentTime = percent * bgAudio.duration;
         }
 
         function toggleMusicModal() {
@@ -309,20 +327,18 @@
             }
         }
 
-        /* 重点更新：打开音乐卡片时，先主动关闭登录卡片 */
         function openMusicModal() {
-            // 如果登录卡片开着，先关掉它
             const loginModal = document.getElementById('loginModal');
             if (loginModal && loginModal.classList.contains('active')) {
                 closeLoginModal();
             }
-
-            // 再打开音乐卡片
             musicModal.classList.add('active');
         }
 
         function closeMusicModal() {
             musicModal.classList.remove('active');
+            musicCardGlass.classList.remove('dragging');
+            isDragging = false;
         }
 
         function togglePlayPause() {
@@ -348,11 +364,42 @@
             progressFill.style.width = percent + '%';
         });
 
+        /* 修改4 & 5：点击和长按拖拽支持 + 卡片丝滑放大 1.5 倍 */
+        // 开始拖拽
+        function onPointerDown(e) {
+            isDragging = true;
+            musicCardGlass.classList.add('dragging');
+            updateProgressFromEvent(e);
+        }
+
+        // 移动拖拽
+        function onPointerMove(e) {
+            if (isDragging) {
+                e.preventDefault(); // 防止页面在手机上滚动
+                updateProgressFromEvent(e);
+            }
+        }
+
+        // 结束拖拽
+        function onPointerUp() {
+            if (isDragging) {
+                isDragging = false;
+                musicCardGlass.classList.remove('dragging');
+            }
+        }
+
+        // 兼容鼠标和触摸事件
+        progressTrack.addEventListener('mousedown', onPointerDown);
+        progressTrack.addEventListener('touchstart', onPointerDown, { passive: true });
+        document.addEventListener('mousemove', onPointerMove);
+        document.addEventListener('touchmove', onPointerMove, { passive: false });
+        document.addEventListener('mouseup', onPointerUp);
+        document.addEventListener('touchend', onPointerUp);
+
+        // 点击跳转保底
         progressTrack.addEventListener('click', function(e) {
-            const rect = this.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            if (bgAudio && bgAudio.duration) {
-                bgAudio.currentTime = percent * bgAudio.duration;
+            if (!isDragging) {
+                updateProgressFromEvent(e);
             }
         });
 
@@ -414,14 +461,4 @@
                 formData.append('confirm_password', password); formData.append('code', code);
                 formData.append('cf-turnstile-response', 'dummy');
                 const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
-                const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 注册/登录成功！', 'success');
-                    setTimeout(() => { closeLoginModal(); }, 1000);
-                } else if(text.includes('验证码错误')) { showToast('❌ 验证码错误或已过期', 'error');
-                } else { showToast('❌ 注册/登录失败：' + text.substring(0, 30), 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
-        });
-    </script>
-</body>
-</html>
+       
