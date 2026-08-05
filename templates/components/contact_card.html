@@ -1,24 +1,29 @@
-<!-- 极简联系开发者卡片（按钮自适应宽度并居中） -->
+<!-- 联系开发者卡片（统一大小 + 动画支持） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <!-- 这里添加了 flex + align-items: center 让内部元素自动居中 -->
-        <div class="login-card" style="width: 320px; padding: 16px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <!-- 整体风格完全复制登录卡片，内边距合理 -->
+        <div class="login-card" style="width: 320px; padding: 24px 20px; align-items: center; gap: 16px;">
             
-            <!-- Telegram -->
-            <a href="https://t.me/gsyxyc" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
-                Telegram
-            </a>
+            <!-- 添加标题，使用和登录卡片一模一样的文字样式，加上 anim-item 支持动画 -->
+            <span class="font-extrabold text-xl text-white anim-item">请选择联系方式</span>
+            
+            <!-- 按钮组：设置 flex 和 items-center 保证居中，设定相同宽度 -->
+            <div class="flex flex-col items-center gap-3 w-full">
+                
+                <!-- 所有按钮统一样式：宽度固定为 160px，高度一致 -->
+                <a href="https://t.me/gsyxyc" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                    Telegram
+                </a>
 
-            <!-- QQ -->
-            <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
-                QQ
-            </a>
+                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                    QQ
+                </a>
 
-            <!-- WhatsApp -->
-            <a href="https://wa.me/8615861980264" target="_blank" style="width: fit-content; padding: 10px 40px; text-align: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: background 0.2s;">
-                WhatsApp
-            </a>
+                <a href="https://wa.me/8615861980264" target="_blank" class="anim-item" style="display: block; width: 160px; padding: 10px 0; text-align: center; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; font-size: 14px; transition: all 0.2s;">
+                    WhatsApp
+                </a>
 
+            </div>
         </div>
     </div>
 </div>
