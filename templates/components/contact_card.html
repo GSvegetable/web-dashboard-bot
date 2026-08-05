@@ -1,23 +1,40 @@
-<!-- 联系开发者卡片（专门独立存放的组件） -->
-<div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
-    <div class="modal-box">
+<!-- 联系开发者卡片 -->
+<div class="modal-overlay" id="contactModal">
+    <div class="modal-box" style="width: auto;">
         <!-- 保持与你原有的登录/音乐卡片一样的高斯模糊玻璃风格 -->
-        <div class="login-card" style="width: 340px; align-items: center; text-align: center;">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center text-3xl mb-2">
-                💬
-            </div>
-            <span class="font-extrabold text-xl text-white">联系开发者</span>
-            <p class="text-gray-400 text-sm leading-tight">如果在使用过程中遇到 Bug，<br>或者有好的建议，欢迎随时反馈。</p>
+        <div class="login-card" style="width: 340px; align-items: flex-start; text-align: left; padding: 24px;">
             
-            <div style="width: 100%; margin-top: 12px; display: flex; flex-direction: column; gap: 10px;">
-                <!-- 跳转你的 Telegram -->
-                <a href="https://t.me/gsyxyc" target="_blank" style="display: block; width: 100%; padding: 12px 0; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; color: #ffffff; text-decoration: none; font-weight: 500; transition: background 0.2s;">
-                    📱 打开 Telegram
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                <span class="font-extrabold text-xl text-white flex items-center gap-2">
+                    <span>💬</span> 联系开发者
+                </span>
+                <p class="text-gray-400 text-xs leading-tight">遇到 Bug 或者有好的建议，欢迎随时私信。</p>
+            </div>
+            
+            <div style="width: 100%; margin-top: 4px; display: flex; flex-direction: column; gap: 10px;">
+                
+                <!-- 1. Telegram -->
+                <a href="https://t.me/gsyxyc" target="_blank" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 text-white text-sm font-medium">
+                    <span style="font-size: 1.2rem;">✈️</span> Telegram
+                    <span style="margin-left: auto; font-weight: normal; color: #9ca3af; font-size: 0.8rem;">@gsyxyc</span>
                 </a>
+
+                <!-- 2. QQ (直通私信) -->
+                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 text-white text-sm font-medium">
+                    <span style="font-size: 1.2rem;">🐧</span> QQ 私信
+                    <span style="margin-left: auto; font-weight: normal; color: #9ca3af; font-size: 0.8rem;">3301296046</span>
+                </a>
+
+                <!-- 3. WhatsApp -->
+                <a href="https://wa.me/8615861980264" target="_blank" class="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-200 text-white text-sm font-medium">
+                    <span style="font-size: 1.2rem;">📞</span> WhatsApp
+                    <span style="margin-left: auto; font-weight: normal; color: #9ca3af; font-size: 0.8rem;">+86 15861980264</span>
+                </a>
+
             </div>
             
-            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 4px;">
-                提示：点击卡片空白处即可关闭此窗口
+            <div style="font-size: 0.7rem; color: #6b7280; margin-top: 6px; width: 100%; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+                🖱️ 点击卡片外部空白处即可关闭此窗口
             </div>
         </div>
     </div>
