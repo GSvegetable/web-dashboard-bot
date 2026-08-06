@@ -26,19 +26,13 @@
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-        /* 文字和切换按钮的备用动画 */
         .text-group, #themeToggleBtn {
-            opacity: 0;
-            transform: translateY(60px);
+            opacity: 0; transform: translateY(60px);
             animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
         #themeToggleBtn { animation-delay: 0s; }
         .text-group { animation-delay: 0s; }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(60px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
 
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
         .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
@@ -102,7 +96,6 @@
         </div>
     </div>
 
-    <!-- ✨ 1. 调整了菜单按钮的顺序和动画 ✨ -->
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系开发者</button>
@@ -121,51 +114,8 @@
 
     {% include 'components/toast.html' %}
 
-    <!-- ✨ 2. 登录卡片整体往下移动 3px ✨ -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box">
-            <div class="login-card" style="padding-top: 27px;">
-                {% if current_user.is_authenticated %}
-                    <div class="flex flex-col items-center gap-4 w-full py-4">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
-                            {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
-                        </div>
-                        <div class="text-center">
-                            <p class="text-white font-medium text-lg">欢迎回来</p>
-                            <p class="text-gray-400 text-sm">
-                                {% if current_user.email %}
-                                    {{ current_user.email }}
-                                {% elif current_user.telegram_id %}
-                                    {{ current_user.telegram_id }}
-                                {% else %}
-                                    用户
-                                {% endif %}
-                            </p>
-                        </div>
-                        <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
-                    </div>
-                {% else %}
-                    <form id="authForm" onsubmit="return false;" novalidate>
-                        <div class="flex flex-col gap-1">
-                            <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
-                            <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
-                        </div>
-                        <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
-                            <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
-                            <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
-                        </div>
-                        <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
-                            <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                        </div>
-                        <div class="anim-item" id="password-wrapper" style="margin-bottom: 3px;">
-                            <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                        </div>
-                        <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+    <!-- ★★★ 使用新独立出来的登录/注册卡片组件 ★★★ -->
+    {% include 'components/auth_card.html' %}
 
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
@@ -175,50 +125,9 @@
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
-        // 将所有被 onclick 调用的函数暴露在 window 全局中
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
             else if (document.exitFullscreen) document.exitFullscreen();
-        };
-        window.closeLoginModal = function() {
-            const modal = document.getElementById('loginModal');
-            if (modal) modal.classList.remove('active');
-        };
-        window.openLoginModal = function() {
-            const musicModal = document.getElementById('musicModal');
-            if (musicModal && musicModal.classList.contains('active')) {
-                window.closeMusicModal();
-            }
-            const modal = document.getElementById('loginModal');
-            if (!modal) return;
-            modal.classList.add('active');
-            const items = document.querySelectorAll('#loginModal .anim-item');
-            if (typeof gsap !== 'undefined') {
-                gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
-            } else {
-                items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
-            }
-        };
-        window.closeMusicModal = function() {
-            const modal = document.getElementById('musicModal');
-            if (modal) modal.classList.remove('active');
-        };
-        window.openMusicModal = function() {
-            const loginModal = document.getElementById('loginModal');
-            if (loginModal && loginModal.classList.contains('active')) {
-                window.closeLoginModal();
-            }
-            const modal = document.getElementById('musicModal');
-            if (modal) modal.classList.add('active');
-        };
-        window.toggleMusicModal = function() {
-            const musicModal = document.getElementById('musicModal');
-            if (!musicModal) return;
-            if (musicModal.classList.contains('active')) {
-                window.closeMusicModal();
-            } else {
-                window.openMusicModal();
-            }
         };
 
         window.openContactModal = function() {
@@ -250,6 +159,27 @@
             if (modal && e && e.target === e.currentTarget) {
                 modal.classList.remove('active');
             }
+        };
+        window.toggleMusicModal = function() {
+            const musicModal = document.getElementById('musicModal');
+            if (!musicModal) return;
+            if (musicModal.classList.contains('active')) {
+                window.closeMusicModal();
+            } else {
+                window.openMusicModal();
+            }
+        };
+        window.openMusicModal = function() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal && loginModal.classList.contains('active')) {
+                window.closeLoginModal();
+            }
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.add('active');
+        };
+        window.closeMusicModal = function() {
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.remove('active');
         };
 
         gsap.registerPlugin(ScrollTrigger);
@@ -306,28 +236,21 @@
                 }, 200);
             }
 
-            // ✨ 文字和切换按钮的入场动画
             if (typeof gsap !== 'undefined') {
                 const tl = gsap.timeline();
                 tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
                   .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0);
             }
 
-            // ✨ 3. 顶部菜单按钮挨个依次划入的动画
-            if (typeof gsap !== 'undefined') {
-                const topBtns = document.querySelectorAll('.top-actions .top-btn');
-                if (topBtns.length > 0) {
-                    gsap.fromTo(topBtns, 
-                        { x: 40, opacity: 0 }, 
-                        { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.3 }
-                    );
-                }
+            const topBtns = document.querySelectorAll('.top-actions .top-btn');
+            if (topBtns.length > 0 && typeof gsap !== 'undefined') {
+                gsap.fromTo(topBtns, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.3 });
             }
 
             const bgAudio = document.getElementById('bg-audio');
             if (bgAudio) bgAudio.volume = 0.3; 
 
-            // ★★★ 音乐卡片单按钮逻辑 ★★★
+            // 音乐播放器逻辑
             const playPauseBtn = document.getElementById('play-pause-btn');
             const progressFill = document.getElementById('music-progress-fill');
             const currentTimeDisplay = document.getElementById('music-current-time');
@@ -378,7 +301,6 @@
                 });
             }
 
-            // ★★★ 自动提取颜色的逻辑（应用到唯一的按钮） ★★★
             const img = document.getElementById('album-cover-img');
             const btns = document.querySelectorAll('.music-btn');
             if (img) {
@@ -416,7 +338,7 @@
                 if (img.complete && img.naturalWidth > 0) { img.onload(); }
             }
 
-            // ★★★ 修复点击空白关闭 ★★★
+            // 点击空白关闭
             const loginModalEl = document.getElementById('loginModal');
             if (loginModalEl) {
                 loginModalEl.addEventListener('click', function(e) {
