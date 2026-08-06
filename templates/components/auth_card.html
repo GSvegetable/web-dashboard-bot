@@ -45,8 +45,8 @@
                         </div>
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
-                        <!-- ✨ 新增：切换到扫码登录的按钮 ✨ -->
-                        <button type="button" id="switchToQrBtn" class="w-full mt-3 p-2 text-gray-400 border border-white/20 rounded-lg text-sm hover:bg-white/10 hover:text-white transition anim-item">
+                        <!-- 🔥 修改：扫码按钮改成跟注册按钮一样的纯白通栏样式 -->
+                        <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
                             📱 电报扫码登录
                         </button>
                     </form>
@@ -86,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!modal) return;
         modal.classList.add('active');
         
-        // 每次打开强制重置为表单模式，防止卡片状态错乱
         resetToFormMode();
         
         const items = document.querySelectorAll('#loginModal .anim-item');
@@ -97,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function() {
     window.closeLoginModal = function() {
         const modal = document.getElementById('loginModal');
         if (modal) modal.classList.remove('active');
-        stopQrPolling(); // 关闭时停止轮询
+        stopQrPolling(); 
     };
 
     // 2. 获取 DOM 元素
@@ -105,7 +104,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const qrLoginGroup = document.getElementById('qrLoginGroup');
     const switchToQrBtn = document.getElementById('switchToQrBtn');
     const switchBackBtn = document.getElementById('switchBackBtn');
-    const cardWrapper = document.getElementById('loginCardWrapper');
     const qrImgContainer = document.getElementById('qrCodeImageContainer');
     const qrStatusText = document.getElementById('qrStatusText');
     
@@ -116,24 +114,20 @@ document.addEventListener("DOMContentLoaded", function() {
     function switchToQrMode() {
         if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
 
-        // 清空旧二维码，准备加载
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
         qrStatusText.innerText = '等待扫码...';
 
-        // 使用 GSAP 执行平滑过渡
         gsap.to(loginFormGroup, { 
             opacity: 0, y: -20, duration: 0.2, ease: "power1.in",
             onComplete: () => {
                 loginFormGroup.style.display = 'none';
                 qrLoginGroup.classList.remove('hidden');
                 
-                // 重置二维码区域动画并进入
                 gsap.set(qrLoginGroup, { opacity: 0, y: 20 });
                 gsap.to(qrLoginGroup, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" });
             }
         });
         
-        // 请求后端生成二维码 Token
         fetchQrLoginToken();
     }
 
@@ -149,17 +143,20 @@ document.addEventListener("DOMContentLoaded", function() {
         qrStatusText.innerText = '等待扫码...';
     }
 
-    // 5. 获取后端二维码 Token 并渲染
+    // 5. 🔥 优化：获取后端二维码 Token，并加大尺寸保证秒扫
     function fetchQrLoginToken() {
+        stopQrPolling();
+        qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
+        qrStatusText.innerText = '等待扫码...';
+
         fetch('/api/get_qr_login')
         .then(res => res.json())
         .then(data => {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
-                // 使用极简的外部 API 渲染二维码图片
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.url)}" alt="QR Code" class="w-full h-full object-contain rounded-xl bg-white/5">`;
+                // 🔥 核心优化：size 改 400，加 margin 白边，秒扫成功
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain rounded-xl bg-white">`;
                 qrStatusText.innerText = '请使用 Telegram 扫码';
-                // 开始轮询验证状态
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -170,15 +167,16 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 6. 轮询登录状态（核心魔法）
+    // 6. 🔥 优化：轮询增加“过期自动刷新”功能
     function startQrPolling(token) {
         stopQrPolling();
         let attempts = 0;
         qrPollTimer = setInterval(() => {
             attempts++;
-            if (attempts > 60) { // 2分钟超时
+            if (attempts > 30) { // 1分钟超时（之前2分钟太长）
                 stopQrPolling();
-                qrStatusText.innerText = '二维码已过期，请点击返回重新获取';
+                // 过期后点击文字可重新获取
+                qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="fetchQrLoginToken()">❌ 二维码已过期，点此刷新</span>`;
                 return;
             }
             fetch(`/api/check_qr_login/${token}`)
@@ -187,12 +185,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.status === 'success') {
                     stopQrPolling();
                     qrStatusText.innerText = '✅ 扫码成功，正在登录...';
-                    // 页面刷新，直接登录
                     window.location.reload(); 
+                } else if (data.status === 'expired') {
+                    stopQrPolling();
+                    qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="fetchQrLoginToken()">❌ 二维码已失效，点此刷新</span>`;
                 }
             })
             .catch(e => { /* 忽略轮询错误 */ });
-        }, 2000); // 每 2 秒轮询一次
+        }, 2000);
     }
     
     function stopQrPolling() {
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    // ... (以下保留原有的 验证码发送、注册提交 逻辑代码，保持不变) ...
-    // 发送验证码和注册提交逻辑与之前保持一致，此处限于篇幅不再重复粘贴，确保这部分 JS 代码存在即可
+    // 保留原有的验证码发送和注册提交逻辑代码（如原JS中涉及这两部分的）
+    // 因前面代码中此处省略了原有后续逻辑，请确保你的原文件此处是完整的。
 });
-    </script>
+                           </script>
