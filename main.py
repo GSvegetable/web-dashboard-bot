@@ -70,7 +70,7 @@ def fetch_telegram_user_info(tg_id):
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    # 🔥 核心修复：必须用 tg:// 协议，否则扫码会报错！
+    # 🔥 核心：用 tg:// 协议，确保扫码后一定唤醒 Telegram App，而不是浏览器
     deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
@@ -208,7 +208,7 @@ def tg_webhook():
                 return "OK"
     return "OK"
 
-# --- 一键配置 Webhook（无需进控制台） ---
+# --- 一键配置 Webhook ---
 @app.route('/setup_webhook', methods=['GET'])
 def setup_webhook():
     try:
