@@ -49,7 +49,26 @@ def admin_dashboard():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/dashboard.html', users=users)
 
-# --- 扫码登录 ---
+# --- 🔥 补充完整了原本为空的获取用户信息函数 ---
+def fetch_telegram_user_info(tg_id):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}"
+        resp = requests.get(url, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get('ok'):
+                chat = data.get('result', {})
+                return {
+                    'first_name': chat.get('first_name', ''),
+                    'last_name': chat.get('last_name', ''),
+                    'username': chat.get('username', ''),
+                    'avatar_url': None  # 需要额外下载头像API，此处留空
+                }
+    except:
+        pass
+    return None
+
+# --- 扫码登录相关 API ---
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
@@ -62,17 +81,26 @@ def get_qr_login():
 @app.route('/api/check_qr_login/<token>', methods=['GET'])
 def check_qr_login(token):
     session = QrLoginSession.query.filter_by(token=token).first()
-    if not session: return jsonify({'status': 'expired'})
-    if session.status == 'success': return jsonify({'status': 'success'})
+    if not session:
+        return jsonify({'status': 'expired'})
+    
+    # 🔥 核心优化：一旦状态变为 success，立刻执行后端登录（登录用户）
+    if session.status == 'success' and session.telegram_id:
+        user = User.query.filter_by(telegram_id=session.telegram_id).first()
+        if user:
+            login_user(user)  # 设置用户会话
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success'})
+        else:
+            # 如果扫码了但还没注册，可以通过逻辑引导跳转注册
+            return jsonify({'status': 'unregistered'})
+    
     if (datetime.utcnow() - session.created_at).seconds > 180:
         session.status = 'expired'
         db.session.commit()
         return jsonify({'status': 'expired'})
     return jsonify({'status': session.status})
-
-def fetch_telegram_user_info(tg_id):
-    # 此部分代码与你之前的版本保持一致，此处省略未改动部分，保留你原有的逻辑
-    pass
 
 @app.route('/api/send_code', methods=['POST'])
 def send_code():
@@ -148,7 +176,8 @@ def register():
         return "登录成功"
     
     hashed_password = generate_password_hash(password)
-    if is_email: new_user = User(email=account, password_hash=hashed_password)
+    if is_email: 
+        new_user = User(email=account, password_hash=hashed_password)
     else:
         tg_info = fetch_telegram_user_info(account)
         if tg_info:
