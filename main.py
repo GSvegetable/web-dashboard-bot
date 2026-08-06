@@ -1,3 +1,5 @@
+
+    app.run(host='0.0.0.0', port=8080)
 import os
 import random
 import re
@@ -66,11 +68,9 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# --- 扫码登录 ---
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    # 🔥 核心修改：使用 `https://t.me/` 开头的链接，防止手机扫码器对 tg:// 协议报错
     deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
@@ -208,7 +208,6 @@ def tg_webhook():
                 return "OK"
     return "OK"
 
-# --- 一键配置 Webhook ---
 @app.route('/setup_webhook', methods=['GET'])
 def setup_webhook():
     try:
