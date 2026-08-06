@@ -80,7 +80,7 @@
 </head>
 <body>
     
-    <!-- ★★★ 新加的位置 1：左上角用户组件 ★★★ -->
+    <!-- 左上角用户组件 -->
     {% include 'components/user_profile.html' %}
 
     <div class="content-area" id="contentArea">
@@ -116,7 +116,8 @@
         </button>
     </div>
 
-    <div id="custom-toast"></div>
+    <!-- 引入 Toast 组件 -->
+    {% include 'components/toast.html' %}
 
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
@@ -144,13 +145,9 @@
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
-    {% include 'components/toast.html' %}
 
+    <!-- JS 管理器 -->
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/toast_manager.js') }}"></script>
-
-    <!-- ★★★ 新加的位置 2：音符粒子特效 ★★★ -->
-    {% include 'components/music_notes_effect.html' %}
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
@@ -253,13 +250,51 @@
         document.getElementById('music-next-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        /* ================= 登录、验证码、注册（全替换为数字代号提示） ================= */
+        /* ★★★ 核心修复：直接在全局定义 showToast ★★★ */
+        window.showToast = function(id, isError = false) {
+            const msgMap = {
+                '1': '请输入电报ID',
+                '2': '验证码已发送至邮箱',
+                '3': '已通过@gsdsjbot向你发送验证码',
+                '4': 'ID无效',
+                '5': '网络错误',
+                '6': '请正确填写所有必填项',
+                '7': '表格信息填写不完整',
+                '8': '输入密码不一致',
+                '9': '验证码错误或已超时',
+                '10': '登录成功',
+                '11': '注册成功',
+                '12': '请求异常'
+            };
+            const msg = msgMap[id];
+            if (!msg) return;
+
+            const toastBox = document.getElementById('custom-toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (!toastBox || !toastMsg) return;
+
+            toastMsg.innerText = msg;
+            toastBox.className = 'toast-glass';
+            if (isError) {
+                toastBox.classList.add('error');
+            } else {
+                toastBox.classList.add('success');
+            }
+
+            clearTimeout(toastTimer);
+            setTimeout(() => { toastBox.classList.add('show'); }, 10);
+            toastTimer = setTimeout(() => {
+                toastBox.classList.remove('show');
+            }, 3000);
+        };
+
+        /* ================= 登录、验证码、注册 ================= */
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const account = document.getElementById('reg-email').value.trim();
             if(!account) { 
                 shakeElement(document.getElementById('email-wrapper')); 
-                showToast('1', true);
+                window.showToast('1', true);
                 return; 
             }
             const btn = this; btn.disabled = true;
@@ -269,15 +304,15 @@
                 const data = await res.json();
                 if(data.ok) {
                     if(data.msg.includes('邮箱')) {
-                        showToast('2', false);
+                        window.showToast('2', false);
                     } else {
-                        showToast('3', false);
+                        window.showToast('3', false);
                     }
                 } else {
-                    showToast('4', true);
+                    window.showToast('4', true);
                 }
             } catch (e) {
-                showToast('5', true);
+                window.showToast('5', true);
             } finally {
                 btn.disabled = false;
             }
@@ -296,7 +331,7 @@
                 if(!code) { shakeElement(codeWrapper); hasError = true; }
                 if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
                 if(hasError) { 
-                    showToast('6', true);
+                    window.showToast('6', true);
                     return; 
                 }
             }
@@ -311,24 +346,24 @@
                 const text = await res.text();
                 
                 if (text.includes('注册成功')) {
-                    showToast('11', false);
+                    window.showToast('11', false);
                     setTimeout(() => { window.closeLoginModal(); }, 1000);
                     setTimeout(() => { window.location.reload(); }, 1500);
                 } else if (text.includes('登录成功')) {
-                    showToast('10', false);
+                    window.showToast('10', false);
                     setTimeout(() => { window.closeLoginModal(); }, 1000);
                     setTimeout(() => { window.location.reload(); }, 1500);
                 } else if (text.includes('验证码错误')) {
-                    showToast('9', true);
+                    window.showToast('9', true);
                 } else if (text.includes('表单')) {
-                    showToast('7', true);
+                    window.showToast('7', true);
                 } else if (text.includes('密码不一致')) {
-                    showToast('8', true);
+                    window.showToast('8', true);
                 } else {
-                    showToast('12', true);
+                    window.showToast('12', true);
                 }
             } catch (e) {
-                showToast('12', true);
+                window.showToast('12', true);
             } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
@@ -346,4 +381,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
