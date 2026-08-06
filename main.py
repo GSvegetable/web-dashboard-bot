@@ -39,12 +39,10 @@ def fetch_telegram_user_info(tg_id):
             data = res.json()
             if data.get('ok'):
                 result = data.get('result', {})
-                # 获取头像文件ID
                 photo_id = None
                 if result.get('photo'):
                     photo_id = result['photo'].get('small_file_id')
                 
-                # 通过 getFile 获取头像真实链接
                 avatar_url = None
                 if photo_id:
                     file_res = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getFile", params={'file_id': photo_id})
@@ -60,8 +58,8 @@ def fetch_telegram_user_info(tg_id):
                     'username': result.get('username', ''),
                     'avatar_url': avatar_url
                 }
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"获取电报信息失败: {e}")
     return None
 
 @app.route('/')
@@ -157,8 +155,20 @@ def register():
         user = User.query.filter_by(telegram_id=account).first()
         
     if user:
+        # 老用户登录
         login_user(user)
         user.last_login = datetime.utcnow()
+        
+        # ✨ 核心修复：老用户登录时，也立刻去拉取电报头像和昵称！
+        if not is_email:
+            tg_info = fetch_telegram_user_info(account)
+            if tg_info:
+                if tg_info.get('first_name'): user.first_name = tg_info['first_name']
+                if tg_info.get('last_name'): user.last_name = tg_info['last_name']
+                if tg_info.get('username'): user.telegram_username = tg_info['username']
+                if tg_info.get('avatar_url'): user.avatar_url = tg_info['avatar_url']
+                db.session.commit()
+        
         db.session.commit()
         return "登录成功"
     
@@ -167,15 +177,15 @@ def register():
     if is_email:
         new_user = User(email=account, password_hash=hashed_password)
     else:
-        # ✨ 核心修改：注册时获取用户真实的电报信息！
+        # ✨ 新用户注册时拉取电报信息
         tg_info = fetch_telegram_user_info(account)
         if tg_info:
-            # 拼出真实姓名
-            real_name = f"{tg_info['first_name']} {tg_info['last_name']}".strip() or tg_info['username'] or account
             new_user = User(
                 telegram_id=account, 
                 password_hash=hashed_password,
-                email=real_name if '@' not in real_name else None, # 将真实名字暂存到 email 字段展示
+                first_name=tg_info['first_name'],
+                last_name=tg_info['last_name'],
+                telegram_username=tg_info['username'],
                 avatar_url=tg_info['avatar_url']
             )
         else:
