@@ -1,0 +1,23 @@
+<!-- 自定义透明玻璃提示条 -->
+<div id="custom-toast" class="toast-glass">
+    <span id="toast-message">提示消息</span>
+</div>
+
+<style>
+    #custom-toast {
+        position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+        /* 透明玻璃样式 */
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 12px 24px; color: #f3f4f6; font-size: 14px; font-weight: 500;
+        z-index: 99999; opacity: 0; visibility: hidden;
+        transition: all 0.3s ease; white-space: nowrap; max-width: 90%;
+        text-align: center; pointer-events: none;
+    }
+    #custom-toast.show { opacity: 1; visibility: visible; }
+    #custom-toast.error { border-left: 4px solid #ef4444; }
+    #custom-toast.success { border-left: 4px solid #22c55e; }
+</style>
