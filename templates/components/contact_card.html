@@ -1,11 +1,10 @@
-<!-- 联系开发者卡片（边距缩小，文字右移） -->
+<!-- 联系开发者卡片（修改QQ链接为唤起手机App） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <!-- 外层卡片：上下内边距 16px，左右内边距 14px，比之前更紧凑 -->
-        <div class="login-card" style="width: 240px; padding: 16px 14px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+        <div class="login-card" style="width: 240px; padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
             
-            <!-- 标题：添加 padding-left: 6px 让文字整体往右移动一点点 -->
-            <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left; padding-left: 6px;">请选择联系方式</span>
+            <!-- 标题 -->
+            <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left;">请选择联系方式</span>
             
             <!-- 按钮组 -->
             <div class="flex flex-col gap-3 w-full items-center">
@@ -14,7 +13,8 @@
                     Telegram
                 </a>
 
-                <a href="https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
+                <!-- ★★★ 修正：使用 tencent:// 协议直接唤起手机 QQ App 私信 ★★★ -->
+                <a href="tencent://message/?uin=3301296046&Site=gsbot&Menu=yes" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
                     QQ
                 </a>
 
