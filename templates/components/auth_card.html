@@ -1,225 +1,199 @@
-import os
-import random
-import re
-import requests
-import uuid
-from datetime import datetime
-
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-
-from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
-from telegram_bot import send_verification_code
-from tg_config import BOT_TOKEN
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db.init_app(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-@app.route('/')
-def splash():
-    return render_template('splash.html')
-
-@app.route('/warehouse')
-def warehouse():
-    return render_template('warehouse.html')
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('splash'))
-
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    if not current_user.is_authenticated or not current_user.is_admin:
-        return "无权访问，请使用管理员密码登录", 403
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/dashboard.html', users=users)
-
-def fetch_telegram_user_info(tg_id):
-    try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}"
-        resp = requests.get(url, timeout=5)
-        if resp.status_code == 200:
-            data = resp.json()
-            if data.get('ok'):
-                chat = data.get('result', {})
-                return {
-                    'first_name': chat.get('first_name', ''),
-                    'last_name': chat.get('last_name', ''),
-                    'username': chat.get('username', ''),
-                    'avatar_url': None
-                }
-    except:
-        pass
-    return None
-
-# --- 扫码登录 ---
-@app.route('/api/get_qr_login', methods=['GET'])
-def get_qr_login():
-    token = uuid.uuid4().hex[:16]
-    # 🔥 核心修复：必须用 tg:// 协议，否则扫码会报错！
-    deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
-    new_session = QrLoginSession(token=token, status='pending')
-    db.session.add(new_session)
-    db.session.commit()
-    return jsonify({'success': True, 'token': token, 'url': deep_link})
-
-@app.route('/api/check_qr_login/<token>', methods=['GET'])
-def check_qr_login(token):
-    session = QrLoginSession.query.filter_by(token=token).first()
-    if not session:
-        return jsonify({'status': 'expired'})
-    
-    if session.status == 'success' and session.telegram_id:
-        user = User.query.filter_by(telegram_id=session.telegram_id).first()
-        if user:
-            login_user(user)
-            user.last_login = datetime.utcnow()
-            db.session.commit()
-            return jsonify({'status': 'success'})
-        else:
-            return jsonify({'status': 'unregistered'})
-    
-    if (datetime.utcnow() - session.created_at).seconds > 180:
-        session.status = 'expired'
-        db.session.commit()
-        return jsonify({'status': 'expired'})
-    return jsonify({'status': session.status})
-
-@app.route('/api/send_code', methods=['POST'])
-def send_code():
-    data = request.get_json()
-    account = data.get('email')
-    if not account: return jsonify({'ok': False, 'msg': '请输入账号或电报ID'})
-    code = str(random.randint(100000, 999999))
-    is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
-    
-    if is_email:
-        record = EmailCode.query.filter_by(email=account).first()
-        if record:
-            record.code = code; record.created_at = datetime.utcnow()
-        else:
-            new_record = EmailCode(email=account, code=code)
-            db.session.add(new_record)
-        db.session.commit()
-        return jsonify({'ok': True, 'msg': '验证码已发送至邮箱'})
-    else:
-        success, _ = send_verification_code(account)
-        if success: return jsonify({'ok': True, 'msg': '已通过Telegram机器人发送验证码'})
-        else: return jsonify({'ok': False, 'msg': 'ID无效或机器人未响应'})
-
-@app.route('/register', methods=['POST'])
-def register():
-    account = request.form.get('email')
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    code = request.form.get('code')
-    
-    if password == "121100":
-        admin_user = User.query.filter_by(is_admin=True).first()
-        if not admin_user:
-            hashed_password = generate_password_hash("121100")
-            admin_user = User(email="admin@gsbot.local", password_hash=hashed_password, is_admin=True)
-            db.session.add(admin_user)
-            db.session.commit()
-        admin_user.last_login = datetime.utcnow()
-        db.session.commit()
-        login_user(admin_user)
-        return "登录成功"
-
-    if not all([account, password, confirm_password, code]): return "表格信息填写不完整"
-    if password != confirm_password: return "输入密码不一致"
-    
-    is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
-    
-    valid_code = False
-    if is_email:
-        record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first()
-        if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300: valid_code = True
-    else:
-        record = TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
-        if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300: valid_code = True
+<!-- 登录/注册卡片组件 -->
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+        <div id="loginCardWrapper" class="login-card relative overflow-hidden">
             
-    if not valid_code: return "验证码错误或已超时"
+            <!-- ---------------- 模式1：普通登录/注册表单 ---------------- -->
+            <div id="loginFormGroup">
+                {% if current_user.is_authenticated %}
+                    <!-- 已登录状态 -->
+                    <div class="flex flex-col items-center gap-4 w-full py-4">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
+                            {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
+                        </div>
+                        <div class="text-center">
+                            <p class="text-white font-medium text-lg">欢迎回来</p>
+                            <p class="text-gray-400 text-sm">
+                                {% if current_user.email %}
+                                    {{ current_user.email }}
+                                {% elif current_user.telegram_id %}
+                                    {{ current_user.telegram_id }}
+                                {% else %}
+                                    用户
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
+                    </div>
+                {% else %}
+                    <!-- 未登录：普通表单 -->
+                    <form id="authForm" onsubmit="return false;" novalidate>
+                        <div class="flex flex-col gap-1 mb-3">
+                            <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                            <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                        </div>
+                        <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
+                            <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                            <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                        </div>
+                        <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
+                            <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                        </div>
+                        <div class="anim-item" id="password-wrapper" style="margin-bottom: 3px;">
+                            <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                        </div>
+                        <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
+                        
+                        <!-- 扫码登录按钮 -->
+                        <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
+                            📱 扫码登录
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- ---------------- 模式2：扫码登录区域（精简版） ---------------- -->
+            <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
+                <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
+                    ← 返回
+                </button>
+                
+                <div id="qrCodeImageContainer" class="w-[160px] h-[160px] bg-white/10 rounded-xl flex items-center justify-center mt-6 mb-2 transition-all">
+                    <span class="text-gray-500 text-xs">加载二维码中...</span>
+                </div>
+                
+                <p class="text-gray-400 text-xs mt-1" id="qrStatusText">请使用 Telegram 扫码</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    window.openLoginModal = function() {
+        const musicModal = document.getElementById('musicModal');
+        if (musicModal && musicModal.classList.contains('active')) window.closeMusicModal();
+        const modal = document.getElementById('loginModal');
+        if (!modal) return;
+        modal.classList.add('active');
+        resetToFormMode();
+        const items = document.querySelectorAll('#loginModal .anim-item');
+        if (typeof gsap !== 'undefined') {
+            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+        }
+    };
+    window.closeLoginModal = function() {
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.classList.remove('active');
+        stopQrPolling(); 
+    };
+
+    const loginFormGroup = document.getElementById('loginFormGroup');
+    const qrLoginGroup = document.getElementById('qrLoginGroup');
+    const switchToQrBtn = document.getElementById('switchToQrBtn');
+    const switchBackBtn = document.getElementById('switchBackBtn');
+    const qrImgContainer = document.getElementById('qrCodeImageContainer');
+    const qrStatusText = document.getElementById('qrStatusText');
     
-    user = None
-    if is_email: user = User.query.filter_by(email=account).first()
-    else: user = User.query.filter_by(telegram_id=account).first()
+    let qrPollTimer = null;
+    let currentQrToken = null;
+
+    // 切换到扫码模式（动画：表单往上走，二维码从下方滑入）
+    function switchToQrMode() {
+        if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
+        qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
+        qrStatusText.innerText = '请使用 Telegram 扫码';
         
-    if user:
-        login_user(user)
-        user.last_login = datetime.utcnow()
-        if not is_email:
-            tg_info = fetch_telegram_user_info(account)
-            if tg_info:
-                if tg_info.get('first_name'): user.first_name = tg_info['first_name']
-                if tg_info.get('last_name'): user.last_name = tg_info['last_name']
-                if tg_info.get('username'): user.telegram_username = tg_info['username']
-                if tg_info.get('avatar_url'): user.avatar_url = tg_info['avatar_url']
-        db.session.commit()
-        return "登录成功"
+        gsap.to(loginFormGroup, {
+            opacity: 0, y: -20, duration: 0.2, ease: "power1.in",
+            onComplete: () => {
+                loginFormGroup.style.display = 'none';
+                qrLoginGroup.classList.remove('hidden');
+                gsap.fromTo(qrLoginGroup, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" });
+            }
+        });
+        fetchQrLoginToken();
+    }
+
+    // 返回表单模式（动画：二维码往下走，表单从下方滑入）
+    function resetToFormMode() {
+        stopQrPolling();
+        currentQrToken = null;
+        
+        if (qrLoginGroup.classList.contains('hidden')) {
+            loginFormGroup.style.display = 'block';
+            gsap.set(loginFormGroup, { opacity: 1, y: 0 });
+            return;
+        }
+
+        gsap.to(qrLoginGroup, {
+            opacity: 0, y: 30, duration: 0.25, ease: "power1.in",
+            onComplete: () => {
+                qrLoginGroup.classList.add('hidden');
+                loginFormGroup.style.display = 'block';
+                gsap.fromTo(loginFormGroup, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" });
+            }
+        });
+    }
+
+    // 获取二维码（挂载到window，方便过期后点击刷新）
+    window.fetchQrLoginToken = function() {
+        stopQrPolling();
+        qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
+        qrStatusText.innerText = '请使用 Telegram 扫码';
+
+        fetch('/api/get_qr_login')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.token && data.url) {
+                currentQrToken = data.token;
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain rounded-xl bg-white">`;
+                startQrPolling(data.token);
+            } else {
+                qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
+            }
+        })
+        .catch(() => {
+            qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">网络错误</span>`;
+        });
+    }
+
+    // 轮询登录状态
+    function startQrPolling(token) {
+        stopQrPolling();
+        let attempts = 0;
+        qrPollTimer = setInterval(() => {
+            attempts++;
+            if (attempts > 30) {
+                stopQrPolling();
+                qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">❌ 二维码已过期，点此刷新</span>`;
+                return;
+            }
+            fetch(`/api/check_qr_login/${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    stopQrPolling();
+                    qrStatusText.innerText = '✅ 扫码成功，正在登录...';
+                    window.location.reload(); 
+                } else if (data.status === 'expired') {
+                    stopQrPolling();
+                    qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">❌ 二维码已失效，点此刷新</span>`;
+                }
+            })
+            .catch(e => { });
+        }, 2000);
+    }
     
-    hashed_password = generate_password_hash(password)
-    if is_email: 
-        new_user = User(email=account, password_hash=hashed_password)
-    else:
-        tg_info = fetch_telegram_user_info(account)
-        if tg_info:
-            new_user = User(telegram_id=account, password_hash=hashed_password, first_name=tg_info['first_name'], last_name=tg_info['last_name'], telegram_username=tg_info['username'], avatar_url=tg_info['avatar_url'])
-        else:
-            new_user = User(telegram_id=account, password_hash=hashed_password)
-        
-    db.session.add(new_user)
-    db.session.commit()
-    login_user(new_user)
-    new_user.last_login = datetime.utcnow()
-    db.session.commit()
-    return "注册成功"
+    function stopQrPolling() {
+        if (qrPollTimer) {
+            clearInterval(qrPollTimer);
+            qrPollTimer = null;
+        }
+    }
 
-@app.route('/tg_webhook', methods=['POST'])
-def tg_webhook():
-    data = request.get_json()
-    if 'message' in data:
-        msg = data['message']
-        chat_id = str(msg['chat']['id'])
-        text = msg.get('text', '')
-        if text.startswith('/start qr_'):
-            token = text.replace('/start qr_', '').strip()
-            session = QrLoginSession.query.filter_by(token=token).first()
-            if session and session.status == 'pending':
-                session.status = 'success'
-                session.telegram_id = chat_id
-                db.session.commit()
-                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                requests.post(url, json={"chat_id": chat_id, "text": "✅ 授权成功，请返回网页查看。"})
-                return "OK"
-    return "OK"
-
-# --- 一键配置 Webhook（无需进控制台） ---
-@app.route('/setup_webhook', methods=['GET'])
-def setup_webhook():
-    try:
-        webhook_url = f"https://{request.host}/tg_webhook"
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={webhook_url}"
-        resp = requests.get(url, timeout=10)
-        return jsonify(resp.json())
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)})
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(host='0.0.0.0', port=8080)
+    if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
+    if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
+});
+</script>
