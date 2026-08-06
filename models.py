@@ -43,6 +43,7 @@ class EmailCode(db.Model):
 
 # 电报验证码表（用于输入TG ID + 验证码登录）
 class TelegramCode(db.Model):
+    __table_args__ = {'extend_existing': True}  # ★★★ 终极防冲突保险 ★★★
     id = db.Column(db.Integer, primary_key=True)
     telegram_id = db.Column(db.String(50), nullable=False)
     code = db.Column(db.String(10), nullable=False)
