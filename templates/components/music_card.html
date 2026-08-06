@@ -1,18 +1,19 @@
-<!-- 音乐卡片组件（已移除不生效的频谱柱子） -->
+<!-- 音乐卡片组件：按钮自动取色，支持进度条拖拽 -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
+            <!-- 专辑封面图片预加载（用于提取颜色） -->
+            <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" style="display: none;" crossorigin="anonymous">
+            
             <!-- 音频播放器 -->
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
             <div class="music-track-info">
-                <!-- 封面图 -->
-                <div class="album-art" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
+                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
                 <div class="track-details">
                     <div class="music-track-title" id="music-title">你的名字</div>
                     <div class="music-artist-name" id="music-artist">纯音乐</div>
                 </div>
-                <!-- 原音频频谱柱块已删除 -->
             </div>
             
             <div class="music-progress-area">
@@ -20,26 +21,40 @@
                     <span id="music-current-time">0:00</span>
                     <span id="music-total-time">0:00</span>
                 </div>
+                <!-- 进度条轨道 -->
                 <div class="music-progress-track" id="music-progress-track">
                     <div class="music-progress-fill" id="music-progress-fill"></div>
                     <div class="music-progress-handle" id="music-progress-handle"></div>
                 </div>
             </div>
 
-            <div class="music-controls">
-                <button class="music-btn" id="music-prev-btn">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
+            <div class="music-controls" id="music-controls">
+                <!-- 四个按钮：去掉了点击时的 active:scale-95 缩放，样式用 JS 动态生成渐变 -->
+                <button class="music-btn" id="music-prev-btn" style="transition: all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
                 </button>
-                <button class="music-btn" id="play-pause-btn">
-                    <svg class="icon-play" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
-                        <polygon points="6,4 19,12 6,20"></polygon>
+                
+                <button class="music-btn" id="play-pause-btn" style="transition: all 0.2s;">
+                    <svg class="icon-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+                        <polygon points="6,4 20,12 6,20"></polygon>
                     </svg>
-                    <svg class="icon-pause" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                    <svg class="icon-pause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                 </button>
-                <button class="music-btn" id="music-next-btn">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
+                
+                <button class="music-btn" id="music-next-btn" style="transition: all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
+                </button>
+                
+                <button class="music-btn" id="music-extra-btn" style="transition: all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .music-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; backdrop-filter: blur(4px); transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .music-btn:hover { transform: scale(1.05); }
+    .music-btn:active { transform: scale(1); } /* 去掉了缩进动画，保持静止 */
+</style>
