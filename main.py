@@ -10,7 +10,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# 从 models 导入所有表和表定义
 from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code
 from tg_config import BOT_TOKEN
@@ -49,7 +48,6 @@ def admin_dashboard():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/dashboard.html', users=users)
 
-# --- 补充完整的获取用户信息函数 ---
 def fetch_telegram_user_info(tg_id):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}"
@@ -62,17 +60,18 @@ def fetch_telegram_user_info(tg_id):
                     'first_name': chat.get('first_name', ''),
                     'last_name': chat.get('last_name', ''),
                     'username': chat.get('username', ''),
-                    'avatar_url': None  # 需要额外下载头像API，此处留空
+                    'avatar_url': None
                 }
     except:
         pass
     return None
 
-# --- 扫码登录相关 API ---
+# --- 扫码登录 ---
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
+    # 🔥 核心修复：必须用 tg:// 协议，否则扫码会报错！
+    deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
     db.session.commit()
@@ -84,11 +83,10 @@ def check_qr_login(token):
     if not session:
         return jsonify({'status': 'expired'})
     
-    # 一旦状态变为 success，立刻执行后端登录
     if session.status == 'success' and session.telegram_id:
         user = User.query.filter_by(telegram_id=session.telegram_id).first()
         if user:
-            login_user(user)  # 设置用户会话
+            login_user(user)
             user.last_login = datetime.utcnow()
             db.session.commit()
             return jsonify({'status': 'success'})
@@ -210,23 +208,16 @@ def tg_webhook():
                 return "OK"
     return "OK"
 
-# ===============================================
-# 🔥 新增临时路由：浏览器访问即可一键设置 Webhook
-# 部署后请访问：https://你的域名/setup_webhook
-# ===============================================
+# --- 一键配置 Webhook（无需进控制台） ---
 @app.route('/setup_webhook', methods=['GET'])
 def setup_webhook():
     try:
-        # 自动获取当前域名的 /tg_webhook 路径
         webhook_url = f"https://{request.host}/tg_webhook"
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={webhook_url}"
         resp = requests.get(url, timeout=10)
         return jsonify(resp.json())
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)})
-# ===============================================
-# （注：设置成功返回 {"ok": true, ...} 之后，可随时删除这段代码重新部署，不影响原有功能）
-# ===============================================
 
 if __name__ == '__main__':
     with app.app_context():
