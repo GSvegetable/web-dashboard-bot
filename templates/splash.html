@@ -129,7 +129,6 @@
         <div class="modal-box">
             <div class="login-card">
                 
-                <!-- ✅ 已登录状态 -->
                 {% if current_user.is_authenticated %}
                     <div class="flex flex-col items-center gap-4 w-full py-4">
                         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
@@ -149,8 +148,6 @@
                         </div>
                         <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
                     </div>
-
-                <!-- ✅ 未登录状态 -->
                 {% else %}
                     <form id="authForm" onsubmit="return false;" novalidate>
                         <div class="flex flex-col gap-1">
@@ -170,7 +167,6 @@
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                     </form>
                 {% endif %}
-
             </div>
         </div>
     </div>
@@ -401,19 +397,22 @@
             }
         });
 
-        /* ================= 点击空白关闭卡片 ================= */
+        /* ================= 修复：点击空白关闭卡片 ================= */
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('.modal-box')) return;
             if (typeof window.closeLoginModal === 'function') {
                 window.closeLoginModal();
             }
         });
+        // ★★★ 针对音乐卡片的精准修复 ★★★
         document.getElementById('musicModal').addEventListener('click', function(e) {
-            if (e.target.closest('.modal-box')) return;
-            if (typeof window.closeMusicModal === 'function') {
-                window.closeMusicModal();
+            // 只有当点击的是黑色的背景层，而非卡片内部时才触发关闭
+            if (e.target === e.currentTarget) {
+                if (typeof window.closeMusicModal === 'function') {
+                    window.closeMusicModal();
+                }
             }
         });
     </script>
 </body>
-                                                                </html>
+</html>
