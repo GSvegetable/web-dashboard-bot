@@ -149,7 +149,7 @@
                             <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
                             <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                         </div>
-                        <!-- ✨ 修复：下移 6px 并恢复动画 -->
+                        <!-- 下移 6px，保留 anim-item 动画 -->
                         <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-top: 6px;">
                             <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
                             <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
@@ -175,291 +175,84 @@
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
+        // ============================================================
+        // ★★★ 核心修复：阻止 JS 在 DOM 未加载时崩溃 ★★★
+        // ============================================================
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
-        const themeRing = document.getElementById('theme-ring');
-        const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
-        const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
-        const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
-        const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
-        const textElements = document.querySelectorAll('.text-pattern');
-        const contentArea = document.getElementById('contentArea');
-        let toastTimer;
 
-        const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
-        const preloadNewText = new Image(); preloadNewText.src = newTextUrl;
-
-        function toggleTheme(event) {
-            const btn = event.currentTarget;
-            const btnRect = btn.getBoundingClientRect();
-            const areaRect = contentArea.getBoundingClientRect();
-            const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
-            const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
-            isExpanded = !isExpanded; gsap.killTweensOf(themeRing);
-            if (isExpanded) {
-                themeRing.style.backgroundImage = `url("${newBgUrl}")`;
-                gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
-                void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
-            } else {
-                gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
-                gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
-                void themeRing.offsetHeight; 
-                gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)`, onComplete: () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; } });
-            }
-        }
+        // 预加载图片放在最外层，不影响 DOM
+        const preloadNewBg = new Image(); preloadNewBg.src = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+        const preloadNewText = new Image(); preloadNewText.src = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
 
         document.addEventListener("DOMContentLoaded", function() {
+            // ★★★ 只有 DOM 加载完成后，才获取元素 ★★★
+            const themeRing = document.getElementById('theme-ring');
+            const contentArea = document.getElementById('contentArea');
+            const textElements = document.querySelectorAll('.text-pattern');
+            const defaultBgUrl = "{{ url_for('static', filename='bg.png') }}";
+            const newBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+            const defaultTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
+            const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+            const toast = document.getElementById('custom-toast');
+            let toastTimer;
+
+            // ★★★ 挂载 toggleTheme 到 window 供 HTML onclick 调用 ★★★
+            window.toggleTheme = function(event) {
+                // 保护线：如果基础元素丢失，直接返回防止崩溃
+                if (!themeRing || !contentArea) return;
+
+                const btn = event.currentTarget;
+                const btnRect = btn.getBoundingClientRect();
+                const areaRect = contentArea.getBoundingClientRect();
+                const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+                const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
+
+                isExpanded = !isExpanded;
+                gsap.killTweensOf(themeRing);
+
+                if (isExpanded) {
+                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                    gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                } else {
+                    gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.9, () => {
+                        themeRing.style.backgroundImage = `url("${defaultBgUrl}")`;
+                    });
+                }
+            };
+
+            // 首屏初始化
             const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='bg.png') }}";
             bgImg.src = imgUrl; bgImg.onload = function() { document.body.classList.add('loaded'); };
             setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
-            gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
-            setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
-            const tl = gsap.timeline();
-            tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
-              .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+
+            // 背景预渲染
+            if (themeRing) {
+                gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+                setTimeout(() => { 
+                    gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); 
+                    setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); 
+                }, 200);
+            }
+
+            // 主入场动画（确保文字和按钮出现）
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".theme-btn-title", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to(".btn-grid", { opacity: 1, y: 0, duration: 1.2, delay: 0.2, ease: "power3.out" }, 0.2);
+            }
+
             const bgAudio = document.getElementById('bg-audio');
             if (bgAudio) bgAudio.volume = 0.3; 
         });
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else if (document.exitFullscreen) document.exitFullscreen();
-        }
-
-        function shakeElement(element) {
-            if(!element) return;
-            element.classList.remove('shake-field');
-            void element.offsetWidth; 
-            element.classList.add('shake-field');
-        }
-
-        const bgAudio = document.getElementById('bg-audio');
-        const musicModal = document.getElementById('musicModal');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const progressFill = document.getElementById('music-progress-fill');
-        const currentTimeDisplay = document.getElementById('music-current-time');
-        const totalTimeDisplay = document.getElementById('music-total-time');
-        const progressTrack = document.getElementById('music-progress-track');
-        const musicCardGlass = document.querySelector('.music-card-glass');
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return "0:00";
-            const m = Math.floor(seconds / 60);
-            const s = Math.floor(seconds % 60);
-            return m + ":" + (s < 10 ? "0" : "") + s;
-        }
-
-        function toggleMusicModal() {
-            if (!musicModal) return;
-            if (musicModal.classList.contains('active')) { window.closeMusicModal(); } else { window.openMusicModal(); }
-        }
-        function togglePlayPause() {
-            if (!bgAudio) return;
-            if (bgAudio.paused) { bgAudio.play().catch(e => console.log("播放受限:", e)); playPauseBtn.classList.add('playing'); } 
-            else { bgAudio.pause(); playPauseBtn.classList.remove('playing'); }
-        }
-        bgAudio.addEventListener('loadedmetadata', () => { totalTimeDisplay.textContent = formatTime(bgAudio.duration); });
-        bgAudio.addEventListener('timeupdate', () => {
-            const current = bgAudio.currentTime; const duration = bgAudio.duration; const percent = (current / duration) * 100;
-            currentTimeDisplay.textContent = formatTime(current);
-            progressFill.style.width = percent + '%';
-        });
-
-        /* ✨ 核心修复：进度条点击 + 长按滑动 + 卡片放大 1.2 倍 ✨ */
-        let isDragging = false;
-        let dragAnimation = null;
-
-        function setProgress(clientX) {
-            const rect = progressTrack.getBoundingClientRect();
-            let percent = (clientX - rect.left) / rect.width;
-            percent = Math.min(1, Math.max(0, percent)); // 限制 0 ~ 1
-            if (bgAudio && bgAudio.duration) {
-                bgAudio.currentTime = percent * bgAudio.duration;
-            }
-        }
-
-        // 触摸/鼠标按下
-        progressTrack.addEventListener('mousedown', startDrag);
-        progressTrack.addEventListener('touchstart', startDrag, {passive: false});
-
-        function startDrag(e) {
-            isDragging = true;
-            // 放大卡片动画（丝滑）
-            if (musicCardGlass) {
-                gsap.killTweensOf(musicCardGlass);
-                gsap.to(musicCardGlass, { scale: 1.2, duration: 0.2, ease: "power2.out" });
-            }
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            setProgress(clientX);
-        }
-
-        // 触摸/鼠标移动
-        document.addEventListener('mousemove', moveDrag);
-        document.addEventListener('touchmove', moveDrag, {passive: false});
-
-        function moveDrag(e) {
-            if (!isDragging) return;
-            e.preventDefault(); // 阻止页面滚动
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            setProgress(clientX);
-        }
-
-        // 触摸/鼠标松开
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchend', endDrag);
-
-        function endDrag() {
-            if (isDragging) {
-                isDragging = false;
-                // 缩回卡片动画（丝滑）
-                if (musicCardGlass) {
-                    gsap.killTweensOf(musicCardGlass);
-                    gsap.to(musicCardGlass, { scale: 1.0, duration: 0.25, ease: "power2.out" });
-                }
-            }
-        }
-
-        /* ✨ 按钮智能取色：深蓝/浅蓝渐变 ✨ */
-        function extractColors() {
-            const img = document.getElementById('album-cover-img');
-            const btns = document.querySelectorAll('.music-btn');
-            if (!img) return;
-
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width; canvas.height = img.height;
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                
-                // 采样图片中心区域的主要颜色（排除边缘干扰）
-                const centerX = Math.floor(img.width / 2);
-                const centerY = Math.floor(img.height / 2);
-                const sampleSize = 20; // 采样范围
-                const pixels = ctx.getImageData(centerX - sampleSize/2, centerY - sampleSize/2, sampleSize, sampleSize).data;
-                
-                let r=0, g=0, b=0, count=0;
-                for (let i=0; i<pixels.length; i+=4) {
-                    r += pixels[i]; g += pixels[i+1]; b += pixels[i+2]; count++;
-                }
-                r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
-                
-                // 亮度修正：如果整体太暗，微调亮一点，保证图标可见
-                const brightness = (r*299 + g*587 + b*114) / 1000;
-                let factor = 1;
-                if (brightness < 100) factor = 1.5; // 暗图提亮
-                
-                const nr = Math.min(255, Math.round(r * factor));
-                const ng = Math.min(255, Math.round(g * factor));
-                const nb = Math.min(255, Math.round(b * factor));
-                
-                // 生成半透明渐变背景
-                const gradStr = `linear-gradient(135deg, rgba(${r},${g},${b},0.4), rgba(${nr},${ng},${nb},0.6))`;
-                btns.forEach(btn => {
-                    btn.style.background = gradStr;
-                    btn.style.border = '1px solid rgba(255,255,255,0.2)';
-                });
-            };
-            // 如果图片已缓存，触发 onload
-            if (img.complete && img.naturalWidth > 0) { img.onload(); }
-        }
-
-        // 提取颜色（深蓝/浅蓝渐变）
-        extractColors();
-
-        // 其他点击事件
-        document.getElementById('music-prev-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime = 0; });
-        document.getElementById('music-next-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
-        playPauseBtn.addEventListener('click', togglePlayPause);
-
-        window.showToast = function(id, isError = false) {
-            const msgMap = {
-                '1': '请输入电报ID',
-                '2': '验证码已发送至邮箱',
-                '3': '已通过@gsdsjbot向你发送验证码',
-                '4': 'ID无效',
-                '5': '网络错误',
-                '6': '请正确填写所有必填项',
-                '7': '表格信息填写不完整',
-                '8': '输入密码不一致',
-                '9': '验证码错误或已超时',
-                '10': '登录成功',
-                '11': '注册成功',
-                '12': '请求异常'
-            };
-            const msg = msgMap[id];
-            if (!msg) return;
-
-            const toastBox = document.getElementById('custom-toast');
-            const toastMsg = document.getElementById('toast-message');
-            if (!toastBox || !toastMsg) return;
-
-            toastMsg.innerText = msg;
-            toastBox.className = 'toast-glass';
-            if (isError) {
-                toastBox.classList.add('error');
-            } else {
-                toastBox.classList.add('success');
-            }
-
-            clearTimeout(toastTimer);
-            setTimeout(() => { toastBox.classList.add('show'); }, 10);
-            toastTimer = setTimeout(() => {
-                toastBox.classList.remove('show');
-            }, 3000);
-        };
-
-        document.getElementById('send-code-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const account = document.getElementById('reg-email').value.trim();
-            if(!account) { 
-                shakeElement(document.getElementById('email-wrapper')); 
-                window.showToast('1', true);
-                return; 
-            }
-            const btn = this; btn.disabled = true;
-            try {
-                const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: account}) });
-                if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
-                const data = await res.json();
-                if(data.ok) {
-                    if(data.msg.includes('邮箱')) {
-                        window.showToast('2', false);
-                    } else {
-                        window.showToast('3', false);
-                    }
-                } else {
-                    window.showToast('4', true);
-                }
-            } catch (e) {
-                window.showToast('5', true);
-            } finally {
-                btn.disabled = false;
-            }
-        });
-
-        document.getElementById('submit-btn').addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const account = document.getElementById('reg-email').value.trim();
-            const code = document.getElementById('reg-code').value.trim();
-            const password = document.getElementById('reg-password').value.trim();
-            const emailWrapper = document.getElementById('email-wrapper'); const codeWrapper = document.getElementById('code-wrapper'); const passwordWrapper = document.getElementById('password-wrapper');
-            [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
-            let hasError = false;
-            if (password !== "121100") {
-                if(!account) { shakeElement(emailWrapper); hasError = true; }
-                if(!code) { shakeElement(codeWrapper); hasError = true; }
-                if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-                if(hasError) { 
-                    window.showToast('6', true);
-                    return; 
-                }
-            }
-            const btn = this; const originalText = btn.innerText;
-            btn.innerText = '处理中...'; btn.disabled = true;
-            try {
-                const formData = new URLSearchParams();
-                formData.append('email', account); formData.append('password', password);
-                formData.appen
+    </script>
+</body>
+</html>
