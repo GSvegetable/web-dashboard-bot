@@ -1,8 +1,8 @@
-<!-- 音乐卡片组件（精简为单一大按钮） -->
+<!-- 音乐卡片组件：彻底去掉任何黑圈，单一大按钮 -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
-            <!-- 专辑封面图片预加载（用于提取颜色） -->
+            <!-- 专辑封面图片预加载 -->
             <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" style="display: none;" crossorigin="anonymous">
             
             <!-- 音频播放器 -->
@@ -27,8 +27,8 @@
                 </div>
             </div>
 
+            <!-- ★★★ 音乐控制区：只保留唯一一个播放/暂停按钮 ★★★ -->
             <div class="music-controls">
-                <!-- 只剩一个超大精致的播放/暂停按钮 -->
                 <button id="play-pause-btn" class="music-btn">
                     <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
                         <polygon points="6,3 20,12 6,21"></polygon>
@@ -44,10 +44,14 @@
 </div>
 
 <style>
+/* ★★★ 彻底干掉黑圈的核心 CSS ★★★ */
 .music-btn {
-    /* 取消任何黑色圆底，融入卡片 */
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* 强制去除浏览器自带的所有黑圈和高亮 */
+    appearance: none; -webkit-appearance: none;
+    outline: none !important;
+    background: transparent !important;
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 50%;
     width: 56px;
     height: 56px;
@@ -57,12 +61,16 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+    /* 只保留极柔和的白光，绝对没有黑底的阴影 */
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.05), inset 0 0 10px rgba(255, 255, 255, 0.1);
+    -webkit-tap-highlight-color: transparent;
 }
 .music-btn:hover { transform: scale(1.05); }
-.music-btn:active { transform: scale(0.98); } /* 取消明显的按压缩放，保留非常轻微的交互 */
+.music-btn:active { transform: scale(0.98); }
+
 .music-btn .icon-play { width: 24px; height: 24px; }
 .music-btn .icon-pause { width: 24px; height: 24px; }
+
 #play-pause-btn .icon-pause { display: none; }
 #play-pause-btn.playing .icon-play { display: none; }
 #play-pause-btn.playing .icon-pause { display: block; }
