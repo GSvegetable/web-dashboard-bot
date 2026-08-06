@@ -38,15 +38,12 @@ class EmailCode(db.Model):
     code = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ★★★ 改动点：换用 db.Table 定义，绝对防冲突 ★★★
-telegram_code = db.Table(
-    'telegram_code',
-    db.metadata,
-    db.Column('id', db.Integer, primary_key=True),
-    db.Column('telegram_id', db.String(50), nullable=False),
-    db.Column('code', db.String(10), nullable=False),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow)
-)
+# Telegram 验证码表（统一模型定义，避免重复表定义冲突）
+class TelegramCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    telegram_id = db.Column(db.String(50), nullable=False)
+    code = db.Column(db.String(10), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # 扫码登录临时凭证表
 class QrLoginSession(db.Model):

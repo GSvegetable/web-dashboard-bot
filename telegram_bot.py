@@ -1,7 +1,7 @@
 import requests
 import random
 from tg_config import BOT_TOKEN
-from tg_models import db, TelegramCode
+from models import db, TelegramCode
 from datetime import datetime
 
 def send_verification_code(tg_id):
