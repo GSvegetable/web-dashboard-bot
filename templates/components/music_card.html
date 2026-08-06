@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：新封面、歌手名改为纯音乐 -->
+<!-- 音乐卡片组件（已移除不生效的频谱柱子） -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -6,24 +6,13 @@
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
             <div class="music-track-info">
-                <!-- 替换为你上传的真实封面图 -->
+                <!-- 封面图 -->
                 <div class="album-art" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
                 <div class="track-details">
                     <div class="music-track-title" id="music-title">你的名字</div>
-                    <!-- 修改：歌手名改为纯音乐 -->
                     <div class="music-artist-name" id="music-artist">纯音乐</div>
                 </div>
-                <!-- 音量条（律动柱） -->
-                <div class="volume-bars" id="audio-visualizer">
-                    <div class="bar" style="--delay:0s"></div>
-                    <div class="bar" style="--delay:0.1s"></div>
-                    <div class="bar" style="--delay:0.2s"></div>
-                    <div class="bar" style="--delay:0.3s"></div>
-                    <div class="bar" style="--delay:0.4s"></div>
-                    <div class="bar" style="--delay:0.5s"></div>
-                    <div class="bar" style="--delay:0.6s"></div>
-                    <div class="bar" style="--delay:0.7s"></div>
-                </div>
+                <!-- 原音频频谱柱块已删除 -->
             </div>
             
             <div class="music-progress-area">
