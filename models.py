@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 
+# 全局数据库实例
 db = SQLAlchemy()
 
 # 用户表
@@ -34,22 +35,22 @@ class BotConfig(db.Model):
     response = db.Column(db.String(255), nullable=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 邮箱验证码表（用于普通登录）
+# 邮箱验证码表
 class EmailCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False)
     code = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 电报验证码表（用于输入TG ID + 验证码登录）
+# 电报验证码表（增加防重复定义保护）
 class TelegramCode(db.Model):
-    __table_args__ = {'extend_existing': True}  # ★★★ 终极防冲突保险 ★★★
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     telegram_id = db.Column(db.String(50), nullable=False)
     code = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ✨ 新增：扫码登录临时凭证表（用于电报扫码登录）
+# ✨ 扫码登录临时凭证表
 class QrLoginSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(32), unique=True, nullable=False)
