@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：淡蓝色，丝滑圆变方动画 -->
+<!-- 音乐卡片组件：深蓝到淡蓝渐变，空心描边，丝滑形变 -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -17,10 +17,28 @@
                     <div class="music-artist-name">纯音乐</div>
                 </div>
 
-                <!-- ★★★ 淡蓝色、丝滑变形的播放按钮 ★★★ -->
+                <!-- ★★★ 渐变空心、丝滑切换按钮 ★★★ -->
                 <button id="play-pause-btn" class="play-pause-btn">
-                    <!-- 一个独立元素，通过改变宽高和圆角实现丝滑变形 -->
-                    <div class="shape-indicator"></div>
+                    <!-- 内部 SVG 容器 -->
+                    <div class="svg-container">
+                        <!-- 播放状态：深蓝到淡蓝渐变的空心圆 -->
+                        <svg class="icon-circle" viewBox="0 0 32 32" width="32" height="32">
+                            <defs>
+                                <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#1e3a8a" /> <!-- 深蓝 -->
+                                    <stop offset="100%" stop-color="#93c5fd" /> <!-- 淡蓝 -->
+                                </linearGradient>
+                            </defs>
+                            <!-- 描边粗细设置适中为 4px -->
+                            <circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                        
+                        <!-- 暂停状态：深蓝到淡蓝渐变的空心圆角正方形 -->
+                        <svg class="icon-square" viewBox="0 0 32 32" width="32" height="32">
+                            <!-- 填充 none，实现空心 -->
+                            <rect x="2" y="2" width="28" height="28" rx="6" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                    </div>
                 </button>
             </div>
             
@@ -47,30 +65,38 @@
 .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-artist-name { font-size: 0.85rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-/* ★★★ 淡蓝色按钮容器 ★★★ */
+/* ★★★ 极简按钮容器 ★★★ */
 .play-pause-btn {
     appearance: none; -webkit-appearance: none;
     background: transparent !important; border: none !important;
     box-shadow: none !important; outline: none !important;
-    width: 40px; height: 40px; /* 点击区域 40px */
+    width: 40px; height: 40px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; padding: 0;
     -webkit-tap-highlight-color: transparent;
-    margin-right: 4px; /* 距离卡片右侧留白 */
+    margin-right: 4px;
 }
 
-/* ★★★ 核心：丝滑变形的淡蓝色几何体 ★★★ */
-.shape-indicator {
-    /* 基础颜色：你想要的淡蓝色 */
-    background: #9AC4FF; 
-    /* 初始状态：正圆形 */
-    width: 32px; height: 32px; border-radius: 50%;
-    /* ✨ 魔法：这会让 宽、高、圆角半径 的变化产生 0.35 秒的丝滑过渡 ✨ */
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); 
+/* 内部包裹 SVG，确保居中 */
+.svg-container {
+    position: relative;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
 }
 
-/* 暂停状态：平滑收缩为圆角正方形 */
-.play-pause-btn.playing .shape-indicator {
-    width: 28px; height: 28px; border-radius: 6px;
+/* 两个 SVG 初始都重叠放在中间 */
+.icon-circle, .icon-square {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* 默认：只显示圆形，正方形隐藏并缩小 */
+.icon-circle { opacity: 1; transform: scale(1); }
+.icon-square { opacity: 0; transform: scale(0.8); }
+
+/* 播放状态：圆形隐藏缩小，正方形显现放大 */
+.play-pause-btn.playing .icon-circle { opacity: 0; transform: scale(0.6); }
+.play-pause-btn.playing .icon-square { opacity: 1; transform: scale(1); }
 </style>
