@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：按钮自动取色，支持进度条拖拽 -->
+<!-- 音乐卡片组件（精简为单一大按钮） -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -21,32 +21,22 @@
                     <span id="music-current-time">0:00</span>
                     <span id="music-total-time">0:00</span>
                 </div>
-                <!-- 进度条轨道 -->
                 <div class="music-progress-track" id="music-progress-track">
                     <div class="music-progress-fill" id="music-progress-fill"></div>
                     <div class="music-progress-handle" id="music-progress-handle"></div>
                 </div>
             </div>
 
-            <div class="music-controls" id="music-controls">
-                <!-- 四个按钮：去掉了点击时的 active:scale-95 缩放，样式用 JS 动态生成渐变 -->
-                <button class="music-btn" id="music-prev-btn" style="transition: all 0.2s;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><path d="M18 17 L13 12 L18 7"></path></svg>
-                </button>
-                
-                <button class="music-btn" id="play-pause-btn" style="transition: all 0.2s;">
-                    <svg class="icon-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
-                        <polygon points="6,4 20,12 6,20"></polygon>
+            <div class="music-controls">
+                <!-- 只剩一个超大精致的播放/暂停按钮 -->
+                <button id="play-pause-btn" class="music-btn">
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="6,3 20,12 6,21"></polygon>
                     </svg>
-                    <svg class="icon-pause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                </button>
-                
-                <button class="music-btn" id="music-next-btn" style="transition: all 0.2s;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><path d="M6 17 L11 12 L6 7"></path></svg>
-                </button>
-                
-                <button class="music-btn" id="music-extra-btn" style="transition: all 0.2s;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg>
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
                 </button>
             </div>
         </div>
@@ -54,7 +44,26 @@
 </div>
 
 <style>
-    .music-btn { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; padding: 0; backdrop-filter: blur(4px); transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .music-btn:hover { transform: scale(1.05); }
-    .music-btn:active { transform: scale(1); } /* 去掉了缩进动画，保持静止 */
+.music-btn {
+    /* 取消任何黑色圆底，融入卡片 */
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+.music-btn:hover { transform: scale(1.05); }
+.music-btn:active { transform: scale(0.98); } /* 取消明显的按压缩放，保留非常轻微的交互 */
+.music-btn .icon-play { width: 24px; height: 24px; }
+.music-btn .icon-pause { width: 24px; height: 24px; }
+#play-pause-btn .icon-pause { display: none; }
+#play-pause-btn.playing .icon-play { display: none; }
+#play-pause-btn.playing .icon-pause { display: block; }
 </style>
