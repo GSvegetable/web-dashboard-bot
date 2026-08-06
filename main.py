@@ -1,6 +1,7 @@
 import os
 import random
 import re
+import requests
 from datetime import datetime
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
@@ -11,10 +12,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, EmailCode, BotConfig
 from tg_models import TelegramCode
 from telegram_bot import send_verification_code
+from tg_config import BOT_TOKEN
 
 app = Flask(__name__)
 
-# --- 🛡️ 核心修改：优先从环境变量读取 SECRET_KEY，防止部署重启导致用户掉线 ---
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -28,6 +29,41 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# 获取电报用户详细信息（用于头像和名字）
+def fetch_telegram_user_info(tg_id):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat"
+        params = {'chat_id': tg_id}
+        res = requests.get(url, params=params)
+        if res.status_code == 200:
+            data = res.json()
+            if data.get('ok'):
+                result = data.get('result', {})
+                # 获取头像文件ID
+                photo_id = None
+                if result.get('photo'):
+                    photo_id = result['photo'].get('small_file_id')
+                
+                # 通过 getFile 获取头像真实链接
+                avatar_url = None
+                if photo_id:
+                    file_res = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getFile", params={'file_id': photo_id})
+                    if file_res.status_code == 200:
+                        file_data = file_res.json()
+                        if file_data.get('ok'):
+                            file_path = file_data['result']['file_path']
+                            avatar_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
+                
+                return {
+                    'first_name': result.get('first_name', ''),
+                    'last_name': result.get('last_name', ''),
+                    'username': result.get('username', ''),
+                    'avatar_url': avatar_url
+                }
+    except Exception:
+        pass
+    return None
+
 @app.route('/')
 def splash():
     return render_template('splash.html')
@@ -36,7 +72,6 @@ def splash():
 def warehouse():
     return render_template('warehouse.html')
 
-# --- 🚪 新增：退出登录路由 ---
 @app.route('/logout')
 def logout():
     logout_user()
@@ -127,11 +162,24 @@ def register():
         db.session.commit()
         return "登录成功"
     
+    # 新用户注册逻辑
     hashed_password = generate_password_hash(password)
     if is_email:
         new_user = User(email=account, password_hash=hashed_password)
     else:
-        new_user = User(telegram_id=account, password_hash=hashed_password)
+        # ✨ 核心修改：注册时获取用户真实的电报信息！
+        tg_info = fetch_telegram_user_info(account)
+        if tg_info:
+            # 拼出真实姓名
+            real_name = f"{tg_info['first_name']} {tg_info['last_name']}".strip() or tg_info['username'] or account
+            new_user = User(
+                telegram_id=account, 
+                password_hash=hashed_password,
+                email=real_name if '@' not in real_name else None, # 将真实名字暂存到 email 字段展示
+                avatar_url=tg_info['avatar_url']
+            )
+        else:
+            new_user = User(telegram_id=account, password_hash=hashed_password)
         
     db.session.add(new_user)
     db.session.commit()
