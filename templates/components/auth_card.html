@@ -1,4 +1,4 @@
-<!-- 登录/注册卡片组件（修复弹窗调用、按钮文字不变） -->
+<!-- 登录/注册卡片组件（调用修复的 showToast） -->
 <div class="modal-overlay" id="loginModal">
     <div class="modal-box">
         <div class="login-card">
@@ -39,7 +39,6 @@
                     <div class="anim-item" id="password-wrapper" style="margin-bottom: 3px;">
                         <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                     </div>
-                    <!-- 修改：删除了按钮修改 innerText 的代码，文字绝不再变 -->
                     <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                 </form>
             {% endif %}
@@ -77,7 +76,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if(!account) { 
             const wrapper = document.getElementById('email-wrapper');
             if(wrapper) { wrapper.classList.add('shake-field'); setTimeout(()=>wrapper.classList.remove('shake-field'), 500); }
-            window.showToast('1', true);
+            if (typeof window.showToast === 'function') {
+                window.showToast('1', true);
+            }
             return; 
         }
         const btn = this; btn.disabled = true;
@@ -87,21 +88,21 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = await res.json();
             if(data.ok) {
                 if(data.msg.includes('邮箱')) {
-                    window.showToast('2', false);
+                    if (typeof window.showToast === 'function') window.showToast('2', false);
                 } else {
-                    window.showToast('3', false);
+                    if (typeof window.showToast === 'function') window.showToast('3', false);
                 }
             } else {
-                window.showToast('4', true);
+                if (typeof window.showToast === 'function') window.showToast('4', true);
             }
         } catch (e) {
-            window.showToast('5', true);
+            if (typeof window.showToast === 'function') window.showToast('5', true);
         } finally {
             btn.disabled = false;
         }
     });
 
-    // 注册/登录提交（已剔除修改按钮文字的逻辑）
+    // 注册/登录提交
     document.getElementById('submit-btn').addEventListener('click', async function(e) {
         e.stopPropagation();
         const account = document.getElementById('reg-email').value.trim();
@@ -118,12 +119,12 @@ document.addEventListener("DOMContentLoaded", function() {
             if(!code) { codeWrapper.classList.add('shake-field'); hasError = true; }
             if(!password || password.length < 6) { passwordWrapper.classList.add('shake-field'); hasError = true; }
             if(hasError) { 
-                window.showToast('6', true);
+                if (typeof window.showToast === 'function') window.showToast('6', true);
                 return; 
             }
         }
         const btn = this;
-        btn.disabled = true; // 只需禁用防连点，文字不需要变！
+        btn.disabled = true; // 只禁用，文字保持不变
 
         try {
             const formData = new URLSearchParams();
@@ -134,27 +135,27 @@ document.addEventListener("DOMContentLoaded", function() {
             const text = await res.text();
             
             if (text.includes('注册成功')) {
-                window.showToast('11', false);
+                if (typeof window.showToast === 'function') window.showToast('11', false);
                 setTimeout(() => { window.closeLoginModal(); }, 1000);
                 setTimeout(() => { window.location.reload(); }, 1500);
             } else if (text.includes('登录成功')) {
-                window.showToast('10', false);
+                if (typeof window.showToast === 'function') window.showToast('10', false);
                 setTimeout(() => { window.closeLoginModal(); }, 1000);
                 setTimeout(() => { window.location.reload(); }, 1500);
             } else if (text.includes('验证码错误')) {
-                window.showToast('9', true);
+                if (typeof window.showToast === 'function') window.showToast('9', true);
             } else if (text.includes('表单')) {
-                window.showToast('7', true);
+                if (typeof window.showToast === 'function') window.showToast('7', true);
             } else if (text.includes('密码不一致')) {
-                window.showToast('8', true);
+                if (typeof window.showToast === 'function') window.showToast('8', true);
             } else {
-                window.showToast('12', true);
+                if (typeof window.showToast === 'function') window.showToast('12', true);
             }
         } catch (e) {
-            window.showToast('12', true);
+            if (typeof window.showToast === 'function') window.showToast('12', true);
         } finally {
             btn.disabled = false;
         }
     });
 });
-</script>
+                                                                             </script>
