@@ -70,8 +70,8 @@ def fetch_telegram_user_info(tg_id):
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    # 🔥 核心：用 tg:// 协议，确保扫码后一定唤醒 Telegram App，而不是浏览器
-    deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
+    # 🔥 核心修改：使用 `https://t.me/` 开头的链接，防止手机扫码器对 tg:// 协议报错
+    deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
     db.session.commit()
