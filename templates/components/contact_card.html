@@ -1,27 +1,21 @@
-<!-- 联系开发者卡片（修改QQ链接为唤起手机App） -->
+<!-- 联系开发者卡片（增加了QQ链接点击失效的备用说明） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
         <div class="login-card" style="width: 240px; padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
-            
-            <!-- 标题 -->
             <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left;">请选择联系方式</span>
-            
-            <!-- 按钮组 -->
             <div class="flex flex-col gap-3 w-full items-center">
+                <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">Telegram</a>
                 
-                <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
-                    Telegram
-                </a>
-
-                <!-- ★★★ 修正：使用 tencent:// 协议直接唤起手机 QQ App 私信 ★★★ -->
-                <a href="tencent://message/?uin=3301296046&Site=gsbot&Menu=yes" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
+                <!-- ✨ 终极修正：同时保留唤起手机QQ协议 + 文字提醒 ✨ -->
+                <div class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95" style="cursor: pointer;" onclick="window.location.href='tencent://message/?uin=3301296046&Site=gsbot&Menu=yes';">
                     QQ
-                </a>
+                </div>
 
-                <a href="https://wa.me/8615861980264" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
-                    WhatsApp
-                </a>
-
+                <a href="https://wa.me/8615861980264" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">WhatsApp</a>
+            </div>
+            <!-- ✨ 提示文本 ✨ -->
+            <div class="text-[10px] text-gray-400 text-center w-full mt-1">
+                * 点击QQ若未弹出应用，请直接在QQ搜索 <span class="text-white">3301296046</span>
             </div>
         </div>
     </div>
