@@ -1,6 +1,7 @@
 {% if current_user.is_authenticated %}
-<div id="profileContainer" class="fixed top-4 left-4 z-[9999]">
-    <!-- 头像按钮 -->
+<div id="profileContainer" class="fixed top-4 left-4 z-[9999] flex flex-col items-start">
+    
+    <!-- 1. 点击的头像按钮 -->
     <div id="avatarBtn" class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white text-sm font-bold shadow-lg backdrop-blur-sm cursor-pointer transition-transform active:scale-95 select-none overflow-hidden bg-gradient-to-br from-purple-500/40 to-blue-500/40">
         {% if current_user.avatar_url %}
             <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
@@ -10,53 +11,129 @@
         {% endif %}
     </div>
 
-    <!-- 下拉菜单（点击后显示，圆形按钮列表） -->
-    <div id="avatarDropdown" class="hidden absolute top-12 left-0 z-50 flex flex-col gap-2 p-2 bg-white/5 backdrop-blur-md border border-white/30 rounded-2xl shadow-xl">
-        <!-- 退出登录按钮（正圆形） -->
-        <a href="/logout" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white" title="退出登录">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        </a>
-        <!-- 切换账号按钮（正圆形） -->
-        <a href="/logout" onclick="event.preventDefault(); window.location.href='/logout';" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white" title="切换账号">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        </a>
-    </div>
-</div>
+    <!-- 2. 弹出卡片（默认隐藏，通过 JS 控制展开） -->
+    <div id="profileCard" class="hidden origin-center mt-3 p-3 w-72 h-28 bg-white/5 backdrop-blur-md border border-white/30 rounded-md shadow-lg shadow-black/40">
+        <section class="flex justify-center items-center w-12 h-12 rounded-full shadow-md bg-gradient-to-r from-[#F9C97C]/60 to-[#A2E9C1]/60">
+            <!-- 卡片内部的头像预览 -->
+            <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-black/20 text-gray-700">
+                {% if current_user.avatar_url %}
+                    <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <span class="text-white font-bold text-sm">
+                        {{ current_user.first_name[0]|upper if current_user.first_name else (current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U')) }}
+                    </span>
+                {% endif %}
+            </div>
+        </section>
 
-<!-- 在头像旁边显示名字 -->
-<div class="fixed top-4 left-16 z-[9999] flex items-center">
-    <span class="text-white text-sm font-medium tracking-wide opacity-90 drop-shadow-md pointer-events-none">
-        {% if current_user.first_name %}
-            {{ current_user.first_name }}
-        {% elif current_user.telegram_username %}
-            @{{ current_user.telegram_username }}
-        {% elif current_user.email %}
-            {{ current_user.email.split('@')[0] }}
-        {% elif current_user.telegram_id %}
-            {{ current_user.telegram_id }}
-        {% else %}
-            用户
-        {% endif %}
-    </span>
+        <section class="block border-l border-white/20 m-3">
+            <div class="pl-3">
+                <!-- 第一行：较大（名字 / 昵称） -->
+                <h3 class="text-white font-semibold text-base">
+                    {% if current_user.first_name %}
+                        {{ current_user.first_name }}
+                    {% elif current_user.email %}
+                        {{ current_user.email.split('@')[0] }}
+                    {% else %}
+                        用户
+                    {% endif %}
+                </h3>
+                <!-- 第二行：较小（电报用户名 / ID） -->
+                <h3 class="bg-clip-text text-transparent bg-gradient-to-l from-[#005BC4] to-[#A2E9C1] text-sm font-bold">
+                    {% if current_user.telegram_username %}
+                        @{{ current_user.telegram_username }}
+                    {% elif current_user.telegram_id %}
+                        ID: {{ current_user.telegram_id }}
+                    {% else %}
+                        未绑定电报
+                    {% endif %}
+                </h3>
+            </div>
+            
+            <!-- 3. 两个纯圆形按钮（取代原版四个图标） -->
+            <div class="flex gap-3 pt-2 pl-3">
+                <!-- 切换账号（按你的要求，点了没反应，只负责收回卡片） -->
+                <button onclick="closeProfileCard()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </button>
+                <!-- 退出登录（点了直接注销并返回首页） -->
+                <button onclick="performLogout()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+            </div>
+        </section>
+    </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const avatarBtn = document.getElementById('avatarBtn');
-    const dropdown = document.getElementById('avatarDropdown');
+    const profileCard = document.getElementById('profileCard');
 
-    if (avatarBtn && dropdown) {
+    if (avatarBtn && profileCard) {
+        // 点击头像：弹出卡片（触发“向四周扩散”动画）
         avatarBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            dropdown.classList.toggle('hidden');
+            
+            // 如果卡片已经显示了，就不做任何事（或者忽略点击）
+            if (!profileCard.classList.contains('hidden')) {
+                return;
+            }
+
+            // 显示卡片并执行 GSAP 扩散动画
+            profileCard.classList.remove('hidden');
+            
+            if (typeof gsap !== 'undefined') {
+                // 以卡片中心为原点，从 0 扩散到 1
+                gsap.fromTo(profileCard, 
+                    { scale: 0, opacity: 0, transformOrigin: "center center" }, 
+                    { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.7)" }
+                );
+            } else {
+                // 如果 GSAP 没加载出来，直接显示（防崩溃保底）
+                profileCard.style.transform = 'scale(1)';
+                profileCard.style.opacity = '1';
+            }
         });
 
+        // 点击页面其他空白地方，收起卡片（点外面关掉）
         document.addEventListener('click', function(e) {
-            if (!dropdown.classList.contains('hidden') && !avatarBtn.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
+            if (!profileCard.classList.contains('hidden') && !avatarBtn.contains(e.target) && !profileCard.contains(e.target)) {
+                closeProfileCard();
             }
         });
     }
 });
+
+// 关闭卡片（简单直接的收回去）
+function closeProfileCard() {
+    const card = document.getElementById('profileCard');
+    if (card && !card.classList.contains('hidden')) {
+        if (typeof gsap !== 'undefined') {
+            gsap.to(card, { 
+                scale: 0, opacity: 0, duration: 0.2, ease: "power2.in",
+                onComplete: () => { card.classList.add('hidden'); }
+            });
+        } else {
+            card.classList.add('hidden');
+        }
+    }
+}
+
+// 切换账号：按照你的要求，不做任何后端的切换（没有任何反应，只关卡片）
+function switchAccount() {
+    closeProfileCard(); // 只有收回去的动作
+}
+
+// 退出登录：执行真正的登出操作
+function performLogout() {
+    // 防止用户反复点击
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    
+    // 直接跳转到后端的 /logout 路由
+    window.location.href = '/logout';
+}
 </script>
 {% endif %}
