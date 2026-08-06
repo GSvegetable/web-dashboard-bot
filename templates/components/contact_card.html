@@ -1,13 +1,13 @@
-<!-- 联系开发者卡片（移除动画，左右内边距缩短1/4） -->
+<!-- 联系开发者卡片（边距缩小，文字右移） -->
 <div class="modal-overlay" id="contactModal" onclick="closeContactModal(event)">
     <div class="modal-box">
-        <!-- 外层卡片：左右内边距从 24px 降为 18px -->
-        <div class="login-card" style="width: 240px; padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+        <!-- 外层卡片：上下内边距 16px，左右内边距 14px，比之前更紧凑 -->
+        <div class="login-card" style="width: 240px; padding: 16px 14px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
             
-            <!-- 标题：移除 anim-item，左对齐，与按钮边缘齐平 -->
-            <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left;">请选择联系方式</span>
+            <!-- 标题：添加 padding-left: 6px 让文字整体往右移动一点点 -->
+            <span class="font-extrabold text-xl text-white" style="width: 100%; text-align: left; padding-left: 6px;">请选择联系方式</span>
             
-            <!-- 按钮组：保持和以前一样的宽度与居中 -->
+            <!-- 按钮组 -->
             <div class="flex flex-col gap-3 w-full items-center">
                 
                 <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">
