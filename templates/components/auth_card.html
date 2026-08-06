@@ -44,9 +44,9 @@
                         </div>
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
-                        <!-- 扫码登录按钮 -->
+                        <!-- ✅ 修改：去掉了 📱 表情，只有“扫码登录” -->
                         <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
-                            📱 扫码登录
+                            扫码登录
                         </button>
                     </form>
                 {% endif %}
@@ -99,7 +99,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let qrPollTimer = null;
     let currentQrToken = null;
 
-    // 切换到扫码模式（动画：表单往上走，二维码从下方滑入）
     function switchToQrMode() {
         if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
@@ -116,7 +115,6 @@ document.addEventListener("DOMContentLoaded", function() {
         fetchQrLoginToken();
     }
 
-    // 返回表单模式（动画：二维码往下走，表单从下方滑入）
     function resetToFormMode() {
         stopQrPolling();
         currentQrToken = null;
@@ -137,7 +135,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 获取二维码（挂载到window，方便过期后点击刷新）
     window.fetchQrLoginToken = function() {
         stopQrPolling();
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
@@ -159,7 +156,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 轮询登录状态
     function startQrPolling(token) {
         stopQrPolling();
         let attempts = 0;
@@ -196,4 +192,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-</script>
+                     </script>
