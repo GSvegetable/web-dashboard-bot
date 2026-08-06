@@ -1,20 +1,39 @@
-<!-- 用户头像与昵称组件（已重新定位至顶部最左侧） -->
+<!-- 用户头像与下拉菜单（玻璃质感，大小匹配头像） -->
 {% if current_user.is_authenticated %}
-<div class="fixed top-4 left-4 z-[9999] flex items-center gap-3">
-    <!-- 圆形头像占位 -->
-    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 border border-white/30 flex items-center justify-center text-white text-sm font-bold shadow-lg backdrop-blur-sm pointer-events-none">
-        <!-- 使用邮箱首字母或者电报ID首字母 -->
+<div id="profileContainer" class="fixed top-4 left-4 z-[9999]">
+    <!-- 头像按钮 -->
+    <div id="avatarBtn" class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 border border-white/30 flex items-center justify-center text-white text-sm font-bold shadow-lg backdrop-blur-sm cursor-pointer transition-transform active:scale-95 select-none">
         {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
     </div>
-    <!-- 昵称 -->
-    <div class="text-white text-sm font-medium tracking-wide opacity-90 drop-shadow-md pointer-events-none">
-        {% if current_user.email %}
-            {{ current_user.email.split('@')[0] }}
-        {% elif current_user.telegram_id %}
-            {{ current_user.telegram_id }}
-        {% else %}
-            用户
-        {% endif %}
+
+    <!-- 下拉菜单（点击后显示） -->
+    <div id="avatarDropdown" class="hidden absolute top-12 left-0 z-50 flex flex-col gap-2 p-2 min-w-[100px] bg-white/5 backdrop-blur-md border border-white/30 rounded-xl shadow-xl">
+        <!-- 退出登录按钮 -->
+        <a href="/logout" class="flex items-center justify-center w-full h-10 px-3 text-center text-white text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition">退出登录</a>
+        <!-- 切换账号按钮 -->
+        <a href="/logout" onclick="event.preventDefault(); window.location.href='/logout';" class="flex items-center justify-center w-full h-10 px-3 text-center text-white text-sm font-medium bg-white/10 hover:bg-white/20 rounded-lg transition">切换账号</a>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const avatarBtn = document.getElementById('avatarBtn');
+    const dropdown = document.getElementById('avatarDropdown');
+
+    if (avatarBtn && dropdown) {
+        // 点击头像切换下拉菜单
+        avatarBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', function(e) {
+            if (!dropdown.classList.contains('hidden') && !avatarBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
 {% endif %}
