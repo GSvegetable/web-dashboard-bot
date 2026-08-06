@@ -80,7 +80,7 @@
 </head>
 <body>
     
-    <!-- 左上角用户组件（已支持真实头像、昵称、圆形下拉菜单） -->
+    <!-- 左上角用户组件 -->
     {% include 'components/user_profile.html' %}
 
     <div class="content-area" id="contentArea">
@@ -124,7 +124,7 @@
     <!-- 引入 Toast 组件 -->
     {% include 'components/toast.html' %}
 
-    <!-- ================= 登录卡片（恢复宽松间距） ================= -->
+    <!-- ================= 登录卡片 ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <div class="login-card">
@@ -150,14 +150,13 @@
                         <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
                     </div>
 
-                <!-- ✅ 未登录状态：恢复原有布局和间距 -->
+                <!-- ✅ 未登录状态 -->
                 {% else %}
                     <form id="authForm" onsubmit="return false;" novalidate>
                         <div class="flex flex-col gap-1">
                             <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
                             <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                         </div>
-                        <!-- ✨ 修复点：各输入框上下加了 gap-3 和 mb-2，解除紧凑感 -->
                         <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 4px;">
                             <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
                             <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
@@ -402,7 +401,7 @@
             }
         });
 
-        /* ================= 修复：点击空白关闭卡片 ================= */
+        /* ================= 点击空白关闭卡片 ================= */
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target.closest('.modal-box')) return;
             if (typeof window.closeLoginModal === 'function') {
@@ -417,4 +416,4 @@
         });
     </script>
 </body>
-</html>
+                                                                </html>
