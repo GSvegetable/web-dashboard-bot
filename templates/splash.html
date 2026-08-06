@@ -45,7 +45,7 @@
         .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
         #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
 
-        /* ★★★ 音乐卡片的关键 CSS ★★★ */
+        /* ★★★ 音乐卡片 ★★★ */
         .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
         .music-track-info { display: flex; align-items: center; gap: 12px; }
         .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; transition: transform 0.3s ease; }
@@ -53,26 +53,18 @@
         .track-details { flex-grow: 1; overflow: hidden; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .music-artist-name { font-size: 0.85rem; color: #9ca3af; margin-top: 2px; }
-        .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; flex-shrink: 0; }
-        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; transition: height 0.05s linear; } /* 增加一点平滑过渡 */
         
         .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
         .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
         .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
         .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
         .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
-        
         .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
         .music-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 6px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .music-btn:active { transform: scale(0.90); opacity: 0.7; }
         #play-pause-btn .icon-pause { display: none; }
         #play-pause-btn.playing .icon-play { display: none; }
         #play-pause-btn.playing .icon-pause { display: block; }
-
-        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
-        #custom-toast.error { border-left-color: #ef4444; }
-        #custom-toast.success { border-left-color: #22c55e; }
-        #custom-toast.show { opacity: 1; visibility: visible; }
 
         @media (max-width: 600px) {
             .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
@@ -84,7 +76,6 @@
             .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
-            #custom-toast { font-size: 13px; padding: 8px 16px; bottom: 30px; }
         }
     </style>
 </head>
@@ -123,38 +114,15 @@
         </button>
     </div>
 
-    <div id="custom-toast"></div>
-
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" novalidate class="login-card">
-                <div class="flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
-                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
-                </div>
-                <div class="flex gap-2 w-full anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
-                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
-                </div>
-                <div class="anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                </div>
-                <div class="anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                </div>
-                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
-            </form>
-        </div>
-    </div>
-
+    <!-- ★★★ 引入分离后的组件 ★★★ -->
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
+    {% include 'components/toast.html' %}
 
-    <!-- ★★★ 引入新文件：处理真实频谱弹跳的 JS ★★★ -->
-    <script src="{{ url_for('static', filename='js/audio_visualizer.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/toast_manager.js') }}"></script>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
@@ -166,7 +134,6 @@
         const newTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
         const textElements = document.querySelectorAll('.text-pattern');
         const contentArea = document.getElementById('contentArea');
-        const toast = document.getElementById('custom-toast');
         let toastTimer;
 
         const preloadNewBg = new Image(); preloadNewBg.src = newBgUrl;
@@ -212,15 +179,6 @@
             else if (document.exitFullscreen) document.exitFullscreen();
         }
 
-        function showToast(msg, type='info') {
-            toast.innerText = msg; toast.className = 'show';
-            if(type === 'error') toast.classList.add('error');
-            else if(type === 'success') toast.classList.add('success');
-            else toast.classList.remove('error', 'success');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
         function shakeElement(element) {
             if(!element) return;
             element.classList.remove('shake-field');
@@ -228,7 +186,7 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器内置操作（时间、进度条等） ================= */
+        /* ================= 音乐播放器 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -267,18 +225,39 @@
         document.getElementById('music-next-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        /* ================= 登录验证码和注册 ================= */
+        /* ================= 登录、验证码、注册（全替换为数字代号提示） ================= */
         document.getElementById('send-code-btn').addEventListener('click', async function(e) {
             e.stopPropagation();
             const account = document.getElementById('reg-email').value.trim();
-            if(!account) { shakeElement(document.getElementById('email-wrapper')); showToast('请输入邮箱或Telegram ID', 'error'); return; }
+            if(!account) { 
+                shakeElement(document.getElementById('email-wrapper')); 
+                showToast('1', true); // ★★★ 替换为 "1"（请输入电报ID）★★★
+                return; 
+            }
             const btn = this; btn.disabled = true;
             try {
                 const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: account}) });
                 if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
                 const data = await res.json();
-                if(data.ok) { showToast('✅ ' + data.msg, 'success'); } else { showToast('❌ ' + data.msg, 'error'); }
-            } catch (e) { showToast('❌ 网络请求失败: ' + e.message, 'error'); } finally { btn.disabled = false; }
+                if(data.ok) {
+                    // 根据返回的具体消息判断是发给了邮箱还是电报
+                    if(data.msg.includes('邮箱')) {
+                        showToast('2', false); // ★★★ 替换为 "2"（验证码已发送至邮箱）★★★
+                    } else {
+                        showToast('3', false); // ★★★ 替换为 "3"（已通过@gsdsjbot向你发送验证码）★★★
+                    }
+                } else {
+                    if(data.msg.includes('ID无效')) {
+                        showToast('4', true); // ★★★ 替换为 "4"（ID无效）★★★
+                    } else {
+                        showToast('4', true); // 兜底 
+                    }
+                }
+            } catch (e) {
+                showToast('5', true); // ★★★ 替换为 "5"（网络错误）★★★
+            } finally {
+                btn.disabled = false;
+            }
         });
 
         document.getElementById('submit-btn').addEventListener('click', async function(e) {
@@ -293,7 +272,10 @@
                 if(!account) { shakeElement(emailWrapper); hasError = true; }
                 if(!code) { shakeElement(codeWrapper); hasError = true; }
                 if(!password || password.length < 6) { shakeElement(passwordWrapper); hasError = true; }
-                if(hasError) { showToast('请正确填写所有必填项', 'error'); return; }
+                if(hasError) { 
+                    showToast('6', true); // ★★★ 替换为 "6"（请正确填写所有必填项）★★★
+                    return; 
+                }
             }
             const btn = this; const originalText = btn.innerText;
             btn.innerText = '处理中...'; btn.disabled = true;
@@ -304,12 +286,31 @@
                 formData.append('cf-turnstile-response', 'dummy');
                 const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
                 const text = await res.text();
-                if(text.includes('注册成功') || text.includes('登录成功')) {
-                    showToast('🎉 ' + text, 'success');
+                
+                // 根据后端返回的内容进行匹配，并使用对应的代号
+                if (text.includes('注册成功')) {
+                    showToast('11', false); // ★★★ 替换为 "11"（注册成功）★★★
                     setTimeout(() => { window.closeLoginModal(); }, 1000);
-                    setTimeout(() => { window.location.reload(); }, 1200);
-                } else { showToast('❌ ' + text, 'error'); }
-            } catch (e) { showToast('❌ 请求异常：' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                } else if (text.includes('登录成功')) {
+                    showToast('10', false); // ★★★ 替换为 "10"（登录成功）★★★
+                    setTimeout(() => { window.closeLoginModal(); }, 1000);
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                } else if (text.includes('验证码错误')) {
+                    showToast('9', true); // ★★★ 替换为 "9"（验证码错误或已超时）★★★
+                } else if (text.includes('表单')) {
+                    showToast('7', true); // ★★★ 替换为 "7"（表格信息填写不完整）★★★
+                } else if (text.includes('密码不一致')) {
+                    showToast('8', true); // ★★★ 替换为 "8"（输入密码不一致）★★★
+                } else {
+                    showToast('12', true); // ★★★ 替换为 "12"（请求异常）★★★
+                }
+            } catch (e) {
+                showToast('12', true); // ★★★ 替换为 "12"（请求异常）★★★
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         });
 
         /* ================= 点击空白关闭卡片 ================= */
