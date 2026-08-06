@@ -3,9 +3,9 @@ import random
 import re
 from datetime import datetime
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, current_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models import db, User, EmailCode, BotConfig
@@ -13,7 +13,9 @@ from tg_models import TelegramCode
 from telegram_bot import send_verification_code
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24).hex()
+
+# --- 🛡️ 核心修改：优先从环境变量读取 SECRET_KEY，防止部署重启导致用户掉线 ---
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -34,17 +36,19 @@ def splash():
 def warehouse():
     return render_template('warehouse.html')
 
-# ================= 管理员后台路由 =================
+# --- 🚪 新增：退出登录路由 ---
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('splash'))
+
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if not current_user.is_authenticated or not current_user.is_admin:
         return "无权访问，请使用管理员密码登录", 403
-    
-    # 获取所有用户，按注册时间倒序
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/dashboard.html', users=users)
 
-# ================= 发送验证码 =================
 @app.route('/api/send_code', methods=['POST'])
 def send_code():
     data = request.get_json()
@@ -70,9 +74,8 @@ def send_code():
         if success:
             return jsonify({'ok': True, 'msg': '已通过Telegram机器人发送验证码'})
         else:
-            return jsonify({'ok': False, 'msg': '电报ID无效或机器人未响应'})
+            return jsonify({'ok': False, 'msg': 'ID无效或机器人未响应'})
 
-# ================= 注册/登录逻辑（含管理员后门） =================
 @app.route('/register', methods=['POST'])
 def register():
     account = request.form.get('email')
@@ -80,27 +83,22 @@ def register():
     confirm_password = request.form.get('confirm_password')
     code = request.form.get('code')
     
-    # 1. ✅【管理员暗门】如果密码是 121100，直接无视其他字段，创建/登录管理员！
     if password == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
-            # 如果数据库里还没有管理员，就创建一个
             hashed_password = generate_password_hash("121100")
             admin_user = User(email="admin@gsbot.local", password_hash=hashed_password, is_admin=True)
             db.session.add(admin_user)
             db.session.commit()
-        
-        # 更新管理员最后登录时间
         admin_user.last_login = datetime.utcnow()
         db.session.commit()
         login_user(admin_user)
         return "登录成功"
 
-    # 2. 普通用户的常规注册逻辑
     if not all([account, password, confirm_password, code]):
-        return "表单信息填写不完整"
+        return "表格信息填写不完整"
     if password != confirm_password:
-        return "两次输入的密码不一致"
+        return "输入密码不一致"
     
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
     
@@ -115,9 +113,8 @@ def register():
             valid_code = True
             
     if not valid_code:
-        return "验证码错误或已过期"
+        return "验证码错误或已超时"
     
-    # 查找用户
     user = None
     if is_email:
         user = User.query.filter_by(email=account).first()
@@ -126,12 +123,10 @@ def register():
         
     if user:
         login_user(user)
-        # 更新普通用户的最后登录时间
         user.last_login = datetime.utcnow()
         db.session.commit()
         return "登录成功"
     
-    # 新用户注册
     hashed_password = generate_password_hash(password)
     if is_email:
         new_user = User(email=account, password_hash=hashed_password)
@@ -141,7 +136,6 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     login_user(new_user)
-    # 记录新用户注册的登录时间
     new_user.last_login = datetime.utcnow()
     db.session.commit()
     return "注册成功"
