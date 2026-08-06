@@ -1,102 +1,62 @@
 {% if current_user.is_authenticated %}
-<div id="profileContainer" class="fixed top-4 left-4 z-[9999] flex flex-col items-start">
+<!-- 直接完整显示卡片，无需点击触发 -->
+<div id="profileContainer" class="fixed top-4 left-4 z-[9999] flex items-center p-3 w-72 h-28 bg-white/10 backdrop-blur-md border border-white/30 rounded-md shadow-lg shadow-black/40">
     
-    <!-- 1. 点击的头像按钮（没有任何动画，只负责触发显示隐藏） -->
-    <div id="avatarBtn" class="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white text-sm font-bold shadow-lg backdrop-blur-sm cursor-pointer select-none overflow-hidden bg-gradient-to-br from-purple-500/40 to-blue-500/40">
-        {% if current_user.avatar_url %}
-            <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
-        {% else %}
-            {{ current_user.first_name[0]|upper if current_user.first_name else (current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U')) }}
-        {% endif %}
-    </div>
+    <!-- 左侧头像区域 -->
+    <section class="flex justify-center items-center w-14 h-14 rounded-full shadow-md bg-gradient-to-r from-[#F9C97C]/50 to-[#A2E9C1]/50">
+        <div class="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-black/20">
+            {% if current_user.avatar_url %}
+                <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
+            {% else %}
+                <span class="text-white font-bold text-sm">
+                    {{ current_user.first_name[0]|upper if current_user.first_name else (current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U')) }}
+                </span>
+            {% endif %}
+        </div>
+    </section>
 
-    <!-- 2. 严格按照你给的 Uiverse 卡片结构编写的透明玻璃卡片 -->
-    <div id="profileCard" class="hidden mt-3 flex items-center p-3 w-72 h-28 bg-white/10 backdrop-blur-md border border-white/30 rounded-md shadow-lg shadow-black/40">
-        
-        <!-- 左侧头像区域 -->
-        <section class="flex justify-center items-center w-14 h-14 rounded-full shadow-md bg-gradient-to-r from-[#F9C97C]/50 to-[#A2E9C1]/50">
-            <div class="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center bg-black/20">
-                {% if current_user.avatar_url %}
-                    <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
+    <!-- 右侧内容区域 -->
+    <section class="block border-l border-white/30 m-3 h-full flex flex-col justify-center">
+        <!-- 文字部分 -->
+        <div class="pl-3">
+            <!-- 第一行：名字加大（text-xl） -->
+            <h3 class="text-white font-bold text-xl">
+                {% if current_user.first_name %}
+                    {{ current_user.first_name }}
+                {% elif current_user.email %}
+                    {{ current_user.email.split('@')[0] }}
                 {% else %}
-                    <span class="text-white font-bold text-sm">
-                        {{ current_user.first_name[0]|upper if current_user.first_name else (current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U')) }}
-                    </span>
+                    用户
                 {% endif %}
-            </div>
-        </section>
-
-        <!-- 右侧垂直分割线 -->
-        <section class="block border-l border-white/30 m-3 h-full flex flex-col justify-center">
-            <!-- 文字部分 -->
-            <div class="pl-3">
-                <!-- 第一行：尺寸变大 -->
-                <h3 class="text-white font-semibold text-base">
-                    {% if current_user.first_name %}
-                        {{ current_user.first_name }}
-                    {% elif current_user.email %}
-                        {{ current_user.email.split('@')[0] }}
-                    {% else %}
-                        用户
-                    {% endif %}
-                </h3>
-                <!-- 第二行：尺寸变小 -->
-                <h3 class="bg-clip-text text-transparent bg-gradient-to-l from-[#005BC4] to-[#A2E9C1] text-sm font-bold mt-0.5">
-                    {% if current_user.telegram_username %}
-                        @{{ current_user.telegram_username }}
-                    {% elif current_user.telegram_id %}
-                        ID: {{ current_user.telegram_id }}
-                    {% else %}
-                        未绑定
-                    {% endif %}
-                </h3>
-            </div>
-            
-            <!-- 替换的 2 个圆形按钮（去掉了原版的 4 个图标） -->
-            <div class="flex gap-3 pt-2 pl-3">
-                <!-- 切换账号（点了没有任何反应，仅关闭卡片） -->
-                <button onclick="closeProfileCard()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </button>
-                <!-- 退出登录 -->
-                <button onclick="performLogout()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                </button>
-            </div>
-        </section>
-    </div>
+            </h3>
+            <!-- 第二行：用户名改成白色（text-white） -->
+            <h3 class="text-white text-sm font-medium mt-0.5">
+                {% if current_user.telegram_username %}
+                    @{{ current_user.telegram_username }}
+                {% elif current_user.telegram_id %}
+                    ID: {{ current_user.telegram_id }}
+                {% else %}
+                    未绑定
+                {% endif %}
+            </h3>
+        </div>
+        
+        <!-- 底部两个按钮（尺寸已加大） -->
+        <div class="flex gap-4 pt-2 pl-3">
+            <!-- 切换账号（点击无任何反应，仅作为占位） -->
+            <button onclick="event.preventDefault();" class="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </button>
+            <!-- 退出登录 -->
+            <button onclick="performLogout()" class="w-9 h-9 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white cursor-pointer active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
+    </section>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const avatarBtn = document.getElementById('avatarBtn');
-    const profileCard = document.getElementById('profileCard');
-
-    if (avatarBtn && profileCard) {
-        // 点击头像：直接切换显示隐藏（去掉了缩放动画）
-        avatarBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            profileCard.classList.toggle('hidden');
-        });
-
-        // 点击页面空白处自动收回卡片
-        document.addEventListener('click', function(e) {
-            if (!profileCard.classList.contains('hidden') && !avatarBtn.contains(e.target) && !profileCard.contains(e.target)) {
-                closeProfileCard();
-            }
-        });
-    }
-});
-
-// 关闭卡片
-function closeProfileCard() {
-    const card = document.getElementById('profileCard');
-    if (card && !card.classList.contains('hidden')) {
-        card.classList.add('hidden');
-    }
-}
-
-// 退出登录
+// 退出登录执行函数
 function performLogout() {
     const btn = event.currentTarget;
     btn.disabled = true;
