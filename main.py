@@ -49,7 +49,7 @@ def admin_dashboard():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/dashboard.html', users=users)
 
-# --- 🔥 补充完整了原本为空的获取用户信息函数 ---
+# --- 补充完整的获取用户信息函数 ---
 def fetch_telegram_user_info(tg_id):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}"
@@ -84,7 +84,7 @@ def check_qr_login(token):
     if not session:
         return jsonify({'status': 'expired'})
     
-    # 🔥 核心优化：一旦状态变为 success，立刻执行后端登录（登录用户）
+    # 一旦状态变为 success，立刻执行后端登录
     if session.status == 'success' and session.telegram_id:
         user = User.query.filter_by(telegram_id=session.telegram_id).first()
         if user:
@@ -93,7 +93,6 @@ def check_qr_login(token):
             db.session.commit()
             return jsonify({'status': 'success'})
         else:
-            # 如果扫码了但还没注册，可以通过逻辑引导跳转注册
             return jsonify({'status': 'unregistered'})
     
     if (datetime.utcnow() - session.created_at).seconds > 180:
@@ -210,6 +209,24 @@ def tg_webhook():
                 requests.post(url, json={"chat_id": chat_id, "text": "✅ 授权成功，请返回网页查看。"})
                 return "OK"
     return "OK"
+
+# ===============================================
+# 🔥 新增临时路由：浏览器访问即可一键设置 Webhook
+# 部署后请访问：https://你的域名/setup_webhook
+# ===============================================
+@app.route('/setup_webhook', methods=['GET'])
+def setup_webhook():
+    try:
+        # 自动获取当前域名的 /tg_webhook 路径
+        webhook_url = f"https://{request.host}/tg_webhook"
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={webhook_url}"
+        resp = requests.get(url, timeout=10)
+        return jsonify(resp.json())
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)})
+# ===============================================
+# （注：设置成功返回 {"ok": true, ...} 之后，可随时删除这段代码重新部署，不影响原有功能）
+# ===============================================
 
 if __name__ == '__main__':
     with app.app_context():
