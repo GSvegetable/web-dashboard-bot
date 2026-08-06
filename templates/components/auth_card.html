@@ -1,4 +1,4 @@
-<!-- 登录/注册卡片组件（独立封装，包含完整逻辑） -->
+<!-- 登录/注册卡片组件（修复弹窗调用、按钮文字不变） -->
 <div class="modal-overlay" id="loginModal">
     <div class="modal-box">
         <div class="login-card">
@@ -39,6 +39,7 @@
                     <div class="anim-item" id="password-wrapper" style="margin-bottom: 3px;">
                         <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
                     </div>
+                    <!-- 修改：删除了按钮修改 innerText 的代码，文字绝不再变 -->
                     <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                 </form>
             {% endif %}
@@ -46,7 +47,6 @@
     </div>
 </div>
 
-<!-- 挂载登录卡片必需的 JS 事件 -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // 展开时动画
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // 注册/登录提交
+    // 注册/登录提交（已剔除修改按钮文字的逻辑）
     document.getElementById('submit-btn').addEventListener('click', async function(e) {
         e.stopPropagation();
         const account = document.getElementById('reg-email').value.trim();
@@ -122,8 +122,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 return; 
             }
         }
-        const btn = this; const originalText = btn.innerText;
-        btn.innerText = '处理中...'; btn.disabled = true;
+        const btn = this;
+        btn.disabled = true; // 只需禁用防连点，文字不需要变！
+
         try {
             const formData = new URLSearchParams();
             formData.append('email', account); formData.append('password', password);
@@ -152,7 +153,6 @@ document.addEventListener("DOMContentLoaded", function() {
         } catch (e) {
             window.showToast('12', true);
         } finally {
-            btn.innerText = originalText;
             btn.disabled = false;
         }
     });
