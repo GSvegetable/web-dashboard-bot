@@ -1,0 +1,21 @@
+<!-- 用户头像与昵称组件 -->
+{% if current_user.is_authenticated %}
+<div class="fixed top-20 left-6 z-50 flex items-center gap-3 pointer-events-none">
+    <!-- 圆形头像占位 -->
+    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 border border-white/30 flex items-center justify-center text-white text-sm font-bold shadow-lg">
+        <!-- 实际用的时候可以在这里放 img src="{{ current_user.avatar_url }}" 之类的 -->
+        {{ current_user.email[0]|upper if current_user.email else 'U' }}
+    </div>
+    <!-- 昵称 -->
+    <div class="text-white text-sm font-medium tracking-wide opacity-90 drop-shadow-md">
+        <!-- 优先显示昵称，没有则显示邮箱/电报ID的前半部分 -->
+        {% if current_user.email %}
+            {{ current_user.email.split('@')[0] }}
+        {% elif current_user.telegram_id %}
+            {{ current_user.telegram_id }}
+        {% else %}
+            用户
+        {% endif %}
+    </div>
+</div>
+{% endif %}
