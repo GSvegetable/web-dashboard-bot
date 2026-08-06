@@ -1,8 +1,8 @@
 {% if current_user.is_authenticated %}
-<!-- 直接完整显示卡片，无点击动画，圆润轻巧版 -->
-<div id="profileContainer" class="fixed top-4 left-4 z-[9999] flex items-center gap-3 p-3 w-64 h-24 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl shadow-md shadow-black/10">
+<!-- 直接完整显示卡片，无点击动画，圆润轻巧版（已去掉ID，缩短宽度） -->
+<div id="profileContainer" class="fixed top-4 left-4 z-[9999] flex items-center gap-3 p-3 w-56 h-24 bg-white/10 backdrop-blur-md border border-white/30 rounded-2xl shadow-md shadow-black/10">
     
-    <!-- 左侧头像（去掉了彩色光圈，干净纯粹） -->
+    <!-- 左侧头像（干净纯粹，无彩色光圈） -->
     <div class="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
         {% if current_user.avatar_url %}
             <img src="{{ current_user.avatar_url }}" class="w-full h-full object-cover">
@@ -15,7 +15,7 @@
 
     <!-- 右侧内容区域 -->
     <div class="flex flex-col justify-center flex-1 min-w-0">
-        <!-- 名字：放大，并稍微往下移动 -->
+        <!-- 名字：放大，稍微往下移动 -->
         <div class="text-white font-bold text-3xl mt-1 leading-tight truncate">
             {% if current_user.first_name %}
                 {{ current_user.first_name }}
@@ -26,8 +26,8 @@
             {% endif %}
         </div>
         
-        <!-- 用户名和ID 并列放在名字下方 -->
-        <div class="flex flex-row items-center gap-2 mt-0.5 text-sm whitespace-nowrap">
+        <!-- 用户名（取消了原来的 ID 显示，行宽变短） -->
+        <div class="flex flex-row items-center mt-0.5 text-sm whitespace-nowrap">
             <span class="text-white font-medium">
                 {% if current_user.telegram_username %}
                     @{{ current_user.telegram_username }}
@@ -37,16 +37,10 @@
                     未绑定
                 {% endif %}
             </span>
-            <!-- 纯数字ID（白色）单独显示在用户名后面 -->
-            <span class="text-white font-light">
-                {% if current_user.telegram_id and current_user.telegram_username %}
-                    {{ current_user.telegram_id }}
-                {% endif %}
-            </span>
         </div>
     </div>
 
-    <!-- 底部两个按钮（略微加大到 w-8 h-8） -->
+    <!-- 底部两个按钮 -->
     <div class="flex flex-col gap-2 items-center ml-auto flex-shrink-0">
         <!-- 切换账号（点击无反应） -->
         <button onclick="event.preventDefault();" class="w-8 h-8 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition text-white active:scale-95">
