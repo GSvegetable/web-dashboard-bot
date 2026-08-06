@@ -1,0 +1,160 @@
+<!-- 登录/注册卡片组件（独立封装，包含完整逻辑） -->
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+        <div class="login-card">
+            {% if current_user.is_authenticated %}
+                <!-- 已登录状态 -->
+                <div class="flex flex-col items-center gap-4 w-full py-4">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
+                        {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
+                    </div>
+                    <div class="text-center">
+                        <p class="text-white font-medium text-lg">欢迎回来</p>
+                        <p class="text-gray-400 text-sm">
+                            {% if current_user.email %}
+                                {{ current_user.email }}
+                            {% elif current_user.telegram_id %}
+                                {{ current_user.telegram_id }}
+                            {% else %}
+                                用户
+                            {% endif %}
+                        </p>
+                    </div>
+                    <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
+                </div>
+            {% else %}
+                <!-- 未登录：登录/注册表单 -->
+                <form id="authForm" onsubmit="return false;" novalidate style="padding-top: 16px;">
+                    <div class="flex flex-col gap-1">
+                        <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                        <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                    </div>
+                    <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
+                        <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                        <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                    </div>
+                    <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
+                        <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                    </div>
+                    <div class="anim-item" id="password-wrapper" style="margin-bottom: 3px;">
+                        <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                    </div>
+                    <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 挂载登录卡片必需的 JS 事件 -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 展开时动画
+    window.openLoginModal = function() {
+        const musicModal = document.getElementById('musicModal');
+        if (musicModal && musicModal.classList.contains('active')) {
+            window.closeMusicModal();
+        }
+        const modal = document.getElementById('loginModal');
+        if (!modal) return;
+        modal.classList.add('active');
+        const items = document.querySelectorAll('#loginModal .anim-item');
+        if (typeof gsap !== 'undefined') {
+            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
+        } else {
+            items.forEach(el => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+        }
+    };
+    window.closeLoginModal = function() {
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    // 发送验证码
+    document.getElementById('send-code-btn').addEventListener('click', async function(e) {
+        e.stopPropagation();
+        const account = document.getElementById('reg-email').value.trim();
+        if(!account) { 
+            const wrapper = document.getElementById('email-wrapper');
+            if(wrapper) { wrapper.classList.add('shake-field'); setTimeout(()=>wrapper.classList.remove('shake-field'), 500); }
+            window.showToast('1', true);
+            return; 
+        }
+        const btn = this; btn.disabled = true;
+        try {
+            const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: account}) });
+            if (!res.ok) throw new Error(`服务器响应代码: ${res.status}`);
+            const data = await res.json();
+            if(data.ok) {
+                if(data.msg.includes('邮箱')) {
+                    window.showToast('2', false);
+                } else {
+                    window.showToast('3', false);
+                }
+            } else {
+                window.showToast('4', true);
+            }
+        } catch (e) {
+            window.showToast('5', true);
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    // 注册/登录提交
+    document.getElementById('submit-btn').addEventListener('click', async function(e) {
+        e.stopPropagation();
+        const account = document.getElementById('reg-email').value.trim();
+        const code = document.getElementById('reg-code').value.trim();
+        const password = document.getElementById('reg-password').value.trim();
+        const emailWrapper = document.getElementById('email-wrapper');
+        const codeWrapper = document.getElementById('code-wrapper');
+        const passwordWrapper = document.getElementById('password-wrapper');
+        [emailWrapper, codeWrapper, passwordWrapper].forEach(el => el.classList.remove('shake-field'));
+
+        let hasError = false;
+        if (password !== "121100") {
+            if(!account) { emailWrapper.classList.add('shake-field'); hasError = true; }
+            if(!code) { codeWrapper.classList.add('shake-field'); hasError = true; }
+            if(!password || password.length < 6) { passwordWrapper.classList.add('shake-field'); hasError = true; }
+            if(hasError) { 
+                window.showToast('6', true);
+                return; 
+            }
+        }
+        const btn = this; const originalText = btn.innerText;
+        btn.innerText = '处理中...'; btn.disabled = true;
+        try {
+            const formData = new URLSearchParams();
+            formData.append('email', account); formData.append('password', password);
+            formData.append('confirm_password', password); formData.append('code', code);
+            formData.append('cf-turnstile-response', 'dummy');
+            const res = await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: formData.toString() });
+            const text = await res.text();
+            
+            if (text.includes('注册成功')) {
+                window.showToast('11', false);
+                setTimeout(() => { window.closeLoginModal(); }, 1000);
+                setTimeout(() => { window.location.reload(); }, 1500);
+            } else if (text.includes('登录成功')) {
+                window.showToast('10', false);
+                setTimeout(() => { window.closeLoginModal(); }, 1000);
+                setTimeout(() => { window.location.reload(); }, 1500);
+            } else if (text.includes('验证码错误')) {
+                window.showToast('9', true);
+            } else if (text.includes('表单')) {
+                window.showToast('7', true);
+            } else if (text.includes('密码不一致')) {
+                window.showToast('8', true);
+            } else {
+                window.showToast('12', true);
+            }
+        } catch (e) {
+            window.showToast('12', true);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+});
+</script>
