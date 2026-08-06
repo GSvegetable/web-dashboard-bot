@@ -11,7 +11,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # 从 models 导入所有表和表定义
-from models import db, User, EmailCode, BotConfig, QrLoginSession, telegram_code
+from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code
 from tg_config import BOT_TOKEN
 
@@ -125,8 +125,7 @@ def register():
         record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first()
         if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300: valid_code = True
     else:
-        # ★★★ 改动点：使用新的 db.Table 查询语法 ★★★
-        record = db.session.query(telegram_code).filter_by(telegram_id=account).order_by(telegram_code.c.created_at.desc()).first()
+        record = TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
         if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300: valid_code = True
             
     if not valid_code: return "验证码错误或已超时"
