@@ -11,19 +11,15 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=True)
     telegram_id = db.Column(db.String(50), unique=True, nullable=True)
     password_hash = db.Column(db.String(512), nullable=False)
-    
-    # 专门存放用户的电报信息
     telegram_username = db.Column(db.String(50), nullable=True)
     first_name = db.Column(db.String(100), nullable=True)
     last_name = db.Column(db.String(100), nullable=True)
     avatar_url = db.Column(db.String(255), nullable=True)
-    
     is_admin = db.Column(db.Boolean, default=False)
     is_banned = db.Column(db.Boolean, default=False)
     is_vip = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
-    
     bot_configs = db.relationship('BotConfig', backref='user', lazy=True)
 
 # 机器人配置表
@@ -42,18 +38,20 @@ class EmailCode(db.Model):
     code = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 电报验证码表（增加防重复定义保护）
-class TelegramCode(db.Model):
-    __table_args__ = {'extend_existing': True}
-    id = db.Column(db.Integer, primary_key=True)
-    telegram_id = db.Column(db.String(50), nullable=False)
-    code = db.Column(db.String(10), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+# ★★★ 改动点：换用 db.Table 定义，绝对防冲突 ★★★
+telegram_code = db.Table(
+    'telegram_code',
+    db.metadata,
+    db.Column('id', db.Integer, primary_key=True),
+    db.Column('telegram_id', db.String(50), nullable=False),
+    db.Column('code', db.String(10), nullable=False),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
 
-# ✨ 扫码登录临时凭证表
+# 扫码登录临时凭证表
 class QrLoginSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(32), unique=True, nullable=False)
     telegram_id = db.Column(db.String(50), nullable=True)
-    status = db.Column(db.String(20), default='pending') # pending, success, expired
+    status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
