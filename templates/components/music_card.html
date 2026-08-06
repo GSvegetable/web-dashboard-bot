@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：彻底去掉任何黑圈，单一大按钮 -->
+<!-- 音乐卡片组件：播放圆形，暂停圆角正方形 -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -8,14 +8,32 @@
             <!-- 音频播放器 -->
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
-            <div class="music-track-info">
-                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
-                <div class="track-details">
-                    <div class="music-track-title" id="music-title">你的名字</div>
-                    <div class="music-artist-name" id="music-artist">纯音乐</div>
+            <!-- 内容区：使用 flex 布局让按钮紧贴右侧 -->
+            <div class="music-track-info" style="display: flex; align-items: center; gap: 10px;">
+                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>
+                
+                <div class="track-details" style="flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden;">
+                    <div class="music-track-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">你的名字</div>
+                    <div class="music-artist-name" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">纯音乐</div>
                 </div>
+
+                <!-- ★★★ 重写后的播放/暂停按钮 ★★★ -->
+                <button id="play-pause-btn" class="play-pause-btn" style="margin-right: 2px; flex-shrink: 0;">
+                    <!-- 播放状态：带外圆的三角形 -->
+                    <svg class="icon-play" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polygon points="10,8 16,12 10,16" fill="#ffffff" stroke="none" />
+                    </svg>
+                    <!-- 暂停状态：带外框的圆角矩形 -->
+                    <svg class="icon-pause" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2">
+                        <rect x="6" y="6" width="12" height="12" rx="3" />
+                        <line x1="10" y1="8" x2="10" y2="16" stroke-linecap="round" />
+                        <line x1="14" y1="8" x2="14" y2="16" stroke-linecap="round" />
+                    </svg>
+                </button>
             </div>
             
+            <!-- 进度条区域保持不变 -->
             <div class="music-progress-area">
                 <div class="music-time-row">
                     <span id="music-current-time">0:00</span>
@@ -26,52 +44,41 @@
                     <div class="music-progress-handle" id="music-progress-handle"></div>
                 </div>
             </div>
-
-            <!-- ★★★ 音乐控制区：只保留唯一一个播放/暂停按钮 ★★★ -->
-            <div class="music-controls">
-                <button id="play-pause-btn" class="music-btn">
-                    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="6,3 20,12 6,21"></polygon>
-                    </svg>
-                    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor">
-                        <rect x="6" y="4" width="4" height="16"></rect>
-                        <rect x="14" y="4" width="4" height="16"></rect>
-                    </svg>
-                </button>
-            </div>
         </div>
     </div>
 </div>
 
 <style>
-/* ★★★ 彻底干掉黑圈的核心 CSS ★★★ */
-.music-btn {
-    /* 强制去除浏览器自带的所有黑圈和高亮 */
+/* 彻底消除按钮黑圈的核心 CSS */
+.play-pause-btn {
     appearance: none; -webkit-appearance: none;
-    outline: none !important;
-    background: transparent !important;
-    background-color: rgba(255, 255, 255, 0.12) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    outline: none !important; border: none;
+    /* 默认是圆形（代表播放） */
+    border: 2px solid #ffffff;
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 32px; height: 32px;
+    background: rgba(255, 255, 255, 0.1) !important;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    /* 只保留极柔和的白光，绝对没有黑底的阴影 */
-    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.05), inset 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
     -webkit-tap-highlight-color: transparent;
+    padding: 0;
 }
-.music-btn:hover { transform: scale(1.05); }
-.music-btn:active { transform: scale(0.98); }
+.play-pause-btn:active { transform: scale(0.92); }
 
-.music-btn .icon-play { width: 24px; height: 24px; }
-.music-btn .icon-pause { width: 24px; height: 24px; }
+/* 暂停状态：按钮自动变化为圆角正方形 */
+.play-pause-btn.playing {
+    border-radius: 8px; /* 圆润一点的正方形 */
+    width: 26px; height: 26px;
+}
 
-#play-pause-btn .icon-pause { display: none; }
-#play-pause-btn.playing .icon-play { display: none; }
-#play-pause-btn.playing .icon-pause { display: block; }
+/* 切换内部图标的显示与隐藏 */
+.play-pause-btn .icon-play { display: block; }
+.play-pause-btn .icon-pause { display: none; }
+.play-pause-btn.playing .icon-play { display: none; }
+.play-pause-btn.playing .icon-pause { display: block; }
+
+.play-pause-btn svg { width: 18px; height: 18px; }
+.play-pause-btn.playing svg { width: 14px; height: 14px; }
 </style>
