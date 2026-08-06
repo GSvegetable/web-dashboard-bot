@@ -119,25 +119,54 @@
     <!-- 引入 Toast 组件 -->
     {% include 'components/toast.html' %}
 
+    <!-- ================= 登录卡片（已适配登录/退出状态） ================= -->
     <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
-            <form id="authForm" onsubmit="return false;" novalidate class="login-card">
-                <div class="flex flex-col gap-1">
-                    <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
-                    <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
-                </div>
-                <div class="flex gap-2 w-full anim-item" id="email-wrapper">
-                    <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
-                    <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
-                </div>
-                <div class="anim-item" id="code-wrapper">
-                    <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                </div>
-                <div class="anim-item" id="password-wrapper">
-                    <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                </div>
-                <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium">注册/登录</button>
-            </form>
+            <div class="login-card">
+                
+                <!-- ✅ 已登录状态：显示用户名 + 退出按钮 -->
+                {% if current_user.is_authenticated %}
+                    <div class="flex flex-col items-center gap-4 w-full py-4">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
+                            {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
+                        </div>
+                        <div class="text-center">
+                            <p class="text-white font-medium text-lg">欢迎回来</p>
+                            <p class="text-gray-400 text-sm">
+                                {% if current_user.email %}
+                                    {{ current_user.email }}
+                                {% elif current_user.telegram_id %}
+                                    {{ current_user.telegram_id }}
+                                {% else %}
+                                    用户
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
+                    </div>
+
+                <!-- ✅ 未登录状态：原有的登录/注册表单 -->
+                {% else %}
+                    <form id="authForm" onsubmit="return false;" novalidate>
+                        <div class="flex flex-col gap-1">
+                            <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                            <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                        </div>
+                        <div class="flex gap-2 w-full anim-item" id="email-wrapper">
+                            <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                            <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                        </div>
+                        <div class="anim-item" id="code-wrapper">
+                            <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                        </div>
+                        <div class="anim-item" id="password-wrapper">
+                            <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
+                        </div>
+                        <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
+                    </form>
+                {% endif %}
+
+            </div>
         </div>
     </div>
 
@@ -211,7 +240,6 @@
             element.classList.add('shake-field');
         }
 
-        /* ================= 音乐播放器 ================= */
         const bgAudio = document.getElementById('bg-audio');
         const musicModal = document.getElementById('musicModal');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -250,7 +278,6 @@
         document.getElementById('music-next-btn').addEventListener('click', () => { if (bgAudio) bgAudio.currentTime += 15; });
         playPauseBtn.addEventListener('click', togglePlayPause);
 
-        /* ★★★ 核心修复：直接在全局定义 showToast ★★★ */
         window.showToast = function(id, isError = false) {
             const msgMap = {
                 '1': '请输入电报ID',
@@ -381,4 +408,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
