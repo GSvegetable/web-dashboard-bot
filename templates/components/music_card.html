@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：纯白几何图形（圆形播放，圆角正方形暂停） -->
+<!-- 音乐卡片组件：纯白几何图形（强制纯白色，尺寸放大一点） -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -17,7 +17,7 @@
                     <div class="music-artist-name">纯音乐</div>
                 </div>
 
-                <!-- ★★★ 极简纯白播放/暂停按钮 ★★★ -->
+                <!-- ★★★ 纯白极简播放/暂停按钮（已放大并强制去除黑底） ★★★ -->
                 <button id="play-pause-btn" class="play-pause-btn">
                     <!-- 播放状态：纯白色的正圆形 -->
                     <div class="shape-play"></div>
@@ -49,32 +49,33 @@
 .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-artist-name { font-size: 0.85rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-/* ★★★ 绝对纯白的按钮，无杂质 ★★★ */
+/* ★★★ 绝对纯白的按钮（强制覆盖黑色背景） ★★★ */
 .play-pause-btn {
     appearance: none; -webkit-appearance: none;
-    background: transparent !important; border: none !important; box-shadow: none !important;
-    outline: none !important; width: 32px; height: 32px;
+    background-color: transparent !important; background: transparent !important;
+    border: none !important; box-shadow: none !important; outline: none !important;
+    width: 36px; height: 36px; /* ✨ 稍微放大了一点 ✨ */
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; padding: 0;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     -webkit-tap-highlight-color: transparent;
-    margin-right: 4px; /* 让按钮距离卡片右边缘有一点呼吸感 */
+    margin-right: 4px;
 }
 .play-pause-btn:active { transform: scale(0.9); }
 
 /* 播放状态：纯白色正圆形 */
 .shape-play {
-    background: #ffffff;
-    border-radius: 50%; /* 绝对正圆 */
-    width: 28px; height: 28px;
+    background-color: #ffffff !important; /* 强制纯白 */
+    border-radius: 50%;
+    width: 32px; height: 32px; /* ✨ 稍微放大了一点 ✨ */
     display: block;
 }
 
 /* 暂停状态：边缘圆润的纯白色正方形 */
 .shape-pause {
-    background: #ffffff;
-    border-radius: 6px; /* 稍微圆滑的正方形 */
-    width: 28px; height: 28px;
+    background-color: #ffffff !important; /* 强制纯白 */
+    border-radius: 6px;
+    width: 32px; height: 32px; /* ✨ 稍微放大了一点 ✨ */
     display: none;
 }
 
