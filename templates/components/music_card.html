@@ -1,4 +1,4 @@
-<!-- 音乐卡片组件：纯粹的几何图形（圆形播放，圆角正方形暂停） -->
+<!-- 音乐卡片组件：纯白几何图形（圆形播放，圆角正方形暂停） -->
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
         <div class="music-card-glass">
@@ -8,7 +8,7 @@
             <!-- 音频播放器 -->
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
-            <!-- 内容区：使用 flex space-between 保证按钮紧紧贴住右侧 -->
+            <!-- 内容区 -->
             <div class="music-track-info">
                 <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>
                 
@@ -17,7 +17,7 @@
                     <div class="music-artist-name">纯音乐</div>
                 </div>
 
-                <!-- ★★★ 极简播放/暂停按钮 ★★★ -->
+                <!-- ★★★ 极简纯白播放/暂停按钮 ★★★ -->
                 <button id="play-pause-btn" class="play-pause-btn">
                     <!-- 播放状态：纯白色的正圆形 -->
                     <div class="shape-play"></div>
@@ -42,14 +42,14 @@
 </div>
 
 <style>
-/* 外层容器布局 */
+/* 外层布局 */
 .music-track-info { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; }
 .track-details { flex: 1; min-width: 0; overflow: hidden; }
 .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-artist-name { font-size: 0.85rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-/* ★★★ 极其干净、没有任何杂物的按钮 ★★★ */
+/* ★★★ 绝对纯白的按钮，无杂质 ★★★ */
 .play-pause-btn {
     appearance: none; -webkit-appearance: none;
     background: transparent !important; border: none !important; box-shadow: none !important;
