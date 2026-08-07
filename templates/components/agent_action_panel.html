@@ -26,6 +26,13 @@
   .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
   .suggest-switch-box button:active { transform: scale(0.95); }
   
+  /* 新增确认按钮样式 */
+  .confirm-box { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 16px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; max-width: 90%; }
+  .confirm-box .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+  .confirm-box .btn-group button { background: #493F36; color: white; border: none; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
+  .confirm-box .btn-group button:active { transform: scale(0.95); }
+  .confirm-box .btn-group .btn-cancel { background: rgba(255,255,255,0.1); }
+  
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
@@ -71,36 +78,22 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ✅ 改进：如果已经在代理人模式，点击按钮直接重发，不再重新切换
     window.suggestSwitchToAgent = function(originalMessage) {
         if (currentMode === 'discussion') {
-            radio2.checked = true;
-            switchMode('agent');
+            radio2.checked = true; switchMode('agent');
             const checkSwitchDone = setInterval(() => {
-                if (currentMode === 'agent') {
-                    clearInterval(checkSwitchDone);
-                    agentInput.value = originalMessage;
-                    sendMessageInternal();
-                }
+                if (currentMode === 'agent') { clearInterval(checkSwitchDone); agentInput.value = originalMessage; sendMessageInternal(); }
             }, 200);
         } else if (currentMode === 'agent') {
-            // 如果已经是代理人模式，直接重试
-            agentInput.value = originalMessage;
-            sendMessageInternal();
+            agentInput.value = originalMessage; sendMessageInternal();
         }
     };
 
-    // 页面关闭函数
     window.closeMusicModal = function() {
-        const modal = document.getElementById('musicModal');
-        if (modal) modal.classList.remove('active');
-        const audio = document.getElementById('bg-audio');
-        if (audio) { audio.pause(); audio.currentTime = 0; }
+        const modal = document.getElementById('musicModal'); if (modal) modal.classList.remove('active');
+        const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; }
     };
-    window.closeUpdateLogModal = function() {
-        const modal = document.getElementById('updateLogModal');
-        if (modal) modal.classList.remove('active');
-    };
+    window.closeUpdateLogModal = function() { const modal = document.getElementById('updateLogModal'); if (modal) modal.classList.remove('active'); };
     window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
@@ -128,12 +121,11 @@ document.addEventListener("DOMContentLoaded", function() {
             const item = actions[i];
             performSingleAction(item);
             const waitTime = item.delay || 0;
-            if (waitTime > 0) {
-                await new Promise(r => setTimeout(r, waitTime));
-            }
+            if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
     }
 
+    // ✅ 核心发送函数
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -154,20 +146,92 @@ document.addEventListener("DOMContentLoaded", function() {
             targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         }
 
-        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
+        // 预先准备好请求体
+        let payload = { message: text, mode: currentMode };
+
+        // ✅ 节省流：检测方位关键词才触发截图
+        const visionKeywords = ['右上角', '左上角', '左下角', '右下角', '按钮', '图标', '那个', '位置', '哪个卡片', '在哪里'];
+        const needsVision = isAgent && visionKeywords.some(kw => text.includes(kw));
+
+        if (needsVision && typeof html2canvas !== 'undefined') {
+            // 截图并添加到负载
+            html2canvas(document.querySelector('#contentArea'), { scale: 0.4, useCORS: true, logging: false })
+            .then(canvas => {
+                // 压缩为JPEG，宽限制在400像素
+                const img = new Image();
+                img.src = canvas.toDataURL('image/jpeg', 0.6);
+                img.onload = function() {
+                    const maxWidth = 400;
+                    const ratio = Math.min(maxWidth / img.width, 1);
+                    const canvas2 = document.createElement('canvas');
+                    canvas2.width = img.width * ratio;
+                    canvas2.height = img.height * ratio;
+                    const ctx = canvas2.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
+                    payload.image = canvas2.toDataURL('image/jpeg', 0.6);
+                    performFetch(payload, targetList, history, loadingMsg);
+                };
+                img.onerror = function() { performFetch(payload, targetList, history, loadingMsg); };
+            })
+            .catch(() => { performFetch(payload, targetList, history, loadingMsg); });
+        } else {
+            performFetch(payload, targetList, history, loadingMsg);
+        }
+    }
+
+    // 分离 fetch 逻辑
+    function performFetch(payload, targetList, history, loadingMsg) {
+        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(res => res.json()).then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // ✅ 智能切换按钮逻辑
+            // 引导切换
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
-                suggestBox.innerHTML = `看起来你这条指令不够清晰。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">点击尝试重新发给我</button>`;
+                suggestBox.innerHTML = `看起来你这条指令不够清晰。<br><button onclick="window.suggestSwitchToAgent('${data.reply || payload.message}')">点击尝试重新发给我</button>`;
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '指令模糊，点击按钮重试' }); 
                 isProcessing = false;
                 return;
             }
 
-            // 处理动作
+            // ✅ 新增：确认指令（方案二）
+            if (data.action === 'ask_confirmation') {
+                const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
+                const confirmAction = data.confirm_action || '';
+                confirmBox.innerHTML = `
+                    <div>${data.reply || '未提供解释。'}</div>
+                    <div class="btn-group">
+                        <button class="btn-confirm" data-action="${confirmAction}">确认执行</button>
+                        <button class="btn-cancel">取消</button>
+                    </div>
+                `;
+                targetList.appendChild(confirmBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '等待确认...' });
+                
+                // 确认按钮事件
+                confirmBox.querySelector('.btn-confirm').addEventListener('click', function() {
+                    const action = this.getAttribute('data-action');
+                    if (action && action !== '') {
+                        // 直接执行动作
+                        performSingleAction({action: action});
+                        const replyMsg = document.createElement('div'); replyMsg.className = 'ai-text-msg'; replyMsg.textContent = '已确认执行。';
+                        targetList.appendChild(replyMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已确认执行。' });
+                    }
+                    // 隐藏按钮
+                    confirmBox.style.display = 'none';
+                });
+                
+                // 取消按钮事件
+                confirmBox.querySelector('.btn-cancel').addEventListener('click', function() {
+                    confirmBox.style.display = 'none';
+                    const msg = document.createElement('div'); msg.className = 'ai-text-msg'; msg.textContent = '已取消操作。';
+                    targetList.appendChild(msg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已取消操作。' });
+                });
+
+                isProcessing = false;
+                return;
+            }
+
+            // 单步动作
             if (isAgent && data.action) {
                 performSingleAction(data);
                 const replyText = data.reply || '已执行。';
@@ -182,15 +246,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 const replyText = data.reply || '已开始执行序列。';
                 const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
                 targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
-                
-                setTimeout(() => {
-                    executeSequence(data.action_sequence);
-                }, 300);
+                setTimeout(() => { executeSequence(data.action_sequence); }, 300);
                 isProcessing = false;
                 return;
             }
 
-            // 纯文本回复（闲聊）
+            // 纯文本
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
@@ -201,8 +262,9 @@ document.addEventListener("DOMContentLoaded", function() {
             isProcessing = false;
         });
     }
+
     agentSendBtn.addEventListener('click', sendMessageInternal);
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-       </script>
+</script>
