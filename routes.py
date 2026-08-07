@@ -22,8 +22,10 @@ from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
+# 读入三个模型的 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY')
+KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 
 @main_bp.route('/')
 def splash():
@@ -63,7 +65,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 接口（支持智谱和豆包） -------------------
+# ------------------- 核心 AI 接口（支持智谱/豆包/Kimi） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -93,21 +95,27 @@ def agent_chat():
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
             payload["model"] = "glm-4-flash"
 
-        # 模型 B：豆包 / 火山引擎 (Doubao-Lite)
+        # 模型 B：豆包 (Doubao-Lite / 必须传 ep-xxx 接入点)
         elif model_type == 'doubao':
             if not DOUBAO_API_KEY:
                 return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
             url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
-            
-            # ⚠️ 【重要修复说明】：
-            # 火山引擎豆包不使用模型名称（如 doubao-lite-32k），而是使用你在控制台创建的“接入点 ID (Endpoint ID)”！
-            # 请去火山引擎控制台 -> 模型广场 -> 接入点，复制你的接入点 ID（格式通常是 ep-xxxxxxxxxxxx），并替换掉下面这行字符串。
-            payload["model"] = "ep-xxxxxxxxxxxx"  # 👈 请把这里换成你的 ep- 接入点 ID！
+            # 👇 请务必替换成你自己的火山引擎接入点 ID (ep-开头)
+            payload["model"] = "ep-xxxxxxxxxxxx" 
+
+        # 模型 C：Kimi (Moonshot AI)
+        elif model_type == 'kimi':
+            if not KIMI_API_KEY:
+                return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
+            url = "https://api.moonshot.cn/v1/chat/completions"
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
+            payload["model"] = "moonshot-v1-8k"
         
         else:
             return jsonify({'reply': '未选择有效的模型。'})
 
+        # 发起请求
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if resp.status_code == 200:
@@ -135,7 +143,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# 其他路由保持不变...
+# 以下路由保持不变（扫码、注册、登录、Webhook 等）
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
