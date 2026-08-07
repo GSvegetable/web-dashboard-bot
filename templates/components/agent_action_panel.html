@@ -21,7 +21,6 @@
   .chat-list.hidden { display: none; }
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
-  
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
   .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
   .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
@@ -29,45 +28,44 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- 高科技状态日志 UI --- */
-  .status-log-line {
+  /* --- Mac 风格任务卡片 --- */
+  .mac-card-wrapper {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 2px;
-    padding: 2px 0;
-  }
-  .status-indicator {
-    display: inline-flex;
-    align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
+    width: 100%;
+    padding: 4px 0;
   }
-  .spin-loader {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  .mac-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 16px 20px 20px 20px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background-color: #000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    align-self: center;
+    margin: 6px 0;
   }
-  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  .status-done {
-    color: #22c55e; /* 绿色 */
-    font-size: 14px;
-    font-weight: 600;
+  .mac-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .mac-header span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+  .mac-header .red { background-color: #ff5f57; }
+  .mac-header .yellow { background-color: #ffbd2e; }
+  .mac-header .green { background-color: #28c941; }
+  .mac-card-title { font-size: 18px; font-weight: bold; margin: 0 0 4px; color: #e6e6ef; }
+  .mac-card-subtitle { font-size: 13px; color: #888; margin-bottom: 12px; }
+  .mac-code-editor {
+    background-color: #0d1117; color: #b0b0b0;
+    font-family: monospace; font-size: 13px; line-height: 1.6;
+    border-radius: 6px; padding: 14px;
+    height: 160px; overflow-y: auto;
+    border: 1px solid #333;
   }
-  .log-text {
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 0.85rem;
-    letter-spacing: 0.2px;
-    transition: color 0.2s;
-  }
-  .log-text.active {
-    color: #ffffff;
-  }
+  .mac-code-editor::-webkit-scrollbar { width: 6px; }
+  .mac-code-editor::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+  .mac-code-line { display: block; white-space: pre-wrap; }
+  .mac-code-success { color: #5bed7a; }
+  .mac-code-warn { color: #ffd700; }
+  .mac-code-info { color: #71a4f0; }
 </style>
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
@@ -162,72 +160,104 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // ✨ 新增：代理人专属状态日志（无表情，严谨流程）
+    // ✅ 全新：Mac 风格执行任务卡片（居中展示，无动画）
     // ==========================================
-    async function displayActionSteps(actions) {
+    function renderMacProcessCard(actions) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
 
-        // 状态文本清单
-        const logTexts = [
-            '·正在封装协议载荷，准备提交至Agent执行单元',
-            '·负载序列化完成，正向路由端点发起API请求',
-            '·路由匹配成功，正在调度动作解析器',
-            '·唤醒业务组件，尝试打开音乐',
-            '·正在检查当前音频播放器状态',
-            '·音频流已正常建立，音乐卡片已弹出',
-            '·执行完毕'
-        ];
-
-        const logElements = [];
-
-        // 1. 批量插入带加载动画的行
-        logTexts.forEach((text, index) => {
-            const line = document.createElement('div');
-            line.className = 'status-log-line';
-            line.innerHTML = `
-                <span class="status-indicator">
-                    <span class="spin-loader"></span>
-                </span>
-                <span class="log-text">${text}</span>
-            `;
-            targetList.appendChild(line);
-            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            logElements.push(line);
-        });
-
-        // 2. 逐行动画推进（每步 320ms）
-        for (let i = 0; i < logElements.length; i++) {
-            const line = logElements[i];
-            const loader = line.querySelector('.spin-loader');
-            const textEl = line.querySelector('.log-text');
-
-            // 等待片刻
-            await new Promise(r => setTimeout(r, 320));
-
-            // 隐藏加载圈，显示 ✓ 符号
-            if (loader) {
-                loader.style.display = 'none';
+        // 任务字典：根据动作呈现不同的标题、副标题和执行日志
+        const taskMetadata = {
+            'open_music': {
+                title: '音频调度任务',
+                subtitle: '媒体娱乐组件',
+                steps: [
+                    '[Dispatch] Received command: "open_music"',
+                    '[System] Resolving service: "AudioController"',
+                    '[Action] Invoking: openMusicModal()',
+                    '[Status] UI module loaded successfully.',
+                    '<span class="mac-code-success">[Success] Audio context initialized and ready.</span>'
+                ]
+            },
+            'open_log': {
+                title: '日志查阅任务',
+                subtitle: '历史记录检索',
+                steps: [
+                    '[Dispatch] Received command: "open_log"',
+                    '[System] Resolving service: "UpdateLogHandler"',
+                    '[Action] Invoking: openUpdateLogModal()',
+                    '[Status] Fetching latest change log data...',
+                    '<span class="mac-code-success">[Success] Log data retrieved and displayed.</span>'
+                ]
+            },
+            'fullscreen': {
+                title: '显示管理任务',
+                subtitle: '全屏切换指令',
+                steps: [
+                    '[Dispatch] Received command: "fullscreen"',
+                    '[System] Resolving service: "ScreenManager"',
+                    '[Action] Invoking: toggleFullScreen()',
+                    '[Status] Checking browser API support...',
+                    '<span class="mac-code-success">[Success] Fullscreen mode toggled.</span>'
+                ]
+            },
+            'open_contact': {
+                title: '关系链路任务',
+                subtitle: '工单提交通道',
+                steps: [
+                    '[Dispatch] Received command: "open_contact"',
+                    '[System] Resolving service: "ContactService"',
+                    '[Action] Invoking: openContactModal()',
+                    '[Status] Loading contact methods...',
+                    '<span class="mac-code-success">[Success] Contact interface activated.</span>'
+                ]
+            },
+            'open_developer': {
+                title: '开发者任务',
+                subtitle: '权限订阅面板',
+                steps: [
+                    '[Dispatch] Received command: "open_developer"',
+                    '[System] Resolving service: "SubscriptionManager"',
+                    '[Action] Invoking: openBecomeFanModal()',
+                    '[Status] Fetching pricing plans...',
+                    '<span class="mac-code-success">[Success] Subscription panel displayed.</span>'
+                ]
             }
-            // 使用纯文本 ✓ 代替旋转圈，非表情包
-            const checkMark = document.createElement('span');
-            checkMark.className = 'status-done';
-            checkMark.textContent = '✓';
-            line.querySelector('.status-indicator').appendChild(checkMark);
+        };
 
-            // 文字高亮变白
-            if (textEl) {
-                textEl.classList.add('active');
-            }
+        // 如果是多步任务（比如多个动作的数组，但这里需要合并展示）
+        // 为了好看，我们只取第一个动作的元数据作为本次任务的标题
+        const primaryAction = actions[0] ? actions[0].action : 'open_music';
+        const meta = taskMetadata[primaryAction] || taskMetadata['open_music'];
 
-            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-        }
+        // 构建 DOM
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mac-card-wrapper';
+        
+        const cardHTML = `
+            <div class="mac-card">
+                <div class="mac-header">
+                    <span class="red"></span><span class="yellow"></span><span class="green"></span>
+                </div>
+                <div class="mac-card-title">${meta.title}</div>
+                <div class="mac-card-subtitle">${meta.subtitle}</div>
+                <div class="mac-code-editor">
+                    ${meta.steps.map(line => `<span class="mac-code-line">${line}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        wrapper.innerHTML = cardHTML;
 
-        // 3. 日志播放完后，执行真正的后台调用
+        // 插入聊天记录
+        targetList.appendChild(wrapper);
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        history.push({ type: 'ai', text: '[任务报告] 已生成执行详情' });
+
+        // 触发真正的网页操作（隐藏执行）
         setTimeout(() => {
             executeSequence(actions);
-        }, 200);
+        }, 300);
     }
 
     function sendMessageInternal() {
@@ -238,7 +268,6 @@ document.addEventListener("DOMContentLoaded", function() {
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'user', text: text });
         agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
         
-        // 只有代理人模式才显示 Thinking...
         if (isAgent) {
             const loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
             targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
@@ -246,8 +275,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
         .then(res => res.json()).then(data => {
-            const loading = document.getElementById('loading-bubble');
-            if (loading) loading.remove();
+            const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
             
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
@@ -255,13 +283,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // ✅ 代理人专享：执行状态日志显示
+            // ✅ 代理人专享：展示 Mac 风格任务卡片
             if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                displayActionSteps(data.action_sequence);
+                renderMacProcessCard(data.action_sequence);
                 return;
             }
 
-            // 普通AI回复（讨论模式兜底）
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
         }).catch(() => {
