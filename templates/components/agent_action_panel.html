@@ -1,17 +1,114 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition {
-    /* 平滑缓出曲线，到位置就停，无回弹 */
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* --- 适配暗色毛玻璃的 Tabs 组件 --- */
+  .agent-tabs-wrapper .tabs {
+    display: flex;
+    position: relative;
+    /* 背景改为半透明白，融入玻璃质感 */
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    padding: 0.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .agent-tabs-wrapper .tabs * {
+    z-index: 2;
+  }
+
+  .agent-tabs-wrapper input[type="radio"] {
+    display: none;
+  }
+
+  .agent-tabs-wrapper .tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    width: 70px;
+    font-size: 0.8rem;
+    /* 未选中文字为半透明白色 */
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: color 0.15s ease-in;
+  }
+
+  .agent-tabs-wrapper .notification {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 0.8rem;
+    position: absolute;
+    top: -0.3rem;
+    left: auto;
+    font-size: 9px;
+    margin-left: 5rem;
+    border-radius: 8px;
+    margin: 0px;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: 0.15s ease-in;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .agent-tabs-wrapper input[type="radio"]:checked + label {
+    color: #ffffff;
+  }
+
+  .agent-tabs-wrapper input[type="radio"]:checked + label > .notification {
+    background-color: #3b82f6;
+    color: #ffffff;
+    margin: 0px;
+  }
+
+  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider {
+    transform: translateX(0);
+  }
+
+  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider {
+    transform: translateX(100%);
+  }
+
+  .agent-tabs-wrapper .glider {
+    position: absolute;
+    display: flex;
+    height: 30px;
+    width: 70px;
+    /* 滑条为纯白半透明，极简 */
+    background-color: rgba(255, 255, 255, 0.15);
+    z-index: 1;
+    border-radius: 8px;
+    transition: 0.15s ease-out;
   }
 </style>
 
 <!-- z-index 只设到 50，不遮挡常规页面点击 -->
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
-    <!-- ✅ 高度：660px (11倍)，删除了文字 -->
     <div id="agentPanel" 
-         class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full"
+         class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative"
          style="height: 660px; width: 100%;">
+         
+        <!-- ✅ 将 Uiverse 的切换器放在了面板的左上角 -->
+        <div class="agent-tabs-wrapper absolute top-4 left-4">
+            <div class="container">
+              <div class="tabs">
+                <input checked="" name="tabs" id="radio-1" type="radio" />
+                <label for="radio-1" class="tab">基础</label>
+
+                <input name="tabs" id="radio-2" type="radio" />
+                <label for="radio-2" class="tab">专业<span class="notification">省 28%</span></label>
+
+                <span class="glider"></span>
+              </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -26,22 +123,18 @@ document.addEventListener("DOMContentLoaded", function() {
         isPanelOpen = !isPanelOpen;
         
         if (isPanelOpen) {
-            // 1. 对齐三张卡片展开后的总宽度
             const container = document.getElementById('cardStackContainer');
             if (container) {
                 const rect = container.getBoundingClientRect();
-                // ✅ 修改：宽度在原有总宽度的基础上，额外增加 1/3 (即乘以 4/3)
                 panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
                 panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
                 panelWrapper.style.transform = 'translateX(-50%)';
                 panelWrapper.style.display = 'block';
             }
-            // 2. 面板从底部滑入
             setTimeout(() => {
                 panel.classList.remove('translate-y-full');
             }, 10);
         } else {
-            // 3. 面板滑回底部
             panel.classList.add('translate-y-full');
             setTimeout(() => {
                 panelWrapper.style.display = 'none';
