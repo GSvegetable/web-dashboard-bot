@@ -49,25 +49,25 @@
                 {% endif %}
             </div>
 
-            <!-- ---------------- 模式2：扫码登录区域（新布局） ---------------- -->
+            <!-- ---------------- 模式2：扫码登录区域 ---------------- -->
             <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
                 
-                <!-- ✅ 左上角：返回 -->
+                <!-- ✅ 左上角：返回（去掉了箭头） -->
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
-                    ← 返回
+                    返回
                 </button>
                 
-                <!-- ✅ 右上角：新增保存按钮 -->
+                <!-- 右上角：保存 -->
                 <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
                     保存
                 </button>
                 
-                <!-- ✅ 二维码图片区域（圆角更润） -->
+                <!-- 二维码图片区域 -->
                 <div id="qrCodeImageContainer" class="w-[160px] h-[160px] bg-white/10 rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
-                <!-- ✅ 底部提示文字修改 -->
+                <!-- 底部提示文字 -->
                 <p class="text-gray-400 text-xs mt-1 text-center leading-relaxed" id="qrStatusText">
                     请扫描二维码<br>或将二维码直接发送给宫水机器人
                 </p>
@@ -155,8 +155,9 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
-                // 圆角用 rounded-3xl 处理
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain bg-white rounded-3xl">`;
+                
+                // ✅ 修改2：二维码缩小为85%，居中显示，四角不会超出外面的圆润边缘
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[85%] h-[85%] object-contain bg-white rounded-2xl mx-auto block">`;
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -167,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ✅ 修改3、4：轮询状态文字调整
+    // 轮询状态
     function startQrPolling(token) {
         stopQrPolling();
         let attempts = 0;
@@ -201,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // ✅ 新增：保存二维码到相册功能
+    // 保存二维码功能
     saveQrBtn.addEventListener('click', function() {
         const img = document.querySelector('#qrCodeImageContainer img');
         if (!img) {
@@ -226,4 +227,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-                </script>
+</script>
