@@ -63,7 +63,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- AI 对话接口（支持多步指令） -------------------
+# ------------------- 极简 AI 对话接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -92,17 +92,18 @@ def agent_chat():
             result = resp.json()
             reply = result['choices'][0]['message']['content']
             
+            # ✅ 增强解析逻辑：强行剥离 Markdown 代码块
+            stripped_reply = reply
+            if '```json' in stripped_reply:
+                stripped_reply = stripped_reply.replace('```json', '').replace('```', '').strip()
+            
             try:
-                cmd = json.loads(reply)
-                # 1. 返回包含多步 actions 的新格式
-                if 'actions' in cmd and isinstance(cmd['actions'], list):
+                cmd = json.loads(stripped_reply)
+                if 'action' in cmd and 'reply' in cmd:
                     return jsonify(cmd)
-                # 2. 兼容旧版单步格式（直接包装成新版数组返回）
-                if 'action' in cmd:
-                    return jsonify({"reply": cmd.get('reply', '指令已执行'), "actions": [cmd]})
-                return jsonify({'reply': reply})
+                return jsonify({'reply': stripped_reply})
             except:
-                return jsonify({'reply': reply})
+                return jsonify({'reply': stripped_reply})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
     except Exception as e:
