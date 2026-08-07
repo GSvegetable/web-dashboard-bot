@@ -45,13 +45,13 @@
     transition: 0.15s ease-out; border: 1px solid transparent;
   }
 
-  /* --- 极深灰色气泡（接近黑色但更柔和） --- */
+  /* --- 极深灰色气泡 --- */
   #agentMessageArea {
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* 顶部渐隐遮罩，让气泡滑到顶时朦胧消失 */
-    mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+    /* ✅ 修改：调整顶部渐隐过渡百分比，让模糊线往上移约 10 像素（从 15% 减至 10%） */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
   }
   #agentMessageArea::-webkit-scrollbar { display: none; }
 
@@ -103,12 +103,12 @@
             </div>
         </div>
 
-        <!-- ✅ 修改：消息区域 top 从 70px 改为 100px，第一条消息往下移 -->
-        <div id="agentMessageArea" class="absolute top-[100px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
+        <!-- ✅ 修改：消息区域 top 改回 70px，第一条消息靠上、不再下移 -->
+        <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
             <!-- 气泡动态生成区 -->
         </div>
 
-        <!-- ✅ 修改：输入框改用黑色半透 + 背景模糊，悬浮穿透依然保留 -->
+        <!-- 悬空输入框（带黑色半透+毛玻璃模糊） -->
         <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
             <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
             <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-1">
@@ -192,4 +192,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
-          </script>
+              </script>
