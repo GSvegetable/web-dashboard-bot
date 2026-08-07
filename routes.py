@@ -63,7 +63,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 对话接口（真正的工具调用） -------------------
+# ------------------- 极简 AI 对话接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -79,124 +79,37 @@ def agent_chat():
         url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-
-        # 定义给 AI 使用的工具箱（Tool Calls）
-        tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "open_music",
-                    "description": "打开音乐卡片（或播放音乐）"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "close_music",
-                    "description": "关闭音乐卡片（或停止播放）"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "open_log",
-                    "description": "打开更新日志卡片"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "close_log",
-                    "description": "关闭更新日志卡片"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "fullscreen",
-                    "description": "切换全屏显示模式"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "open_contact",
-                    "description": "打开联系我们卡片"
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "music_control",
-                    "description": "高级音乐控制，包含播放、停止、暂停，以及带延迟的播放",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "sub_action": {
-                                "type": "string",
-                                "enum": ["play", "stop", "pause"],
-                                "description": "对音乐进行的操作"
-                            },
-                            "delay": {
-                                "type": "integer",
-                                "description": "执行前的延迟时间（单位：毫秒，例如 10000 代表 10 秒）"
-                            }
-                        },
-                        "required": ["sub_action"]
-                    }
-                }
-            }
-        ]
-
         payload = {
             "model": "glm-4-flash",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            "tools": tools,
-            "tool_choice": "auto",
             "temperature": 0.3
         }
-
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200:
             result = resp.json()
-            message = result['choices'][0]['message']
-
-            # 【关键逻辑】：如果 AI 决定调用工具箱
-            if message.get('tool_calls'):
-                actions = []
-                for tool_call in message['tool_calls']:
-                    func_name = tool_call['function']['name']
-                    args = json.loads(tool_call['function']['arguments'])
-                    
-                    action_obj = {"action": func_name}
-                    # 如果是高级音乐控制
-                    if func_name == 'music_control':
-                        action_obj['action'] = 'music'
-                        action_obj['sub_action'] = args.get('sub_action')
-                        if args.get('delay'):
-                            action_obj['delay'] = args['delay']
-                    
-                    actions.append(action_obj)
-
-                # 返回给前端的动作序列
-                return jsonify({'action_sequence': actions})
-
-            # 如果是纯闲聊（返回正常文本）
-            elif message.get('content'):
-                reply = message['content']
+            reply = result['choices'][0]['message']['content']
+            
+            try:
+                # 尝试解析为 JSON
+                cmd = json.loads(reply)
+                # 只要包含 action 和 reply，就原样返回
+                if 'action' in cmd and 'reply' in cmd:
+                    return jsonify(cmd)
                 return jsonify({'reply': reply})
-            else:
-                return jsonify({'reply': 'AI 未返回有效指令。'})
+            except:
+                # 如果解析失败，当成普通文字返回
+                return jsonify({'reply': reply})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
     except Exception as e:
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# ------------------- 路由保持完全不变 -------------------
+
+# ------------------- 其他路由保持不变 -------------------
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
@@ -321,3 +234,8 @@ def setup_webhook():
         return jsonify(resp.json())
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=8080)
