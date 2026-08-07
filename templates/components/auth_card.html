@@ -52,22 +52,14 @@
             <!-- ---------------- 模式2：扫码登录区域 ---------------- -->
             <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
                 
-                <!-- 左上角：返回 -->
-                <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
-                    返回
-                </button>
+                <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
+                <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">保存</button>
                 
-                <!-- 右上角：保存 -->
-                <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
-                    保存
-                </button>
-                
-                <!-- ✅ 修改1：外框缩小到 240px，背景改为纯白色 (bg-white) -->
-                <div id="qrCodeImageContainer" class="w-[240px] h-[240px] bg-white rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
+                <!-- ✅ 修改：彻底移除任何 bg- 颜色底框，尺寸缩减到 220px -->
+                <div id="qrCodeImageContainer" class="w-[220px] h-[220px] flex items-center justify-center mt-6 mb-2 transition-all">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
-                <!-- 底部提示文字 -->
                 <p class="text-gray-400 text-xs mt-1 text-center leading-relaxed" id="qrStatusText">
                     请扫描二维码<br>或将二维码直接发送给宫水机器人
                 </p>
@@ -153,8 +145,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
                 
-                // ✅ 修改2：容器 bg 变成白色，所以图片不用加 bg-white；保持 75% 尺寸和 p-2 内边距
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[75%] h-[75%] object-contain rounded-2xl mx-auto block p-2">`;
+                // ✅ 修改：直接铺满 220px 透明框（无内边距，无底色，纯净的二维码自带白底悬浮）
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain rounded-2xl block">`;
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -222,4 +214,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-                </script>
+        </script>
