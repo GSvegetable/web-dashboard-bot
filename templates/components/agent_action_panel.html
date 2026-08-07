@@ -1,0 +1,69 @@
+<!-- Agent 底部弹出黑色面板组件 -->
+<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[99999] hidden" style="width: 0;">
+    <!-- 顶部的黑色长条，两个角圆润 -->
+    <div id="agentPanel" 
+         class="bg-black rounded-t-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.8)] transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-full border-t border-white/10"
+         style="height: 50px; width: 100%;">
+        <!-- 里面目前是空的，如果需要放内容可以加在这里 -->
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const panelWrapper = document.getElementById('agentPanelWrapper');
+    const panel = document.getElementById('agentPanel');
+    let isPanelOpen = false;
+
+    // 核心：展开面板的触发方法（绑定到 Agent 按钮）
+    window.toggleAgentPanel = function() {
+        // 如果卡片处于展开状态，可以在这里调用 collapseCards() 合并它们
+        
+        isPanelOpen = !isPanelOpen;
+        if (isPanelOpen) {
+            // 1. 先测量展开后的三个卡片有多宽
+            const cardItems = document.querySelectorAll('#cardStackContainer .card-item');
+            if (cardItems.length === 3) {
+                let totalWidth = 0;
+                cardItems.forEach(item => {
+                    // 取每个卡片自身的宽度（包括它们平移到左右的距离）
+                    const rect = item.getBoundingClientRect();
+                    // 由于它们重叠，需要取最左边卡的左边界和最右边卡的右边界
+                });
+                
+                // 更稳妥的方式：直接测量卡片容器 #cardStackContainer 的可视宽度
+                const container = document.getElementById('cardStackContainer');
+                if (container) {
+                    const containerRect = container.getBoundingClientRect();
+                    panelWrapper.style.width = containerRect.width + 'px';
+                    panelWrapper.style.display = 'block';
+                    // 手动修正因为 translateX 导致的位置偏差
+                    panelWrapper.style.left = containerRect.left + (containerRect.width / 2) + 'px';
+                    panelWrapper.style.transform = 'translateX(-50%)';
+                }
+            }
+
+            // 2. 面板从底部滑上来
+            setTimeout(() => {
+                panel.classList.remove('translate-y-full');
+            }, 10);
+        } else {
+            // 3. 缩回去
+            panel.classList.add('translate-y-full');
+            setTimeout(() => {
+                panelWrapper.style.display = 'none';
+            }, 300);
+        }
+    };
+
+    // 点击背景空白处（白色毛玻璃背景）关闭面板
+    const modalOverlay = document.getElementById('becomeFanModal');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay && isPanelOpen) {
+                // 触发关闭
+                document.querySelector('.top-actions button[onclick*="toggleAgentPanel"]')?.click();
+            }
+        });
+    }
+});
+                  </script>
