@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function() {
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
 
-    // 核心执行引擎：单步执行
+    // 核心执行引擎：单步执行（已增加关闭卡片的映射）
     function performSingleAction(actionObj) {
         const action = actionObj.action;
         if (action === 'open_music') window.openMusicModal();
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (action === 'music') {
             const sub = actionObj.sub_action;
             if (sub === 'play') window.playAudio();
-            else if (sub === 'pause' || sub === 'stop') window.pauseAudio(); // 现在stop和pause同义，如果stop需要重置时间可以在下面单独写
+            else if (sub === 'pause' || sub === 'stop') window.pauseAudio();
             else if (sub === 'stop') window.stopAudio();
         }
     }
@@ -131,19 +131,16 @@ document.addEventListener("DOMContentLoaded", function() {
         fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
         .then(res => res.json()).then(data => {
             const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
+            
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你想执行一个指令任务。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">切换到代理人执行</button>`;
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // ✅ 核心：如果有动作序列返回
+            // 核心：如果有动作序列返回，由前端引擎执行
             if (data.action_sequence && Array.isArray(data.action_sequence)) {
-                // 可以加一个 log 气泡告诉用户开始执行（可选）
-                // 直接调用执行引擎
                 executeSequence(data.action_sequence);
-                
-                // 为了记录和美观，如果在代理人模式下，我们可以回复一个“执行中”但这里不生成任何废话气泡，保持你的干净要求
                 return;
             }
 
