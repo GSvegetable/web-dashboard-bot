@@ -52,7 +52,7 @@
             <!-- ---------------- 模式2：扫码登录区域 ---------------- -->
             <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
                 
-                <!-- ✅ 左上角：返回（去掉了箭头） -->
+                <!-- 左上角：返回 -->
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
                     返回
                 </button>
@@ -62,8 +62,8 @@
                     保存
                 </button>
                 
-                <!-- 二维码图片区域 -->
-                <div id="qrCodeImageContainer" class="w-[160px] h-[160px] bg-white/10 rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
+                <!-- ✅ 二维码图片区域：外框放大到180px，里面图片缩小到65% -->
+                <div id="qrCodeImageContainer" class="w-[180px] h-[180px] bg-white/10 rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
@@ -108,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let qrPollTimer = null;
     let currentQrToken = null;
 
-    // 切换扫码模式
     function switchToQrMode() {
         if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
@@ -125,7 +124,6 @@ document.addEventListener("DOMContentLoaded", function() {
         fetchQrLoginToken();
     }
 
-    // 返回表单模式
     function resetToFormMode() {
         stopQrPolling();
         currentQrToken = null;
@@ -144,7 +142,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 获取二维码
     window.fetchQrLoginToken = function() {
         stopQrPolling();
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
@@ -156,8 +153,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
                 
-                // ✅ 修改2：二维码缩小为85%，居中显示，四角不会超出外面的圆润边缘
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[85%] h-[85%] object-contain bg-white rounded-2xl mx-auto block">`;
+                // ✅ 修改：二维码图片缩小为65%，外框大了，留白变多了
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[65%] h-[65%] object-contain bg-white rounded-2xl mx-auto block p-2">`;
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -168,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 轮询状态
     function startQrPolling(token) {
         stopQrPolling();
         let attempts = 0;
@@ -202,7 +198,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // 保存二维码功能
     saveQrBtn.addEventListener('click', function() {
         const img = document.querySelector('#qrCodeImageContainer img');
         if (!img) {
@@ -227,4 +222,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-</script>
+            </script>
