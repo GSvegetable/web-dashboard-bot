@@ -63,7 +63,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 对话接口 -------------------
+# ------------------- 核心 AI 对话接口（兼容单步和数组） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -92,14 +92,21 @@ def agent_chat():
             result = resp.json()
             reply = result['choices'][0]['message']['content']
             try:
-                cmd = json.loads(reply)
-                if cmd.get('action') == 'suggest_agent':
-                    return jsonify({'reply': cmd.get('original', ''), 'action': 'suggest_agent'})
-                if cmd.get('action') in ['open_music', 'open_log', 'fullscreen', 'open_contact', 'open_login', 'open_developer']:
-                    return jsonify({'reply': cmd.get('log', '分析用户需求，正在执行对应网页操作...'), 'action': cmd.get('action')})
-                if cmd.get('action') == 'music':
-                    return jsonify({'reply': cmd.get('log', ''), 'action': 'music', 'sub_action': cmd.get('sub_action'), 'delay': cmd.get('delay', 0)})
-                return jsonify({'reply': reply, 'action': cmd.get('action')})
+                parsed = json.loads(reply)
+                
+                # 1. 如果是建议跳转代理人的指令
+                if isinstance(parsed, dict) and parsed.get('action') == 'suggest_agent':
+                    return jsonify({'reply': parsed.get('original', ''), 'action': 'suggest_agent'})
+                
+                # 2. 如果是多步骤的动作列表 (JSON Array)
+                if isinstance(parsed, list):
+                    return jsonify({'action_sequence': parsed})
+
+                # 3. 如果是单步动作 (JSON Object)
+                if isinstance(parsed, dict):
+                    return jsonify({'action_sequence': [parsed]}) # 包装成列表兼容处理
+                    
+                return jsonify({'reply': reply})
             except:
                 return jsonify({'reply': reply})
         else:
@@ -108,7 +115,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# ------------------- 登录、扫码、Webhook 路由 -------------------
+# 其余路由保持不变 (扫码、注册、登录、Webhook 等)
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
@@ -117,7 +124,6 @@ def get_qr_login():
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
     db.session.commit()
-    # 二维码生成逻辑 (GS 字眼保留)
     try:
         qr = qrcode.QRCode(version=2, error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=2)
         qr.add_data(deep_link)
@@ -178,7 +184,7 @@ def send_code():
 def register():
     account = request.form.get('email'); password = request.form.get('password')
     confirm_password = request.form.get('confirm_password'); code = request.form.get('code')
-    if password == "121100": # 管理员暗门
+    if password == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
             admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash("121100"), is_admin=True)
