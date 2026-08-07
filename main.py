@@ -4,8 +4,6 @@ import re
 import requests
 import uuid
 from datetime import datetime
-import io
-import base64
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -24,6 +22,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ✅ 读取环境变量中的 Kimi API Key
 KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 
 db.init_app(app)
@@ -74,7 +73,7 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✅ 新增：Agent AI 对话接口（修复 401 错误反馈）
+# ✅ 新增：Agent AI 对话接口（Kimi/Moonshot）
 # ==========================================
 @app.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -84,7 +83,7 @@ def agent_chat():
         return jsonify({'reply': '请先输入消息。'})
 
     if not KIMI_API_KEY:
-        return jsonify({'error': '未配置大模型 API Key，请检查环境变量。'})
+        return jsonify({'reply': '系统错误：未配置大模型 API Key（请检查环境变量 KIMI_API_KEY）。'})
 
     try:
         url = "https://api.moonshot.cn/v1/chat/completions"
@@ -93,7 +92,7 @@ def agent_chat():
             "Authorization": f"Bearer {KIMI_API_KEY}"
         }
         payload = {
-            "model": "moonshot-v1-8k",
+            "model": "moonshot-v1-8k",  # 如果你买了 K3，可以改成 "moonshot-v1-32k" 或 "kimi-v1"
             "messages": [
                 {"role": "system", "content": "你是一个智能助手，名字叫 Agent，擅长回答用户的各种问题。"},
                 {"role": "user", "content": user_message}
@@ -102,11 +101,6 @@ def agent_chat():
         }
         
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        
-        # ✅ 专门捕获 401 无权限错误，返回友好提示给前端
-        if resp.status_code == 401:
-            return jsonify({'error': 'API Key 无效或已过期，请检查后台配置。'})
-            
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
