@@ -63,7 +63,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 对话接口（兼容单步和数组） -------------------
+# ------------------- 核心 AI 对话接口（真正的工具调用） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -79,43 +79,124 @@ def agent_chat():
         url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
+
+        # 定义给 AI 使用的工具箱（Tool Calls）
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_music",
+                    "description": "打开音乐卡片（或播放音乐）"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "close_music",
+                    "description": "关闭音乐卡片（或停止播放）"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_log",
+                    "description": "打开更新日志卡片"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "close_log",
+                    "description": "关闭更新日志卡片"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "fullscreen",
+                    "description": "切换全屏显示模式"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_contact",
+                    "description": "打开联系我们卡片"
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "music_control",
+                    "description": "高级音乐控制，包含播放、停止、暂停，以及带延迟的播放",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "sub_action": {
+                                "type": "string",
+                                "enum": ["play", "stop", "pause"],
+                                "description": "对音乐进行的操作"
+                            },
+                            "delay": {
+                                "type": "integer",
+                                "description": "执行前的延迟时间（单位：毫秒，例如 10000 代表 10 秒）"
+                            }
+                        },
+                        "required": ["sub_action"]
+                    }
+                }
+            }
+        ]
+
         payload = {
             "model": "glm-4-flash",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
+            "tools": tools,
+            "tool_choice": "auto",
             "temperature": 0.3
         }
+
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200:
             result = resp.json()
-            reply = result['choices'][0]['message']['content']
-            try:
-                parsed = json.loads(reply)
-                
-                # 1. 如果是建议跳转代理人的指令
-                if isinstance(parsed, dict) and parsed.get('action') == 'suggest_agent':
-                    return jsonify({'reply': parsed.get('original', ''), 'action': 'suggest_agent'})
-                
-                # 2. 如果是多步骤的动作列表 (JSON Array)
-                if isinstance(parsed, list):
-                    return jsonify({'action_sequence': parsed})
+            message = result['choices'][0]['message']
 
-                # 3. 如果是单步动作 (JSON Object)
-                if isinstance(parsed, dict):
-                    return jsonify({'action_sequence': [parsed]}) # 包装成列表兼容处理
+            # 【关键逻辑】：如果 AI 决定调用工具箱
+            if message.get('tool_calls'):
+                actions = []
+                for tool_call in message['tool_calls']:
+                    func_name = tool_call['function']['name']
+                    args = json.loads(tool_call['function']['arguments'])
                     
+                    action_obj = {"action": func_name}
+                    # 如果是高级音乐控制
+                    if func_name == 'music_control':
+                        action_obj['action'] = 'music'
+                        action_obj['sub_action'] = args.get('sub_action')
+                        if args.get('delay'):
+                            action_obj['delay'] = args['delay']
+                    
+                    actions.append(action_obj)
+
+                # 返回给前端的动作序列
+                return jsonify({'action_sequence': actions})
+
+            # 如果是纯闲聊（返回正常文本）
+            elif message.get('content'):
+                reply = message['content']
                 return jsonify({'reply': reply})
-            except:
-                return jsonify({'reply': reply})
+            else:
+                return jsonify({'reply': 'AI 未返回有效指令。'})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
     except Exception as e:
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# 其余路由保持不变 (扫码、注册、登录、Webhook 等)
+# ------------------- 路由保持完全不变 -------------------
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
