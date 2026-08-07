@@ -113,11 +113,15 @@
 
     {% include 'components/toast.html' %}
 
+    <!-- 引入独立出来的组件 -->
     {% include 'components/auth_card.html' %}
+
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
+    
+    <!-- Agent 底部玻璃面板组件 -->
     {% include 'components/agent_action_panel.html' %}
 
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
@@ -230,6 +234,7 @@
             const defaultTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
             const newTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
 
+            // 强制初始化字体纹理，解决刷新后字看不见的问题
             textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
 
             window.toggleTheme = function(event) {
