@@ -1,14 +1,14 @@
-<!-- 订阅卡片下拉组件（精确定位+恢复高颜值毛玻璃） -->
-<div id="becomeFanDropdown" class="hidden fixed z-[9999]">
-    <!-- 恢复原版高颜值毛玻璃边框 -->
-    <div id="becomeFanCardWrapper" class="bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] p-5 pt-3 pb-4 w-[320px] md:w-[360px]">
-        <div class="fan-container flex justify-center items-center w-full relative py-2">
+<!-- 订阅卡片下拉组件（绝稳定右上角固定定位） -->
+<div id="becomeFanDropdown" class="hidden fixed top-[68px] right-6 z-[9999]">
+    <!-- 优雅毛玻璃外壳 -->
+    <div id="becomeFanCardWrapper" class="bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
+        <div class="fan-container flex justify-center items-center w-full relative py-1">
             
             <!-- 卡片 1：微光 -->
             <div class="fan-card" style="--r:-14;">
                 <div class="flex flex-col items-center justify-center gap-0">
                     <span class="text-2xl font-bold bg-gradient-to-b from-cyan-300 to-cyan-500 text-transparent bg-clip-text">¥15</span>
-                    <span class="absolute bottom-3 text-[11px] text-gray-400/80 font-medium tracking-wide">微光</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">微光</span>
                 </div>
             </div>
 
@@ -16,7 +16,7 @@
             <div class="fan-card" style="--r:0;">
                 <div class="flex flex-col items-center justify-center gap-0">
                     <span class="text-2xl font-bold bg-gradient-to-b from-yellow-300 to-yellow-500 text-transparent bg-clip-text">¥40</span>
-                    <span class="absolute bottom-3 text-[11px] text-gray-400/80 font-medium tracking-wide">星光</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">星光</span>
                 </div>
             </div>
 
@@ -24,7 +24,7 @@
             <div class="fan-card" style="--r:14;">
                 <div class="flex flex-col items-center justify-center gap-0">
                     <span class="text-2xl font-bold bg-gradient-to-b from-purple-400 to-purple-600 text-transparent bg-clip-text">¥310</span>
-                    <span class="absolute bottom-3 text-[11px] text-gray-400/80 font-medium tracking-wide">极光</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">极光</span>
                 </div>
             </div>
 
@@ -42,7 +42,7 @@
     width: 100%;
 }
 
-/* 恢复原来的毛玻璃单卡样式 */
+/* 单张卡片 - 高颜毛玻璃 */
 .fan-container .fan-card {
     position: relative;
     width: 100px;
@@ -50,11 +50,11 @@
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 18px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 -28px;
+    margin: 0 -26px;
     transform: rotate(calc(var(--r) * 1deg));
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -62,7 +62,7 @@
     z-index: 1;
 }
 
-/* 悬停展开（弹出位置同步） */
+/* 悬停展开 */
 .fan-container:hover .fan-card,
 .fan-container:focus-within .fan-card {
     transform: rotate(0deg);
@@ -73,15 +73,19 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* 移动端适配 */
+/* 手机端适配 */
 @media (max-width: 600px) {
+    #becomeFanDropdown {
+        top: 62px;
+        right: 12px;
+    }
     #becomeFanCardWrapper {
-        width: 280px !important;
-        padding: 12px 8px 14px !important;
+        width: 270px !important;
+        padding: 10px 6px 12px !important;
     }
     .fan-container .fan-card {
-        width: 80px;
-        height: 108px;
+        width: 78px;
+        height: 106px;
         margin: 0 -22px;
         border-radius: 14px;
     }
@@ -90,7 +94,7 @@
         margin: 0 6px;
     }
     .fan-card .text-2xl {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     .fan-card .text-[11px] {
         font-size: 10px;
@@ -105,25 +109,10 @@ document.addEventListener("DOMContentLoaded", function() {
         const el = document.getElementById('becomeFanDropdown');
         if (!el) return;
 
-        // 🔥 精准定位：找到文字是“开发者”的按钮，贴在它正下方
-        const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
-                          .find(el => el.innerText.trim() === '开发者');
-
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            const top = rect.bottom + 8; // 距离按钮下方 8px
-            const right = window.innerWidth - rect.right;
-            el.style.top = top + 'px';
-            el.style.right = right + 'px';
-        } else {
-            // 保底（防止没找到按钮）
-            el.style.top = '70px';
-            el.style.right = '20px';
-        }
-
-        // 切换显隐
+        // 强制切换显示/隐藏（完全不管按钮坐标，它永远在右上角固定位置）
         if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
+            // 绑定点击空白处关闭
             setTimeout(() => { document.addEventListener('click', closeDropdownOutside); }, 10);
         } else {
             el.classList.add('hidden');
@@ -133,13 +122,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function closeDropdownOutside(e) {
         const el = document.getElementById('becomeFanDropdown');
+        // 查找“开发者”按钮防止误触
         const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
                           .find(el => el.innerText.trim() === '开发者');
         if (!el || el.classList.contains('hidden')) return;
+        // 如果点击的不是卡片本身，也不是按钮，则关闭
         if (!el.contains(e.target) && !btn?.contains(e.target)) {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
         }
     }
 });
-            </script>
+</script>
