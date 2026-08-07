@@ -1,7 +1,7 @@
 <!-- 纯粹毛玻璃折叠卡片（微光 / 星光 / 极光） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <!-- ✅ 修改：去掉了 overflow-hidden，解除隐形边界限制 -->
+        <!-- 无 overflow-hidden，解除隐形边界 -->
         <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
             
             <!-- 卡片交互主容器 -->
@@ -36,45 +36,56 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 点击背景层直接关闭
     const modalOverlay = document.getElementById('becomeFanModal');
+    const cardContainer = document.getElementById('cardStackContainer');
+    const cardItems = cardContainer.querySelectorAll('.card-item');
+    
+    // 展开/合并状态的共享变量
+    let isExpanded = false;
+
+    // ---------- 封装展开与合并动作 ----------
+    function expandCards() {
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-25px)';
+        cardItems[0].style.marginRight = '0px';
+        cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
+        cardItems[1].style.marginRight = '0px';
+        cardItems[2].style.transform = 'rotate(0deg) translateX(25px)';
+    }
+
+    function collapseCards() {
+        cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px)';
+        cardItems[0].style.marginRight = '-45px';
+        cardItems[1].style.transform = 'rotate(0deg)';
+        cardItems[1].style.marginRight = '-45px';
+        cardItems[2].style.transform = 'rotate(25deg) translateX(15px)';
+    }
+
+    // ---------- 1. 点击卡片本身：触发展开/合并 ----------
+    cardContainer.addEventListener('click', function() {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            expandCards();
+        } else {
+            collapseCards();
+        }
+    });
+
+    // ---------- 2. 点击背景空白：智能开关逻辑 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                if (typeof window.closeBecomeFanModal === 'function') {
-                    window.closeBecomeFanModal(e);
+                if (isExpanded) {
+                    // 如果处于展开状态，先执行“合并”动作
+                    isExpanded = false;
+                    collapseCards();
+                } else {
+                    // 如果处于合并状态，直接关闭模态框
+                    if (typeof window.closeBecomeFanModal === 'function') {
+                        window.closeBecomeFanModal(e);
+                    }
                 }
             }
         });
     }
-
-    // 核心交互：点击卡片组 -> 展开 / 收回
-    const cardContainer = document.getElementById('cardStackContainer');
-    const cardItems = cardContainer.querySelectorAll('.card-item');
-    let isExpanded = false;
-
-    cardContainer.addEventListener('click', function() {
-        isExpanded = !isExpanded;
-
-        if (isExpanded) {
-            // 1. 展开
-            cardItems[0].style.transform = 'rotate(0deg) translateX(-25px)';
-            cardItems[0].style.marginRight = '0px';
-            
-            cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
-            cardItems[1].style.marginRight = '0px';
-            
-            cardItems[2].style.transform = 'rotate(0deg) translateX(25px)';
-        } else {
-            // 2. 收回
-            cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px)';
-            cardItems[0].style.marginRight = '-45px';
-            
-            cardItems[1].style.transform = 'rotate(0deg)';
-            cardItems[1].style.marginRight = '-45px';
-            
-            cardItems[2].style.transform = 'rotate(25deg) translateX(15px)';
-        }
-    });
 });
 </script>
