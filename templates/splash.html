@@ -96,12 +96,12 @@
 
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
-        <button class="top-btn" onclick="openContactModal()">联系开发者</button>
+        <button class="top-btn" onclick="openContactModal()">联系我们</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
         {% endif %}
-        <button class="top-btn" onclick="openBecomeFanModal()">成为爱好者</button>
+        <button class="top-btn" onclick="openBecomeFanModal()">开发者</button>
         {% if not current_user.is_authenticated %}
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
