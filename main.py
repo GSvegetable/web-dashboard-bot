@@ -108,6 +108,7 @@ def process_qr_token():
     token = data.get('token')
     chat_id = data.get('chat_id')
     session = QrLoginSession.query.filter_by(token=token).first()
+    # 只有状态是 pending 才能通过
     if session and session.status == 'pending':
         session.status = 'success'
         session.telegram_id = chat_id
@@ -205,7 +206,6 @@ def register():
     db.session.commit()
     return "注册成功"
 
-# ✅ 核心 Webhook：优化了过期二维码再次扫描时的反馈
 @app.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
     data = request.get_json()
@@ -226,10 +226,9 @@ def tg_webhook():
                     requests.post(url, json={"chat_id": chat_id, "text": "登录成功"})
                 elif session.status == 'expired':
                     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                    requests.post(url, json={"chat_id": chat_id, "text": "已过期，请刷新网页重新获取二维码。"})
+                    requests.post(url, json={"chat_id": chat_id, "text": "二维码已过期，请刷新"})
             return "OK"
         
-        # 处理图片（截图发图登录逻辑）
         handle_message(data)
         
     return "OK"
