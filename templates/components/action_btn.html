@@ -11,8 +11,6 @@
     font-size: 1rem;
     cursor: pointer;
     position: relative;
-    /* ✅ 修改：加了 0.85 的透明度，让颜色稍微柔和一点 */
-    opacity: 0.85;
     background: linear-gradient(90deg, #5bfcc4, #f593e4, #71a4f0);
     border-radius: 12px;
     color: #fff;
@@ -22,6 +20,8 @@
       inset 0px 35px 30px #000,
       0px 5px 10px #000000cc;
     text-shadow: 1px 1px 1px #000;
+    /* ✅ 修改：添加了轻微透明度，颜色保持不变 */
+    opacity: 0.88;
   }
   .outer-cont::before {
     content: "";
@@ -73,6 +73,6 @@
       ></path>
     </g>
   </svg>
-  <!-- ✅ 修改：文字改成 Agent -->
+  <!-- ✅ 修改：文字改成了 Agent -->
   <span>Agent</span>
 </div>
