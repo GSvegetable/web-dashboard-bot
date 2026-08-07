@@ -1,32 +1,30 @@
-<!-- 订阅/爱好者卡片组件（微光 / 星光 / 极光 三卡交互） -->
+<!-- 订阅/爱好者卡片组件（微光 / 星光 / 极光 三卡交互，精简版） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[650px] p-6 sm:p-8">
+        <!-- 去掉了顶部内边距，整体往上方移动 -->
+        <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[600px] px-6 sm:px-8 pt-0 pb-6">
             
-            <!-- 左上角：返回按钮 -->
-            <button type="button" onclick="window.closeBecomeFanModal(event)" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-10">
-                返回
-            </button>
+            <!-- 已删除：返回按钮 -->
 
-            <!-- 卡片组容器：实现重叠、旋转和悬停展开效果 -->
-            <div class="flex flex-wrap justify-center items-center min-h-[240px] pt-4 pb-2 gap-0 group">
+            <!-- 卡片组容器：整体向上移动，减少多出的间距 -->
+            <div class="flex flex-wrap justify-center items-center min-h-[180px] pt-0 mt-4 gap-0 group">
                 
-                <!-- 卡片 1：微光 -->
-                <div class="relative w-[140px] sm:w-[170px] h-[200px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-20px] sm:mx-[-40px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: -15; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-xs font-light tracking-wider mb-3">微光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">15<span class="text-sm font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 1：微光 (尺寸缩小) -->
+                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: -15; transform: rotate(calc(var(--r) * 1deg));">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">微光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 2：星光（最居中的一张，接近0度展开） -->
-                <div class="relative w-[140px] sm:w-[170px] h-[200px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-20px] sm:mx-[-40px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 5; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-xs font-light tracking-wider mb-3">星光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">40<span class="text-sm font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 2：星光 (尺寸缩小) -->
+                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 5; transform: rotate(calc(var(--r) * 1deg));">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">星光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 3：极光 -->
-                <div class="relative w-[140px] sm:w-[170px] h-[200px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-20px] sm:mx-[-40px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 25; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-xs font-light tracking-wider mb-3">极光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">310<span class="text-sm font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 3：极光 (尺寸缩小) -->
+                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 25; transform: rotate(calc(var(--r) * 1deg));">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">极光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
             </div>
