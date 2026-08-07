@@ -64,19 +64,9 @@
     flex-direction: column;
     gap: 4px;
     width: 100%;
-    transition: opacity 0.25s ease, transform 0.25s ease;
   }
   .chat-list.hidden {
-    opacity: 0;
-    transform: translateY(8px);
-    pointer-events: none;
-    position: absolute;
-    width: 100%;
-  }
-  .chat-list.active {
-    opacity: 1;
-    transform: translateY(0);
-    position: relative;
+    display: none;
   }
 
   /* 用户气泡 */
@@ -108,6 +98,25 @@
     animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     margin-bottom: 2px;
   }
+
+  /* 讨论模式提醒 AI 切代理人的提示框 */
+  .suggest-switch-box {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    margin-bottom: 4px;
+  }
+  .suggest-switch-box button {
+    background: #493F36; color: white; border: none;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;
+    margin-top: 6px; cursor: pointer; transition: 0.15s;
+  }
+  .suggest-switch-box button:active { transform: scale(0.95); }
   
   @keyframes msgSlideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -136,7 +145,7 @@
         <!-- 双模式消息区域 -->
         <div id="agentMessageArea">
             <!-- 讨论模式列表 -->
-            <div id="discussionList" class="chat-list active"></div>
+            <div id="discussionList" class="chat-list"></div>
             <!-- 代理人模式列表 -->
             <div id="agentList" class="chat-list hidden"></div>
         </div>
@@ -144,8 +153,8 @@
         <!-- 悬空输入框 + 发送按钮 -->
         <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
             <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
-            <!-- ✅ 修改：按钮再往上移，增加 -mt-[2px] -->
-            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-0 -mt-[2px]">
+            <!-- ✅ 修改：发送按钮再次上移，加入 -mt-[6px] -->
+            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-0 -mt-[6px]">
                 +
             </button>
         </div>
@@ -165,75 +174,79 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio1 = document.getElementById('radio-1');
     const radio2 = document.getElementById('radio-2');
     
-    // 存储历史消息（每个模式独立）
+    // 存储历史消息
     let discussionHistory = [];
     let agentHistory = [];
     
     let currentMode = 'discussion';
     let isPanelOpen = false;
-    let isReplaying = false; // 防止重复重播
+    let isReplaying = false;
 
-    // 切换模式时的丝滑动画 + 历史重播
+    // ✅ 核心丝滑切换逻辑：左移淡出
     function switchMode(mode) {
         if (mode === currentMode || isReplaying) return;
         isReplaying = true;
         
-        // 隐藏当前列表，显示目标列表（先淡出当前，再淡入目标）
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
         
-        // 执行淡出
-        currentList.classList.remove('active');
-        currentList.classList.add('hidden');
-        
-        // 稍后淡入目标列表
-        setTimeout(() => {
-            targetList.classList.remove('hidden');
-            targetList.classList.add('active');
-            
-            // 获取要重播的历史消息
-            const history = mode === 'discussion' ? discussionHistory : agentHistory;
-            // 清空目标列表（但保留可能正在显示的）
-            targetList.innerHTML = '';
-            
-            // 如果历史为空，直接结束
-            if (history.length === 0) {
-                isReplaying = false;
-                currentMode = mode;
-                return;
-            }
-            
-            // 快速重新播放消息（每条间隔 80ms）
-            let index = 0;
-            const interval = setInterval(() => {
-                if (index >= history.length) {
-                    clearInterval(interval);
-                    isReplaying = false;
-                    currentMode = mode;
-                    return;
-                }
-                const msg = history[index];
-                const bubble = document.createElement('div');
-                if (msg.type === 'user') {
-                    bubble.className = 'chat-bubble user';
-                    bubble.textContent = msg.text;
-                } else {
-                    bubble.className = 'ai-text-msg';
-                    bubble.textContent = msg.text;
-                    // 如果是指令执行反馈，可以特殊颜色
-                    if (msg.isAction) {
-                        bubble.classList.add('text-green-300/80');
+        // 1. 当前列表向左侧偏移并变淡 (GSAP 极速动画)
+        gsap.to(currentList, {
+            x: -15,
+            opacity: 0,
+            duration: 0.15,
+            ease: "power1.out",
+            onComplete: () => {
+                currentList.classList.add('hidden');
+                targetList.classList.remove('hidden');
+                
+                // 2. 目标列表重置位置并从右侧返回
+                gsap.set(targetList, { x: 15, opacity: 0 });
+                gsap.to(targetList, {
+                    x: 0,
+                    opacity: 1,
+                    duration: 0.15,
+                    ease: "power1.out",
+                    onComplete: () => {
+                        const history = mode === 'discussion' ? discussionHistory : agentHistory;
+                        targetList.innerHTML = '';
+                        if (history.length === 0) {
+                            isReplaying = false;
+                            currentMode = mode;
+                            return;
+                        }
+                        
+                        // 3. 历史重播
+                        let index = 0;
+                        const interval = setInterval(() => {
+                            if (index >= history.length) {
+                                clearInterval(interval);
+                                isReplaying = false;
+                                currentMode = mode;
+                                return;
+                            }
+                            const msg = history[index];
+                            const bubble = document.createElement('div');
+                            if (msg.type === 'user') {
+                                bubble.className = 'chat-bubble user';
+                                bubble.textContent = msg.text;
+                            } else {
+                                bubble.className = 'ai-text-msg';
+                                bubble.textContent = msg.text;
+                                if (msg.isAction) {
+                                    bubble.classList.add('text-green-300/80');
+                                }
+                            }
+                            targetList.appendChild(bubble);
+                            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                            index++;
+                        }, 60);
                     }
-                }
-                targetList.appendChild(bubble);
-                // 滚动到底部
-                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                index++;
-            }, 80);
-        }, 280); // 匹配淡出时间
+                });
+            }
+        });
     }
 
-    // 监听切换事件
     radio1.addEventListener('change', function() {
         if (this.checked) switchMode('discussion');
     });
@@ -276,30 +289,46 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // 发送消息
-    function sendMessage() {
+    // ✅ 新增：从讨论模式检测到 `suggest_agent` 触发切换并转发消息
+    function suggestSwitchToAgent(originalMessage) {
+        // 当前在讨论列表出现按钮。点击后触发
+        if (currentMode === 'discussion') {
+            // 强制切换到代理人模式
+            radio2.checked = true;
+            switchMode('agent'); // 这会执行动画并重播代理人历史
+            
+            // 等切换完毕，将原消息发送到代理人
+            const checkSwitchDone = setInterval(() => {
+                if (!isReplaying && currentMode === 'agent') {
+                    clearInterval(checkSwitchDone);
+                    // 模拟用户输入原消息，并发送
+                    agentInput.value = originalMessage;
+                    sendMessageInternal(); // 直接调用发送逻辑
+                }
+            }, 100);
+        }
+    }
+
+    // 抽离发送逻辑，方便内部调用
+    function sendMessageInternal() {
         const text = agentInput.value.trim();
         if (!text) return;
 
-        // 判断当前模式
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
 
-        // 添加用户消息
         const userBubble = document.createElement('div');
         userBubble.className = 'chat-bubble user';
         userBubble.textContent = text;
         targetList.appendChild(userBubble);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-        // 存入历史
         history.push({ type: 'user', text: text });
 
         agentInput.value = '';
         agentInput.rows = 1;
         agentInput.style.height = 'auto';
 
-        // 显示思考中
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'ai-text-msg text-gray-400';
         loadingMsg.textContent = '思考中...';
@@ -317,6 +346,23 @@ document.addEventListener("DOMContentLoaded", function() {
             const loading = document.getElementById('loading-bubble');
             if (loading) loading.remove();
 
+            // ✅ 处理 "suggest_agent" 指令
+            if (data.action === 'suggest_agent') {
+                // 在讨论列表中生成特殊提示框
+                const suggestBox = document.createElement('div');
+                suggestBox.className = 'suggest-switch-box';
+                suggestBox.innerHTML = `
+                    看起来你想执行一个指令任务。<br>
+                    <button onclick="window.suggestSwitchToAgent('${data.reply || text}')">
+                        切换到代理人执行
+                    </button>
+                `;
+                targetList.appendChild(suggestBox);
+                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                history.push({ type: 'ai', text: '[智能提醒: 已识别操作意图]' });
+                return;
+            }
+
             let replyText = data.reply || '抱歉，我现在无法回答。';
 
             // 处理动作指令
@@ -328,7 +374,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     execMsg.textContent = '✅ 正在执行：打开音乐...';
                     targetList.appendChild(execMsg);
                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                    // 存入历史（标记为动作执行反馈）
                     history.push({ type: 'ai', text: '✅ 正在执行：打开音乐...', isAction: true });
 
                     setTimeout(() => {
@@ -344,7 +389,6 @@ document.addEventListener("DOMContentLoaded", function() {
             botMsg.textContent = replyText;
             targetList.appendChild(botMsg);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            // 存入历史
             history.push({ type: 'ai', text: replyText });
         })
         .catch(() => {
@@ -359,7 +403,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    agentSendBtn.addEventListener('click', sendMessage);
+    // 对外暴露切换方法
+    window.suggestSwitchToAgent = suggestSwitchToAgent;
+
+    // 按钮监听
+    agentSendBtn.addEventListener('click', sendMessageInternal);
 
     agentInput.addEventListener('input', function() {
         this.style.height = 'auto';
@@ -372,8 +420,8 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            sendMessage();
+            sendMessageInternal();
         }
     });
 });
-                                </script>
+                      </script>
