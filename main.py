@@ -24,7 +24,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ✅ 换成智谱 AI 的 API Key 环境变量名
+# 智谱 AI 的 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 
 db.init_app(app)
@@ -75,31 +75,42 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✅ 替换为：智谱 AI (GLM-4-Flash) 对话接口
+# ✅ 核心修改：智谱 AI 接口，根据模式切换提示词
 # ==========================================
 @app.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
+    mode = data.get('mode', 'discussion') # 默认是 'discussion'
+    
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
 
     if not ZHIPU_API_KEY:
-        return jsonify({'reply': '系统错误：未配置智谱 API Key（请检查环境变量 ZHIPU_API_KEY）。'})
+        return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
 
     try:
-        # 智谱 AI 官方对话补全接口
         url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {ZHIPU_API_KEY}"
         }
         
-        # 使用性价比极高的 glm-4-flash 模型（非常适合 Agent 场景）
+        # 根据 mode 动态生成 system 提示词
+        if mode == 'discussion':
+            system_prompt = "你是一个友好的智能助手，名字叫 Agent。只进行日常聊天，绝对不要执行任何网页指令、不要返回任何代码或JSON格式。正常闲聊即可。"
+        else: # mode == 'agent'
+            system_prompt = (
+                "你是一个智能网页控制代理。如果用户明确指令要求操作网页（例如“帮我打开音乐”），"
+                "你必须只返回一个纯净的 JSON 字符串，不带任何代码块包裹、不带任何解释。"
+                "例如：{\"action\": \"open_music\"}。"
+                "如果用户要求其他操作，请回复纯文字，不要执行。"
+            )
+
         payload = {
             "model": "glm-4-flash",
             "messages": [
-                {"role": "system", "content": "你是一个智能助手，名字叫 Agent。用户指令必须严格遵守。如果用户要求打开网页功能，请直接返回对应的操作指令。"},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.3
@@ -109,7 +120,17 @@ def agent_chat():
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
-            return jsonify({'reply': reply})
+            
+            # 前端将自动解析如果 reply 是 JSON 则拦截，如果不是则当普通文字
+            try:
+                # 尝试将其作为 JSON 解析，如果是合法的 JSON，前端会拿到 action
+                import json
+                cmd = json.loads(reply)
+                # 如果解析成功，把 action 原封不动返回给前端
+                return jsonify({'reply': reply, 'action': cmd.get('action')})
+            except:
+                # 不是 JSON，正常返回文本
+                return jsonify({'reply': reply})
         else:
             return jsonify({'reply': f'API 请求出错 (状态码: {resp.status_code})'})
     except Exception as e:
