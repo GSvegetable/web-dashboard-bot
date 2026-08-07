@@ -66,10 +66,20 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
+# --- 扫码登录 ---
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
+    
+    # 🔥 核心升级：智能协议判断
+    user_agent = request.headers.get('User-Agent', '').lower()
+    if 'telegram' in user_agent:
+        # 如果检测到是Telegram APP内部，走专属协议，绝不报错
+        deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
+    else:
+        # 如果是微信、苹果相机等，走通用网页链接，完美识别
+        deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
+        
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
     db.session.commit()
