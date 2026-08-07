@@ -4,8 +4,6 @@ import re
 import requests
 import uuid
 from datetime import datetime
-import io
-import base64
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -23,6 +21,9 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# ✅ 读取环境变量中的 Kimi API Key
+KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 
 db.init_app(app)
 login_manager = LoginManager()
@@ -71,6 +72,47 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
+# ==========================================
+# ✅ 新增：Agent AI 对话接口（Kimi/Moonshot）
+# ==========================================
+@app.route('/api/agent/chat', methods=['POST'])
+def agent_chat():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    if not user_message:
+        return jsonify({'reply': '请先输入消息。'})
+
+    if not KIMI_API_KEY:
+        return jsonify({'reply': '系统错误：未配置大模型 API Key（请检查环境变量 KIMI_API_KEY）。'})
+
+    try:
+        url = "https://api.moonshot.cn/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {KIMI_API_KEY}"
+        }
+        payload = {
+            "model": "moonshot-v1-8k",  # 如果你买了 K3，可以改成 "moonshot-v1-32k" 或 "kimi-v1"
+            "messages": [
+                {"role": "system", "content": "你是一个智能助手，名字叫 Agent，擅长回答用户的各种问题。"},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.3
+        }
+        
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            result = resp.json()
+            reply = result['choices'][0]['message']['content']
+            return jsonify({'reply': reply})
+        else:
+            return jsonify({'reply': f'API 请求出错 (状态码: {resp.status_code})'})
+    except Exception as e:
+        print(f"Agent Error: {e}")
+        return jsonify({'reply': '请求处理过程中发生异常，请稍后重试。'})
+
+# ==========================================
+
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
@@ -84,54 +126,36 @@ def get_qr_login():
     db.session.add(new_session)
     db.session.commit()
 
-    # ✨ 生成带 "GS" 水印的二维码
     try:
         qr = qrcode.QRCode(
-            version=1,
+            version=2,
             error_correction=qrcode.constants.ERROR_CORRECT_H, 
             box_size=10,
             border=2,
         )
         qr.add_data(deep_link)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
-
-        # 创建半透明水印叠加层
-        txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
-        d = ImageDraw.Draw(txt)
-        
-        # ⚡ 尝试加载服务器大字体，没有则使用默认
-        font_size = 60
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+        d = ImageDraw.Draw(img)
         try:
-            # Railway 常见的 Linux 字体路径
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
         except:
             try:
-                font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", font_size)
+                font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 55)
             except:
-                # 如果都没有，自动后备加载默认极小字体
                 font = ImageFont.load_default()
-
         text = "GS"
-        
-        # 计算文字居中位置
         bbox = d.textbbox((0, 0), text, font=font)
         w = bbox[2] - bbox[0]
         h = bbox[3] - bbox[1]
         x = (img.width - w) / 2
         y = (img.height - h) / 2
-        
-        # ⚡ 加深字体透明度（200），让黑色条上的字显现出来
-        d.text((x, y), text, fill=(200, 200, 200, 220), font=font)
-        
-        out = Image.alpha_composite(img, txt)
+        d.text((x, y), text, fill=(0, 0, 0), font=font)
         buffered = io.BytesIO()
-        out.save(buffered, format="PNG")
+        img.save(buffered, format="PNG")
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{img_base64}"})
     except Exception as e:
-        # 绝对兜底：如果生成失败，退回 qrserver 接口
         fallback_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': fallback_url})
 
@@ -140,7 +164,6 @@ def check_qr_login(token):
     session = QrLoginSession.query.filter_by(token=token).first()
     if not session:
         return jsonify({'status': 'expired'})
-    
     if session.status == 'success' and session.telegram_id:
         user = User.query.filter_by(telegram_id=session.telegram_id).first()
         if user:
@@ -150,7 +173,6 @@ def check_qr_login(token):
             return jsonify({'status': 'success'})
         else:
             return jsonify({'status': 'unregistered'})
-    
     if (datetime.utcnow() - session.created_at).seconds > 180:
         session.status = 'expired'
         db.session.commit()
@@ -177,7 +199,6 @@ def send_code():
     if not account: return jsonify({'ok': False, 'msg': '请输入账号或电报ID'})
     code = str(random.randint(100000, 999999))
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
-    
     if is_email:
         record = EmailCode.query.filter_by(email=account).first()
         if record:
@@ -198,7 +219,6 @@ def register():
     password = request.form.get('password')
     confirm_password = request.form.get('confirm_password')
     code = request.form.get('code')
-    
     if password == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
@@ -210,12 +230,9 @@ def register():
         db.session.commit()
         login_user(admin_user)
         return "登录成功"
-
     if not all([account, password, confirm_password, code]): return "表格信息填写不完整"
     if password != confirm_password: return "输入密码不一致"
-    
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
-    
     valid_code = False
     if is_email:
         record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first()
@@ -223,13 +240,10 @@ def register():
     else:
         record = TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
         if record and record.code == code and (datetime.utcnow() - record.created_at).seconds <= 300: valid_code = True
-            
     if not valid_code: return "验证码错误或已超时"
-    
     user = None
     if is_email: user = User.query.filter_by(email=account).first()
     else: user = User.query.filter_by(telegram_id=account).first()
-        
     if user:
         login_user(user)
         user.last_login = datetime.utcnow()
@@ -242,7 +256,6 @@ def register():
                 if tg_info.get('avatar_url'): user.avatar_url = tg_info['avatar_url']
         db.session.commit()
         return "登录成功"
-    
     hashed_password = generate_password_hash(password)
     if is_email: 
         new_user = User(email=account, password_hash=hashed_password)
@@ -252,7 +265,6 @@ def register():
             new_user = User(telegram_id=account, password_hash=hashed_password, first_name=tg_info['first_name'], last_name=tg_info['last_name'], telegram_username=tg_info['username'], avatar_url=tg_info['avatar_url'])
         else:
             new_user = User(telegram_id=account, password_hash=hashed_password)
-        
     db.session.add(new_user)
     db.session.commit()
     login_user(new_user)
@@ -267,7 +279,6 @@ def tg_webhook():
         msg = data['message']
         chat_id = str(msg['chat']['id'])
         text = msg.get('text', '')
-        
         if text.startswith('/start qr_'):
             token = text.replace('/start qr_', '').strip()
             session = QrLoginSession.query.filter_by(token=token).first()
@@ -282,9 +293,7 @@ def tg_webhook():
                     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
                     requests.post(url, json={"chat_id": chat_id, "text": "二维码已过期，请刷新"})
             return "OK"
-        
         handle_message(data)
-        
     return "OK"
 
 @app.route('/setup_webhook', methods=['GET'])
