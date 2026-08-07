@@ -88,11 +88,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ✅ 终极修复：直接操作 DOM 元素，完全绕开全局函数作用域陷阱！
+    // ✅ 绝对可靠的执行映射（含模式切换）
     window.performAction = function(actionObj) {
         const action = actionObj.action;
+        const delay = actionObj.delay || 0;
         
-        // 直接加类名，绝对可靠
         if (action === 'OPEN_MUSIC') {
             document.getElementById('musicModal')?.classList.add('active');
         }
@@ -119,6 +119,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         else if (action === 'OPEN_DEVELOPER') {
             document.getElementById('becomeFanModal')?.classList.add('active');
+        }
+        // ✅ 新增：切换模式动作
+        else if (action === 'SWITCH_TO_DISCUSSION') {
+            if (document.getElementById('radio-1')) document.getElementById('radio-1').click();
+        }
+        else if (action === 'SWITCH_TO_AGENT') {
+            if (document.getElementById('radio-2')) document.getElementById('radio-2').click();
         }
         else if (action === 'MUSIC_PLAY') {
             document.getElementById('bg-audio')?.play().catch(e => console.log('播放被拦截', e));
@@ -203,12 +210,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
+            // ✅ 核心修复：保证数据被正确解析，并且绝不把 JSON 字面量显示出来
             if (isAgent) {
                 if (data.reply) {
                     const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply;
                     targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
                 }
-                if (data.actions && Array.isArray(data.actions)) {
+                if (data.actions && Array.isArray(data.actions) && data.actions.length > 0) {
                     executeSequence(data.actions);
                 }
                 isProcessing = false;
@@ -230,4 +238,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-                                                                                                                              </script>
+                  </script>
