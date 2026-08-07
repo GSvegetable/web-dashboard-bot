@@ -58,16 +58,8 @@
   }
   #agentMessageArea::-webkit-scrollbar { display: none; }
 
-  /* 双模式列表容器 */
-  .chat-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
-  }
-  .chat-list.hidden {
-    display: none;
-  }
+  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .chat-list.hidden { display: none; }
 
   /* 用户气泡 */
   .chat-bubble.user {
@@ -99,7 +91,7 @@
     margin-bottom: 2px;
   }
 
-  /* 讨论模式提醒 AI 切代理人的提示框 */
+  /* 讨论模式切换提示 */
   .suggest-switch-box {
     align-self: flex-start;
     background: rgba(255, 255, 255, 0.08);
@@ -142,19 +134,17 @@
             </div>
         </div>
 
-        <!-- 双模式消息区域 -->
+        <!-- 消息区域 -->
         <div id="agentMessageArea">
-            <!-- 讨论模式列表 -->
             <div id="discussionList" class="chat-list"></div>
-            <!-- 代理人模式列表 -->
             <div id="agentList" class="chat-list hidden"></div>
         </div>
 
         <!-- 悬空输入框 + 发送按钮 -->
         <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
             <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
-            <!-- ✅ 修改：发送按钮再次上移，加入 -mt-[6px] -->
-            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-0 -mt-[6px]">
+            <!-- ✅ 终极修复：强制使用 transform 物理偏移，无视父层对齐 -->
+            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">
                 +
             </button>
         </div>
@@ -174,69 +164,37 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio1 = document.getElementById('radio-1');
     const radio2 = document.getElementById('radio-2');
     
-    // 存储历史消息
     let discussionHistory = [];
     let agentHistory = [];
-    
     let currentMode = 'discussion';
     let isPanelOpen = false;
     let isReplaying = false;
 
-    // ✅ 核心丝滑切换逻辑：左移淡出
     function switchMode(mode) {
         if (mode === currentMode || isReplaying) return;
         isReplaying = true;
-        
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
         
-        // 1. 当前列表向左侧偏移并变淡 (GSAP 极速动画)
         gsap.to(currentList, {
-            x: -15,
-            opacity: 0,
-            duration: 0.15,
-            ease: "power1.out",
+            x: -15, opacity: 0, duration: 0.15, ease: "power1.out",
             onComplete: () => {
                 currentList.classList.add('hidden');
                 targetList.classList.remove('hidden');
-                
-                // 2. 目标列表重置位置并从右侧返回
                 gsap.set(targetList, { x: 15, opacity: 0 });
                 gsap.to(targetList, {
-                    x: 0,
-                    opacity: 1,
-                    duration: 0.15,
-                    ease: "power1.out",
+                    x: 0, opacity: 1, duration: 0.15, ease: "power1.out",
                     onComplete: () => {
                         const history = mode === 'discussion' ? discussionHistory : agentHistory;
                         targetList.innerHTML = '';
-                        if (history.length === 0) {
-                            isReplaying = false;
-                            currentMode = mode;
-                            return;
-                        }
-                        
-                        // 3. 历史重播
+                        if (history.length === 0) { isReplaying = false; currentMode = mode; return; }
                         let index = 0;
                         const interval = setInterval(() => {
-                            if (index >= history.length) {
-                                clearInterval(interval);
-                                isReplaying = false;
-                                currentMode = mode;
-                                return;
-                            }
+                            if (index >= history.length) { clearInterval(interval); isReplaying = false; currentMode = mode; return; }
                             const msg = history[index];
                             const bubble = document.createElement('div');
-                            if (msg.type === 'user') {
-                                bubble.className = 'chat-bubble user';
-                                bubble.textContent = msg.text;
-                            } else {
-                                bubble.className = 'ai-text-msg';
-                                bubble.textContent = msg.text;
-                                if (msg.isAction) {
-                                    bubble.classList.add('text-green-300/80');
-                                }
-                            }
+                            if (msg.type === 'user') { bubble.className = 'chat-bubble user'; bubble.textContent = msg.text; }
+                            else { bubble.className = 'ai-text-msg'; bubble.textContent = msg.text; }
                             targetList.appendChild(bubble);
                             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
                             index++;
@@ -247,14 +205,9 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    radio1.addEventListener('change', function() {
-        if (this.checked) switchMode('discussion');
-    });
-    radio2.addEventListener('change', function() {
-        if (this.checked) switchMode('agent');
-    });
+    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
+    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
-    // 面板开关
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
@@ -286,30 +239,23 @@ document.addEventListener("DOMContentLoaded", function() {
             setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
         }
     };
-
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ✅ 新增：从讨论模式检测到 `suggest_agent` 触发切换并转发消息
     function suggestSwitchToAgent(originalMessage) {
-        // 当前在讨论列表出现按钮。点击后触发
         if (currentMode === 'discussion') {
-            // 强制切换到代理人模式
             radio2.checked = true;
-            switchMode('agent'); // 这会执行动画并重播代理人历史
-            
-            // 等切换完毕，将原消息发送到代理人
+            switchMode('agent');
             const checkSwitchDone = setInterval(() => {
                 if (!isReplaying && currentMode === 'agent') {
                     clearInterval(checkSwitchDone);
-                    // 模拟用户输入原消息，并发送
                     agentInput.value = originalMessage;
-                    sendMessageInternal(); // 直接调用发送逻辑
+                    sendMessageInternal();
                 }
             }, 100);
         }
     }
+    window.suggestSwitchToAgent = suggestSwitchToAgent;
 
-    // 抽离发送逻辑，方便内部调用
     function sendMessageInternal() {
         const text = agentInput.value.trim();
         if (!text) return;
@@ -331,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'ai-text-msg text-gray-400';
-        loadingMsg.textContent = '思考中...';
+        loadingMsg.textContent = '思考中';
         loadingMsg.id = 'loading-bubble';
         targetList.appendChild(loadingMsg);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
@@ -346,9 +292,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const loading = document.getElementById('loading-bubble');
             if (loading) loading.remove();
 
-            // ✅ 处理 "suggest_agent" 指令
             if (data.action === 'suggest_agent') {
-                // 在讨论列表中生成特殊提示框
                 const suggestBox = document.createElement('div');
                 suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `
@@ -359,31 +303,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
                 targetList.appendChild(suggestBox);
                 agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                history.push({ type: 'ai', text: '[智能提醒: 已识别操作意图]' });
+                history.push({ type: 'ai', text: '智能提醒: 已识别操作意图' });
                 return;
             }
 
             let replyText = data.reply || '抱歉，我现在无法回答。';
 
-            // 处理动作指令
+            // 🎯 任务执行块：无提示、无表情、直接播放
             if (data.action) {
                 const action = data.action;
                 if (action === 'open_music' && typeof window.openMusicModal === 'function') {
-                    const execMsg = document.createElement('div');
-                    execMsg.className = 'ai-text-msg text-green-300/80';
-                    execMsg.textContent = '✅ 正在执行：打开音乐...';
-                    targetList.appendChild(execMsg);
-                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                    history.push({ type: 'ai', text: '✅ 正在执行：打开音乐...', isAction: true });
-
+                    // 1. 弹出音乐卡片
+                    window.openMusicModal();
+                    // 2. 直接尝试自动播放（浏览器若拦截，则需手动点一次）
                     setTimeout(() => {
-                        window.openMusicModal();
-                    }, 800);
+                        const audio = document.getElementById('bg-audio');
+                        if (audio) {
+                            audio.play().catch(e => console.log('自动播放被浏览器拦截', e));
+                        }
+                    }, 500);
+                    
+                    // 3. 这里直接 return，不在聊天记录里生成任何废话气泡
                     return; 
                 }
             }
 
-            // 普通AI回复
             const botMsg = document.createElement('div');
             botMsg.className = 'ai-text-msg';
             botMsg.textContent = replyText;
@@ -403,10 +347,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 对外暴露切换方法
-    window.suggestSwitchToAgent = suggestSwitchToAgent;
-
-    // 按钮监听
     agentSendBtn.addEventListener('click', sendMessageInternal);
 
     agentInput.addEventListener('input', function() {
@@ -424,4 +364,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
-                      </script>
+              </script>
