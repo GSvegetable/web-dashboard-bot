@@ -1,7 +1,8 @@
-<!-- 订阅卡片下拉组件（绝稳定右上角固定定位） -->
-<div id="becomeFanDropdown" class="hidden fixed top-[68px] right-6 z-[9999]">
-    <!-- 优雅毛玻璃外壳 -->
-    <div id="becomeFanCardWrapper" class="bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
+<!-- 订阅卡片下拉组件（纯黑实底+红边调试，绝对定位） -->
+<div id="becomeFanDropdown" class="hidden fixed z-[99999]">
+    <!-- 👇 这里用纯黑色背景+亮红色边框，保证你一眼就能看到它！ -->
+    <div id="becomeFanCardWrapper" class="bg-black border-2 border-red-500/90 rounded-2xl shadow-[0_8px_24px_rgba(255,0,0,0.3)] p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
+        
         <div class="fan-container flex justify-center items-center w-full relative py-1">
             
             <!-- 卡片 1：微光 -->
@@ -42,12 +43,12 @@
     width: 100%;
 }
 
-/* 单张卡片 - 高颜毛玻璃 */
+/* 单张卡片 */
 .fan-container .fan-card {
     position: relative;
     width: 100px;
     height: 130px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 18px;
     backdrop-filter: blur(12px);
@@ -57,7 +58,7 @@
     margin: 0 -26px;
     transform: rotate(calc(var(--r) * 1deg));
     transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 1;
 }
@@ -68,17 +69,18 @@
     transform: rotate(0deg);
     margin: 0 8px;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* 手机端适配 */
-@media (max-width: 600px) {
-    #becomeFanDropdown {
-        top: 62px;
-        right: 12px;
-    }
+/* 🔥 不同设备的安全位置（绝对确保不出界） */
+@media (min-width: 769px) {
+    /* 电脑端 */
+    #becomeFanDropdown { top: 72px; right: 24px; }
+}
+@media (max-width: 768px) {
+    /* 手机端 */
+    #becomeFanDropdown { top: 62px; right: 12px; }
     #becomeFanCardWrapper {
         width: 270px !important;
         padding: 10px 6px 12px !important;
@@ -90,16 +92,9 @@
         border-radius: 14px;
     }
     .fan-container:hover .fan-card,
-    .fan-container:focus-within .fan-card {
-        margin: 0 6px;
-    }
-    .fan-card .text-2xl {
-        font-size: 1.1rem;
-    }
-    .fan-card .text-[11px] {
-        font-size: 10px;
-        bottom: 2px !important;
-    }
+    .fan-container:focus-within .fan-card { margin: 0 6px; }
+    .fan-card .text-2xl { font-size: 1.1rem; }
+    .fan-card .text-[11px] { font-size: 10px; bottom: 2px !important; }
 }
 </style>
 
@@ -109,10 +104,19 @@ document.addEventListener("DOMContentLoaded", function() {
         const el = document.getElementById('becomeFanDropdown');
         if (!el) return;
 
-        // 强制切换显示/隐藏（完全不管按钮坐标，它永远在右上角固定位置）
         if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
-            // 绑定点击空白处关闭
+            // 3秒后自动把红边框去掉，变回正常毛玻璃
+            setTimeout(() => {
+                const wrapper = document.getElementById('becomeFanCardWrapper');
+                if(wrapper) {
+                    wrapper.style.border = '1px solid rgba(255,255,255,0.2)';
+                    wrapper.style.background = 'rgba(0,0,0,0.4)';
+                    wrapper.style.backdropFilter = 'blur(24px)';
+                    wrapper.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+                }
+            }, 3000); // 3秒后自动变好看
+
             setTimeout(() => { document.addEventListener('click', closeDropdownOutside); }, 10);
         } else {
             el.classList.add('hidden');
@@ -122,11 +126,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function closeDropdownOutside(e) {
         const el = document.getElementById('becomeFanDropdown');
-        // 查找“开发者”按钮防止误触
         const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
                           .find(el => el.innerText.trim() === '开发者');
         if (!el || el.classList.contains('hidden')) return;
-        // 如果点击的不是卡片本身，也不是按钮，则关闭
         if (!el.contains(e.target) && !btn?.contains(e.target)) {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
