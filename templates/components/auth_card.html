@@ -62,8 +62,8 @@
                     保存
                 </button>
                 
-                <!-- ✅ 修改：外框从 180px 直接放大一倍到 360px -->
-                <div id="qrCodeImageContainer" class="w-[360px] h-[360px] bg-white/10 rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
+                <!-- ✅ 修改1：外框缩小到 240px，背景改为纯白色 (bg-white) -->
+                <div id="qrCodeImageContainer" class="w-[240px] h-[240px] bg-white rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
@@ -153,8 +153,8 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
                 
-                // ✅ 外框放大了，内部图片用 75% 居中显示，四周留白 + 内边距
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[75%] h-[75%] object-contain bg-white rounded-2xl mx-auto block p-4">`;
+                // ✅ 修改2：容器 bg 变成白色，所以图片不用加 bg-white；保持 75% 尺寸和 p-2 内边距
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-[75%] h-[75%] object-contain rounded-2xl mx-auto block p-2">`;
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -222,4 +222,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-            </script>
+                </script>
