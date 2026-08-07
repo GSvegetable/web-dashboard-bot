@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json()).then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // 引导切换
+            // 1. 引导切换
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你这条指令不够清晰。<br><button onclick="window.suggestSwitchToAgent('${data.reply || payload.message}')">点击尝试重新发给我</button>`;
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // 确认指令
+            // 2. 确认指令
             if (data.action === 'ASK_CONFIRM') {
                 const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
                 const confirmActions = data.confirm_actions || [];
@@ -191,14 +191,22 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // 动作序列
-            if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                executeSequence(data.action_sequence);
+            // ✅ 核心优化：先回复文字，再执行动作
+            if (isAgent) {
+                // 先显示回复的话
+                if (data.reply) {
+                    const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply;
+                    targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
+                }
+                // 再异步执行动作队列
+                if (data.actions && Array.isArray(data.actions)) {
+                    executeSequence(data.actions);
+                }
                 isProcessing = false;
                 return;
             }
 
-            // 纯文本
+            // 纯文本兜底
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
