@@ -80,12 +80,25 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     window.suggestSwitchToAgent = suggestSwitchToAgent;
 
+    // ✅ 修复：强制挂载关闭音乐和关闭日志的底层函数（避免傻乎乎说“关了”但实际没关）
+    window.closeMusicModal = function() {
+        const modal = document.getElementById('musicModal');
+        if (modal) modal.classList.remove('active');
+        const audio = document.getElementById('bg-audio');
+        if (audio) { audio.pause(); audio.currentTime = 0; }
+    };
+    window.closeUpdateLogModal = function() {
+        const modal = document.getElementById('updateLogModal');
+        if (modal) modal.classList.remove('active');
+    };
+
     window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
 
     function performSingleAction(actionObj) {
         const action = actionObj.action;
+        // 确保执行功能时调用的是我们刚刚挂载的绝对万全版本
         if (action === 'open_music') window.openMusicModal();
         else if (action === 'close_music') window.closeMusicModal();
         else if (action === 'open_log') window.openUpdateLogModal();
@@ -122,34 +135,20 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json()).then(data => {
             const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
             
-            // 1. 如果是要跳转讨论组
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你想执行一个指令任务。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">切换到代理人执行</button>`;
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // 2. 先显示确认回复文字
-            if (data.reply) {
-                const replyMsg = document.createElement('div'); replyMsg.className = 'ai-text-msg'; replyMsg.textContent = data.reply;
-                targetList.appendChild(replyMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
-            }
-
-            // 3. 执行动作序列（如果是单步 actions 或者多步 actions 数组）
-            if (data.actions && Array.isArray(data.actions)) {
-                data.actions.forEach(action => {
-                    performSingleAction(action);
-                });
-                return;
-            }
-            
-            // 4. 兜底：如果是单步旧格式
-            if (data.action) {
+            if (isAgent && data.action) {
                 performSingleAction(data);
+                const replyText = data.reply || '指令已执行。';
+                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
+                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
                 return;
             }
 
-            // 5. 纯普通聊天
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
         }).catch(() => {
@@ -162,4 +161,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-      </script>
+          </script>
