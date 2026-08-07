@@ -45,27 +45,29 @@
     transition: 0.15s ease-out; border: 1px solid transparent;
   }
 
-  /* --- 模仿电报风格的气泡样式 --- */
+  /* --- 极深灰色气泡（接近黑色但更柔和） --- */
   #agentMessageArea {
-    scrollbar-width: none; /* Firefox 隐藏滚动条 */
-    -ms-overflow-style: none; /* IE 隐藏滚动条 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* ✅ 顶部渐隐遮罩，让气泡滑到顶时朦胧消失 */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
   }
-  #agentMessageArea::-webkit-scrollbar { display: none; } /* Chrome/Safari 隐藏滚动条 */
+  #agentMessageArea::-webkit-scrollbar { display: none; }
 
   .chat-bubble {
-    background: rgba(255, 255, 255, 0.85);
-    color: #1f2937;
-    border-radius: 18px 18px 4px 18px; /* 底部右角的方形让位给小三角 */
+    /* ✅ 改成深灰色，文字为白色 */
+    background: rgba(40, 40, 40, 0.95);
+    color: #f0f0f0;
+    border-radius: 18px 18px 4px 18px; /* 模仿Telegram气泡 */
     padding: 10px 16px;
     max-width: 85%;
     align-self: flex-end;
     position: relative;
     word-wrap: break-word;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    /* 底部滑入动画 */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  /* 气泡右下角的小三角（模仿 Telegram 风格） */
   .chat-bubble::after {
     content: '';
     position: absolute;
@@ -76,7 +78,7 @@
     background: inherit;
     border-bottom-right-radius: 4px;
     transform: rotate(45deg) translateY(4px);
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
   }
   @keyframes msgSlideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -102,16 +104,15 @@
             </div>
         </div>
 
-        <!-- ✅ 新增：消息显示区域，正好位于 Tabs 下方，在输入框之上 -->
-        <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-20 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-1">
-            <!-- 这里是消息气泡动态出现的地方 -->
+        <!-- ✅ 消息显示区域：顶部渐隐，底部延伸无死角，气泡可穿过输入框下方 -->
+        <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
+            <!-- 气泡动态生成区 -->
         </div>
 
-        <!-- ✅ 底部输入框和发送按钮 -->
-        <div class="absolute bottom-6 left-4 right-10 flex items-center gap-2 z-20">
-            <input id="agentInput" type="text" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all" />
-            <!-- ✅ 修改：按钮缩小，图标改为纯居中 + 号 -->
-            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none">
+        <!-- ✅ 悬空的底部输入栏（输入框自动撑高，按钮保持右下角对齐） -->
+        <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
+            <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-1">
                 +
             </button>
         </div>
@@ -150,6 +151,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 panelWrapper.style.transform = 'translateX(-50%)';
                 panelWrapper.style.display = 'block';
             }
+            // 清理旧消息（可选，保持每次打开清爽）
+            // agentMessageArea.innerHTML = ''; 
             setTimeout(() => { panel.classList.remove('translate-y-full'); }, 10);
         } else {
             panel.classList.add('translate-y-full');
@@ -159,34 +162,44 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ✅ 添加发送消息的交互逻辑
+    // ✅ 发送消息逻辑
     function sendMessage() {
         const text = agentInput.value.trim();
         if (!text) return;
 
-        // 创建气泡元素
         const bubble = document.createElement('div');
         bubble.className = 'chat-bubble';
         bubble.textContent = text;
 
-        // 追加到消息区域
         agentMessageArea.appendChild(bubble);
-
-        // 自动滚动到底部
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
-        // 清空输入框
         agentInput.value = '';
+        agentInput.rows = 1; // 清空后恢复单行
+        agentInput.style.height = 'auto';
     }
 
-    // 监听点击发送按钮
     agentSendBtn.addEventListener('click', sendMessage);
 
-    // 监听回车键发送
+    // ✅ 核心逻辑：超过40个字自动撑开到4行高
+    agentInput.addEventListener('input', function() {
+        // 自动触发高度适应
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+
+        // 字数大于 40 时，强制高度撑到能容纳 4 行文字的高度（约 108px ~ 120px）
+        if (this.value.length > 40 && this.scrollHeight < 108) {
+            this.style.height = '108px'; // 4 行的大致高度
+        }
+        
+        // 允许按回车键发送
+    });
+
     agentInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
     });
 });
-              </script>
+                       </script>
