@@ -1,6 +1,7 @@
-<!-- 订阅卡片下拉组件（绝对定位修正版） -->
-<div id="becomeFanDropdown" class="hidden fixed z-[9999]">
-    <div id="becomeFanCardWrapper" class="bg-black/60 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
+<!-- 订阅卡片下拉组件（强制屏幕顶部居中） -->
+<div id="becomeFanDropdown" class="hidden fixed top-[80px] left-1/2 -translate-x-1/2 z-[99999]">
+    <!-- 👇 如果你能看到红色边框，说明已经出来了！ -->
+    <div id="becomeFanCardWrapper" class="bg-black/80 backdrop-blur-xl border border-red-500/80 rounded-2xl shadow-2xl p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
         <div class="fan-container flex justify-center items-center w-full relative">
             
             <!-- 卡片 1：微光 -->
@@ -38,15 +39,15 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 10px 0;
+    padding: 8px 0;
 }
 .fan-container .fan-card {
     position: relative;
     width: 100px;
-    height: 140px;
+    height: 130px;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -54,7 +55,7 @@
     margin: 0 -32px;
     transform: rotate(calc(var(--r) * 1deg));
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 1;
 }
@@ -68,58 +69,38 @@
 }
 @media (max-width: 600px) {
     #becomeFanCardWrapper {
-        width: 260px !important;
+        width: 280px !important;
         padding: 12px 8px 14px !important;
     }
     .fan-container .fan-card {
-        width: 74px;
+        width: 80px;
         height: 110px;
-        margin: 0 -24px;
+        margin: 0 -26px;
         border-radius: 14px;
     }
     .fan-container:hover .fan-card {
         margin: 0 4px;
     }
-    .fan-card .text-2xl {
-        font-size: 1.1rem;
-    }
-    .fan-card .text-[11px] {
-        font-size: 9px;
-        bottom: 2px !important;
-    }
+    .fan-card .text-2xl { font-size: 1.1rem; }
+    .fan-card .text-[11px] { font-size: 9px; bottom: 2px !important; }
 }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 重写全局点击事件
     window.openBecomeFanModal = function() {
+        console.log("🚀 已点击开发者按钮");
         const el = document.getElementById('becomeFanDropdown');
         if (!el) return;
-
-        console.log("触发开发者卡片菜单"); // 如果你在控制台能看到这句，说明代码跑进来了！
-
-        // 精准查找文字为“开发者”的按钮
-        const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
-                          .find(el => el.innerText.trim() === '开发者');
-
-        // 【保底安全位置】无论按钮在哪，先把卡片放在右上角靠下的位置，一定能看见
-        let top = 60;
-        let right = 20;
-
-        if (btn) {
-            const rect = btn.getBoundingClientRect();
-            // 如果确实找到了按钮，就精确贴着它下方
-            top = rect.bottom + 8;
-            right = window.innerWidth - rect.right;
-        }
-
-        el.style.top = top + 'px';
-        el.style.right = right + 'px';
-
-        // 切换显示状态
+        
         if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
+            // 3秒后自动隐藏调试红框（如果你看到边框，说明生效了）
+            setTimeout(() => {
+                const wrapper = document.getElementById('becomeFanCardWrapper');
+                if(wrapper) wrapper.style.borderColor = 'rgba(255,255,255,0.2)';
+            }, 5000);
+
             setTimeout(() => { document.addEventListener('click', closeDropdownOutside); }, 10);
         } else {
             el.classList.add('hidden');
@@ -132,10 +113,10 @@ document.addEventListener("DOMContentLoaded", function() {
         const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
                           .find(el => el.innerText.trim() === '开发者');
         if (!el || el.classList.contains('hidden')) return;
-        if (!el.contains(e.target) && !btn.contains(e.target)) {
+        if (!el.contains(e.target) && !btn?.contains(e.target)) {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
         }
     }
 });
-</script>
+</script
