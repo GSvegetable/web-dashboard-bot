@@ -1,10 +1,10 @@
 <!-- 纯粹毛玻璃折叠卡片（微光 / 星光 / 极光） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <!-- 修改：去掉了顶部内边距和左内边距，整体向左上角偏移 -->
-        <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[600px] pr-6 pt-0">
+        <!-- ✅ 修改：去掉了 overflow-hidden，解除隐形边界限制 -->
+        <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
             
-            <!-- 卡片交互主容器：添加了 -mt-6 大幅上移，并重置内边距 -->
+            <!-- 卡片交互主容器 -->
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
                 <!-- 卡片 1：微光 -->
