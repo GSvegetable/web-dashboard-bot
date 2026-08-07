@@ -45,63 +45,39 @@
     transition: 0.15s ease-out; border: 1px solid transparent;
   }
 
-  /* --- 极深灰色气泡 --- */
+  /* --- 气泡设置 --- */
   #agentMessageArea {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    /* ✅ 修改：模糊线再往上升，从 6% 改为 2%，几乎贴合顶部边缘 */
+    scrollbar-width: none; -ms-overflow-style: none;
     mask-image: linear-gradient(to bottom, transparent 0%, black 2%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%);
   }
   #agentMessageArea::-webkit-scrollbar { display: none; }
 
   .chat-bubble {
-    max-width: 85%;
-    padding: 10px 16px;
-    border-radius: 18px;
-    word-wrap: break-word;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    max-width: 85%; padding: 10px 16px; border-radius: 18px;
+    word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    position: relative;
-    margin-bottom: 6px;
+    position: relative; margin-bottom: 6px;
   }
-  /* 用户气泡：右侧，深灰底，白字 */
+  /* 用户气泡 */
   .chat-bubble.user {
-    align-self: flex-end;
-    background: rgba(40, 40, 40, 0.95);
-    color: #f0f0f0;
+    align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0;
     border-radius: 18px 18px 4px 18px;
   }
   .chat-bubble.user::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    right: -6px;
-    width: 10px;
-    height: 10px;
-    background: inherit;
-    border-bottom-right-radius: 4px;
-    transform: rotate(45deg) translateY(4px);
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+    content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px;
+    background: inherit; border-bottom-right-radius: 4px;
+    transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
   }
-  /* 机器人气泡：左侧，稍浅灰色，白字 */
+  /* 机器人气泡 */
   .chat-bubble.assistant {
-    align-self: flex-start;
-    background: rgba(60, 60, 60, 0.9);
-    color: #f0f0f0;
+    align-self: flex-start; background: rgba(60, 60, 60, 0.9); color: #f0f0f0;
     border-radius: 18px 18px 18px 4px;
   }
   .chat-bubble.assistant::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: -6px;
-    width: 10px;
-    height: 10px;
-    background: inherit;
-    border-bottom-left-radius: 4px;
-    transform: rotate(-45deg) translateY(4px);
-    box-shadow: -2px 2px 4px rgba(0,0,0,0.15);
+    content: ''; position: absolute; bottom: 0; left: -6px; width: 10px; height: 10px;
+    background: inherit; border-bottom-left-radius: 4px;
+    transform: rotate(-45deg) translateY(4px); box-shadow: -2px 2px 4px rgba(0,0,0,0.15);
   }
   @keyframes msgSlideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -118,10 +94,13 @@
         <div class="agent-tabs-wrapper absolute top-4 left-4 z-20">
             <div class="container">
               <div class="tabs">
+                <!-- ✅ 修改：将 "回答" 改为 "讨论" -->
                 <input checked="" name="tabs" id="radio-1" type="radio" />
-                <label for="radio-1" class="tab">回答</label>
+                <label for="radio-1" class="tab">讨论</label>
+                
                 <input name="tabs" id="radio-2" type="radio" />
                 <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                
                 <span class="glider"></span>
               </div>
             </div>
@@ -150,6 +129,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const agentInput = document.getElementById('agentInput');
     const agentSendBtn = document.getElementById('agentSendBtn');
     const agentMessageArea = document.getElementById('agentMessageArea');
+    
+    // ✅ 模式切换状态
+    let currentMode = 'discussion'; // 'discussion' 代表讨论，'agent' 代表代理人
+
+    // 监听 Tabs 切换
+    const radio1 = document.getElementById('radio-1');
+    const radio2 = document.getElementById('radio-2');
+    if (radio1 && radio2) {
+        radio1.addEventListener('change', () => { currentMode = 'discussion'; });
+        radio2.addEventListener('change', () => { currentMode = 'agent'; });
+    }
+
     let isPanelOpen = false;
 
     function updateAgentPanelPosition() {
@@ -176,7 +167,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             setTimeout(() => { 
                 panel.classList.remove('translate-y-full'); 
-                // ✅ 修改：面板完全滑上来后，自动为输入框聚焦，唤起移动端悬浮键盘
                 setTimeout(() => { agentInput.focus(); }, 300);
             }, 10);
         } else {
@@ -191,6 +181,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const text = agentInput.value.trim();
         if (!text) return;
 
+        // 显示用户消息
         const userBubble = document.createElement('div');
         userBubble.className = 'chat-bubble user';
         userBubble.textContent = text;
@@ -201,6 +192,7 @@ document.addEventListener("DOMContentLoaded", function() {
         agentInput.rows = 1;
         agentInput.style.height = 'auto';
 
+        // 显示“思考中”占位
         const loadingBubble = document.createElement('div');
         loadingBubble.className = 'chat-bubble assistant';
         loadingBubble.textContent = '思考中...';
@@ -208,26 +200,50 @@ document.addEventListener("DOMContentLoaded", function() {
         agentMessageArea.appendChild(loadingBubble);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
+        // ✅ 发送请求：把 currentMode 传给后端
         fetch('/api/agent/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({ message: text, mode: currentMode })
         })
         .then(res => res.json())
         .then(data => {
+            // 移除“思考中”
             const loading = document.getElementById('loading-bubble');
             if (loading) loading.remove();
 
+            let replyText = data.reply || '抱歉，我现在无法回答。';
+
+            // ✅ 核心：后端如果返回了 JSON 格式的控制指令
+            if (data.action) {
+                // 如果是代理人模式收到具体的指令，我们隐藏指令代码，显示执行反馈
+                const action = data.action;
+                if (action === 'open_music' && typeof window.openMusicModal === 'function') {
+                    // 显示执行气泡
+                    const execBubble = document.createElement('div');
+                    execBubble.className = 'chat-bubble assistant';
+                    execBubble.textContent = '✅ 正在执行：打开音乐...';
+                    agentMessageArea.appendChild(execBubble);
+                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+
+                    // 模拟操作延迟，增强真实感（1秒后触发卡片）
+                    setTimeout(() => {
+                        window.openMusicModal();
+                    }, 800);
+                    return; // 执行完动作，不再显示原文
+                }
+            }
+
+            // 普通回复（或者在没匹配到特定指令时的兜底）
             const botBubble = document.createElement('div');
             botBubble.className = 'chat-bubble assistant';
-            botBubble.textContent = data.reply || '抱歉，我现在无法回答。';
+            botBubble.textContent = replyText;
             agentMessageArea.appendChild(botBubble);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         })
         .catch(() => {
             const loading = document.getElementById('loading-bubble');
             if (loading) loading.remove();
-
             const errBubble = document.createElement('div');
             errBubble.className = 'chat-bubble assistant';
             errBubble.textContent = '网络异常，请稍后再试。';
