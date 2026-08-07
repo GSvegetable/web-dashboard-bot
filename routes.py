@@ -63,7 +63,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 极简 AI 对话接口 -------------------
+# ------------------- AI 对话接口（支持多步指令） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -93,14 +93,15 @@ def agent_chat():
             reply = result['choices'][0]['message']['content']
             
             try:
-                # 尝试解析为 JSON
                 cmd = json.loads(reply)
-                # 只要包含 action 和 reply，就原样返回
-                if 'action' in cmd and 'reply' in cmd:
+                # 1. 返回包含多步 actions 的新格式
+                if 'actions' in cmd and isinstance(cmd['actions'], list):
                     return jsonify(cmd)
+                # 2. 兼容旧版单步格式（直接包装成新版数组返回）
+                if 'action' in cmd:
+                    return jsonify({"reply": cmd.get('reply', '指令已执行'), "actions": [cmd]})
                 return jsonify({'reply': reply})
             except:
-                # 如果解析失败，当成普通文字返回
                 return jsonify({'reply': reply})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
