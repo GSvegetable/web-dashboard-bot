@@ -28,7 +28,7 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- Mac 风格任务卡片 --- */
+  /* --- Mac 风格任务卡片（压缩版） --- */
   .mac-card-wrapper {
     display: flex;
     justify-content: center;
@@ -38,7 +38,7 @@
   .mac-card {
     width: 100%;
     max-width: 380px;
-    padding: 16px 20px 20px 20px;
+    padding: 14px 16px 16px 16px; /* ✅ 整体内边距压缩 */
     border: 1px solid #333;
     border-radius: 10px;
     background-color: #000;
@@ -46,19 +46,22 @@
     align-self: center;
     margin: 6px 0;
   }
-  .mac-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .mac-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } /* ✅ 下方距离压紧 */
   .mac-header span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
   .mac-header .red { background-color: #ff5f57; }
   .mac-header .yellow { background-color: #ffbd2e; }
   .mac-header .green { background-color: #28c941; }
-  .mac-card-title { font-size: 18px; font-weight: bold; margin: 0 0 4px; color: #e6e6ef; }
-  .mac-card-subtitle { font-size: 13px; color: #888; margin-bottom: 12px; }
+  /* ✅ 标题合并成一行 */
+  .mac-card-title { font-size: 15px; font-weight: bold; color: #e6e6ef; margin: 0; }
+  .mac-card-subtitle-inline { font-size: 12px; color: #888; font-weight: normal; margin-left: 4px; }
+  /* ✅ 代码框高度减半，内边距压缩 */
   .mac-code-editor {
     background-color: #0d1117; color: #b0b0b0;
     font-family: monospace; font-size: 13px; line-height: 1.6;
-    border-radius: 6px; padding: 14px;
-    height: 160px; overflow-y: auto;
+    border-radius: 6px; padding: 10px;
+    height: 80px; overflow-y: auto;
     border: 1px solid #333;
+    margin-top: 10px;
   }
   .mac-code-editor::-webkit-scrollbar { width: 6px; }
   .mac-code-editor::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
@@ -160,14 +163,13 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // ✅ 全新：Mac 风格执行任务卡片（居中展示，无动画）
+    // ✅ 更新：Mac 风格压缩版卡片（标题同排、代码框减半）
     // ==========================================
     function renderMacProcessCard(actions) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
 
-        // 任务字典：根据动作呈现不同的标题、副标题和执行日志
         const taskMetadata = {
             'open_music': {
                 title: '音频调度任务',
@@ -226,22 +228,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         };
 
-        // 如果是多步任务（比如多个动作的数组，但这里需要合并展示）
-        // 为了好看，我们只取第一个动作的元数据作为本次任务的标题
         const primaryAction = actions[0] ? actions[0].action : 'open_music';
         const meta = taskMetadata[primaryAction] || taskMetadata['open_music'];
 
-        // 构建 DOM
         const wrapper = document.createElement('div');
         wrapper.className = 'mac-card-wrapper';
         
+        // ✅ 结构修改：标题和副标题合并到同一行，代码框高度减半
         const cardHTML = `
             <div class="mac-card">
                 <div class="mac-header">
                     <span class="red"></span><span class="yellow"></span><span class="green"></span>
                 </div>
-                <div class="mac-card-title">${meta.title}</div>
-                <div class="mac-card-subtitle">${meta.subtitle}</div>
+                <div class="mac-card-title">${meta.title} <span class="mac-card-subtitle-inline">· ${meta.subtitle}</span></div>
                 <div class="mac-code-editor">
                     ${meta.steps.map(line => `<span class="mac-code-line">${line}</span>`).join('')}
                 </div>
@@ -249,12 +248,10 @@ document.addEventListener("DOMContentLoaded", function() {
         `;
         wrapper.innerHTML = cardHTML;
 
-        // 插入聊天记录
         targetList.appendChild(wrapper);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         history.push({ type: 'ai', text: '[任务报告] 已生成执行详情' });
 
-        // 触发真正的网页操作（隐藏执行）
         setTimeout(() => {
             executeSequence(actions);
         }, 300);
@@ -283,7 +280,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // ✅ 代理人专享：展示 Mac 风格任务卡片
             if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
                 renderMacProcessCard(data.action_sequence);
                 return;
