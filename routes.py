@@ -69,7 +69,7 @@ def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
-    image_base64 = data.get('image') # 前端可能传回的压缩截图
+    image_base64 = data.get('image')
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
@@ -77,7 +77,7 @@ def agent_chat():
         return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
 
     try:
-        # 核心决策：如果包含图片，切换为更懂图的模型
+        # 如果包含图片，切换为视觉模型
         has_image = image_base64 and image_base64.startswith('data:image')
         model = "glm-4v-flash" if has_image else "glm-4-flash"
 
@@ -85,7 +85,6 @@ def agent_chat():
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
-        # 构建消息体
         if has_image:
             messages = [
                 {"role": "system", "content": system_prompt},
@@ -109,7 +108,9 @@ def agent_chat():
             "temperature": 0.3
         }
         
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        # ✅ 核心修复：将请求超时时间从 30 秒延长至 60 秒
+        resp = requests.post(url, headers=headers, json=payload, timeout=60)
+        
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
@@ -120,7 +121,6 @@ def agent_chat():
             
             try:
                 cmd = json.loads(stripped_reply)
-                # 原封不动传递给前端，如果是确认模式，前端会处理
                 if 'action' in cmd:
                     return jsonify(cmd)
                 return jsonify({'reply': stripped_reply})
@@ -128,11 +128,14 @@ def agent_chat():
                 return jsonify({'reply': stripped_reply})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
+    except requests.exceptions.Timeout:
+        # ✅ 如果是超时报错，返回明确的提示给前端
+        return jsonify({'reply': '请求处理超时，请稍后重试。'})
     except Exception as e:
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# ------------------- 其他路由保持不变 -------------------
+# ------------------- 其余路由保持不变 -------------------
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
