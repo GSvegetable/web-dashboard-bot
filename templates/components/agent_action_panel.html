@@ -41,7 +41,6 @@
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
     <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
-        
         <div class="absolute top-4 left-4 z-20">
             <div class="agent-tabs-wrapper">
                 <div class="container">
@@ -57,7 +56,6 @@
         </div>
 
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
-        
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
             <div class="flex items-center gap-2 w-full pl-1">
                 <div class="model-tabs-wrapper">
@@ -74,7 +72,6 @@
                 <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -165,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ------------------ 动作和验证引擎 ------------------
     window.performAction = function(actionObj) {
         const action = actionObj.action;
         if (action === 'OPEN_MUSIC') document.getElementById('musicModal')?.classList.add('active');
@@ -182,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') document.getElementById('bg-audio')?.pause();
     };
 
-    // 实际进行 DOM 检测的验证器
+    // DOM 自检器
     function verifyMusic() {
         const modal = document.getElementById('musicModal');
         const audio = document.getElementById('bg-audio');
@@ -200,13 +196,12 @@ document.addEventListener("DOMContentLoaded", function() {
         return `执行自检：日志卡片状态：${isCardOpen ? '已激活' : '未激活'}\n`;
     }
 
-    // 获取验证结果并让 AI 生成最终回复
+    // 带 8秒超时保护的自检报告生成器
     async function generateFinalReport(userText, verifyResult) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
 
-        // 构造回传分析闭环
         const systemFeedback = `
 【系统操作与自检报告】
 用户指令：${userText}
@@ -216,7 +211,6 @@ ${verifyResult}
 请根据上述执行结果，向用户提供最终的【任务分析】、【调用链路/执行步骤】、【执行结果】和【系统自检】报告。
 `;
 
-        // 显示 AI 正在整理报告
         const loadingMsg = document.createElement('div');
         loadingMsg.className = 'ai-text-msg text-gray-400';
         loadingMsg.textContent = '正在整理执行报告...';
@@ -224,48 +218,50 @@ ${verifyResult}
         targetList.appendChild(loadingMsg);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
-        // 二次调用 AI 生成最终结案报告
-        fetch('/api/agent/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: systemFeedback, mode: currentMode, model_type: currentModel })
-        })
-        .then(res => res.json())
-        .then(data => {
+        // ✅ 核心修复：创建一个超时控制器 (8秒)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const res = await fetch('/api/agent/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: systemFeedback, mode: currentMode, model_type: currentModel }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const data = await res.json();
+
             const loading = document.getElementById('report-loading');
             if (loading) loading.remove();
 
-            // ✅ 修复：只提取纯净的回复文字
-            let finalReply = data.reply || data.reply || '报告生成失败。';
-            const botMsg = document.createElement('div');
-            botMsg.className = 'ai-text-msg';
-            botMsg.textContent = finalReply;
+            let finalReply = data.reply || '报告生成失败。';
+            const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = finalReply;
             targetList.appendChild(botMsg);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             history.push({ type: 'ai', text: finalReply });
-            isProcessing = false;
-        })
-        .catch(() => {
+
+        } catch (error) {
+            clearTimeout(timeoutId);
             const loading = document.getElementById('report-loading');
             if (loading) loading.remove();
-            const errMsg = document.createElement('div');
-            errMsg.className = 'ai-text-msg text-red-400/80';
-            errMsg.textContent = '执行完毕，但系统自检报告生成失败。';
-            targetList.appendChild(errMsg);
+
+            // 如果超时或者出错，直接打印自检报告作为兜底！
+            const timeoutMsg = document.createElement('div');
+            timeoutMsg.className = 'ai-text-msg text-yellow-400/80';
+            timeoutMsg.textContent = `⚠️ 报告生成超时，以下是直接执行结果：\n${verifyResult}`;
+            targetList.appendChild(timeoutMsg);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            history.push({ type: 'ai', text: '执行完毕，但系统自检报告生成失败。' });
-            isProcessing = false;
-        });
+            history.push({ type: 'ai', text: `自检完成（超时输出）` });
+        }
     }
 
-    // 升级后的执行引擎：先执行，再自检，最后闭环生成报告
     async function executeSequence(actions, userText) {
         let hasVerify = false;
         let verifyResult = '';
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
             const action = item.action;
-            // 检查并执行动作
             if (action === 'VERIFY_MUSIC') { hasVerify = true; verifyResult = verifyMusic(); }
             else if (action === 'VERIFY_LOG') { hasVerify = true; verifyResult = verifyLog(); }
             else { window.performAction(item); }
@@ -274,13 +270,11 @@ ${verifyResult}
             if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
 
-        // 如果包含了自检动作，触发闭环生成报告
         if (hasVerify) {
             await generateFinalReport(userText, verifyResult);
         }
     }
 
-    // ------------------ 主发送逻辑 ------------------
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -311,17 +305,15 @@ ${verifyResult}
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // 处理引导/确认...
             if (data.action === 'suggest_agent' || data.action === 'ASK_CONFIRM') {
-                // ...保留之前的逻辑代码...
+                // 省略确认按钮UI显示（逻辑与之前相同）
                 isProcessing = false; return;
             }
 
-            // ✅ 核心变动：剥离纯净的文字回复
             let actualReply = data.reply || '抱歉，无法回答。';
             let actions = data.actions || [];
 
-            // 防止 JSON 外壳残留
+            // 修复外层 JSON 外壳
             if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
                 try {
                     const parsed = JSON.parse(actualReply);
@@ -329,19 +321,20 @@ ${verifyResult}
                 } catch (e) {}
             }
 
-            // 如果是代理模式且包含动作，立即产生一个执行中占位
+            // 核心任务执行区
             if (isAgent && actions && actions.length > 0) {
                 const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = '正在执行操作并自动进行系统自检...';
                 targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '正在执行操作并自动进行系统自检...' });
 
-                // 启动异步执行引擎（先做，自检，再生成最终报告）
+                // 释放锁，允许用户再次输入，引擎挂后台执行
+                isProcessing = false; 
                 setTimeout(() => {
                     executeSequence(actions, text);
                 }, 100);
-                isProcessing = false; return;
+                return; 
             }
 
-            // 普通纯文本回复兜底
+            // 纯文本兜底
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = actualReply;
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: actualReply });
             isProcessing = false;
