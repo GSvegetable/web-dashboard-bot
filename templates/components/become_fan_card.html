@@ -8,14 +8,10 @@
                 返回
             </button>
 
-            <!-- 卡片标题 -->
-            <div class="mt-6 mb-6 flex flex-col gap-1">
-                <h2 class="text-2xl font-bold text-white tracking-wide">爱好者</h2>
-                <p class="text-gray-400 text-xs">选择适合你的计划，解锁更多功能</p>
-            </div>
+            <!-- ✅ 已删除：此处原来的“爱好者”标题和描述文字全被移除 -->
 
             <!-- 套餐列表 -->
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-4 mt-8">
 
                 <!-- 方案一：15元/月 -->
                 <div class="flex flex-col sm:flex-row gap-6 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition duration-200">
@@ -104,7 +100,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const modalOverlay = document.getElementById('becomeFanModal');
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
-            // 只要点击的是背景层，就触发 splash.html 里定义的关闭方法
             if (e.target === modalOverlay) {
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
@@ -113,4 +108,4 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
-</script>
+                                    </script>
