@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（增强半透毛玻璃效果） -->
+<!-- 极光炫彩渐变按钮组件（定制毛玻璃色调） -->
 <style>
   .action-flex {
     display: flex;
@@ -6,15 +6,15 @@
     gap: 5px;
   }
   .outer-cont {
-    /* ✅ 拉长：左右内边距从 20px 加宽到 32px */
+    /* ✅ 拉长：左右内边距保持 32px */
     padding: 12px 32px; 
     border: none;
     font-size: 1rem;
     cursor: pointer;
     position: relative;
     
-    /* ✅ 颜色不变：用 rgba 保持原色，增加 0.8 透明度，配合模糊实现玻璃感 */
-    background: linear-gradient(90deg, rgba(91, 252, 196, 0.8), rgba(245, 147, 228, 0.8), rgba(113, 164, 240, 0.8));
+    /* ✅ 核心修改：替换为你指定的 3 种颜色，保持透明度 0.8 实现玻璃感 */
+    background: linear-gradient(90deg, rgba(147, 150, 95, 0.8), rgba(73, 63, 54, 0.8), rgba(245, 230, 207, 0.8));
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     
@@ -26,7 +26,6 @@
       inset 0px 35px 30px rgba(0, 0, 0, 0.8),
       0px 5px 10px rgba(0, 0, 0, 0.7);
     text-shadow: 1px 1px 1px #000;
-    /* 删除了整体的 opacity，改为背景透明的方案，文字保持纯白 */
   }
   .outer-cont::before {
     content: "";
@@ -37,11 +36,12 @@
     filter: blur(0);
     z-index: -1;
     box-shadow: none;
+    /* ✅ 背后的发光圆锥渐变也换上对应颜色 */
     background: conic-gradient(
       rgba(0,0,0,0) 80deg,
-      #40baf7,
-      #f34ad7,
-      #5bfcc4,
+      #93965F,
+      #493F36,
+      #F5E6CF,
       rgba(0,0,0,0) 280deg
     );
     transition: all 0.3s ease;
