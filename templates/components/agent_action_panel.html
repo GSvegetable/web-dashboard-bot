@@ -45,29 +45,34 @@
     transition: 0.15s ease-out; border: 1px solid transparent;
   }
 
-  /* --- 极深灰色气泡 --- */
+  /* --- 气泡通用设置 --- */
   #agentMessageArea {
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* ✅ 修改：调整顶部渐隐过渡百分比，让模糊线往上移约 10 像素（从 15% 减至 10%） */
-    mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
+    /* ✅ 模糊线再往上移 4 像素：从 10% 改为 6% */
+    mask-image: linear-gradient(to bottom, transparent 0%, black 6%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 6%);
   }
   #agentMessageArea::-webkit-scrollbar { display: none; }
 
   .chat-bubble {
-    background: rgba(40, 40, 40, 0.95);
-    color: #f0f0f0;
-    border-radius: 18px 18px 4px 18px;
-    padding: 10px 16px;
     max-width: 85%;
-    align-self: flex-end;
-    position: relative;
+    padding: 10px 16px;
+    border-radius: 18px;
     word-wrap: break-word;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    position: relative;
+    margin-bottom: 6px;
   }
-  .chat-bubble::after {
+  /* 用户气泡：右侧，深灰底，白字 */
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(40, 40, 40, 0.95);
+    color: #f0f0f0;
+    border-radius: 18px 18px 4px 18px;
+  }
+  .chat-bubble.user::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -78,6 +83,25 @@
     border-bottom-right-radius: 4px;
     transform: rotate(45deg) translateY(4px);
     box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+  }
+  /* 机器人气泡：左侧，稍浅灰色，白字 */
+  .chat-bubble.assistant {
+    align-self: flex-start;
+    background: rgba(60, 60, 60, 0.9);
+    color: #f0f0f0;
+    border-radius: 18px 18px 18px 4px;
+  }
+  .chat-bubble.assistant::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -6px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-bottom-left-radius: 4px;
+    transform: rotate(-45deg) translateY(4px);
+    box-shadow: -2px 2px 4px rgba(0,0,0,0.15);
   }
   @keyframes msgSlideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -103,7 +127,7 @@
             </div>
         </div>
 
-        <!-- ✅ 修改：消息区域 top 改回 70px，第一条消息靠上、不再下移 -->
+        <!-- 消息显示区 -->
         <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
             <!-- 气泡动态生成区 -->
         </div>
@@ -159,20 +183,60 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.addEventListener('resize', updateAgentPanelPosition);
 
+    // ✅ 核心智能体交互：发送消息给 AI
     function sendMessage() {
         const text = agentInput.value.trim();
         if (!text) return;
 
-        const bubble = document.createElement('div');
-        bubble.className = 'chat-bubble';
-        bubble.textContent = text;
-
-        agentMessageArea.appendChild(bubble);
+        // 1. 显示用户的消息气泡
+        const userBubble = document.createElement('div');
+        userBubble.className = 'chat-bubble user';
+        userBubble.textContent = text;
+        agentMessageArea.appendChild(userBubble);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
+        // 清空输入框
         agentInput.value = '';
         agentInput.rows = 1;
         agentInput.style.height = 'auto';
+
+        // 2. 显示“正在思考...”的占位气泡
+        const loadingBubble = document.createElement('div');
+        loadingBubble.className = 'chat-bubble assistant';
+        loadingBubble.textContent = '思考中...';
+        loadingBubble.id = 'loading-bubble';
+        agentMessageArea.appendChild(loadingBubble);
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+
+        // 3. 向后端发送请求
+        fetch('/api/agent/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        })
+        .then(res => res.json())
+        .then(data => {
+            // 移除“思考中”气泡
+            const loading = document.getElementById('loading-bubble');
+            if (loading) loading.remove();
+
+            // 显示 AI 回复气泡
+            const botBubble = document.createElement('div');
+            botBubble.className = 'chat-bubble assistant';
+            botBubble.textContent = data.reply || '抱歉，我现在无法回答。';
+            agentMessageArea.appendChild(botBubble);
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        })
+        .catch(() => {
+            const loading = document.getElementById('loading-bubble');
+            if (loading) loading.remove();
+
+            const errBubble = document.createElement('div');
+            errBubble.className = 'chat-bubble assistant';
+            errBubble.textContent = '网络异常，请稍后再试。';
+            agentMessageArea.appendChild(errBubble);
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        });
     }
 
     agentSendBtn.addEventListener('click', sendMessage);
