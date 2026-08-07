@@ -99,16 +99,16 @@ def agent_chat():
             
             try:
                 parsed = json.loads(stripped_reply)
-                # 1. 标准格式：包含 reply 和 actions
-                if isinstance(parsed, dict) and 'reply' in parsed and 'actions' in parsed:
-                    return jsonify({'reply': parsed['reply'], 'actions': parsed['actions']})
-                # 2. 确认动作
+                # 标准格式：包含 reply 和 actions
+                if isinstance(parsed, dict) and 'reply' in parsed:
+                    # 确保任何含有 reply 的 JSON，都会把 reply 字段剥离出来作为文字
+                    return jsonify({'reply': parsed['reply'], 'actions': parsed.get('actions', [])})
+                # 确认动作
                 if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
                     return jsonify(parsed)
-                # 3. 单动作兼容
+                # 单动作兼容
                 if isinstance(parsed, dict) and parsed.get('action'):
                     return jsonify({'reply': parsed.get('reply', '已执行。'), 'actions': [parsed]})
-                # 4. 纯文本
                 return jsonify({'reply': stripped_reply})
             except:
                 return jsonify({'reply': stripped_reply})
@@ -118,7 +118,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# 其他路由完全保持不变...
+# 其他路由保持不变...
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
