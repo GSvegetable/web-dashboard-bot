@@ -1,49 +1,38 @@
-<!-- 订阅卡片组件（微光、星光、极光） -->
-<div class="modal-overlay" id="becomeFanModal">
-    <div class="modal-box flex justify-center w-full">
-        <!-- 卡片框体，去掉多余文字 -->
-        <div id="becomeFanCardWrapper" class="subscribe-card relative overflow-hidden w-full max-w-[540px] p-6 sm:p-8 pt-10 flex flex-col items-center justify-center">
+<!-- 订阅卡片下拉组件（紧凑折叠、渐变数字） -->
+<div id="becomeFanDropdown" class="hidden fixed top-[62px] right-6 z-[9999] w-[320px] md:w-[380px]">
+    <div id="becomeFanCardWrapper" class="bg-black/50 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-5 pt-4 pb-5">
+        <div class="fan-container flex justify-center items-center w-full relative">
             
-            <!-- 三卡片展示区（修正展开偏移） -->
-            <div class="fan-container flex justify-center items-center w-full py-4">
-                
-                <!-- 卡片 1：微光 -->
-                <div class="fan-glass" style="--r:-14;" data-text="微光">
-                    <div class="flex flex-col items-center justify-center">
-                        <span class="text-2xl font-bold text-cyan-300 tracking-tight">¥15</span>
-                        <span class="text-[10px] text-gray-400">/ 月</span>
-                    </div>
+            <!-- 卡片 1：微光 -->
+            <div class="fan-card" style="--r:-14;">
+                <div class="flex flex-col items-center justify-center gap-0">
+                    <span class="text-2xl font-bold bg-gradient-to-b from-cyan-300 to-cyan-500 text-transparent bg-clip-text">¥15</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">微光</span>
                 </div>
-
-                <!-- 卡片 2：星光 -->
-                <div class="fan-glass" style="--r:0;" data-text="星光">
-                    <div class="flex flex-col items-center justify-center">
-                        <span class="text-2xl font-bold text-yellow-300 tracking-tight">¥40</span>
-                        <span class="text-[10px] text-gray-400">/ 月</span>
-                    </div>
-                </div>
-
-                <!-- 卡片 3：极光 -->
-                <div class="fan-glass" style="--r:14;" data-text="极光">
-                    <div class="flex flex-col items-center justify-center">
-                        <span class="text-2xl font-bold text-purple-400 tracking-tight">¥310</span>
-                        <span class="text-[10px] text-gray-400">/ 月</span>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- 订阅按钮 -->
-            <button class="mt-6 w-full max-w-[280px] py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm font-medium transition active:scale-95">
-                立即订阅
-            </button>
+            <!-- 卡片 2：星光 -->
+            <div class="fan-card" style="--r:0;">
+                <div class="flex flex-col items-center justify-center gap-0">
+                    <span class="text-2xl font-bold bg-gradient-to-b from-yellow-300 to-yellow-500 text-transparent bg-clip-text">¥40</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">星光</span>
+                </div>
+            </div>
+
+            <!-- 卡片 3：极光 -->
+            <div class="fan-card" style="--r:14;">
+                <div class="flex flex-col items-center justify-center gap-0">
+                    <span class="text-2xl font-bold bg-gradient-to-b from-purple-400 to-purple-600 text-transparent bg-clip-text">¥310</span>
+                    <span class="absolute bottom-2.5 text-[11px] text-gray-400/80 font-medium tracking-wide">极光</span>
+                </div>
+            </div>
 
         </div>
     </div>
 </div>
 
 <style>
-/* 卡片排列容器，保证居中 */
+/* 紧凑底部对齐 */
 .fan-container {
     position: relative;
     display: flex;
@@ -53,67 +42,102 @@
     padding: 10px 0;
 }
 
-/* 单张卡片毛玻璃质感 */
-.fan-container .fan-glass {
+/* 单张卡片 - 更紧密的折叠 */
+.fan-container .fan-card {
     position: relative;
-    width: 130px;
-    height: 170px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100px;
+    height: 140px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 18px;
-    margin: 0 -20px; /* 紧凑交叠 */
-    backdrop-filter: blur(10px);
-    transform: rotate(calc(var(--r) * 1deg));
-    z-index: 1;
-    cursor: pointer;
-}
-
-/* 卡片底部的名字（微光/星光/极光） */
-.fan-glass::before {
-    content: attr(data-text);
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 34px;
-    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #d1d5db;
-    font-size: 13px;
-    font-weight: 500;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0 0 18px 18px;
+    margin: 0 -30px; /* 折叠时负边距加大，更紧凑 */
+    transform: rotate(calc(var(--r) * 1deg));
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 1;
 }
 
-/* 悬停展开 - 原地拉开，不会有单独飞到屏幕中间的错位 */
-.fan-container:hover .fan-glass,
-.fan-container:focus-within .fan-glass {
+/* 悬停展开效果 */
+.fan-container:hover .fan-card,
+.fan-container:focus-within .fan-card {
     transform: rotate(0deg);
-    margin: 0 8px; /* 展开距离 */
+    margin: 0 6px; /* 展开距离合适 */
     z-index: 10;
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
-/* 手机端适配 */
+/* 移动端适配 */
 @media (max-width: 600px) {
-    .fan-container .fan-glass {
-        width: 100px;
-        height: 130px;
-        margin: 0 -16px;
+    #becomeFanDropdown {
+        width: 260px;
+        right: 12px;
+        top: 56px;
     }
-    .fan-glass::before {
-        height: 28px;
-        font-size: 11px;
+    .fan-container .fan-card {
+        width: 76px;
+        height: 110px;
+        margin: 0 -22px; /* 移动端折叠更紧 */
+        border-radius: 14px;
     }
-    .fan-container:hover .fan-glass {
-        margin: 0 5px;
+    .fan-container:hover .fan-card {
+        margin: 0 4px;
+    }
+    .fan-card .text-2xl {
+        font-size: 1.1rem;
+    }
+    .fan-card .text-[11px] {
+        font-size: 9px;
+        bottom: 2px !important;
+    }
+    #becomeFanCardWrapper {
+        padding: 12px 8px 14px !important;
     }
 }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 覆盖 splash.html 里的 openBecomeFanModal 方法
+    window.openBecomeFanModal = function() {
+        toggleDropdown();
+    };
+    // 兼容新方法的调用
+    window.toggleBecomeFanDropdown = function() {
+        toggleDropdown();
+    };
+
+    function toggleDropdown() {
+        const el = document.getElementById('becomeFanDropdown');
+        if (!el) return;
+        
+        if (el.classList.contains('hidden')) {
+            el.classList.remove('hidden');
+            // 添加点击外部关闭的监听
+            setTimeout(() => {
+                document.addEventListener('click', closeDropdownOutside);
+            }, 10);
+        } else {
+            el.classList.add('hidden');
+            document.removeEventListener('click', closeDropdownOutside);
+        }
+    }
+
+    function closeDropdownOutside(e) {
+        const el = document.getElementById('becomeFanDropdown');
+        const btn = document.querySelector('.top-actions .top-btn');
+        if (!el || el.classList.contains('hidden')) return;
+        
+        // 如果点击的不是下拉菜单本身，也不是触发按钮，则关闭
+        if (!el.contains(e.target) && !btn.contains(e.target)) {
+            el.classList.add('hidden');
+            document.removeEventListener('click', closeDropdownOutside);
+        }
+    }
+});
+</script>
