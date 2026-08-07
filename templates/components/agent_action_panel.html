@@ -1,6 +1,7 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .tabs * { z-index: 2; }
   .agent-tabs-wrapper input[type="radio"] { display: none; }
@@ -12,17 +13,61 @@
   .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
+  
   #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
   #agentMessageArea::-webkit-scrollbar { display: none; }
+  
   .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
   .chat-list.hidden { display: none; }
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
+  
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
   .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
   .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
   .suggest-switch-box button:active { transform: scale(0.95); }
+  
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* --- 高科技状态日志 UI --- */
+  .status-log-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+    padding: 2px 0;
+  }
+  .status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .spin-loader {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .status-done {
+    color: #22c55e; /* 绿色 */
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .log-text {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.85rem;
+    letter-spacing: 0.2px;
+    transition: color 0.2s;
+  }
+  .log-text.active {
+    color: #ffffff;
+  }
 </style>
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
@@ -81,7 +126,6 @@ document.addEventListener("DOMContentLoaded", function() {
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
 
-    // 核心执行引擎：单步执行（已增加关闭卡片的映射）
     function performSingleAction(actionObj) {
         const action = actionObj.action;
         if (action === 'open_music') window.openMusicModal();
@@ -100,7 +144,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // 核心执行引擎：多步队列执行
     async function executeSequence(actions) {
         if (isExecuting) return;
         isExecuting = true;
@@ -118,6 +161,75 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // ==========================================
+    // ✨ 新增：代理人专属状态日志（无表情，严谨流程）
+    // ==========================================
+    async function displayActionSteps(actions) {
+        const isAgent = currentMode === 'agent';
+        const targetList = isAgent ? agentList : discussionList;
+        const history = isAgent ? agentHistory : discussionHistory;
+
+        // 状态文本清单
+        const logTexts = [
+            '·正在封装协议载荷，准备提交至Agent执行单元',
+            '·负载序列化完成，正向路由端点发起API请求',
+            '·路由匹配成功，正在调度动作解析器',
+            '·唤醒业务组件，尝试打开音乐',
+            '·正在检查当前音频播放器状态',
+            '·音频流已正常建立，音乐卡片已弹出',
+            '·执行完毕'
+        ];
+
+        const logElements = [];
+
+        // 1. 批量插入带加载动画的行
+        logTexts.forEach((text, index) => {
+            const line = document.createElement('div');
+            line.className = 'status-log-line';
+            line.innerHTML = `
+                <span class="status-indicator">
+                    <span class="spin-loader"></span>
+                </span>
+                <span class="log-text">${text}</span>
+            `;
+            targetList.appendChild(line);
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+            logElements.push(line);
+        });
+
+        // 2. 逐行动画推进（每步 320ms）
+        for (let i = 0; i < logElements.length; i++) {
+            const line = logElements[i];
+            const loader = line.querySelector('.spin-loader');
+            const textEl = line.querySelector('.log-text');
+
+            // 等待片刻
+            await new Promise(r => setTimeout(r, 320));
+
+            // 隐藏加载圈，显示 ✓ 符号
+            if (loader) {
+                loader.style.display = 'none';
+            }
+            // 使用纯文本 ✓ 代替旋转圈，非表情包
+            const checkMark = document.createElement('span');
+            checkMark.className = 'status-done';
+            checkMark.textContent = '✓';
+            line.querySelector('.status-indicator').appendChild(checkMark);
+
+            // 文字高亮变白
+            if (textEl) {
+                textEl.classList.add('active');
+            }
+
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        }
+
+        // 3. 日志播放完后，执行真正的后台调用
+        setTimeout(() => {
+            executeSequence(actions);
+        }, 200);
+    }
+
     function sendMessageInternal() {
         const text = agentInput.value.trim();
         if (!text) return;
@@ -125,12 +237,17 @@ document.addEventListener("DOMContentLoaded", function() {
         const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'user', text: text });
         agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
-        const loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
-        targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        
+        // 只有代理人模式才显示 Thinking...
+        if (isAgent) {
+            const loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
+            targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        }
 
         fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
         .then(res => res.json()).then(data => {
-            const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
+            const loading = document.getElementById('loading-bubble');
+            if (loading) loading.remove();
             
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
@@ -138,12 +255,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // 核心：如果有动作序列返回，由前端引擎执行
-            if (data.action_sequence && Array.isArray(data.action_sequence)) {
-                executeSequence(data.action_sequence);
+            // ✅ 代理人专享：执行状态日志显示
+            if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
+                displayActionSteps(data.action_sequence);
                 return;
             }
 
+            // 普通AI回复（讨论模式兜底）
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
         }).catch(() => {
@@ -156,4 +274,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-          </script>
+</script>
