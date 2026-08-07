@@ -1,7 +1,6 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-  
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .tabs * { z-index: 2; }
   .agent-tabs-wrapper input[type="radio"] { display: none; }
@@ -29,7 +28,6 @@
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
   .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
-  
   .confirm-box { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 16px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; max-width: 90%; }
   .confirm-box .btn-group { display: flex; gap: 8px; margin-top: 8px; }
   .confirm-box .btn-group button { background: #493F36; color: white; border: none; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
@@ -162,10 +160,20 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // 核心动作执行器（如果元素不存在，不再静默失败，直接抛异常）
     window.performAction = function(actionObj) {
         const action = actionObj.action;
-        if (action === 'OPEN_MUSIC') document.getElementById('musicModal')?.classList.add('active');
-        else if (action === 'CLOSE_MUSIC') { document.getElementById('musicModal')?.classList.remove('active'); document.getElementById('bg-audio')?.pause(); if(document.getElementById('bg-audio')) document.getElementById('bg-audio').currentTime = 0; }
+        if (action === 'OPEN_MUSIC') {
+            const el = document.getElementById('musicModal');
+            if (!el) throw new Error('DOM节点 musicModal 不存在');
+            el.classList.add('active');
+        }
+        else if (action === 'CLOSE_MUSIC') {
+            const el = document.getElementById('musicModal');
+            const audio = document.getElementById('bg-audio');
+            if (el) el.classList.remove('active');
+            if (audio) { audio.pause(); audio.currentTime = 0; }
+        }
         else if (action === 'OPEN_LOG') document.getElementById('updateLogModal')?.classList.add('active');
         else if (action === 'CLOSE_LOG') document.getElementById('updateLogModal')?.classList.remove('active');
         else if (action === 'TOGGLE_FULLSCREEN') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
@@ -174,51 +182,64 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (action === 'OPEN_DEVELOPER') document.getElementById('becomeFanModal')?.classList.add('active');
         else if (action === 'SWITCH_TO_DISCUSSION') { if (document.getElementById('radio-1')) document.getElementById('radio-1').click(); }
         else if (action === 'SWITCH_TO_AGENT') { if (document.getElementById('radio-2')) document.getElementById('radio-2').click(); }
-        else if (action === 'MUSIC_PLAY') document.getElementById('bg-audio')?.play().catch(e => console.log('播放被拦截', e));
-        else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') document.getElementById('bg-audio')?.pause();
+        else if (action === 'MUSIC_PLAY') {
+            const audio = document.getElementById('bg-audio');
+            if (audio) audio.play().catch(e => console.log('播放被拦截', e));
+        }
+        else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
+            const audio = document.getElementById('bg-audio');
+            if (audio) audio.pause();
+        }
     };
 
-    // DOM 自检器
+    // 绝对真实的 DOM 自检
     function verifyMusic() {
         const modal = document.getElementById('musicModal');
         const audio = document.getElementById('bg-audio');
         const isCardOpen = modal && modal.classList.contains('active');
         const isPlaying = audio && !audio.paused && audio.currentTime > 0;
-        let report = `执行自检：\n`;
-        report += `- 音乐卡片状态：${isCardOpen ? '已激活' : '未激活'}\n`;
-        report += `- 音频播放状态：${isPlaying ? '正在播放' : '未播放'}\n`;
-        return report;
+        return {
+            success: isCardOpen && isPlaying,
+            report: `音乐卡片状态：${isCardOpen ? '已激活' : '未激活'}，音频播放状态：${isPlaying ? '正在播放' : '未播放'}`
+        };
     }
 
     function verifyLog() {
         const modal = document.getElementById('updateLogModal');
         const isCardOpen = modal && modal.classList.contains('active');
-        return `执行自检：日志卡片状态：${isCardOpen ? '已激活' : '未激活'}\n`;
+        return {
+            success: isCardOpen,
+            report: `日志卡片状态：${isCardOpen ? '已激活' : '未激活'}`
+        };
     }
 
-    // 带 8秒超时保护的自检报告生成器
+    // 将真实结果反馈给 AI，如果重试仍失败，直接告知用户
     async function generateFinalReport(userText, verifyResult) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
 
+        const loadingMsg = document.getElementById('report-loading');
+        if (loadingMsg) loadingMsg.remove();
+
+        // 构造提供给 AI 的真实系统报告
         const systemFeedback = `
-【系统操作与自检报告】
+【系统真实操作与自检报告】
 用户指令：${userText}
-原子动作已全部执行完毕。
+原子动作已执行完毕。
 【自检结果】
-${verifyResult}
-请根据上述执行结果，向用户提供最终的【任务分析】、【调用链路/执行步骤】、【执行结果】和【系统自检】报告。
+${verifyResult.report}
+请根据真实的执行结果回复用户。如果失败，请明确指出失败，并给出建议。
 `;
 
-        const loadingMsg = document.createElement('div');
-        loadingMsg.className = 'ai-text-msg text-gray-400';
-        loadingMsg.textContent = '正在整理执行报告...';
-        loadingMsg.id = 'report-loading';
-        targetList.appendChild(loadingMsg);
+        const loadingReport = document.createElement('div');
+        loadingReport.className = 'ai-text-msg text-gray-400';
+        loadingReport.textContent = '正在根据真实检查结果整理汇报...';
+        loadingReport.id = 'report-loading';
+        targetList.appendChild(loadingReport);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
-        // ✅ 核心修复：创建一个超时控制器 (8秒)
+        // 8秒超时控制
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -236,7 +257,9 @@ ${verifyResult}
             if (loading) loading.remove();
 
             let finalReply = data.reply || '报告生成失败。';
-            const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = finalReply;
+            const botMsg = document.createElement('div');
+            botMsg.className = 'ai-text-msg';
+            botMsg.textContent = finalReply;
             targetList.appendChild(botMsg);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             history.push({ type: 'ai', text: finalReply });
@@ -246,31 +269,70 @@ ${verifyResult}
             const loading = document.getElementById('report-loading');
             if (loading) loading.remove();
 
-            // 如果超时或者出错，直接打印自检报告作为兜底！
+            // 无论是否超时，直接输出当前的真实自检结果，绝对不骗人！
             const timeoutMsg = document.createElement('div');
             timeoutMsg.className = 'ai-text-msg text-yellow-400/80';
-            timeoutMsg.textContent = `⚠️ 报告生成超时，以下是直接执行结果：\n${verifyResult}`;
+            timeoutMsg.textContent = `⚠️ 整理报告超时，以下是直接执行的真实结果：\n${verifyResult.report}`;
             targetList.appendChild(timeoutMsg);
             agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             history.push({ type: 'ai', text: `自检完成（超时输出）` });
         }
     }
 
-    async function executeSequence(actions, userText) {
+    // 主执行引擎：支持“失败 -> 自动重试一次”
+    async function executeSequence(actions, userText, retryCount = 0) {
         let hasVerify = false;
-        let verifyResult = '';
+        let verifyResult = null;
+
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
             const action = item.action;
-            if (action === 'VERIFY_MUSIC') { hasVerify = true; verifyResult = verifyMusic(); }
-            else if (action === 'VERIFY_LOG') { hasVerify = true; verifyResult = verifyLog(); }
-            else { window.performAction(item); }
+            if (action === 'VERIFY_MUSIC') {
+                hasVerify = true;
+                verifyResult = verifyMusic();
+                // 如果验证失败，且重试次数小于1，我们立刻重试一次
+                if (!verifyResult.success && retryCount < 1) {
+                    // 报告第一次失败
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'ai-text-msg text-red-400/80';
+                    errorMsg.textContent = '⚠️ 第一次打开失败，检测到卡片未响应。正在尝试重新调度组件...';
+                    const targetList = currentMode === 'agent' ? agentList : discussionList;
+                    targetList.appendChild(errorMsg);
+                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                    (currentMode === 'agent' ? agentHistory : discussionHistory).push({ type: 'ai', text: '触发重试机制' });
+
+                    // 主动在后台补一次 OPEN_MUSIC
+                    window.performAction({action: 'OPEN_MUSIC'});
+                    // 等待500ms让 DOM 刷新
+                    await new Promise(r => setTimeout(r, 500));
+                    // 再次验证
+                    const retryVerify = verifyMusic();
+                    if (retryVerify.success) {
+                        verifyResult = { success: true, report: retryVerify.report + '（重试后成功）' };
+                    } else {
+                        verifyResult = { success: false, report: retryVerify.report + '（重试依然失败）' };
+                    }
+                }
+            }
+            else if (action === 'VERIFY_LOG') {
+                hasVerify = true;
+                verifyResult = verifyLog();
+            }
+            else {
+                try {
+                    window.performAction(item);
+                } catch (e) {
+                    // 如果 DOM 执行报错，直接返回失败报告
+                    verifyResult = { success: false, report: `执行动作时发生底层错误：${e.message}` };
+                    hasVerify = true;
+                }
+            }
 
             const waitTime = item.delay || 0;
             if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
 
-        if (hasVerify) {
+        if (hasVerify && verifyResult) {
             await generateFinalReport(userText, verifyResult);
         }
     }
@@ -306,14 +368,13 @@ ${verifyResult}
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
             if (data.action === 'suggest_agent' || data.action === 'ASK_CONFIRM') {
-                // 省略确认按钮UI显示（逻辑与之前相同）
                 isProcessing = false; return;
             }
 
             let actualReply = data.reply || '抱歉，无法回答。';
             let actions = data.actions || [];
 
-            // 修复外层 JSON 外壳
+            // 修复外层 JSON 透传问题
             if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
                 try {
                     const parsed = JSON.parse(actualReply);
@@ -321,20 +382,30 @@ ${verifyResult}
                 } catch (e) {}
             }
 
-            // 核心任务执行区
+            // 代理人任务引擎
             if (isAgent && actions && actions.length > 0) {
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = '正在执行操作并自动进行系统自检...';
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '正在执行操作并自动进行系统自检...' });
+                const botMsg = document.createElement('div');
+                botMsg.className = 'ai-text-msg';
+                // 拦截掉它可能产生的“虚假成功”，替换为真实的执行反馈
+                if (actualReply.includes('已打开')) {
+                    botMsg.textContent = '正在调度音乐组件...';
+                } else {
+                    botMsg.textContent = actualReply;
+                }
+                targetList.appendChild(botMsg);
+                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                history.push({ type: 'ai', text: actualReply });
 
-                // 释放锁，允许用户再次输入，引擎挂后台执行
+                // 释放 UI 锁，让后台去真实跑检查
                 isProcessing = false; 
                 setTimeout(() => {
+                    // 执行引擎（包含重试和真实自检）
                     executeSequence(actions, text);
                 }, 100);
                 return; 
             }
 
-            // 纯文本兜底
+            // 纯文字兜底（通常发生在讨论模式）
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = actualReply;
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: actualReply });
             isProcessing = false;
