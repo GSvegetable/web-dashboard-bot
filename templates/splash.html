@@ -11,7 +11,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
-        :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
+        /* 初始为白色主题 */
+        :root { 
+            --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); 
+            --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); 
+        }
         body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
         body.loaded { opacity: 1; }
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
@@ -234,7 +238,7 @@
             const defaultTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
             const newTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
 
-            // ✅ 强制初始化字体纹理，解决刷新后字看不见的问题
+            // 强制初始化字体纹理
             textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
 
             window.toggleTheme = function(event) {
