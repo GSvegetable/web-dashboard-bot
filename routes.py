@@ -24,7 +24,6 @@ main_bp = Blueprint('main', __name__)
 
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 
-# ------------------- 页面路由 -------------------
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
@@ -63,13 +62,12 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 带视觉能力的 AI 接口 -------------------
+# ------------------- 纯文本动作映射 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
-    image_base64 = data.get('image')
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
@@ -77,40 +75,20 @@ def agent_chat():
         return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
 
     try:
-        # 如果包含图片，切换为视觉模型
-        has_image = image_base64 and image_base64.startswith('data:image')
-        model = "glm-4v-flash" if has_image else "glm-4-flash"
-
         url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
-        if has_image:
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user", 
-                    "content": [
-                        {"type": "text", "text": user_message},
-                        {"type": "image_url", "image_url": {"url": image_base64}}
-                    ]
-                }
-            ]
-        else:
-            messages = [
+        payload = {
+            "model": "glm-4-flash", # 纯文本推理，省钱且快
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
-            ]
-
-        payload = {
-            "model": model,
-            "messages": messages,
+            ],
             "temperature": 0.3
         }
         
-        # ✅ 核心修复：将请求超时时间从 30 秒延长至 60 秒
-        resp = requests.post(url, headers=headers, json=payload, timeout=60)
-        
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
@@ -120,22 +98,26 @@ def agent_chat():
                 stripped_reply = stripped_reply.replace('```json', '').replace('```', '').strip()
             
             try:
-                cmd = json.loads(stripped_reply)
-                if 'action' in cmd:
-                    return jsonify(cmd)
+                parsed = json.loads(stripped_reply)
+                # 如果解析出来是动作列表（数组）
+                if isinstance(parsed, list):
+                    return jsonify({'action_sequence': parsed})
+                # 如果解析出来是确认动作
+                if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
+                    return jsonify(parsed)
+                # 可能是带单动作的字典
+                if isinstance(parsed, dict) and parsed.get('action'):
+                    return jsonify({'action_sequence': [parsed]})
                 return jsonify({'reply': stripped_reply})
             except:
                 return jsonify({'reply': stripped_reply})
         else:
             return jsonify({'reply': f'API Error: {resp.status_code}'})
-    except requests.exceptions.Timeout:
-        # ✅ 如果是超时报错，返回明确的提示给前端
-        return jsonify({'reply': '请求处理超时，请稍后重试。'})
     except Exception as e:
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# ------------------- 其余路由保持不变 -------------------
+# 以下路由保持不变（扫码、注册、登录、Webhook 等）
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
