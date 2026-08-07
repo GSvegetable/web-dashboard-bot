@@ -7,12 +7,12 @@
 
 <!-- z-index 只设到 50，不遮挡常规页面点击，也不制造黑色遮罩 -->
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
-    <!-- 玻璃质感面板：轻微虚化 + 半透明白底 + 顶部边框 -->
+    <!-- ✅ 修改：高度从 60px 扩大 10 倍，改为 600px -->
     <div id="agentPanel" 
          class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full"
-         style="height: 60px; width: 100%;">
+         style="height: 600px; width: 100%;">
          
-        <!-- 面板内部内容占位（你以后可以在里面加图标或文字） -->
+        <!-- 内部内容占位（因为变长了，文字依然保持在垂直正中间） -->
         <div class="flex items-center justify-center h-full text-white/60 text-sm tracking-wider">
             Agent 智能控制台
         </div>
@@ -53,8 +53,5 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 400);
         }
     };
-
-    // ⚠️ 严格遵循要求：没有遮罩层，所以不监听外部点击。
-    // 只有再次点击 Agent 按钮才能触发关闭。
 });
 </script>
