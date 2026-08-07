@@ -55,8 +55,8 @@
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
                 <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">保存</button>
                 
-                <!-- ✅ 修改：彻底移除任何 bg- 颜色底框，尺寸缩减到 220px -->
-                <div id="qrCodeImageContainer" class="w-[220px] h-[220px] flex items-center justify-center mt-6 mb-2 transition-all">
+                <!-- ✅ 修改：尺寸精确改成 200px -->
+                <div id="qrCodeImageContainer" class="w-[200px] h-[200px] flex items-center justify-center mt-6 mb-2 transition-all">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function() {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
                 
-                // ✅ 修改：直接铺满 220px 透明框（无内边距，无底色，纯净的二维码自带白底悬浮）
+                // ✅ 图片按比例铺满 200px 框
                 qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain rounded-2xl block">`;
                 startQrPolling(data.token);
             } else {
@@ -214,4 +214,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-        </script>
+    </script>
