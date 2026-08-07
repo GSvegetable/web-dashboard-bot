@@ -97,34 +97,32 @@ document.addEventListener("DOMContentLoaded", function() {
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
 
-    function performSingleAction(actionObj) {
+    // 原子动作映射执行器
+    function performAction(actionObj) {
         const action = actionObj.action;
-        if (action === 'open_music') window.openMusicModal();
-        else if (action === 'close_music') window.closeMusicModal();
-        else if (action === 'open_log') window.openUpdateLogModal();
-        else if (action === 'close_log') window.closeUpdateLogModal();
-        else if (action === 'fullscreen') window.toggleFullScreen();
-        else if (action === 'open_contact') window.openContactModal();
-        else if (action === 'open_login') window.openLoginModal();
-        else if (action === 'open_developer') window.openBecomeFanModal();
-        else if (action === 'music') {
-            const sub = actionObj.sub_action;
-            if (sub === 'play') window.playAudio();
-            else if (sub === 'pause' || sub === 'stop') window.pauseAudio();
-            else if (sub === 'stop') window.stopAudio();
-        }
+        if (action === 'OPEN_MUSIC') window.openMusicModal();
+        else if (action === 'CLOSE_MUSIC') window.closeMusicModal();
+        else if (action === 'OPEN_LOG') window.openUpdateLogModal();
+        else if (action === 'CLOSE_LOG') window.closeUpdateLogModal();
+        else if (action === 'TOGGLE_FULLSCREEN') window.toggleFullScreen();
+        else if (action === 'OPEN_CONTACT') window.openContactModal();
+        else if (action === 'OPEN_LOGIN') window.openLoginModal();
+        else if (action === 'OPEN_DEVELOPER') window.openBecomeFanModal();
+        else if (action === 'MUSIC_PLAY') window.playAudio();
+        else if (action === 'MUSIC_PAUSE') window.pauseAudio();
+        else if (action === 'MUSIC_STOP') window.stopAudio();
     }
 
     async function executeSequence(actions) {
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
-            performSingleAction(item);
+            performAction(item);
             const waitTime = item.delay || 0;
             if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
     }
 
-    // ✅ 核心发送函数
+    // 核心发送函数
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -147,44 +145,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let payload = { message: text, mode: currentMode };
 
-        // 更保守、更省钱的触发机制
-        const visionKeywords = ['右上角', '左上角', '左下角', '右下角', '按钮', '图标', '那个', '位置', '哪个卡片', '在哪里'];
-        const needsVision = isAgent && visionKeywords.some(kw => text.includes(kw));
-
-        if (needsVision && typeof html2canvas !== 'undefined') {
-            // ✅ 修复：极致压缩截图，防止网关拦截和超时
-            html2canvas(document.querySelector('#contentArea'), { scale: 0.25, useCORS: true, logging: false })
-            .then(canvas => {
-                const img = new Image();
-                img.src = canvas.toDataURL('image/jpeg', 0.5);
-                img.onload = function() {
-                    const maxWidth = 300;
-                    const ratio = Math.min(maxWidth / img.width, 1);
-                    const canvas2 = document.createElement('canvas');
-                    canvas2.width = img.width * ratio;
-                    canvas2.height = img.height * ratio;
-                    const ctx = canvas2.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
-                    payload.image = canvas2.toDataURL('image/jpeg', 0.5);
-                    performFetch(payload, targetList, history, loadingMsg);
-                };
-                img.onerror = function() { performFetch(payload, targetList, history, loadingMsg); };
-            })
-            .catch(() => { performFetch(payload, targetList, history, loadingMsg); });
-        } else {
-            performFetch(payload, targetList, history, loadingMsg);
-        }
-    }
-
-    // 分离 fetch 逻辑（添加 AbortController 防止超时卡死）
-    function performFetch(payload, targetList, history, loadingMsg) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 秒超时控制
-
-        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal })
-        .then(res => res.json())
-        .then(data => {
-            clearTimeout(timeoutId);
+        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(res => res.json()).then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
             // 引导切换
@@ -197,25 +159,25 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             // 确认指令
-            if (data.action === 'ask_confirmation') {
+            if (data.action === 'ASK_CONFIRM') {
                 const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
-                const confirmAction = data.confirm_action || '';
+                const confirmActions = data.confirm_actions || [];
+                const actionStr = JSON.stringify(confirmActions);
                 confirmBox.innerHTML = `
-                    <div>${data.reply || '未提供解释。'}</div>
+                    <div>${data.reply || '请确认以下操作？'}</div>
                     <div class="btn-group">
-                        <button class="btn-confirm" data-action="${confirmAction}">确认执行</button>
+                        <button class="btn-confirm" data-actions='${actionStr}'>确认执行</button>
                         <button class="btn-cancel">取消</button>
                     </div>
                 `;
                 targetList.appendChild(confirmBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '等待确认...' });
                 
                 confirmBox.querySelector('.btn-confirm').addEventListener('click', function() {
-                    const action = this.getAttribute('data-action');
-                    if (action && action !== '') {
-                        performSingleAction({action: action});
-                        const replyMsg = document.createElement('div'); replyMsg.className = 'ai-text-msg'; replyMsg.textContent = '已确认执行。';
-                        targetList.appendChild(replyMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已确认执行。' });
-                    }
+                    const actionStr = this.getAttribute('data-actions');
+                    try {
+                        const actions = JSON.parse(actionStr);
+                        if (actions.length > 0) { executeSequence(actions); }
+                    } catch(e) {}
                     confirmBox.style.display = 'none';
                 });
                 
@@ -229,31 +191,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // 单步动作
-            if (isAgent && data.action) {
-                performSingleAction(data);
-                const replyText = data.reply || '已执行。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
-                isProcessing = false;
-                return;
-            }
-
-            // 序列动作
+            // 动作序列
             if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                const replyText = data.reply || '已开始执行序列。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
-                setTimeout(() => { executeSequence(data.action_sequence); }, 300);
-                isProcessing = false;
-                return;
-            }
-
-            // ✅ 特殊处理：如果不是动作，而是超时或错误提示
-            if (data.reply && data.reply.includes('超时')) {
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg text-yellow-400/80';
-                botMsg.textContent = data.reply;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
+                executeSequence(data.action_sequence);
                 isProcessing = false;
                 return;
             }
@@ -263,10 +203,9 @@ document.addEventListener("DOMContentLoaded", function() {
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
         }).catch(() => {
-            clearTimeout(timeoutId);
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '请求异常，可能是超时，请稍后重试。';
-            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '请求异常，可能是超时，请稍后重试。' });
+            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '请求异常，请稍后重试。';
+            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '请求异常，请稍后重试。' });
             isProcessing = false;
         });
     }
@@ -275,4 +214,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-</script>
+                 </script>
