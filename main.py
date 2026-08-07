@@ -66,12 +66,9 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# --- 扫码登录 ---
 @app.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
-    
-    # 🔥 智能协议判断：Telegram内扫码走专属协议，其他（微信/相机）走网页链接
     user_agent = request.headers.get('User-Agent', '').lower()
     if 'telegram' in user_agent:
         deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
@@ -105,13 +102,11 @@ def check_qr_login(token):
         return jsonify({'status': 'expired'})
     return jsonify({'status': session.status})
 
-# --- ✨ 新增：专供机器人识别截图后调用登录的接口 ---
 @app.route('/api/process_qr_token', methods=['POST'])
 def process_qr_token():
     data = request.get_json()
     token = data.get('token')
     chat_id = data.get('chat_id')
-
     session = QrLoginSession.query.filter_by(token=token).first()
     if session and session.status == 'pending':
         session.status = 'success'
@@ -120,7 +115,6 @@ def process_qr_token():
         return jsonify({'ok': True})
     return jsonify({'ok': False})
 
-# --- 发送验证码 ---
 @app.route('/api/send_code', methods=['POST'])
 def send_code():
     data = request.get_json()
@@ -143,7 +137,6 @@ def send_code():
         if success: return jsonify({'ok': True, 'msg': '已通过Telegram机器人发送验证码'})
         else: return jsonify({'ok': False, 'msg': 'ID无效或机器人未响应'})
 
-# --- 注册/登录 ---
 @app.route('/register', methods=['POST'])
 def register():
     account = request.form.get('email')
@@ -212,31 +205,35 @@ def register():
     db.session.commit()
     return "注册成功"
 
-# --- Telegram Webhook 入口 ---
+# ✅ 核心 Webhook：优化了过期二维码再次扫描时的反馈
 @app.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
     data = request.get_json()
     if 'message' in data:
-        # 机器人拦截并处理消息（包含文本和发来的图片）
-        handle_message(data)
-        
-        # 保留你原先的 /start qr_ 兼容处理
         msg = data['message']
         chat_id = str(msg['chat']['id'])
         text = msg.get('text', '')
+        
         if text.startswith('/start qr_'):
             token = text.replace('/start qr_', '').strip()
             session = QrLoginSession.query.filter_by(token=token).first()
-            if session and session.status == 'pending':
-                session.status = 'success'
-                session.telegram_id = chat_id
-                db.session.commit()
-                url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-                requests.post(url, json={"chat_id": chat_id, "text": "✅ 授权成功，请返回网页查看。"})
-                return "OK"
+            if session:
+                if session.status == 'pending':
+                    session.status = 'success'
+                    session.telegram_id = chat_id
+                    db.session.commit()
+                    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+                    requests.post(url, json={"chat_id": chat_id, "text": "登录成功"})
+                elif session.status == 'expired':
+                    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+                    requests.post(url, json={"chat_id": chat_id, "text": "已过期，请刷新网页重新获取二维码。"})
+            return "OK"
+        
+        # 处理图片（截图发图登录逻辑）
+        handle_message(data)
+        
     return "OK"
 
-# --- 一键配置 Webhook ---
 @app.route('/setup_webhook', methods=['GET'])
 def setup_webhook():
     try:
