@@ -1,6 +1,5 @@
 <!-- 极光炫彩渐变按钮组件 -->
 <style>
-  /* 修改了原 Uiverse 代码里的 .flex 为 .action-flex，防止与 Tailwind 冲突 */
   .action-flex {
     display: flex;
     align-items: center;
@@ -12,6 +11,8 @@
     font-size: 1rem;
     cursor: pointer;
     position: relative;
+    /* ✅ 修改：加了 0.85 的透明度，让颜色稍微柔和一点 */
+    opacity: 0.85;
     background: linear-gradient(90deg, #5bfcc4, #f593e4, #71a4f0);
     border-radius: 12px;
     color: #fff;
@@ -72,5 +73,6 @@
       ></path>
     </g>
   </svg>
-  <span>立即探索</span>
+  <!-- ✅ 修改：文字改成 Agent -->
+  <span>Agent</span>
 </div>
