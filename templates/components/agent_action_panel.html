@@ -1,7 +1,6 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition {
-    /* 面板上滑和下滑的速度：0.25s 无回弹 */
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -60,7 +59,6 @@
     color: #ffffff;
   }
 
-  /* ✅ 保留：代理人（radio-2）被选中时，Model 徽章背景改为 #493F36 */
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification {
     background-color: #493F36;
     color: #ffffff;
@@ -75,9 +73,24 @@
     transform: translateX(100%);
   }
 
-  /* ✅ 修改：回答和代理人被选中时，滑条颜色改为纯黑色 */
+  /* ✅ 修改：滑条依然用黑色，但加上白边和微光，保证非常显眼！ */
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider {
     background-color: black;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+  }
+
+  .agent-tabs-wrapper .glider {
+    position: absolute;
+    display: flex;
+    height: 30px;
+    width: 70px;
+    /* 默认滑条底色保持 #93965F，选中时上面那条规则会覆盖它 */
+    background-color: #93965F;
+    z-index: 1;
+    border-radius: 8px;
+    transition: 0.15s ease-out;
+    border: 1px solid transparent; /* 预留边框位置 */
   }
 </style>
 
@@ -133,4 +146,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 });
-</script>
+              </script>
