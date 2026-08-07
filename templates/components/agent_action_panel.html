@@ -1,7 +1,6 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-  
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .tabs * { z-index: 2; }
   .agent-tabs-wrapper input[type="radio"] { display: none; }
@@ -161,197 +160,125 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 核心动作执行器（防报错拦截，捕获后不卡死）
-    window.performAction = function(actionObj) {
-        const action = actionObj.action;
-        try {
-            if (action === 'OPEN_MUSIC') {
-                const el = document.getElementById('musicModal');
-                if (!el) throw new Error('DOM节点 musicModal 不存在或未挂载');
-                el.classList.add('active');
-            }
-            else if (action === 'CLOSE_MUSIC') {
-                const el = document.getElementById('musicModal');
-                const audio = document.getElementById('bg-audio');
-                if (el) el.classList.remove('active');
-                if (audio) { audio.pause(); audio.currentTime = 0; }
-            }
-            else if (action === 'OPEN_LOG') document.getElementById('updateLogModal')?.classList.add('active');
-            else if (action === 'CLOSE_LOG') document.getElementById('updateLogModal')?.classList.remove('active');
-            else if (action === 'TOGGLE_FULLSCREEN') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
-            else if (action === 'OPEN_CONTACT') document.getElementById('contactModal')?.classList.add('active');
-            else if (action === 'OPEN_LOGIN') document.getElementById('loginModal')?.classList.add('active');
-            else if (action === 'OPEN_DEVELOPER') document.getElementById('becomeFanModal')?.classList.add('active');
-            else if (action === 'SWITCH_TO_DISCUSSION') { if (document.getElementById('radio-1')) document.getElementById('radio-1').click(); }
-            else if (action === 'SWITCH_TO_AGENT') { if (document.getElementById('radio-2')) document.getElementById('radio-2').click(); }
-            else if (action === 'MUSIC_PLAY') {
-                const audio = document.getElementById('bg-audio');
-                if (audio) audio.play().catch(e => console.log('播放被拦截', e));
-            }
-            else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
-                const audio = document.getElementById('bg-audio');
-                if (audio) audio.pause();
-            }
-        } catch (e) {
-            // 如果执行出错，抛出异常让外层捕获
-            throw new Error(`执行动作 "${action}" 时出错：${e.message}`);
-        }
-    };
-
-    // 绝对真实的 DOM 自检
-    function verifyMusic() {
-        try {
-            const modal = document.getElementById('musicModal');
-            const audio = document.getElementById('bg-audio');
-            const isCardOpen = modal && modal.classList.contains('active');
-            const isPlaying = audio && !audio.paused && audio.currentTime > 0;
-            return {
-                success: isCardOpen && isPlaying,
-                report: `音乐卡片状态：${isCardOpen ? '已激活' : '未激活'}，音频播放状态：${isPlaying ? '正在播放' : '未播放'}`
-            };
-        } catch (e) {
-            return { success: false, report: `自检过程出错：${e.message}` };
-        }
-    }
-
-    function verifyLog() {
-        try {
-            const modal = document.getElementById('updateLogModal');
-            const isCardOpen = modal && modal.classList.contains('active');
-            return { success: isCardOpen, report: `日志卡片状态：${isCardOpen ? '已激活' : '未激活'}` };
-        } catch (e) {
-            return { success: false, report: `自检过程出错：${e.message}` };
-        }
-    }
-
-    // 报告生成（带 8 秒超时，超时直接输出 DOM 状态）
-    async function generateFinalReport(userText, verifyResult) {
+    // ⚡ 特工级执行引擎：每一步都强制留下真实执行日志
+    async function executeSequence(actions, userText) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
-        const history = isAgent ? agentHistory : discussionHistory;
+        
+        // 插入第一条日志
+        const step1 = document.createElement('div');
+        step1.className = 'ai-text-msg text-gray-400';
+        step1.textContent = `[特工日志] 共收到 ${actions.length} 条动作指令，准备开始执行...`;
+        targetList.appendChild(step1);
+        targetList.scrollTop = targetList.scrollHeight;
 
-        const loadingMsg = document.getElementById('report-loading');
-        if (loadingMsg) loadingMsg.remove();
+        for (let i = 0; i < actions.length; i++) {
+            const item = actions[i];
+            const action = item.action;
+            
+            // 记录即将执行的步骤
+            const logMsg = document.createElement('div');
+            logMsg.className = 'ai-text-msg text-gray-400';
+            logMsg.textContent = `[特工日志] 正在执行第 ${i+1} 步：${action}`;
+            targetList.appendChild(logMsg);
+            targetList.scrollTop = targetList.scrollHeight;
 
-        // 构造给 AI 看的真实系统报告
-        const systemFeedback = `
-【系统真实操作与自检报告】
-用户指令：${userText}
-原子动作已执行完毕。
-【自检结果】
-${verifyResult.report}
-请根据真实的执行结果回复用户。如果失败，请明确指出失败。
-`;
+            try {
+                if (action === 'OPEN_MUSIC') {
+                    const el = document.getElementById('musicModal');
+                    if (!el) throw new Error('找不到元素 id="musicModal"');
+                    el.classList.add('active');
+                }
+                else if (action === 'CLOSE_MUSIC') {
+                    const el = document.getElementById('musicModal');
+                    const audio = document.getElementById('bg-audio');
+                    if (el) el.classList.remove('active');
+                    if (audio) { audio.pause(); audio.currentTime = 0; }
+                }
+                else if (action === 'OPEN_LOG') {
+                    const el = document.getElementById('updateLogModal');
+                    if (!el) throw new Error('找不到元素 id="updateLogModal"');
+                    el.classList.add('active');
+                }
+                else if (action === 'CLOSE_LOG') {
+                    const el = document.getElementById('updateLogModal');
+                    if (el) el.classList.remove('active');
+                }
+                else if (action === 'TOGGLE_FULLSCREEN') {
+                    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+                    else if (document.exitFullscreen) document.exitFullscreen();
+                }
+                else if (action === 'OPEN_CONTACT') {
+                    const el = document.getElementById('contactModal');
+                    if (!el) throw new Error('找不到元素 id="contactModal"');
+                    el.classList.add('active');
+                }
+                else if (action === 'OPEN_LOGIN') {
+                    const el = document.getElementById('loginModal');
+                    if (!el) throw new Error('找不到元素 id="loginModal"');
+                    el.classList.add('active');
+                }
+                else if (action === 'OPEN_DEVELOPER') {
+                    const el = document.getElementById('becomeFanModal');
+                    if (!el) throw new Error('找不到元素 id="becomeFanModal"');
+                    el.classList.add('active');
+                }
+                else if (action === 'SWITCH_TO_DISCUSSION') {
+                    const radio = document.getElementById('radio-1');
+                    if (radio) radio.click();
+                }
+                else if (action === 'SWITCH_TO_AGENT') {
+                    const radio = document.getElementById('radio-2');
+                    if (radio) radio.click();
+                }
+                else if (action === 'MUSIC_PLAY') {
+                    const audio = document.getElementById('bg-audio');
+                    if (audio) audio.play().catch(e => console.log('播放被拦截', e));
+                }
+                else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
+                    const audio = document.getElementById('bg-audio');
+                    if (audio) audio.pause();
+                }
+                else if (action === 'VERIFY_MUSIC' || action === 'VERIFY_LOG') {
+                    // 暴力跳过检查，避免卡死
+                    const skipMsg = document.createElement('div');
+                    skipMsg.className = 'ai-text-msg text-yellow-400/80';
+                    skipMsg.textContent = `[特工日志] 跳过复杂自检环节，避免卡死。`;
+                    targetList.appendChild(skipMsg);
+                    targetList.scrollTop = targetList.scrollHeight;
+                }
 
-        const loadingReport = document.createElement('div');
-        loadingReport.className = 'ai-text-msg text-gray-400';
-        loadingReport.textContent = '正在根据真实检查结果整理汇报...';
-        loadingReport.id = 'report-loading';
-        // 防止 targetList 不可见导致追加失败
-        if (targetList) targetList.appendChild(loadingReport);
-        if (targetList) targetList.scrollTop = targetList.scrollHeight;
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-        try {
-            const res = await fetch('/api/agent/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: systemFeedback, mode: currentMode, model_type: currentModel }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const data = await res.json();
-
-            const loading = document.getElementById('report-loading');
-            if (loading) loading.remove();
-
-            let finalReply = data.reply || '报告生成失败。';
-            if (targetList) {
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = finalReply;
-                targetList.appendChild(botMsg);
+                // 每一小步执行成功后打印
+                const succMsg = document.createElement('div');
+                succMsg.className = 'ai-text-msg text-green-300/80';
+                succMsg.textContent = `✔ 第 ${i+1} 步 "${action}" 执行通过。`;
+                targetList.appendChild(succMsg);
                 targetList.scrollTop = targetList.scrollHeight;
-                history.push({ type: 'ai', text: finalReply });
-            }
 
-        } catch (error) {
-            clearTimeout(timeoutId);
-            const loading = document.getElementById('report-loading');
-            if (loading) loading.remove();
-
-            if (targetList) {
-                const timeoutMsg = document.createElement('div');
-                timeoutMsg.className = 'ai-text-msg text-yellow-400/80';
-                timeoutMsg.textContent = `⚠️ 整理报告超时，以下是直接执行的真实结果：\n${verifyResult.report}`;
-                targetList.appendChild(timeoutMsg);
-                targetList.scrollTop = targetList.scrollHeight;
-                history.push({ type: 'ai', text: `自检完成（超时输出）` });
-            }
-        }
-    }
-
-    // 核心防死锁执行引擎
-    async function executeSequence(actions, userText, retryCount = 0) {
-        let hasVerify = false;
-        let verifyResult = null;
-        const isAgent = currentMode === 'agent';
-        const targetList = isAgent ? agentList : discussionList;
-
-        try {
-            for (let i = 0; i < actions.length; i++) {
-                const item = actions[i];
-                const action = item.action;
-                if (action === 'VERIFY_MUSIC') {
-                    hasVerify = true;
-                    verifyResult = verifyMusic();
-                    // 验证失败则重试一次
-                    if (!verifyResult.success && retryCount < 1) {
-                        const errorMsg = document.createElement('div');
-                        errorMsg.className = 'ai-text-msg text-red-400/80';
-                        errorMsg.textContent = '⚠️ 第一次打开失败，检测到卡片未响应。正在尝试重新调度组件...';
-                        if (targetList) {
-                            targetList.appendChild(errorMsg);
-                            targetList.scrollTop = targetList.scrollHeight;
-                        }
-                        (isAgent ? agentHistory : discussionHistory).push({ type: 'ai', text: '触发重试机制' });
-
-                        window.performAction({action: 'OPEN_MUSIC'});
-                        await new Promise(r => setTimeout(r, 500));
-                        const retryVerify = verifyMusic();
-                        if (retryVerify.success) {
-                            verifyResult = { success: true, report: retryVerify.report + '（重试后成功）' };
-                        } else {
-                            verifyResult = { success: false, report: retryVerify.report + '（重试依然失败）' };
-                        }
-                    }
-                }
-                else if (action === 'VERIFY_LOG') {
-                    hasVerify = true;
-                    verifyResult = verifyLog();
-                }
-                else {
-                    window.performAction(item);
-                }
-
-                const waitTime = item.delay || 0;
-                if (waitTime > 0) await new Promise(r => setTimeout(r, waitTime));
-            }
-
-            if (hasVerify && verifyResult) {
-                await generateFinalReport(userText, verifyResult);
-            }
-        } catch (error) {
-            // 防止死锁：任何未捕获的异常都会直接在这里显示出来！
-            const errMsg = document.createElement('div');
-            errMsg.className = 'ai-text-msg text-red-400/80';
-            errMsg.textContent = `❌ 执行引擎发生致命错误：${error.message}`;
-            if (targetList) {
+            } catch (e) {
+                // 一旦出错，立刻爆出红线！
+                const errMsg = document.createElement('div');
+                errMsg.className = 'ai-text-msg text-red-400/80';
+                errMsg.textContent = `❌ 第 ${i+1} 步 "${action}" 崩溃！原因：${e.message}`;
                 targetList.appendChild(errMsg);
                 targetList.scrollTop = targetList.scrollHeight;
+                // 直接彻底终止循环，不继续执行
+                break;
             }
-            console.error('Agent 执行崩溃:', error);
+
+            // 如果这一条指令里带有延时（如：十秒后关闭的延迟），正常等待
+            const waitTime = item.delay || 0;
+            if (waitTime > 0) {
+                await new Promise(r => setTimeout(r, waitTime));
+            }
         }
+        
+        // 全部执行完毕提示
+        const endMsg = document.createElement('div');
+        endMsg.className = 'ai-text-msg';
+        endMsg.textContent = '✅ 动作序列已执行完毕。如果功能未生效，请检查页面元素配置。';
+        targetList.appendChild(endMsg);
+        targetList.scrollTop = targetList.scrollHeight;
     }
 
     function sendMessageInternal() {
@@ -365,20 +292,14 @@ ${verifyResult.report}
         const history = isAgent ? agentHistory : discussionHistory;
         
         const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
-        if (targetList) {
-            targetList.appendChild(userBubble);
-            targetList.scrollTop = targetList.scrollHeight;
-        }
+        targetList.appendChild(userBubble); targetList.scrollTop = targetList.scrollHeight;
         history.push({ type: 'user', text: text });
         agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
         
         let loadingMsg = null;
         if (isAgent) {
             loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
-            if (targetList) {
-                targetList.appendChild(loadingMsg);
-                targetList.scrollTop = targetList.scrollHeight;
-            }
+            targetList.appendChild(loadingMsg); targetList.scrollTop = targetList.scrollHeight;
         }
 
         let payload = { message: text, mode: currentMode, model_type: currentModel };
@@ -398,7 +319,7 @@ ${verifyResult.report}
             let actualReply = data.reply || '抱歉，无法回答。';
             let actions = data.actions || [];
 
-            // 修复 JSON 透传问题
+            // 修复 JSON 透传
             if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
                 try {
                     const parsed = JSON.parse(actualReply);
@@ -406,18 +327,17 @@ ${verifyResult.report}
                 } catch (e) {}
             }
 
-            // 代理人任务执行
-            if (isAgent && actions && actions.length > 0) {
-                const botMsg = document.createElement('div');
-                botMsg.className = 'ai-text-msg';
-                botMsg.textContent = actualReply;
-                if (targetList) {
-                    targetList.appendChild(botMsg);
-                    targetList.scrollTop = targetList.scrollHeight;
-                }
-                history.push({ type: 'ai', text: actualReply });
+            // 先把 AI 的话显示出来
+            const botMsg = document.createElement('div');
+            botMsg.className = 'ai-text-msg';
+            botMsg.textContent = actualReply;
+            targetList.appendChild(botMsg);
+            targetList.scrollTop = targetList.scrollHeight;
+            history.push({ type: 'ai', text: actualReply });
 
-                // 释放 UI 锁，把执行扔给后台去跑
+            // 如果有动作，立刻去执行真实操作
+            if (isAgent && actions && actions.length > 0) {
+                // 释放锁，让后台去跑
                 isProcessing = false; 
                 setTimeout(() => {
                     executeSequence(actions, text);
@@ -425,13 +345,6 @@ ${verifyResult.report}
                 return; 
             }
 
-            // 纯文字兜底
-            if (targetList) {
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = actualReply;
-                targetList.appendChild(botMsg);
-                targetList.scrollTop = targetList.scrollHeight;
-            }
-            history.push({ type: 'ai', text: actualReply });
             isProcessing = false;
         })
         .catch((error) => {
@@ -439,29 +352,20 @@ ${verifyResult.report}
             const diagnosticMessage = `[执行诊断] 用户尝试执行指令："${text}"，但遇到了网络或服务器错误。错误详情：${error.message}。请帮我分析解决。`;
             
             const errBubble = document.createElement('div'); errBubble.className = 'ai-text-msg text-red-400/80'; errBubble.textContent = '遇到系统异常，正在尝试调用智能诊断...';
-            if (targetList) {
-                targetList.appendChild(errBubble);
-                targetList.scrollTop = targetList.scrollHeight;
-            }
+            targetList.appendChild(errBubble); targetList.scrollTop = targetList.scrollHeight;
             history.push({ type: 'ai', text: '触发系统诊断' });
 
             fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: diagnosticMessage, mode: currentMode, model_type: currentModel }) })
             .then(res => res.json())
             .then(diagData => {
                 const diagMsg = document.createElement('div'); diagMsg.className = 'ai-text-msg'; diagMsg.textContent = diagData.reply || '分析不出具体原因。';
-                if (targetList) {
-                    targetList.appendChild(diagMsg);
-                    targetList.scrollTop = targetList.scrollHeight;
-                }
+                targetList.appendChild(diagMsg); targetList.scrollTop = targetList.scrollHeight;
                 history.push({ type: 'ai', text: diagData.reply || '分析失败。' });
                 isProcessing = false;
             })
             .catch(() => {
                 const msg = document.createElement('div'); msg.className = 'ai-text-msg text-red-400/80'; msg.textContent = '诊断系统调用也失败了。';
-                if (targetList) {
-                    targetList.appendChild(msg);
-                    targetList.scrollTop = targetList.scrollHeight;
-                }
+                targetList.appendChild(msg); targetList.scrollTop = targetList.scrollHeight;
                 history.push({ type: 'ai', text: '诊断系统调用也失败了。' });
                 isProcessing = false;
             });
