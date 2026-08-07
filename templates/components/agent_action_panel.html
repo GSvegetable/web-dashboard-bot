@@ -88,50 +88,48 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ✅ 超级修复：强制绑定关闭音乐卡片逻辑，保证点击绝对有效
-    window.closeMusicModal = function() {
-        const modal = document.getElementById('musicModal');
-        if (modal) {
-            modal.classList.remove('active');
-            // 一些低版本浏览器可能会因为 class 失效，加双重保险
-            modal.style.display = 'none';
-            // 确保下次打开时 display 能被恢复（根据实际 CSS 情况，通常不需要恢复）
-        }
-        const audio = document.getElementById('bg-audio');
-        if (audio) { audio.pause(); audio.currentTime = 0; }
-    };
-    window.closeUpdateLogModal = function() { const modal = document.getElementById('updateLogModal'); if (modal) modal.classList.remove('active'); };
-    window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
-    window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
-    window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
+    // ✅ 修复：绝对不要去覆盖原生关闭逻辑，只做调用
+    // 下面这些函数直接调用页面原有的 window 方法
+    // 如果原有的方法没挂载，再写兜底
 
-    // 原子动作映射执行器
-    function performAction(actionObj) {
+    window.performAction = function(actionObj) {
         const action = actionObj.action;
-        if (action === 'OPEN_MUSIC') window.openMusicModal();
-        else if (action === 'CLOSE_MUSIC') window.closeMusicModal();
-        // 哪怕 AI 搞错了返回 MUSIC_STOP，我们也直接当成关闭卡片处理，解决最核心的痛点
-        else if (action === 'MUSIC_STOP') window.closeMusicModal();
-        else if (action === 'OPEN_LOG') window.openUpdateLogModal();
-        else if (action === 'CLOSE_LOG') window.closeUpdateLogModal();
-        else if (action === 'TOGGLE_FULLSCREEN') window.toggleFullScreen();
-        else if (action === 'OPEN_CONTACT') window.openContactModal();
-        else if (action === 'OPEN_LOGIN') window.openLoginModal();
-        else if (action === 'OPEN_DEVELOPER') window.openBecomeFanModal();
-        else if (action === 'MUSIC_PLAY') window.playAudio();
-        else if (action === 'MUSIC_PAUSE') window.pauseAudio();
-    }
+        if (action === 'OPEN_MUSIC') { if (typeof window.openMusicModal === 'function') window.openMusicModal(); else console.error('未找到 openMusicModal'); }
+        // ✅ 核心修复：CLOSE_MUSIC 直接调用网页自带的关闭函数，绝对没有 display:none 这种死锁
+        else if (action === 'CLOSE_MUSIC') {
+            if (typeof window.closeMusicModal === 'function') {
+                window.closeMusicModal();
+            } else {
+                // 兜底方案，直接移除类名
+                const modal = document.getElementById('musicModal');
+                if (modal) modal.classList.remove('active');
+            }
+        }
+        else if (action === 'OPEN_LOG') { if (typeof window.openUpdateLogModal === 'function') window.openUpdateLogModal(); }
+        else if (action === 'CLOSE_LOG') { if (typeof window.closeUpdateLogModal === 'function') window.closeUpdateLogModal(); }
+        else if (action === 'TOGGLE_FULLSCREEN') { if (typeof window.toggleFullScreen === 'function') window.toggleFullScreen(); }
+        else if (action === 'OPEN_CONTACT') { if (typeof window.openContactModal === 'function') window.openContactModal(); }
+        else if (action === 'OPEN_LOGIN') { if (typeof window.openLoginModal === 'function') window.openLoginModal(); }
+        else if (action === 'OPEN_DEVELOPER') { if (typeof window.openBecomeFanModal === 'function') window.openBecomeFanModal(); }
+        else if (action === 'MUSIC_PLAY') {
+            const audio = document.getElementById('bg-audio');
+            if (audio) audio.play().catch(e => console.log('播放被拦截', e));
+        }
+        else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
+            const audio = document.getElementById('bg-audio');
+            if (audio) { audio.pause(); audio.currentTime = 0; }
+        }
+    };
 
     async function executeSequence(actions) {
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
-            performAction(item);
+            window.performAction(item);
             const waitTime = item.delay || 0;
             if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
     }
 
-    // 核心发送函数
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -200,14 +198,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // ✅ 核心优化：先回复文字，再执行动作
+            // ✅ 核心：严格按照 blueprint 返回的格式处理
             if (isAgent) {
                 // 先显示回复的话
                 if (data.reply) {
                     const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply;
                     targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
                 }
-                // 再异步执行动作队列
+                // 再异步执行动作队列（无论多长都执行）
                 if (data.actions && Array.isArray(data.actions)) {
                     executeSequence(data.actions);
                 }
@@ -231,4 +229,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-</script>
+          </script>
