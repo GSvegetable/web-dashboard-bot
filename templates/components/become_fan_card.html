@@ -1,4 +1,4 @@
-<!-- 纯粹毛玻璃折叠卡片（微光 / 星光 / 极光） -->
+<!-- 纯粹毛玻璃折叠卡片（星光 / 极光 / 极光pro） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
         <!-- 无 overflow-hidden，解除隐形边界 -->
@@ -7,24 +7,24 @@
             <!-- 卡片交互主容器 -->
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
-                <!-- 卡片 1：微光 -->
+                <!-- 卡片 1：星光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">微光</span>
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
                     <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 2：星光 -->
+                <!-- 卡片 2：极光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(0deg); margin-right: -45px; z-index: 2;">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
                     <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 3：极光 -->
+                <!-- 卡片 3：极光pro -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(25deg) translateX(15px); z-index: 0;">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
                     <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
@@ -45,11 +45,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // ---------- 封装展开与合并动作 ----------
     function expandCards() {
-        cardItems[0].style.transform = 'rotate(0deg) translateX(-25px)';
+        // ✅ 修改：展开时的距离缩小一个像素（-25变为-24，25变为24）
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px)';
         cardItems[0].style.marginRight = '0px';
         cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
         cardItems[1].style.marginRight = '0px';
-        cardItems[2].style.transform = 'rotate(0deg) translateX(25px)';
+        cardItems[2].style.transform = 'rotate(0deg) translateX(24px)';
     }
 
     function collapseCards() {
@@ -75,11 +76,9 @@ document.addEventListener("DOMContentLoaded", function() {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
                 if (isExpanded) {
-                    // 如果处于展开状态，先执行“合并”动作
                     isExpanded = false;
                     collapseCards();
                 } else {
-                    // 如果处于合并状态，直接关闭模态框
                     if (typeof window.closeBecomeFanModal === 'function') {
                         window.closeBecomeFanModal(e);
                     }
