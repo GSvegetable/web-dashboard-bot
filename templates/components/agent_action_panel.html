@@ -28,7 +28,7 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- Mac 风格任务卡片（压缩版） --- */
+  /* --- 全新透明玻璃 Mac 风格任务卡片 --- */
   .mac-card-wrapper {
     display: flex;
     justify-content: center;
@@ -38,33 +38,47 @@
   .mac-card {
     width: 100%;
     max-width: 380px;
-    padding: 14px 16px 16px 16px; /* ✅ 整体内边距压缩 */
-    border: 1px solid #333;
-    border-radius: 10px;
-    background-color: #000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    padding: 14px 16px 16px 16px;
+    /* ✅ 核心：背景改为透明玻璃深灰 */
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     align-self: center;
     margin: 6px 0;
+    opacity: 0;
+    transform: translateY(20px);
   }
-  .mac-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } /* ✅ 下方距离压紧 */
-  .mac-header span { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+  .mac-card.show {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  /* 三色点 */
+  .mac-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .mac-header span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
   .mac-header .red { background-color: #ff5f57; }
   .mac-header .yellow { background-color: #ffbd2e; }
   .mac-header .green { background-color: #28c941; }
-  /* ✅ 标题合并成一行 */
-  .mac-card-title { font-size: 15px; font-weight: bold; color: #e6e6ef; margin: 0; }
-  .mac-card-subtitle-inline { font-size: 12px; color: #888; font-weight: normal; margin-left: 4px; }
-  /* ✅ 代码框高度减半，内边距压缩 */
+  
+  /* ✅ 压缩：标题变小，用点分隔 */
+  .mac-card-title { font-size: 13px; font-weight: bold; color: #e6e6ef; margin: 0; line-height: 1.2; }
+  .mac-card-subtitle-inline { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: normal; margin-left: 4px; letter-spacing: 0.5px; }
+  
+  /* 代码区域保持原样 */
   .mac-code-editor {
-    background-color: #0d1117; color: #b0b0b0;
-    font-family: monospace; font-size: 13px; line-height: 1.6;
-    border-radius: 6px; padding: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #b0b0b0;
+    font-family: monospace; font-size: 12px; line-height: 1.6;
+    border-radius: 8px; padding: 10px;
     height: 80px; overflow-y: auto;
-    border: 1px solid #333;
-    margin-top: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    margin-top: 8px;
   }
   .mac-code-editor::-webkit-scrollbar { width: 6px; }
-  .mac-code-editor::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+  .mac-code-editor::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
   .mac-code-line { display: block; white-space: pre-wrap; }
   .mac-code-success { color: #5bed7a; }
   .mac-code-warn { color: #ffd700; }
@@ -163,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // ✅ 更新：Mac 风格压缩版卡片（标题同排、代码框减半）
+    // ✅ 更新：透明玻璃卡片 + 自然对话动画
     // ==========================================
     function renderMacProcessCard(actions) {
         const isAgent = currentMode === 'agent';
@@ -231,12 +245,19 @@ document.addEventListener("DOMContentLoaded", function() {
         const primaryAction = actions[0] ? actions[0].action : 'open_music';
         const meta = taskMetadata[primaryAction] || taskMetadata['open_music'];
 
+        // 1. 先放一句话作为对话引导
+        const leadMsg = document.createElement('div');
+        leadMsg.className = 'ai-text-msg';
+        leadMsg.textContent = `[Agent] 正在调度 ${meta.subtitle} 组件...`;
+        targetList.appendChild(leadMsg);
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        history.push({ type: 'ai', text: leadMsg.textContent });
+
+        // 2. 生成并插入卡片
         const wrapper = document.createElement('div');
         wrapper.className = 'mac-card-wrapper';
-        
-        // ✅ 结构修改：标题和副标题合并到同一行，代码框高度减半
         const cardHTML = `
-            <div class="mac-card">
+            <div class="mac-card" id="task-card">
                 <div class="mac-header">
                     <span class="red"></span><span class="yellow"></span><span class="green"></span>
                 </div>
@@ -247,14 +268,26 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
         `;
         wrapper.innerHTML = cardHTML;
-
         targetList.appendChild(wrapper);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         history.push({ type: 'ai', text: '[任务报告] 已生成执行详情' });
 
+        // 3. 触发 GSAP 滑入动画（就像自然对话一样）
+        const cardElement = document.getElementById('task-card');
+        if (typeof gsap !== 'undefined' && cardElement) {
+            gsap.fromTo(cardElement, 
+                { opacity: 0, y: 20 }, 
+                { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.2 }
+            );
+        } else {
+            // 兜底
+            cardElement.classList.add('show');
+        }
+
+        // 4. 执行真实的网页动作
         setTimeout(() => {
             executeSequence(actions);
-        }, 300);
+        }, 400);
     }
 
     function sendMessageInternal() {
@@ -297,4 +330,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-</script>
+              </script>
