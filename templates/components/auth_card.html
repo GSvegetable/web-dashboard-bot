@@ -6,7 +6,6 @@
             <!-- ---------------- 模式1：普通登录/注册表单 ---------------- -->
             <div id="loginFormGroup">
                 {% if current_user.is_authenticated %}
-                    <!-- 已登录状态 -->
                     <div class="flex flex-col items-center gap-4 w-full py-4">
                         <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
                             {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
@@ -26,7 +25,6 @@
                         <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
                     </div>
                 {% else %}
-                    <!-- 未登录：普通表单 -->
                     <form id="authForm" onsubmit="return false;" novalidate>
                         <div class="flex flex-col gap-1 mb-3">
                             <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
@@ -44,7 +42,6 @@
                         </div>
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
-                        <!-- ✅ 修改：去掉了 📱 表情，只有“扫码登录” -->
                         <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
                             扫码登录
                         </button>
@@ -52,17 +49,28 @@
                 {% endif %}
             </div>
 
-            <!-- ---------------- 模式2：扫码登录区域（精简版） ---------------- -->
+            <!-- ---------------- 模式2：扫码登录区域（新布局） ---------------- -->
             <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
+                
+                <!-- ✅ 左上角：返回 -->
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
                     ← 返回
                 </button>
                 
-                <div id="qrCodeImageContainer" class="w-[160px] h-[160px] bg-white/10 rounded-xl flex items-center justify-center mt-6 mb-2 transition-all">
+                <!-- ✅ 右上角：新增保存按钮 -->
+                <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">
+                    保存
+                </button>
+                
+                <!-- ✅ 二维码图片区域（圆角更润） -->
+                <div id="qrCodeImageContainer" class="w-[160px] h-[160px] bg-white/10 rounded-3xl flex items-center justify-center mt-6 mb-2 transition-all overflow-hidden">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
                 
-                <p class="text-gray-400 text-xs mt-1" id="qrStatusText">请使用 Telegram 扫码</p>
+                <!-- ✅ 底部提示文字修改 -->
+                <p class="text-gray-400 text-xs mt-1 text-center leading-relaxed" id="qrStatusText">
+                    请扫描二维码<br>或将二维码直接发送给宫水机器人
+                </p>
             </div>
 
         </div>
@@ -93,16 +101,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const qrLoginGroup = document.getElementById('qrLoginGroup');
     const switchToQrBtn = document.getElementById('switchToQrBtn');
     const switchBackBtn = document.getElementById('switchBackBtn');
+    const saveQrBtn = document.getElementById('saveQrBtn');
     const qrImgContainer = document.getElementById('qrCodeImageContainer');
     const qrStatusText = document.getElementById('qrStatusText');
     
     let qrPollTimer = null;
     let currentQrToken = null;
 
+    // 切换扫码模式
     function switchToQrMode() {
         if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
-        qrStatusText.innerText = '请使用 Telegram 扫码';
+        qrStatusText.innerHTML = '请扫描二维码<br>或将二维码直接发送给宫水机器人';
         
         gsap.to(loginFormGroup, {
             opacity: 0, y: -20, duration: 0.2, ease: "power1.in",
@@ -115,16 +125,15 @@ document.addEventListener("DOMContentLoaded", function() {
         fetchQrLoginToken();
     }
 
+    // 返回表单模式
     function resetToFormMode() {
         stopQrPolling();
         currentQrToken = null;
-        
         if (qrLoginGroup.classList.contains('hidden')) {
             loginFormGroup.style.display = 'block';
             gsap.set(loginFormGroup, { opacity: 1, y: 0 });
             return;
         }
-
         gsap.to(qrLoginGroup, {
             opacity: 0, y: 30, duration: 0.25, ease: "power1.in",
             onComplete: () => {
@@ -135,17 +144,19 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // 获取二维码
     window.fetchQrLoginToken = function() {
         stopQrPolling();
         qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
-        qrStatusText.innerText = '请使用 Telegram 扫码';
+        qrStatusText.innerHTML = '请扫描二维码<br>或将二维码直接发送给宫水机器人';
 
         fetch('/api/get_qr_login')
         .then(res => res.json())
         .then(data => {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
-                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain rounded-xl bg-white">`;
+                // 圆角用 rounded-3xl 处理
+                qrImgContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(data.url)}&margin=10" alt="QR Code" class="w-full h-full object-contain bg-white rounded-3xl">`;
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -156,6 +167,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+    // ✅ 修改3、4：轮询状态文字调整
     function startQrPolling(token) {
         stopQrPolling();
         let attempts = 0;
@@ -163,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function() {
             attempts++;
             if (attempts > 30) {
                 stopQrPolling();
-                qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">❌ 二维码已过期，点此刷新</span>`;
+                qrStatusText.innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>';
                 return;
             }
             fetch(`/api/check_qr_login/${token}`)
@@ -171,11 +183,11 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(data => {
                 if (data.status === 'success') {
                     stopQrPolling();
-                    qrStatusText.innerText = '✅ 扫码成功，正在登录...';
-                    window.location.reload(); 
+                    qrStatusText.innerText = '登录成功';
+                    setTimeout(() => { window.location.reload(); }, 1000); 
                 } else if (data.status === 'expired') {
                     stopQrPolling();
-                    qrStatusText.innerHTML = `<span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">❌ 二维码已失效，点此刷新</span>`;
+                    qrStatusText.innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>';
                 }
             })
             .catch(e => { });
@@ -189,7 +201,29 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // ✅ 新增：保存二维码到相册功能
+    saveQrBtn.addEventListener('click', function() {
+        const img = document.querySelector('#qrCodeImageContainer img');
+        if (!img) {
+            alert('暂无二维码可保存，请等待二维码生成');
+            return;
+        }
+        fetch(img.src)
+            .then(res => res.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gsbot_qrcode_${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(() => alert('保存失败，请检查网络后重试'));
+    });
+
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 });
-                     </script>
+                </script>
