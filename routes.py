@@ -110,7 +110,15 @@ def agent_chat():
                 return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
             url = "https://api.moonshot.cn/v1/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
-            payload["model"] = "moonshot-v1-8k"
+            # Kimi API 不支持 enable_search 参数，需构建独立的干净 payload，否则会返回 404
+            payload = {
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                "model": "moonshot-v1-8k",
+                "temperature": 0.3
+            }
         
         else:
             return jsonify({'reply': '未选择有效的模型。'})
