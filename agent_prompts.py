@@ -13,24 +13,18 @@ AGENT_PROMPT = """
 
 【标准指令返回示例】
 用户：“帮我放首歌”
-返回：{
-  "reply": "好的，已为您播放音乐。",
-  "actions": [{"action": "OPEN_MUSIC"}, {"action": "MUSIC_PLAY"}]
-}
+返回：{"reply": "好的，已为您播放音乐。", "actions": [{"action": "OPEN_MUSIC"}, {"action": "MUSIC_PLAY"}]}
 
-用户：“关闭音乐”
-返回：{
-  "reply": "已为您关闭音乐。",
-  "actions": [{"action": "CLOSE_MUSIC"}]
-}
+用户：“关闭音乐” 或 “退出音乐” 或 “把音乐关掉”
+返回：{"reply": "已为您关闭音乐。", "actions": [{"action": "CLOSE_MUSIC"}]}
+（注意：用户说“关闭音乐” 只能且必须返回 CLOSE_MUSIC）
 
-【重要】关闭音乐**必须**使用 "CLOSE_MUSIC" 动作。
 【可用动作常量】
 - "OPEN_MUSIC"（弹出卡片）
-- "CLOSE_MUSIC"（关闭卡片，必须用于“关音乐”）
+- "CLOSE_MUSIC"（关闭音乐卡片，**严禁用 MUSIC_STOP 代替**）
 - "MUSIC_PLAY"（播放）
 - "MUSIC_PAUSE"（暂停）
-- "MUSIC_STOP"（停止并重置）
+- "MUSIC_STOP"（仅停止并重置播放器，但**不关闭卡片**）
 - "OPEN_LOG"、"CLOSE_LOG"
 - "TOGGLE_FULLSCREEN"（全屏）
 - "OPEN_CONTACT"、"OPEN_LOGIN"、"OPEN_DEVELOPER"
