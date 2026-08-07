@@ -6,14 +6,12 @@
     gap: 5px;
   }
   .outer-cont {
-    /* ✅ 拉长：左右内边距保持 32px */
     padding: 12px 32px; 
     border: none;
     font-size: 1rem;
     cursor: pointer;
     position: relative;
     
-    /* ✅ 核心修改：替换为你指定的 3 种颜色，保持透明度 0.8 实现玻璃感 */
     background: linear-gradient(90deg, rgba(147, 150, 95, 0.8), rgba(73, 63, 54, 0.8), rgba(245, 230, 207, 0.8));
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -36,7 +34,6 @@
     filter: blur(0);
     z-index: -1;
     box-shadow: none;
-    /* ✅ 背后的发光圆锥渐变也换上对应颜色 */
     background: conic-gradient(
       rgba(0,0,0,0) 80deg,
       #93965F,
@@ -61,7 +58,8 @@
   }
 </style>
 
-<div class="outer-cont action-flex" onclick="openSubscribeModal()">
+<!-- ✅ 唯一改动：把点击事件换成了 toggleAgentPanel() -->
+<div class="outer-cont action-flex" onclick="toggleAgentPanel()">
   <svg
     viewBox="0 0 24 24"
     height="24"
