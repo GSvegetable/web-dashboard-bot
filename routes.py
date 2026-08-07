@@ -22,7 +22,9 @@ from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
+# 读取两个 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
+DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY')
 
 @main_bp.route('/')
 def splash():
@@ -62,26 +64,20 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 接口（已加入联网搜索） -------------------
+# ------------------- 核心 AI 接口（支持智谱和豆包） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
+    model_type = data.get('model_type', 'zhipu') # 新增：接收选择的模型类型
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
-    if not ZHIPU_API_KEY:
-        return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
 
     try:
-        url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-
-        # ✅ 核心改动：在请求体中添加 enable_search: True
         payload = {
-            "model": "glm-4-flash",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
@@ -89,8 +85,34 @@ def agent_chat():
             "temperature": 0.3,
             "enable_search": True
         }
+
+        # ==========================================
+        # 模型 A：智谱 AI (GLM-4-Flash)
+        # ==========================================
+        if model_type == 'zhipu':
+            if not ZHIPU_API_KEY:
+                return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
+            url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
+            payload["model"] = "glm-4-flash"
+
+        # ==========================================
+        # 模型 B：豆包 / 火山引擎 (Doubao-Lite)
+        # ==========================================
+        elif model_type == 'doubao':
+            if not DOUBAO_API_KEY:
+                return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
+            url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
+            # 火山引擎这里填的是“接入点 ID”或模型名，推荐用 doubao-lite-32k
+            payload["model"] = "doubao-lite-32k"
         
+        else:
+            return jsonify({'reply': '未选择有效的模型。'})
+
+        # 发起请求
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
@@ -101,25 +123,22 @@ def agent_chat():
             
             try:
                 parsed = json.loads(stripped_reply)
-                # 标准格式：包含 reply 和 actions
                 if isinstance(parsed, dict) and 'reply' in parsed:
                     return jsonify({'reply': parsed['reply'], 'actions': parsed.get('actions', [])})
-                # 确认动作
                 if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
                     return jsonify(parsed)
-                # 单动作兼容
                 if isinstance(parsed, dict) and parsed.get('action'):
                     return jsonify({'reply': parsed.get('reply', '已执行。'), 'actions': [parsed]})
                 return jsonify({'reply': stripped_reply})
             except:
                 return jsonify({'reply': stripped_reply})
         else:
-            return jsonify({'reply': f'API Error: {resp.status_code}'})
+            return jsonify({'reply': f'API 请求出错 (状态码: {resp.status_code})'})
     except Exception as e:
         print(f"Agent Error: {e}")
-        return jsonify({'reply': 'An error occurred.'})
+        return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# 其他路由保持不变（扫码、注册、登录、Webhook 等）
+# 其他路由保持不变...
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
