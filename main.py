@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime
 import io
 import base64
+import json
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -19,12 +20,14 @@ from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 
+# 🔥 引入新建立的提示词配置
+from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 智谱 AI 的 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 
 db.init_app(app)
@@ -75,13 +78,13 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✅ 核心修改：智谱 AI 接口，根据模式切换提示词
+# ✅ 核心：智谱 AI 接口，从 agent_prompts.py 读取提示词
 # ==========================================
 @app.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
-    mode = data.get('mode', 'discussion') # 默认是 'discussion'
+    mode = data.get('mode', 'discussion')
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
@@ -96,16 +99,8 @@ def agent_chat():
             "Authorization": f"Bearer {ZHIPU_API_KEY}"
         }
         
-        # 根据 mode 动态生成 system 提示词
-        if mode == 'discussion':
-            system_prompt = "你是一个友好的智能助手，名字叫 Agent。只进行日常聊天，绝对不要执行任何网页指令、不要返回任何代码或JSON格式。正常闲聊即可。"
-        else: # mode == 'agent'
-            system_prompt = (
-                "你是一个智能网页控制代理。如果用户明确指令要求操作网页（例如“帮我打开音乐”），"
-                "你必须只返回一个纯净的 JSON 字符串，不带任何代码块包裹、不带任何解释。"
-                "例如：{\"action\": \"open_music\"}。"
-                "如果用户要求其他操作，请回复纯文字，不要执行。"
-            )
+        # 根据当前模式选择对应的系统提示词（从 agent_prompts.py 导入）
+        system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
         payload = {
             "model": "glm-4-flash",
@@ -121,15 +116,11 @@ def agent_chat():
             result = resp.json()
             reply = result['choices'][0]['message']['content']
             
-            # 前端将自动解析如果 reply 是 JSON 则拦截，如果不是则当普通文字
+            # 尝试解析为 JSON 指令
             try:
-                # 尝试将其作为 JSON 解析，如果是合法的 JSON，前端会拿到 action
-                import json
                 cmd = json.loads(reply)
-                # 如果解析成功，把 action 原封不动返回给前端
                 return jsonify({'reply': reply, 'action': cmd.get('action')})
             except:
-                # 不是 JSON，正常返回文本
                 return jsonify({'reply': reply})
         else:
             return jsonify({'reply': f'API 请求出错 (状态码: {resp.status_code})'})
