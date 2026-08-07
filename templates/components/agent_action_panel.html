@@ -46,6 +46,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     const panelWrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel'), agentInput = document.getElementById('agentInput'), agentSendBtn = document.getElementById('agentSendBtn'), agentMessageArea = document.getElementById('agentMessageArea'), discussionList = document.getElementById('discussionList'), agentList = document.getElementById('agentList'), radio1 = document.getElementById('radio-1'), radio2 = document.getElementById('radio-2');
     let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false;
+    let isProcessing = false; // 防止重复提交和回复
 
     function switchMode(mode) {
         if (mode === currentMode) return;
@@ -80,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     window.suggestSwitchToAgent = suggestSwitchToAgent;
 
-    // ✅ 修复：强制挂载关闭音乐和关闭日志的底层函数（避免傻乎乎说“关了”但实际没关）
+    // 确保关闭函数绝对可用
     window.closeMusicModal = function() {
         const modal = document.getElementById('musicModal');
         if (modal) modal.classList.remove('active');
@@ -91,14 +92,12 @@ document.addEventListener("DOMContentLoaded", function() {
         const modal = document.getElementById('updateLogModal');
         if (modal) modal.classList.remove('active');
     };
-
     window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
 
     function performSingleAction(actionObj) {
         const action = actionObj.action;
-        // 确保执行功能时调用的是我们刚刚挂载的绝对万全版本
         if (action === 'open_music') window.openMusicModal();
         else if (action === 'close_music') window.closeMusicModal();
         else if (action === 'open_log') window.openUpdateLogModal();
@@ -115,9 +114,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // 复杂指令执行引擎（支持延时）
+    async function executeSequence(actions) {
+        for (let i = 0; i < actions.length; i++) {
+            const item = actions[i];
+            performSingleAction(item);
+            const waitTime = item.delay || 0;
+            if (waitTime > 0) {
+                await new Promise(r => setTimeout(r, waitTime));
+            }
+        }
+    }
+
     function sendMessageInternal() {
+        if (isProcessing) return; // 避免重复点击触发多次
         const text = agentInput.value.trim();
         if (!text) return;
+        isProcessing = true;
+
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
@@ -126,39 +140,66 @@ document.addEventListener("DOMContentLoaded", function() {
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'user', text: text });
         agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
         
+        let loadingMsg = null;
         if (isAgent) {
-            const loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
+            loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
             targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         }
 
         fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
         .then(res => res.json()).then(data => {
-            const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
+            // 清除 thinking 气泡
+            if (loadingMsg && loadingMsg.parentNode) {
+                loadingMsg.remove();
+            }
             
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你想执行一个指令任务。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">切换到代理人执行</button>`;
-                targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
-            }
-
-            if (isAgent && data.action) {
-                performSingleAction(data);
-                const replyText = data.reply || '指令已执行。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
+                targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); 
+                isProcessing = false;
                 return;
             }
 
+            // 处理单个动作
+            if (isAgent && data.action) {
+                performSingleAction(data);
+                const replyText = data.reply || '已执行。';
+                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
+                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
+                isProcessing = false;
+                return;
+            }
+
+            // 处理多步动作序列
+            if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
+                // 先一句简单的回复，然后立刻执行后面的动作
+                const replyText = data.reply || '已开始执行序列。';
+                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
+                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
+                
+                // 不阻塞聊天，异步执行引擎
+                setTimeout(() => {
+                    executeSequence(data.action_sequence);
+                }, 300);
+                
+                isProcessing = false;
+                return;
+            }
+
+            // 纯文字回复
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
+            isProcessing = false;
         }).catch(() => {
-            const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
+            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '网络异常，请稍后再试。';
             targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
+            isProcessing = false;
         });
     }
     agentSendBtn.addEventListener('click', sendMessageInternal);
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-          </script>
+</script>
