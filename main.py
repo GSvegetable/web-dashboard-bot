@@ -1,144 +1,368 @@
-import os
-import random
-import re
-import requests
-import uuid
-from datetime import datetime
-import io
-import base64
-import json
+<!-- Agent 玻璃质感底部面板组件 -->
+<style>
+  .agent-panel-transition {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+  /* --- 适配暗色毛玻璃的 Tabs 组件 --- */
+  .agent-tabs-wrapper .tabs {
+    display: flex;
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    padding: 0.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .agent-tabs-wrapper .tabs * { z-index: 2; }
+  .agent-tabs-wrapper input[type="radio"] { display: none; }
+  .agent-tabs-wrapper .tab {
+    display: flex; align-items: center; justify-content: center;
+    height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);
+    font-weight: 500; border-radius: 99px; cursor: pointer;
+    transition: color 0.15s ease-in;
+  }
+  .agent-tabs-wrapper .notification {
+    display: flex; align-items: center; justify-content: center;
+    width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto;
+    font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5);
+  }
+  .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
+  .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification {
+    background-color: #493F36; color: #ffffff; margin: 0px;
+  }
+  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
+  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
+  .agent-tabs-wrapper input[type="radio"]:checked ~ .glider {
+    background-color: black; border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+  }
+  .agent-tabs-wrapper .glider {
+    position: absolute; display: flex; height: 30px; width: 70px;
+    background-color: #93965F; z-index: 1; border-radius: 8px;
+    transition: 0.15s ease-out; border: 1px solid transparent;
+  }
 
-import qrcode
-from PIL import Image, ImageDraw, ImageFont
+  /* --- 消息列表区域 --- */
+  #agentMessageArea {
+    position: absolute;
+    top: 70px; left: 4px; right: 4px; bottom: 0;
+    overflow-y: auto;
+    z-index: 10;
+    padding: 0 8px 90px 8px;
+    scrollbar-width: none; -ms-overflow-style: none;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 2%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%);
+  }
+  #agentMessageArea::-webkit-scrollbar { display: none; }
 
-from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
-from telegram_bot import send_verification_code, handle_message
-from tg_config import BOT_TOKEN
-from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT
+  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .chat-list.hidden { display: none; }
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+  /* 用户气泡 */
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(40, 40, 40, 0.95);
+    color: #f0f0f0;
+    border-radius: 18px 18px 4px 18px;
+    padding: 10px 16px;
+    max-width: 85%;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    position: relative;
+    margin-bottom: 4px;
+  }
+  .chat-bubble.user::after {
+    content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px;
+    background: inherit; border-bottom-right-radius: 4px;
+    transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15);
+  }
+  
+  /* AI 纯文本 */
+  .ai-text-msg {
+    align-self: flex-start;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    padding: 4px 2px;
+    animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    margin-bottom: 2px;
+  }
 
-ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
+  /* 讨论模式切换提示 */
+  .suggest-switch-box {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    margin-bottom: 4px;
+  }
+  .suggest-switch-box button {
+    background: #493F36; color: white; border: none;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;
+    margin-top: 6px; cursor: pointer; transition: 0.15s;
+  }
+  .suggest-switch-box button:active { transform: scale(0.95); }
+  
+  @keyframes msgSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
-db.init_app(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
+    <div id="agentPanel" 
+         class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative"
+         style="height: 660px; width: 100%;">
+         
+        <div class="agent-tabs-wrapper absolute top-4 left-4 z-20">
+            <div class="container">
+              <div class="tabs">
+                <input checked="" name="tabs" id="radio-1" type="radio" />
+                <label for="radio-1" class="tab">讨论</label>
+                <input name="tabs" id="radio-2" type="radio" />
+                <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                <span class="glider"></span>
+              </div>
+            </div>
+        </div>
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+        <div id="agentMessageArea">
+            <div id="discussionList" class="chat-list"></div>
+            <div id="agentList" class="chat-list hidden"></div>
+        </div>
 
-@app.route('/')
-def splash():
-    return render_template('splash.html')
+        <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
+            <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+            <!-- ✅ 强制物理偏移，按钮完美对齐 -->
+            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">
+                +
+            </button>
+        </div>
 
-@app.route('/warehouse')
-def warehouse():
-    return render_template('warehouse.html')
+    </div>
+</div>
 
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('splash'))
-
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    if not current_user.is_authenticated or not current_user.is_admin:
-        return "无权访问，请使用管理员密码登录", 403
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/dashboard.html', users=users)
-
-def fetch_telegram_user_info(tg_id):
-    try:
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}"
-        resp = requests.get(url, timeout=5)
-        if resp.status_code == 200:
-            data = resp.json()
-            if data.get('ok'):
-                chat = data.get('result', {})
-                return {
-                    'first_name': chat.get('first_name', ''),
-                    'last_name': chat.get('last_name', ''),
-                    'username': chat.get('username', ''),
-                    'avatar_url': None
-                }
-    except:
-        pass
-    return None
-
-# ==========================================
-# ✅ 后端：解析泛化指令并返回技术日志
-# ==========================================
-@app.route('/api/agent/chat', methods=['POST'])
-def agent_chat():
-    data = request.get_json()
-    user_message = data.get('message', '')
-    mode = data.get('mode', 'discussion')
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const panelWrapper = document.getElementById('agentPanelWrapper');
+    const panel = document.getElementById('agentPanel');
+    const agentInput = document.getElementById('agentInput');
+    const agentSendBtn = document.getElementById('agentSendBtn');
+    const agentMessageArea = document.getElementById('agentMessageArea');
+    const discussionList = document.getElementById('discussionList');
+    const agentList = document.getElementById('agentList');
+    const radio1 = document.getElementById('radio-1');
+    const radio2 = document.getElementById('radio-2');
     
-    if not user_message:
-        return jsonify({'reply': '请先输入消息。'})
+    let discussionHistory = [];
+    let agentHistory = [];
+    let currentMode = 'discussion';
+    let isPanelOpen = false;
 
-    if not ZHIPU_API_KEY:
-        return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
-
-    try:
-        url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {ZHIPU_API_KEY}"
-        }
+    // ✅ 核心：移除动画，干净利落的切换，保留原DOM不被清空
+    function switchMode(mode) {
+        if (mode === currentMode) return;
+        const currentList = currentMode === 'discussion' ? discussionList : agentList;
+        const targetList = mode === 'discussion' ? discussionList : agentList;
         
-        system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-
-        payload = {
-            "model": "glm-4-flash",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            "temperature": 0.3
-        }
+        currentList.classList.add('hidden');
+        targetList.classList.remove('hidden');
+        currentMode = mode;
         
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200:
-            result = resp.json()
-            reply = result['choices'][0]['message']['content']
-            
-            try:
-                cmd = json.loads(reply)
+        // 切换后自动聚焦输入框
+        setTimeout(() => { agentInput.focus(); }, 100);
+    }
+
+    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
+    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
+
+    function updateAgentPanelPosition() {
+        if (!isPanelOpen) return;
+        const container = document.getElementById('cardStackContainer');
+        if (container) {
+            const rect = container.getBoundingClientRect();
+            panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+            panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+            panelWrapper.style.transform = 'translateX(-50%)';
+        }
+    }
+
+    window.toggleAgentPanel = function() {
+        isPanelOpen = !isPanelOpen;
+        if (isPanelOpen) {
+            const container = document.getElementById('cardStackContainer');
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+                panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+                panelWrapper.style.transform = 'translateX(-50%)';
+                panelWrapper.style.display = 'block';
+            }
+            setTimeout(() => { 
+                panel.classList.remove('translate-y-full'); 
+                setTimeout(() => { agentInput.focus(); }, 300);
+            }, 10);
+        } else {
+            panel.classList.add('translate-y-full');
+            setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
+        }
+    };
+    window.addEventListener('resize', updateAgentPanelPosition);
+
+    // 讨论模式跳转逻辑
+    function suggestSwitchToAgent(originalMessage) {
+        if (currentMode === 'discussion') {
+            radio2.checked = true;
+            switchMode('agent');
+            const checkSwitchDone = setInterval(() => {
+                if (currentMode === 'agent') {
+                    clearInterval(checkSwitchDone);
+                    agentInput.value = originalMessage;
+                    sendMessageInternal();
+                }
+            }, 200);
+        }
+    }
+    window.suggestSwitchToAgent = suggestSwitchToAgent;
+
+    // 全局音频控制函数（暴露给执行层）
+    window.pauseAudio = function() {
+        const audio = document.getElementById('bg-audio');
+        if (audio) audio.pause();
+    };
+    window.stopAudio = function() {
+        const audio = document.getElementById('bg-audio');
+        if (audio) { audio.pause(); audio.currentTime = 0; }
+    };
+    window.playAudio = function() {
+        const audio = document.getElementById('bg-audio');
+        if (audio) audio.play().catch(e => console.log('播放被拦截', e));
+    };
+
+    function sendMessageInternal() {
+        const text = agentInput.value.trim();
+        if (!text) return;
+
+        const isAgent = currentMode === 'agent';
+        const targetList = isAgent ? agentList : discussionList;
+        const history = isAgent ? agentHistory : discussionHistory;
+
+        const userBubble = document.createElement('div');
+        userBubble.className = 'chat-bubble user';
+        userBubble.textContent = text;
+        targetList.appendChild(userBubble);
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        history.push({ type: 'user', text: text });
+
+        agentInput.value = '';
+        agentInput.rows = 1;
+        agentInput.style.height = 'auto';
+
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'ai-text-msg text-gray-400';
+        loadingMsg.textContent = 'Thinking...';
+        loadingMsg.id = 'loading-bubble';
+        targetList.appendChild(loadingMsg);
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+
+        fetch('/api/agent/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, mode: currentMode })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const loading = document.getElementById('loading-bubble');
+            if (loading) loading.remove();
+
+            // 讨论模式识别到操作意图（生成跳转按钮，保留不删）
+            if (data.action === 'suggest_agent') {
+                const suggestBox = document.createElement('div');
+                suggestBox.className = 'suggest-switch-box';
+                suggestBox.innerHTML = `
+                    看起来你想执行一个指令任务。<br>
+                    <button onclick="window.suggestSwitchToAgent('${data.reply || text}')">
+                        切换到代理人执行
+                    </button>
+                `;
+                targetList.appendChild(suggestBox);
+                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                history.push({ type: 'ai', text: '已识别指令意图' });
+                return;
+            }
+
+            let replyText = data.reply || '抱歉，无法回答。';
+
+            // ✅ 泛化执行逻辑：音乐操作
+            if (data.action === 'music') {
+                const sub = data.sub_action;
+                // 无论执行什么，都把后端返回的 "reply" 技术日志显示在界面
+                if (replyText) {
+                    const logMsg = document.createElement('div');
+                    logMsg.className = 'ai-text-msg';
+                    logMsg.textContent = replyText;
+                    targetList.appendChild(logMsg);
+                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                    history.push({ type: 'ai', text: replyText });
+                }
+
+                // 先弹出音乐卡片（但不需要重复弹了，用 pause 控制即可）
+                if (sub === 'play') window.playAudio();
+                else if (sub === 'pause') window.pauseAudio();
+                else if (sub === 'stop') window.stopAudio();
+                else if (sub === 'play_after') {
+                    const delay = data.delay || 10;
+                    setTimeout(() => {
+                        window.playAudio();
+                    }, delay * 1000);
+                }
                 
-                # 如果是建议跳转的指令
-                if cmd.get('action') == 'suggest_agent':
-                    return jsonify({
-                        'reply': cmd.get('original', ''),
-                        'action': 'suggest_agent'
-                    })
-                
-                # 如果是音乐控制指令（含技术日志）
-                if cmd.get('action') == 'music':
-                    return jsonify({
-                        'reply': cmd.get('log', ''),
-                        'action': 'music',
-                        'sub_action': cmd.get('sub_action'),
-                        'delay': cmd.get('delay', 0)
-                    })
-                    
-                return jsonify({'reply': reply, 'action': cmd.get('action')})
-            except:
-                return jsonify({'reply': reply})
-        else:
-            return jsonify({'reply': f'API Error: {resp.status_code}'})
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': 'An error occurred.'})
-# ==========================================
-# ... 下方保留你原本的 QQ/微信/扫码登录等路由，保持不变 ...
+                // 如果还没打开过卡片（或你希望播放前必须弹卡片），可根据当前状态自行判断逻辑，此处省略。
+                return; 
+            }
+
+            // 普通AI回复
+            const botMsg = document.createElement('div');
+            botMsg.className = 'ai-text-msg';
+            botMsg.textContent = replyText;
+            targetList.appendChild(botMsg);
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+            history.push({ type: 'ai', text: replyText });
+        })
+        .catch(() => {
+            const loading = document.getElementById('loading-bubble');
+            if (loading) loading.remove();
+            const errMsg = document.createElement('div');
+            errMsg.className = 'ai-text-msg text-red-400/80';
+            errMsg.textContent = '网络异常，请稍后再试。';
+            targetList.appendChild(errMsg);
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+            history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
+        });
+    }
+
+    agentSendBtn.addEventListener('click', sendMessageInternal);
+
+    agentInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+        if (this.value.length > 40 && this.scrollHeight < 108) {
+            this.style.height = '108px';
+        }
+    });
+
+    agentInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessageInternal();
+        }
+    });
+});
+</script>
