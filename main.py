@@ -78,7 +78,7 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✅ 核心：智谱 AI 接口，从 agent_prompts.py 读取提示词
+# ✅ 核心：智谱 AI 接口，支持 discuss 模式下智能识别
 # ==========================================
 @app.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -99,7 +99,6 @@ def agent_chat():
             "Authorization": f"Bearer {ZHIPU_API_KEY}"
         }
         
-        # 根据当前模式选择对应的系统提示词（从 agent_prompts.py 导入）
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
         payload = {
@@ -119,6 +118,12 @@ def agent_chat():
             # 尝试解析为 JSON 指令
             try:
                 cmd = json.loads(reply)
+                # 如果含有 suggest_agent，原样传给前端，前端将触发切换按钮
+                if cmd.get('action') == 'suggest_agent':
+                    return jsonify({
+                        'reply': cmd.get('original', ''),
+                        'action': 'suggest_agent'
+                    })
                 return jsonify({'reply': reply, 'action': cmd.get('action')})
             except:
                 return jsonify({'reply': reply})
