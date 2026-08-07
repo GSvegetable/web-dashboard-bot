@@ -113,13 +113,16 @@
 
     {% include 'components/toast.html' %}
 
-    <!-- 引入独立出来的登录/注册卡片组件 -->
+    <!-- 引入独立出来的组件 -->
     {% include 'components/auth_card.html' %}
 
     {% include 'components/music_card.html' %}
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
+    
+    <!-- ✅ 新增：Agent 底部玻璃面板组件 -->
+    {% include 'components/agent_action_panel.html' %}
 
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
