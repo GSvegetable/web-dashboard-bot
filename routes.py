@@ -63,12 +63,13 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 极简 AI 对话接口 -------------------
+# ------------------- 带视觉能力的 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
+    image_base64 = data.get('image') # 前端可能传回的压缩截图
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
@@ -76,30 +77,51 @@ def agent_chat():
         return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
 
     try:
+        # 核心决策：如果包含图片，切换为更懂图的模型
+        has_image = image_base64 and image_base64.startswith('data:image')
+        model = "glm-4v-flash" if has_image else "glm-4-flash"
+
         url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-        payload = {
-            "model": "glm-4-flash",
-            "messages": [
+
+        # 构建消息体
+        if has_image:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user", 
+                    "content": [
+                        {"type": "text", "text": user_message},
+                        {"type": "image_url", "image_url": {"url": image_base64}}
+                    ]
+                }
+            ]
+        else:
+            messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
-            ],
+            ]
+
+        payload = {
+            "model": model,
+            "messages": messages,
             "temperature": 0.3
         }
+        
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
             
-            # ✅ 增强解析逻辑：强行剥离 Markdown 代码块
             stripped_reply = reply
             if '```json' in stripped_reply:
                 stripped_reply = stripped_reply.replace('```json', '').replace('```', '').strip()
             
             try:
                 cmd = json.loads(stripped_reply)
-                if 'action' in cmd and 'reply' in cmd:
+                # 原封不动传递给前端，如果是确认模式，前端会处理
+                if 'action' in cmd:
                     return jsonify(cmd)
                 return jsonify({'reply': stripped_reply})
             except:
@@ -109,7 +131,6 @@ def agent_chat():
     except Exception as e:
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
-
 
 # ------------------- 其他路由保持不变 -------------------
 @main_bp.route('/api/get_qr_login', methods=['GET'])
