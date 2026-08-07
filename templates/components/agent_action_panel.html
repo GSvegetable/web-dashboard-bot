@@ -1,7 +1,8 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition {
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* ✅ 修改：速度加快，从 0.4s 改为 0.25s，平滑无回弹 */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* --- 适配暗色毛玻璃的 Tabs 组件 --- */
@@ -59,9 +60,9 @@
     color: #ffffff;
   }
 
-  /* ✅ 选中状态的徽章背景改为 #93965F */
-  .agent-tabs-wrapper input[type="radio"]:checked + label > .notification {
-    background-color: #93965F;
+  /* ✅ 修改：对应的 Model 选中时，背景色单独变为 #493F36 */
+  .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification {
+    background-color: #493F36;
     color: #ffffff;
     margin: 0px;
   }
@@ -74,7 +75,7 @@
     transform: translateX(100%);
   }
 
-  /* ✅ 滑条（Glider）背景色也改为 #93965F */
+  /* ✅ 修改：滑动条保持为 #93965F 不变 */
   .agent-tabs-wrapper .glider {
     position: absolute;
     display: flex;
@@ -92,7 +93,7 @@
          class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative"
          style="height: 660px; width: 100%;">
          
-        <!-- ✅ 左上角 Tabs 切换器 -->
+        <!-- 左上角 Tabs 切换器 -->
         <div class="agent-tabs-wrapper absolute top-4 left-4">
             <div class="container">
               <div class="tabs">
@@ -135,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
             panel.classList.add('translate-y-full');
             setTimeout(() => {
                 panelWrapper.style.display = 'none';
-            }, 400);
+            }, 250); // ✅ 同步加快回落消失动画时长
         }
     };
 });
