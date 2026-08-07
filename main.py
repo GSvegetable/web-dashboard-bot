@@ -12,7 +12,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# 新增二维码生成库
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
@@ -85,11 +84,11 @@ def get_qr_login():
     db.session.add(new_session)
     db.session.commit()
 
-    # ✨ 核心改动：在服务器端生成带 "GS" 水印的二维码
+    # ✨ 生成带 "GS" 水印的二维码
     try:
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_H, # 高容错率，保证水印不影响扫描
+            error_correction=qrcode.constants.ERROR_CORRECT_H, 
             box_size=10,
             border=2,
         )
@@ -100,8 +99,19 @@ def get_qr_login():
         # 创建半透明水印叠加层
         txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
         d = ImageDraw.Draw(txt)
-        # 为了隐约可见的效果，使用默认字体
-        font = ImageFont.load_default()
+        
+        # ⚡ 尝试加载服务器大字体，没有则使用默认
+        font_size = 60
+        try:
+            # Railway 常见的 Linux 字体路径
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
+        except:
+            try:
+                font = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", font_size)
+            except:
+                # 如果都没有，自动后备加载默认极小字体
+                font = ImageFont.load_default()
+
         text = "GS"
         
         # 计算文字居中位置
@@ -111,8 +121,8 @@ def get_qr_login():
         x = (img.width - w) / 2
         y = (img.height - h) / 2
         
-        # 颜色为浅灰白色(210,210,210)，透明度设为 120 (0-255) 达到“隐隐约约”
-        d.text((x, y), text, fill=(210, 210, 210, 120), font=font)
+        # ⚡ 加深字体透明度（200），让黑色条上的字显现出来
+        d.text((x, y), text, fill=(200, 200, 200, 220), font=font)
         
         out = Image.alpha_composite(img, txt)
         buffered = io.BytesIO()
@@ -121,8 +131,8 @@ def get_qr_login():
 
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{img_base64}"})
     except Exception as e:
-        # 如果生成失败（容错保障），退回 qrserver 外部接口，但会丢失水印
-        fallback_url = f"https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={deep_link}&margin=10"
+        # 绝对兜底：如果生成失败，退回 qrserver 接口
+        fallback_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': fallback_url})
 
 @app.route('/api/check_qr_login/<token>', methods=['GET'])
