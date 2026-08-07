@@ -45,12 +45,12 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const panelWrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel'), agentInput = document.getElementById('agentInput'), agentSendBtn = document.getElementById('agentSendBtn'), agentMessageArea = document.getElementById('agentMessageArea'), discussionList = document.getElementById('discussionList'), agentList = document.getElementById('agentList'), radio1 = document.getElementById('radio-1'), radio2 = document.getElementById('radio-2');
-    let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false, isExecuting = false;
+    let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false;
 
     function switchMode(mode) {
         if (mode === currentMode) return;
         const currentList = currentMode === 'discussion' ? discussionList : agentList, targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode; setTimeout(() => { agentInput.focus(); }, 100);
+        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
     }
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
@@ -102,31 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function executeSequence(actions) {
-        if (isExecuting) return;
-        isExecuting = true;
-        
-        for (let i = 0; i < actions.length; i++) {
-            const item = actions[i];
-            
-            if (item.type === 'text') {
-                // 1. 展示 AI 想说的话
-                const msg = document.createElement('div'); msg.className = 'ai-text-msg'; msg.textContent = item.content;
-                targetList.appendChild(msg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                history.push({ type: 'ai', text: item.content });
-                await new Promise(r => setTimeout(r, 350)); // 预留读取时间
-                
-            } else if (item.type === 'action') {
-                // 2. 执行真实动作
-                performSingleAction(item);
-                const waitTime = item.delay || 0;
-                if (waitTime > 0) await new Promise(r => setTimeout(r, waitTime));
-            }
-        }
-        
-        isExecuting = false;
-    }
-
     function sendMessageInternal() {
         const text = agentInput.value.trim();
         if (!text) return;
@@ -147,18 +122,25 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json()).then(data => {
             const loading = document.getElementById('loading-bubble'); if (loading) loading.remove();
             
+            // 1. 如果是要跳转讨论组
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你想执行一个指令任务。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">切换到代理人执行</button>`;
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // ✅ 核心：由 AI 生成的包含文字和动作的序列
-            if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                executeSequence(data.action_sequence);
+            // 2. 执行动作指令并回复简单的文字
+            if (isAgent && data.action) {
+                performSingleAction(data);
+                
+                // 弹出一句确认的话
+                const replyText = data.reply || '指令已执行。';
+                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
+                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
                 return;
             }
 
+            // 3. 普通聊天
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
         }).catch(() => {
@@ -171,4 +153,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-      </script>
+          </script>
