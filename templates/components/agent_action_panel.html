@@ -14,81 +14,73 @@
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-
-  .agent-tabs-wrapper .tabs * {
-    z-index: 2;
-  }
-
-  .agent-tabs-wrapper input[type="radio"] {
-    display: none;
-  }
-
+  .agent-tabs-wrapper .tabs * { z-index: 2; }
+  .agent-tabs-wrapper input[type="radio"] { display: none; }
   .agent-tabs-wrapper .tab {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 30px;
-    width: 70px;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 500;
-    border-radius: 99px;
-    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);
+    font-weight: 500; border-radius: 99px; cursor: pointer;
     transition: color 0.15s ease-in;
   }
-
   .agent-tabs-wrapper .notification {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 0.8rem;
-    position: absolute;
-    top: -0.3rem;
-    left: auto;
-    font-size: 9px;
-    margin-left: 5rem;
-    border-radius: 8px;
-    margin: 0px;
+    display: flex; align-items: center; justify-content: center;
+    width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto;
+    font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px;
     background-color: rgba(255, 255, 255, 0.1);
-    transition: 0.15s ease-in;
-    color: rgba(255, 255, 255, 0.5);
+    transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5);
   }
-
-  .agent-tabs-wrapper input[type="radio"]:checked + label {
-    color: #ffffff;
-  }
-
+  .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification {
-    background-color: #493F36;
-    color: #ffffff;
-    margin: 0px;
+    background-color: #493F36; color: #ffffff; margin: 0px;
   }
-
-  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider {
-    transform: translateX(0);
-  }
-
-  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider {
-    transform: translateX(100%);
-  }
-
+  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
+  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider {
-    background-color: black;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: black; border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
   }
-
   .agent-tabs-wrapper .glider {
+    position: absolute; display: flex; height: 30px; width: 70px;
+    background-color: #93965F; z-index: 1; border-radius: 8px;
+    transition: 0.15s ease-out; border: 1px solid transparent;
+  }
+
+  /* --- 模仿电报风格的气泡样式 --- */
+  #agentMessageArea {
+    scrollbar-width: none; /* Firefox 隐藏滚动条 */
+    -ms-overflow-style: none; /* IE 隐藏滚动条 */
+  }
+  #agentMessageArea::-webkit-scrollbar { display: none; } /* Chrome/Safari 隐藏滚动条 */
+
+  .chat-bubble {
+    background: rgba(255, 255, 255, 0.85);
+    color: #1f2937;
+    border-radius: 18px 18px 4px 18px; /* 底部右角的方形让位给小三角 */
+    padding: 10px 16px;
+    max-width: 85%;
+    align-self: flex-end;
+    position: relative;
+    word-wrap: break-word;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    /* 底部滑入动画 */
+    animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  /* 气泡右下角的小三角（模仿 Telegram 风格） */
+  .chat-bubble::after {
+    content: '';
     position: absolute;
-    display: flex;
-    height: 30px;
-    width: 70px;
-    background-color: #93965F;
-    z-index: 1;
-    border-radius: 8px;
-    transition: 0.15s ease-out;
-    border: 1px solid transparent;
+    bottom: 0;
+    right: -6px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border-bottom-right-radius: 4px;
+    transform: rotate(45deg) translateY(4px);
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+  }
+  @keyframes msgSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 
@@ -98,27 +90,29 @@
          style="height: 660px; width: 100%;">
          
         <!-- 左上角 Tabs 切换器 -->
-        <div class="agent-tabs-wrapper absolute top-4 left-4">
+        <div class="agent-tabs-wrapper absolute top-4 left-4 z-20">
             <div class="container">
               <div class="tabs">
                 <input checked="" name="tabs" id="radio-1" type="radio" />
                 <label for="radio-1" class="tab">回答</label>
-
                 <input name="tabs" id="radio-2" type="radio" />
                 <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
-
                 <span class="glider"></span>
               </div>
             </div>
         </div>
 
-        <!-- ✅ 修改：整体往左移动（left-4, right-10），按钮缩小（px-3 py-1.5 text-lg） -->
-        <div class="absolute bottom-6 left-4 right-10 flex items-center gap-2">
-            <!-- 输入框 -->
-            <input type="text" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all" />
-            <!-- 发送按钮：缩小尺寸 -->
-            <button class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-lg">
-                ➠
+        <!-- ✅ 新增：消息显示区域，正好位于 Tabs 下方，在输入框之上 -->
+        <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-20 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-1">
+            <!-- 这里是消息气泡动态出现的地方 -->
+        </div>
+
+        <!-- ✅ 底部输入框和发送按钮 -->
+        <div class="absolute bottom-6 left-4 right-10 flex items-center gap-2 z-20">
+            <input id="agentInput" type="text" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all" />
+            <!-- ✅ 修改：按钮缩小，图标改为纯居中 + 号 -->
+            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none">
+                +
             </button>
         </div>
 
@@ -129,6 +123,9 @@
 document.addEventListener("DOMContentLoaded", function() {
     const panelWrapper = document.getElementById('agentPanelWrapper');
     const panel = document.getElementById('agentPanel');
+    const agentInput = document.getElementById('agentInput');
+    const agentSendBtn = document.getElementById('agentSendBtn');
+    const agentMessageArea = document.getElementById('agentMessageArea');
     let isPanelOpen = false;
 
     function updateAgentPanelPosition() {
@@ -144,7 +141,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
-        
         if (isPanelOpen) {
             const container = document.getElementById('cardStackContainer');
             if (container) {
@@ -154,17 +150,43 @@ document.addEventListener("DOMContentLoaded", function() {
                 panelWrapper.style.transform = 'translateX(-50%)';
                 panelWrapper.style.display = 'block';
             }
-            setTimeout(() => {
-                panel.classList.remove('translate-y-full');
-            }, 10);
+            setTimeout(() => { panel.classList.remove('translate-y-full'); }, 10);
         } else {
             panel.classList.add('translate-y-full');
-            setTimeout(() => {
-                panelWrapper.style.display = 'none';
-            }, 250);
+            setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
         }
     };
 
     window.addEventListener('resize', updateAgentPanelPosition);
+
+    // ✅ 添加发送消息的交互逻辑
+    function sendMessage() {
+        const text = agentInput.value.trim();
+        if (!text) return;
+
+        // 创建气泡元素
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = text;
+
+        // 追加到消息区域
+        agentMessageArea.appendChild(bubble);
+
+        // 自动滚动到底部
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+
+        // 清空输入框
+        agentInput.value = '';
+    }
+
+    // 监听点击发送按钮
+    agentSendBtn.addEventListener('click', sendMessage);
+
+    // 监听回车键发送
+    agentInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 });
-</script>
+              </script>
