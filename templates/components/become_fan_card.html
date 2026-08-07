@@ -1,6 +1,6 @@
-<!-- 订阅卡片下拉组件（紧凑折叠、渐变数字） -->
-<div id="becomeFanDropdown" class="hidden fixed top-[62px] right-6 z-[9999] w-[320px] md:w-[380px]">
-    <div id="becomeFanCardWrapper" class="bg-black/50 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-5 pt-4 pb-5">
+<!-- 订阅卡片下拉组件（动态吸附按钮下方） -->
+<div id="becomeFanDropdown" class="hidden fixed z-[9999]">
+    <div id="becomeFanCardWrapper" class="bg-black/60 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
         <div class="fan-container flex justify-center items-center w-full relative">
             
             <!-- 卡片 1：微光 -->
@@ -32,7 +32,7 @@
 </div>
 
 <style>
-/* 紧凑底部对齐 */
+/* 卡片容器 */
 .fan-container {
     position: relative;
     display: flex;
@@ -42,7 +42,7 @@
     padding: 10px 0;
 }
 
-/* 单张卡片 - 更紧密的折叠 */
+/* 单张卡片 - 紧凑折叠 */
 .fan-container .fan-card {
     position: relative;
     width: 100px;
@@ -54,7 +54,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 -30px; /* 折叠时负边距加大，更紧凑 */
+    margin: 0 -32px; /* 折叠状态极度紧凑 */
     transform: rotate(calc(var(--r) * 1deg));
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
@@ -66,23 +66,22 @@
 .fan-container:hover .fan-card,
 .fan-container:focus-within .fan-card {
     transform: rotate(0deg);
-    margin: 0 6px; /* 展开距离合适 */
+    margin: 0 6px; /* 展开拉开刚好 */
     z-index: 10;
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 移动端适配 */
+/* 手机适配 */
 @media (max-width: 600px) {
-    #becomeFanDropdown {
-        width: 260px;
-        right: 12px;
-        top: 56px;
+    #becomeFanCardWrapper {
+        width: 260px !important;
+        padding: 12px 8px 14px !important;
     }
     .fan-container .fan-card {
-        width: 76px;
+        width: 74px;
         height: 110px;
-        margin: 0 -22px; /* 移动端折叠更紧 */
+        margin: 0 -24px;
         border-radius: 14px;
     }
     .fan-container:hover .fan-card {
@@ -95,30 +94,33 @@
         font-size: 9px;
         bottom: 2px !important;
     }
-    #becomeFanCardWrapper {
-        padding: 12px 8px 14px !important;
-    }
 }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 覆盖 splash.html 里的 openBecomeFanModal 方法
     window.openBecomeFanModal = function() {
-        toggleDropdown();
-    };
-    // 兼容新方法的调用
-    window.toggleBecomeFanDropdown = function() {
-        toggleDropdown();
-    };
-
-    function toggleDropdown() {
         const el = document.getElementById('becomeFanDropdown');
         if (!el) return;
-        
+
+        // 动态计算按钮位置，贴在按钮正下方
+        const btn = document.querySelector('.top-actions .top-btn:last-child');
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            const top = rect.bottom + 8; // 距离按钮底部8px
+            const right = window.innerWidth - rect.right;
+            el.style.top = top + 'px';
+            el.style.right = right + 'px';
+        } else {
+            // 兜底位置
+            el.style.top = '70px';
+            el.style.right = '20px';
+        }
+
+        // 切换显示状态
         if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
-            // 添加点击外部关闭的监听
+            // 绑定点击外部关闭
             setTimeout(() => {
                 document.addEventListener('click', closeDropdownOutside);
             }, 10);
@@ -126,14 +128,14 @@ document.addEventListener("DOMContentLoaded", function() {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
         }
-    }
+    };
 
     function closeDropdownOutside(e) {
         const el = document.getElementById('becomeFanDropdown');
         const btn = document.querySelector('.top-actions .top-btn');
         if (!el || el.classList.contains('hidden')) return;
         
-        // 如果点击的不是下拉菜单本身，也不是触发按钮，则关闭
+        // 点击的不是卡片本身，也不是触发按钮，则关闭
         if (!el.contains(e.target) && !btn.contains(e.target)) {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
