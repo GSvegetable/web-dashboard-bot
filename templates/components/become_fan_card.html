@@ -1,142 +1,119 @@
-<!-- 订阅/爱好者（微光、星光、极光）卡片组件 -->
+<!-- 订阅卡片组件（微光、星光、极光） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box flex justify-center w-full">
-        <div id="becomeFanCardWrapper" class="subscribe-card relative overflow-hidden w-full max-w-[600px] p-6 sm:p-8">
+        <!-- 卡片框体，去掉多余文字 -->
+        <div id="becomeFanCardWrapper" class="subscribe-card relative overflow-hidden w-full max-w-[540px] p-6 sm:p-8 pt-10 flex flex-col items-center justify-center">
             
-            <!-- 左上角：返回按钮 -->
-            <button type="button" onclick="window.closeBecomeFanModal(event)" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-20">
-                返回
-            </button>
-
-            <!-- 卡片标题（简洁） -->
-            <div class="mt-6 mb-8 flex flex-col items-center gap-1">
-                <h2 class="text-xl font-semibold text-white tracking-wide">选择你的专属光芒</h2>
-                <p class="text-gray-400 text-[10px]">悬停查看详情，点击立即订阅</p>
-            </div>
-
-            <!-- 三卡片展示区 -->
-            <div class="fan-container flex justify-center items-center py-4">
+            <!-- 三卡片展示区（修正展开偏移） -->
+            <div class="fan-container flex justify-center items-center w-full py-4">
                 
                 <!-- 卡片 1：微光 -->
-                <div class="fan-glass" style="--r:-12;" data-text="微光">
-                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                        <div class="text-3xl font-black text-cyan-300 tracking-tight drop-shadow-[0_0_8px_rgba(103,232,249,0.5)]">¥15</div>
-                        <div class="text-[10px] text-white/60">/ 月</div>
+                <div class="fan-glass" style="--r:-14;" data-text="微光">
+                    <div class="flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold text-cyan-300 tracking-tight">¥15</span>
+                        <span class="text-[10px] text-gray-400">/ 月</span>
                     </div>
-                    <!-- 底部功能占位 -->
-                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">基础额度</div>
                 </div>
 
-                <!-- 卡片 2：星光（主推/推荐） -->
-                <div class="fan-glass relative" style="--r:0;" data-text="星光">
-                    <!-- 推荐标签 -->
-                    <div class="absolute -top-2 -right-2 z-20 bg-yellow-500/20 text-yellow-300 text-[9px] px-2 py-0.5 rounded-full border border-yellow-500/30 backdrop-blur-md">推荐</div>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                        <div class="text-3xl font-black text-yellow-300 tracking-tight drop-shadow-[0_0_8px_rgba(253,224,71,0.5)]">¥40</div>
-                        <div class="text-[10px] text-white/60">/ 月</div>
+                <!-- 卡片 2：星光 -->
+                <div class="fan-glass" style="--r:0;" data-text="星光">
+                    <div class="flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold text-yellow-300 tracking-tight">¥40</span>
+                        <span class="text-[10px] text-gray-400">/ 月</span>
                     </div>
-                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">性能增强</div>
                 </div>
 
                 <!-- 卡片 3：极光 -->
-                <div class="fan-glass" style="--r:12;" data-text="极光">
-                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                        <div class="text-3xl font-black text-purple-400 tracking-tight drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]">¥310</div>
-                        <div class="text-[10px] text-white/60">/ 月</div>
+                <div class="fan-glass" style="--r:14;" data-text="极光">
+                    <div class="flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold text-purple-400 tracking-tight">¥310</span>
+                        <span class="text-[10px] text-gray-400">/ 月</span>
                     </div>
-                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">极致性能</div>
                 </div>
 
             </div>
 
-            <!-- 底部按钮 -->
-            <div class="mt-8 w-full flex justify-center">
-                <button class="px-8 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm font-medium transition active:scale-95">
-                    立即订阅
-                </button>
-            </div>
+            <!-- 订阅按钮 -->
+            <button class="mt-6 w-full max-w-[280px] py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm font-medium transition active:scale-95">
+                立即订阅
+            </button>
 
         </div>
     </div>
 </div>
 
 <style>
-/* 复刻 Uiverse 的三角列阵毛玻璃效果 */
+/* 卡片排列容器，保证居中 */
 .fan-container {
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0; /* 核心靠 margin 控制重叠 */
+    width: 100%;
+    padding: 10px 0;
 }
 
+/* 单张卡片毛玻璃质感 */
 .fan-container .fan-glass {
     position: relative;
-    width: 140px;
-    height: 180px;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    width: 130px;
+    height: 170px;
+    background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 25px 25px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    border-radius: 20px;
-    margin: 0 -35px; /* 初始状态的重叠距离 */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 18px;
+    margin: 0 -20px; /* 紧凑交叠 */
+    backdrop-filter: blur(10px);
     transform: rotate(calc(var(--r) * 1deg));
     z-index: 1;
     cursor: pointer;
 }
 
-/* 悬停或聚焦时，卡片展开并放平 */
-.fan-container:hover .fan-glass,
-.fan-container:focus-within .fan-glass {
-    transform: rotate(0deg);
-    margin: 0 8px;
-    width: 150px;
-    height: 190px;
-    z-index: 10;
-    background: rgba(255,255,255,0.12);
-    border-color: rgba(255,255,255,0.3);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-}
-
-/* 毛玻璃底部的文字标 */
+/* 卡片底部的名字（微光/星光/极光） */
 .fan-glass::before {
     content: attr(data-text);
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.05);
+    height: 34px;
+    background: rgba(255, 255, 255, 0.06);
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #9ca3af;
+    color: #d1d5db;
     font-size: 13px;
     font-weight: 500;
-    letter-spacing: 1px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 18px 18px;
 }
 
+/* 悬停展开 - 原地拉开，不会有单独飞到屏幕中间的错位 */
+.fan-container:hover .fan-glass,
+.fan-container:focus-within .fan-glass {
+    transform: rotate(0deg);
+    margin: 0 8px; /* 展开距离 */
+    z-index: 10;
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* 手机端适配 */
 @media (max-width: 600px) {
     .fan-container .fan-glass {
-        width: 110px;
-        height: 150px;
-        margin: 0 -28px;
-    }
-    .fan-container:hover .fan-glass,
-    .fan-container:focus-within .fan-glass {
-        width: 120px;
-        height: 160px;
-        margin: 0 4px;
+        width: 100px;
+        height: 130px;
+        margin: 0 -16px;
     }
     .fan-glass::before {
-        height: 30px;
+        height: 28px;
         font-size: 11px;
+    }
+    .fan-container:hover .fan-glass {
+        margin: 0 5px;
     }
 }
 </style>
