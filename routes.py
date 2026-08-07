@@ -80,7 +80,7 @@ def agent_chat():
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
         payload = {
-            "model": "glm-4-flash", # 纯文本推理，省钱且快
+            "model": "glm-4-flash",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
@@ -99,15 +99,24 @@ def agent_chat():
             
             try:
                 parsed = json.loads(stripped_reply)
-                # 如果解析出来是动作列表（数组）
+                
+                # 1. 标准格式：包含 reply 和 actions (这是我们现在的主打格式)
+                if isinstance(parsed, dict) and 'reply' in parsed and 'actions' in parsed:
+                    return jsonify({'reply': parsed['reply'], 'actions': parsed['actions']})
+                
+                # 2. 兼容格式：如果是动作数组
                 if isinstance(parsed, list):
-                    return jsonify({'action_sequence': parsed})
-                # 如果解析出来是确认动作
+                    return jsonify({'actions': parsed})
+                    
+                # 3. 确认动作
                 if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
                     return jsonify(parsed)
-                # 可能是带单动作的字典
+                    
+                # 4. 单动作兼容
                 if isinstance(parsed, dict) and parsed.get('action'):
-                    return jsonify({'action_sequence': [parsed]})
+                    return jsonify({'actions': [parsed]})
+                    
+                # 5. 纯文本
                 return jsonify({'reply': stripped_reply})
             except:
                 return jsonify({'reply': stripped_reply})
