@@ -1,30 +1,28 @@
-<!-- 订阅/爱好者卡片组件（微光 / 星光 / 极光 三卡交互，精简版） -->
+<!-- 订阅/爱好者卡片组件（完美复刻 Uiverse 旋转展开效果） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <!-- 去掉了顶部内边距，整体往上方移动 -->
-        <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[600px] px-6 sm:px-8 pt-0 pb-6">
+        <!-- 去掉顶部内边距，整体上移 -->
+        <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[600px] px-6 pb-6 pt-2">
             
-            <!-- 已删除：返回按钮 -->
+            <!-- 完全复刻 Uiverse 源码的父容器 -->
+            <div class="card-container relative flex justify-center items-center min-h-[200px]">
 
-            <!-- 卡片组容器：整体向上移动，减少多出的间距 -->
-            <div class="flex flex-wrap justify-center items-center min-h-[180px] pt-0 mt-4 gap-0 group">
-                
-                <!-- 卡片 1：微光 (尺寸缩小) -->
-                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: -15; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">微光</span>
-                    <span class="text-2xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 1：微光 -->
+                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: -15;">
+                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">微光</span>
+                    <span class="text-3xl font-bold text-white tracking-tight">15<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
                 </div>
 
-                <!-- 卡片 2：星光 (尺寸缩小) -->
-                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 5; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">星光</span>
-                    <span class="text-2xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 2：星光 -->
+                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: 5;">
+                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">星光</span>
+                    <span class="text-3xl font-bold text-white tracking-tight">40<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
                 </div>
 
-                <!-- 卡片 3：极光 (尺寸缩小) -->
-                <div class="relative w-[100px] sm:w-[130px] h-[150px] bg-[rgba(255,255,255,0.05)] border border-white/30 shadow-[0_25px_25px_rgba(0,0,0,0.15)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out mx-[-15px] sm:mx-[-30px] hover:mx-[10px] hover:rotate-0 group-hover:mx-[10px] group-hover:rotate-0 first:ml-0 last:mr-0" style="--r: 25; transform: rotate(calc(var(--r) * 1deg));">
-                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-2">极光</span>
-                    <span class="text-2xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                <!-- 卡片 3：极光 -->
+                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: 25;">
+                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">极光</span>
+                    <span class="text-3xl font-bold text-white tracking-tight">310<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
                 </div>
 
             </div>
@@ -33,12 +31,44 @@
     </div>
 </div>
 
+<style>
+/* 精准还原 Uiverse 核心交互逻辑 */
+.card-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-container .card-item {
+    position: relative;
+    margin: 0 -40px; /* 初始状态下卡片的负边距重叠 */
+    transform: rotate(calc(var(--r) * 1deg)); /* 根据自定义属性旋转 */
+}
+
+/* 核心动画：鼠标悬停到容器上时，所有卡片旋转归零，间隔拉开 */
+.card-container:hover .card-item {
+    transform: rotate(0deg);
+    margin: 0 15px;
+}
+
+/* 手机端自适应微调 */
+@media (max-width: 600px) {
+    .card-container .card-item {
+        margin: 0 -25px;
+    }
+    .card-container:hover .card-item {
+        margin: 0 8px;
+    }
+}
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const modalOverlay = document.getElementById('becomeFanModal');
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
-            // 点击模态框背景层关闭
+            // 点击背景层关闭
             if (e.target === modalOverlay) {
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
