@@ -28,11 +28,6 @@
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
   .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
-  .confirm-box { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 16px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; max-width: 90%; }
-  .confirm-box .btn-group { display: flex; gap: 8px; margin-top: 8px; }
-  .confirm-box .btn-group button { background: #493F36; color: white; border: none; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
-  .confirm-box .btn-group button:active { transform: scale(0.95); }
-  .confirm-box .btn-group .btn-cancel { background: rgba(255,255,255,0.1); }
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -160,125 +155,27 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ⚡ 特工级执行引擎：每一步都强制留下真实执行日志
-    async function executeSequence(actions, userText) {
-        const isAgent = currentMode === 'agent';
-        const targetList = isAgent ? agentList : discussionList;
-        
-        // 插入第一条日志
-        const step1 = document.createElement('div');
-        step1.className = 'ai-text-msg text-gray-400';
-        step1.textContent = `[特工日志] 共收到 ${actions.length} 条动作指令，准备开始执行...`;
-        targetList.appendChild(step1);
-        targetList.scrollTop = targetList.scrollHeight;
-
+    // ✅ 核心：执行纯脚本引擎，直接调用 agent_macros.js 里的宏
+    async function executeMacroSequence(actions) {
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
-            const action = item.action;
+            const macroName = item.action;
             
-            // 记录即将执行的步骤
-            const logMsg = document.createElement('div');
-            logMsg.className = 'ai-text-msg text-gray-400';
-            logMsg.textContent = `[特工日志] 正在执行第 ${i+1} 步：${action}`;
-            targetList.appendChild(logMsg);
-            targetList.scrollTop = targetList.scrollHeight;
-
-            try {
-                if (action === 'OPEN_MUSIC') {
-                    const el = document.getElementById('musicModal');
-                    if (!el) throw new Error('找不到元素 id="musicModal"');
-                    el.classList.add('active');
+            // 检查全局宏是否存在
+            if (window.AgentMacros && typeof window.AgentMacros[macroName] === 'function') {
+                try {
+                    // 调用宏，支持 await
+                    await window.AgentMacros[macroName]();
+                } catch (e) {
+                    console.error(`宏 ${macroName} 执行出错:`, e);
                 }
-                else if (action === 'CLOSE_MUSIC') {
-                    const el = document.getElementById('musicModal');
-                    const audio = document.getElementById('bg-audio');
-                    if (el) el.classList.remove('active');
-                    if (audio) { audio.pause(); audio.currentTime = 0; }
-                }
-                else if (action === 'OPEN_LOG') {
-                    const el = document.getElementById('updateLogModal');
-                    if (!el) throw new Error('找不到元素 id="updateLogModal"');
-                    el.classList.add('active');
-                }
-                else if (action === 'CLOSE_LOG') {
-                    const el = document.getElementById('updateLogModal');
-                    if (el) el.classList.remove('active');
-                }
-                else if (action === 'TOGGLE_FULLSCREEN') {
-                    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-                    else if (document.exitFullscreen) document.exitFullscreen();
-                }
-                else if (action === 'OPEN_CONTACT') {
-                    const el = document.getElementById('contactModal');
-                    if (!el) throw new Error('找不到元素 id="contactModal"');
-                    el.classList.add('active');
-                }
-                else if (action === 'OPEN_LOGIN') {
-                    const el = document.getElementById('loginModal');
-                    if (!el) throw new Error('找不到元素 id="loginModal"');
-                    el.classList.add('active');
-                }
-                else if (action === 'OPEN_DEVELOPER') {
-                    const el = document.getElementById('becomeFanModal');
-                    if (!el) throw new Error('找不到元素 id="becomeFanModal"');
-                    el.classList.add('active');
-                }
-                else if (action === 'SWITCH_TO_DISCUSSION') {
-                    const radio = document.getElementById('radio-1');
-                    if (radio) radio.click();
-                }
-                else if (action === 'SWITCH_TO_AGENT') {
-                    const radio = document.getElementById('radio-2');
-                    if (radio) radio.click();
-                }
-                else if (action === 'MUSIC_PLAY') {
-                    const audio = document.getElementById('bg-audio');
-                    if (audio) audio.play().catch(e => console.log('播放被拦截', e));
-                }
-                else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
-                    const audio = document.getElementById('bg-audio');
-                    if (audio) audio.pause();
-                }
-                else if (action === 'VERIFY_MUSIC' || action === 'VERIFY_LOG') {
-                    // 暴力跳过检查，避免卡死
-                    const skipMsg = document.createElement('div');
-                    skipMsg.className = 'ai-text-msg text-yellow-400/80';
-                    skipMsg.textContent = `[特工日志] 跳过复杂自检环节，避免卡死。`;
-                    targetList.appendChild(skipMsg);
-                    targetList.scrollTop = targetList.scrollHeight;
-                }
-
-                // 每一小步执行成功后打印
-                const succMsg = document.createElement('div');
-                succMsg.className = 'ai-text-msg text-green-300/80';
-                succMsg.textContent = `✔ 第 ${i+1} 步 "${action}" 执行通过。`;
-                targetList.appendChild(succMsg);
-                targetList.scrollTop = targetList.scrollHeight;
-
-            } catch (e) {
-                // 一旦出错，立刻爆出红线！
-                const errMsg = document.createElement('div');
-                errMsg.className = 'ai-text-msg text-red-400/80';
-                errMsg.textContent = `❌ 第 ${i+1} 步 "${action}" 崩溃！原因：${e.message}`;
-                targetList.appendChild(errMsg);
-                targetList.scrollTop = targetList.scrollHeight;
-                // 直接彻底终止循环，不继续执行
-                break;
+            } else {
+                console.warn(`未找到宏命令: ${macroName}`);
             }
 
-            // 如果这一条指令里带有延时（如：十秒后关闭的延迟），正常等待
             const waitTime = item.delay || 0;
-            if (waitTime > 0) {
-                await new Promise(r => setTimeout(r, waitTime));
-            }
+            if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
         }
-        
-        // 全部执行完毕提示
-        const endMsg = document.createElement('div');
-        endMsg.className = 'ai-text-msg';
-        endMsg.textContent = '✅ 动作序列已执行完毕。如果功能未生效，请检查页面元素配置。';
-        targetList.appendChild(endMsg);
-        targetList.scrollTop = targetList.scrollHeight;
     }
 
     function sendMessageInternal() {
@@ -312,6 +209,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
+            // 1. 引导/确认动作
             if (data.action === 'suggest_agent' || data.action === 'ASK_CONFIRM') {
                 isProcessing = false; return;
             }
@@ -319,7 +217,7 @@ document.addEventListener("DOMContentLoaded", function() {
             let actualReply = data.reply || '抱歉，无法回答。';
             let actions = data.actions || [];
 
-            // 修复 JSON 透传
+            // 2. 修复可能的 JSON 透传
             if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
                 try {
                     const parsed = JSON.parse(actualReply);
@@ -327,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 } catch (e) {}
             }
 
-            // 先把 AI 的话显示出来
+            // 3. 先显示 AI 的回复（比如“好的，正在为您播放音乐”）
             const botMsg = document.createElement('div');
             botMsg.className = 'ai-text-msg';
             botMsg.textContent = actualReply;
@@ -335,40 +233,24 @@ document.addEventListener("DOMContentLoaded", function() {
             targetList.scrollTop = targetList.scrollHeight;
             history.push({ type: 'ai', text: actualReply });
 
-            // 如果有动作，立刻去执行真实操作
+            // 4. 如果有宏命令，直接调出“手脚”去执行
             if (isAgent && actions && actions.length > 0) {
-                // 释放锁，让后台去跑
+                // 释放 UI 锁，让后台跑宏
                 isProcessing = false; 
                 setTimeout(() => {
-                    executeSequence(actions, text);
+                    executeMacroSequence(actions);
                 }, 100);
                 return; 
             }
 
             isProcessing = false;
         })
-        .catch((error) => {
+        .catch(() => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const diagnosticMessage = `[执行诊断] 用户尝试执行指令："${text}"，但遇到了网络或服务器错误。错误详情：${error.message}。请帮我分析解决。`;
-            
-            const errBubble = document.createElement('div'); errBubble.className = 'ai-text-msg text-red-400/80'; errBubble.textContent = '遇到系统异常，正在尝试调用智能诊断...';
-            targetList.appendChild(errBubble); targetList.scrollTop = targetList.scrollHeight;
-            history.push({ type: 'ai', text: '触发系统诊断' });
-
-            fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: diagnosticMessage, mode: currentMode, model_type: currentModel }) })
-            .then(res => res.json())
-            .then(diagData => {
-                const diagMsg = document.createElement('div'); diagMsg.className = 'ai-text-msg'; diagMsg.textContent = diagData.reply || '分析不出具体原因。';
-                targetList.appendChild(diagMsg); targetList.scrollTop = targetList.scrollHeight;
-                history.push({ type: 'ai', text: diagData.reply || '分析失败。' });
-                isProcessing = false;
-            })
-            .catch(() => {
-                const msg = document.createElement('div'); msg.className = 'ai-text-msg text-red-400/80'; msg.textContent = '诊断系统调用也失败了。';
-                targetList.appendChild(msg); targetList.scrollTop = targetList.scrollHeight;
-                history.push({ type: 'ai', text: '诊断系统调用也失败了。' });
-                isProcessing = false;
-            });
+            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '网络异常，请稍后再试。';
+            targetList.appendChild(errMsg); targetList.scrollTop = targetList.scrollHeight;
+            history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
+            isProcessing = false;
         });
     }
 
