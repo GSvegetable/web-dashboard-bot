@@ -1,28 +1,31 @@
-<!-- 订阅/爱好者卡片组件（完美复刻 Uiverse 旋转展开效果） -->
+<!-- 纯粹毛玻璃折叠卡片（微光 / 星光 / 极光） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <!-- 去掉顶部内边距，整体上移 -->
+        <!-- 减掉顶部内边距，让卡片整体上移 -->
         <div id="becomeFanCardWrapper" class="relative overflow-hidden w-full max-w-[600px] px-6 pb-6 pt-2">
             
-            <!-- 完全复刻 Uiverse 源码的父容器 -->
-            <div class="card-container relative flex justify-center items-center min-h-[200px]">
+            <!-- 卡片交互主容器：点击这里触发展开和收起 -->
+            <div id="cardStackContainer" class="relative flex justify-center items-center min-h-[170px] cursor-pointer select-none">
 
-                <!-- 卡片 1：微光 -->
-                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: -15;">
-                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">微光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">15<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
+                <!-- 卡片 1：微光 (初始逆时针倾斜) -->
+                <div class="card-item w-[110px] h-[135px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(-15deg) translateX(-10px); margin-right: -30px; z-index: 1;">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">微光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 2：星光 -->
-                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: 5;">
-                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">星光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">40<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
+                <!-- 卡片 2：星光 (初始居中) -->
+                <div class="card-item w-[110px] h-[135px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(0deg); margin-right: -30px; z-index: 2;">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
-                <!-- 卡片 3：极光 -->
-                <div class="card-item w-[140px] sm:w-[160px] h-[180px] bg-gradient-to-b from-white/10 to-transparent border border-white/20 shadow-[0_25px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-in-out" style="--r: 25;">
-                    <span class="text-white/50 text-[10px] font-light tracking-wider mb-3">极光</span>
-                    <span class="text-3xl font-bold text-white tracking-tight">310<span class="text-sm font-normal text-gray-400 ml-1">/月</span></span>
+                <!-- 卡片 3：极光 (初始顺时针倾斜) -->
+                <div class="card-item w-[110px] h-[135px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(15deg) translateX(10px); z-index: 0;">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
+                    <span class="text-2xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
             </div>
@@ -31,44 +34,12 @@
     </div>
 </div>
 
-<style>
-/* 精准还原 Uiverse 核心交互逻辑 */
-.card-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.card-container .card-item {
-    position: relative;
-    margin: 0 -40px; /* 初始状态下卡片的负边距重叠 */
-    transform: rotate(calc(var(--r) * 1deg)); /* 根据自定义属性旋转 */
-}
-
-/* 核心动画：鼠标悬停到容器上时，所有卡片旋转归零，间隔拉开 */
-.card-container:hover .card-item {
-    transform: rotate(0deg);
-    margin: 0 15px;
-}
-
-/* 手机端自适应微调 */
-@media (max-width: 600px) {
-    .card-container .card-item {
-        margin: 0 -25px;
-    }
-    .card-container:hover .card-item {
-        margin: 0 8px;
-    }
-}
-</style>
-
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // 点击背景层直接关闭卡片
     const modalOverlay = document.getElementById('becomeFanModal');
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
-            // 点击背景层关闭
             if (e.target === modalOverlay) {
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
@@ -76,5 +47,36 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
+
+    // ==========================================
+    // 核心交互：点击卡片组 -> 展开 / 收回
+    // ==========================================
+    const cardContainer = document.getElementById('cardStackContainer');
+    const cardItems = cardContainer.querySelectorAll('.card-item');
+    let isExpanded = false; // 当前是否展开的状态
+
+    cardContainer.addEventListener('click', function() {
+        isExpanded = !isExpanded; // 状态反转
+
+        if (isExpanded) {
+            // 1. 展开整齐排列
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-60px)';
+            cardItems[0].style.marginRight = '0px';
+            
+            cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
+            cardItems[1].style.marginRight = '0px';
+            
+            cardItems[2].style.transform = 'rotate(0deg) translateX(60px)';
+        } else {
+            // 2. 收回重叠排列
+            cardItems[0].style.transform = 'rotate(-15deg) translateX(-10px)';
+            cardItems[0].style.marginRight = '-30px';
+            
+            cardItems[1].style.transform = 'rotate(0deg)';
+            cardItems[1].style.marginRight = '-30px';
+            
+            cardItems[2].style.transform = 'rotate(15deg) translateX(10px)';
+        }
+    });
 });
 </script>
