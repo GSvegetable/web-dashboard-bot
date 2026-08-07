@@ -1,92 +1,57 @@
-<!-- 订阅/爱好者卡片组件 -->
+<!-- 订阅/爱好者（微光、星光、极光）卡片组件 -->
 <div class="modal-overlay" id="becomeFanModal">
-    <div class="modal-box">
+    <div class="modal-box flex justify-center w-full">
         <div id="becomeFanCardWrapper" class="subscribe-card relative overflow-hidden w-full max-w-[600px] p-6 sm:p-8">
             
             <!-- 左上角：返回按钮 -->
-            <button type="button" onclick="window.closeBecomeFanModal(event)" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-10">
+            <button type="button" onclick="window.closeBecomeFanModal(event)" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-20">
                 返回
             </button>
 
-            <!-- ✅ 已删除：此处原来的“爱好者”标题和描述文字全被移除 -->
+            <!-- 卡片标题（简洁） -->
+            <div class="mt-6 mb-8 flex flex-col items-center gap-1">
+                <h2 class="text-xl font-semibold text-white tracking-wide">选择你的专属光芒</h2>
+                <p class="text-gray-400 text-[10px]">悬停查看详情，点击立即订阅</p>
+            </div>
 
-            <!-- 套餐列表 -->
-            <div class="flex flex-col gap-4 mt-8">
-
-                <!-- 方案一：15元/月 -->
-                <div class="flex flex-col sm:flex-row gap-6 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition duration-200">
-                    <!-- 左侧：名称和价格 -->
-                    <div class="sm:w-[120px] flex flex-col justify-between flex-shrink-0">
-                        <div>
-                            <h3 class="text-blue-400 font-semibold text-lg">标准版</h3>
-                            <p class="text-gray-400 text-[10px] leading-snug mt-1">为个人开发者<br>和爱好者打造。</p>
-                        </div>
-                        <div class="mt-2 sm:mt-0">
-                            <span class="text-3xl font-bold text-white tracking-tight">¥15</span>
-                            <span class="text-gray-400 text-sm ml-1">/月</span>
-                        </div>
+            <!-- 三卡片展示区 -->
+            <div class="fan-container flex justify-center items-center py-4">
+                
+                <!-- 卡片 1：微光 -->
+                <div class="fan-glass" style="--r:-12;" data-text="微光">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                        <div class="text-3xl font-black text-cyan-300 tracking-tight drop-shadow-[0_0_8px_rgba(103,232,249,0.5)]">¥15</div>
+                        <div class="text-[10px] text-white/60">/ 月</div>
                     </div>
-                    <!-- 右侧：权益列表 -->
-                    <div class="flex-1 border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
-                        <ul class="grid grid-cols-1 gap-y-2 text-xs text-gray-300">
-                            <li class="flex items-start gap-2">
-                                <span class="text-blue-400 mt-[1px]">•</span> 每月15元基础对话额度
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-blue-400 mt-[1px]">•</span> 标准接口响应速率
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-blue-400 mt-[1px]">•</span> 7天日志历史记录
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-blue-400 mt-[1px]">•</span> 社区技术支持
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- 底部功能占位 -->
+                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">基础额度</div>
                 </div>
 
-                <!-- 方案二：40元/月 -->
-                <div class="flex flex-col sm:flex-row gap-6 p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition duration-200 relative ring-1 ring-purple-500/30">
-                    <div class="absolute -top-2 right-5 bg-purple-500/20 text-purple-300 text-[9px] px-2 py-0.5 rounded-full border border-purple-500/30">推荐</div>
-                    
-                    <!-- 左侧：名称和价格 -->
-                    <div class="sm:w-[120px] flex flex-col justify-between flex-shrink-0">
-                        <div>
-                            <h3 class="text-purple-400 font-semibold text-lg">专业版</h3>
-                            <p class="text-gray-400 text-[10px] leading-snug mt-1">适用于专业开发<br>和高级工作负载。</p>
-                        </div>
-                        <div class="mt-2 sm:mt-0">
-                            <span class="text-3xl font-bold text-white tracking-tight">¥40</span>
-                            <span class="text-gray-400 text-sm ml-1">/月</span>
-                        </div>
+                <!-- 卡片 2：星光（主推/推荐） -->
+                <div class="fan-glass relative" style="--r:0;" data-text="星光">
+                    <!-- 推荐标签 -->
+                    <div class="absolute -top-2 -right-2 z-20 bg-yellow-500/20 text-yellow-300 text-[9px] px-2 py-0.5 rounded-full border border-yellow-500/30 backdrop-blur-md">推荐</div>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                        <div class="text-3xl font-black text-yellow-300 tracking-tight drop-shadow-[0_0_8px_rgba(253,224,71,0.5)]">¥40</div>
+                        <div class="text-[10px] text-white/60">/ 月</div>
                     </div>
-                    <!-- 右侧：权益列表 -->
-                    <div class="flex-1 border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-6">
-                        <ul class="grid grid-cols-1 gap-y-2 text-xs text-gray-300">
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-400 mt-[1px]">•</span> 每月40元高额度使用积分
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-400 mt-[1px]">•</span> 高性能接口 & 双倍计算资源
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-400 mt-[1px]">•</span> 30天日志历史记录
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-400 mt-[1px]">•</span> 专属开发者技术支持
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-400 mt-[1px]">•</span> 99.99% 可用性保障
-                            </li>
-                        </ul>
+                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">性能增强</div>
+                </div>
+
+                <!-- 卡片 3：极光 -->
+                <div class="fan-glass" style="--r:12;" data-text="极光">
+                    <div class="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                        <div class="text-3xl font-black text-purple-400 tracking-tight drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]">¥310</div>
+                        <div class="text-[10px] text-white/60">/ 月</div>
                     </div>
+                    <div class="absolute bottom-8 text-[10px] text-white/40 italic">极致性能</div>
                 </div>
 
             </div>
 
-            <!-- 底部联合行动按钮 -->
-            <div class="mt-6 w-full">
-                <button class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white text-sm font-medium transition active:scale-95">
+            <!-- 底部按钮 -->
+            <div class="mt-8 w-full flex justify-center">
+                <button class="px-8 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm font-medium transition active:scale-95">
                     立即订阅
                 </button>
             </div>
@@ -95,17 +60,83 @@
     </div>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const modalOverlay = document.getElementById('becomeFanModal');
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', function(e) {
-            if (e.target === modalOverlay) {
-                if (typeof window.closeBecomeFanModal === 'function') {
-                    window.closeBecomeFanModal(e);
-                }
-            }
-        });
+<style>
+/* 复刻 Uiverse 的三角列阵毛玻璃效果 */
+.fan-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0; /* 核心靠 margin 控制重叠 */
+}
+
+.fan-container .fan-glass {
+    position: relative;
+    width: 140px;
+    height: 180px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 25px 25px rgba(0, 0, 0, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    border-radius: 20px;
+    margin: 0 -35px; /* 初始状态的重叠距离 */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transform: rotate(calc(var(--r) * 1deg));
+    z-index: 1;
+    cursor: pointer;
+}
+
+/* 悬停或聚焦时，卡片展开并放平 */
+.fan-container:hover .fan-glass,
+.fan-container:focus-within .fan-glass {
+    transform: rotate(0deg);
+    margin: 0 8px;
+    width: 150px;
+    height: 190px;
+    z-index: 10;
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+/* 毛玻璃底部的文字标 */
+.fan-glass::before {
+    content: attr(data-text);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0 0 20px 20px;
+}
+
+@media (max-width: 600px) {
+    .fan-container .fan-glass {
+        width: 110px;
+        height: 150px;
+        margin: 0 -28px;
     }
-});
-                                    </script>
+    .fan-container:hover .fan-glass,
+    .fan-container:focus-within .fan-glass {
+        width: 120px;
+        height: 160px;
+        margin: 0 4px;
+    }
+    .fan-glass::before {
+        height: 30px;
+        font-size: 11px;
+    }
+}
+</style>
