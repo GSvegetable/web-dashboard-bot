@@ -11,7 +11,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
-from telegram_bot import send_verification_code
+from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 
 app = Flask(__name__)
@@ -71,13 +71,11 @@ def fetch_telegram_user_info(tg_id):
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
     
-    # 🔥 核心升级：智能协议判断
+    # 🔥 智能协议判断：Telegram内扫码走专属协议，其他（微信/相机）走网页链接
     user_agent = request.headers.get('User-Agent', '').lower()
     if 'telegram' in user_agent:
-        # 如果检测到是Telegram APP内部，走专属协议，绝不报错
         deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}"
     else:
-        # 如果是微信、苹果相机等，走通用网页链接，完美识别
         deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
         
     new_session = QrLoginSession(token=token, status='pending')
@@ -107,6 +105,22 @@ def check_qr_login(token):
         return jsonify({'status': 'expired'})
     return jsonify({'status': session.status})
 
+# --- ✨ 新增：专供机器人识别截图后调用登录的接口 ---
+@app.route('/api/process_qr_token', methods=['POST'])
+def process_qr_token():
+    data = request.get_json()
+    token = data.get('token')
+    chat_id = data.get('chat_id')
+
+    session = QrLoginSession.query.filter_by(token=token).first()
+    if session and session.status == 'pending':
+        session.status = 'success'
+        session.telegram_id = chat_id
+        db.session.commit()
+        return jsonify({'ok': True})
+    return jsonify({'ok': False})
+
+# --- 发送验证码 ---
 @app.route('/api/send_code', methods=['POST'])
 def send_code():
     data = request.get_json()
@@ -125,10 +139,11 @@ def send_code():
         db.session.commit()
         return jsonify({'ok': True, 'msg': '验证码已发送至邮箱'})
     else:
-        success, _ = send_verification_code(account)
+        success, _ = send_verification_code(account, code)
         if success: return jsonify({'ok': True, 'msg': '已通过Telegram机器人发送验证码'})
         else: return jsonify({'ok': False, 'msg': 'ID无效或机器人未响应'})
 
+# --- 注册/登录 ---
 @app.route('/register', methods=['POST'])
 def register():
     account = request.form.get('email')
@@ -197,10 +212,15 @@ def register():
     db.session.commit()
     return "注册成功"
 
+# --- Telegram Webhook 入口 ---
 @app.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
     data = request.get_json()
     if 'message' in data:
+        # 机器人拦截并处理消息（包含文本和发来的图片）
+        handle_message(data)
+        
+        # 保留你原先的 /start qr_ 兼容处理
         msg = data['message']
         chat_id = str(msg['chat']['id'])
         text = msg.get('text', '')
@@ -216,6 +236,7 @@ def tg_webhook():
                 return "OK"
     return "OK"
 
+# --- 一键配置 Webhook ---
 @app.route('/setup_webhook', methods=['GET'])
 def setup_webhook():
     try:
