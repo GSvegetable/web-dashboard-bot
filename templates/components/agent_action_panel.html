@@ -1,6 +1,208 @@
-<!-- 在底部的 `sendMessageInternal` 函数中找到 fetch 部分，替换成下面这段增强了错误捕获的代码 -->
+<!-- Agent 玻璃质感底部面板组件 -->
+<style>
+  .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  
+  /* 原有的 Tabs 样式 */
+  .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .agent-tabs-wrapper .tabs * { z-index: 2; }
+  .agent-tabs-wrapper input[type="radio"] { display: none; }
+  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; }
+  .agent-tabs-wrapper .notification { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto; font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px; background-color: rgba(255, 255, 255, 0.1); transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5); }
+  .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
+  .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
+  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
+  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
+  .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
+  .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
+  
+  /* 底部模型切换 Tabs */
+  .model-tabs-wrapper { display: flex; position: relative; gap: 6px; align-items: center; }
+  .model-tabs-wrapper .model-tab { font-size: 0.7rem; color: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 2px 8px; border-radius: 10px; transition: 0.2s; border: 1px solid transparent; user-select: none; }
+  .model-tabs-wrapper .model-tab.active { color: #ffffff; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+  .model-tabs-wrapper .model-tab:active { transform: scale(0.95); }
+  .model-separator { color: rgba(255, 255, 255, 0.2); font-size: 0.7rem; }
+
+  #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
+  #agentMessageArea::-webkit-scrollbar { display: none; }
+  
+  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+  .chat-list.hidden { display: none; }
+  .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
+  .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
+  .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
+  .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
+  .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
+  .suggest-switch-box button:active { transform: scale(0.95); }
+  
+  .confirm-box { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 16px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; max-width: 90%; }
+  .confirm-box .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+  .confirm-box .btn-group button { background: #493F36; color: white; border: none; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
+  .confirm-box .btn-group button:active { transform: scale(0.95); }
+  .confirm-box .btn-group .btn-cancel { background: rgba(255,255,255,0.1); }
+  
+  @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
+    <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
+        
+        <!-- 恢复：讨论/代理人 回到原位的左上角 -->
+        <div class="absolute top-4 left-4 z-20">
+            <div class="agent-tabs-wrapper">
+                <div class="container">
+                    <div class="tabs">
+                        <input checked="" name="tabs" id="radio-1" type="radio" />
+                        <label for="radio-1" class="tab">讨论</label>
+                        <input name="tabs" id="radio-2" type="radio" />
+                        <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                        <span class="glider"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
+        
+        <!-- 底部输入区域 -->
+        <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
+            
+            <!-- 模型切换条（输入框上方） -->
+            <div class="flex items-center gap-2 w-full pl-1">
+                <div class="model-tabs-wrapper">
+                    <span class="model-tab active" data-model="zhipu" onclick="switchModel('zhipu')">智谱</span>
+                    <span class="model-separator">|</span>
+                    <span class="model-tab" data-model="doubao" onclick="switchModel('doubao')">豆包</span>
+                    <span class="model-separator">|</span>
+                    <span class="model-tab" data-model="kimi" onclick="switchModel('kimi')">Kimi</span>
+                </div>
+            </div>
+
+            <!-- 输入框+发送按钮 -->
+            <div class="flex items-end gap-2 w-full">
+                <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+                <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script>
-// ... 前面代码不变 ...
+document.addEventListener("DOMContentLoaded", function() {
+    const panelWrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel'), agentInput = document.getElementById('agentInput'), agentSendBtn = document.getElementById('agentSendBtn'), agentMessageArea = document.getElementById('agentMessageArea'), discussionList = document.getElementById('discussionList'), agentList = document.getElementById('agentList'), radio1 = document.getElementById('radio-1'), radio2 = document.getElementById('radio-2');
+    let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false;
+    let isProcessing = false;
+    let currentModel = 'zhipu';
+
+    const savedModel = localStorage.getItem('gsbot_model_preference');
+    if (savedModel === 'zhipu' || savedModel === 'doubao' || savedModel === 'kimi') {
+        currentModel = savedModel;
+        switchModelUI(currentModel);
+    }
+
+    function switchMode(mode) {
+        if (mode === currentMode) return;
+        const currentList = currentMode === 'discussion' ? discussionList : agentList, targetList = mode === 'discussion' ? discussionList : agentList;
+        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
+    }
+    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
+    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
+
+    function updateAgentPanelPosition() {
+        if (!isPanelOpen) return;
+        const container = document.getElementById('cardStackContainer');
+        if (container) {
+            const rect = container.getBoundingClientRect();
+            panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+            panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+            panelWrapper.style.transform = 'translateX(-50%)';
+        }
+    }
+    
+    window.toggleAgentPanel = function() {
+        isPanelOpen = !isPanelOpen;
+        if (isPanelOpen) {
+            const container = document.getElementById('cardStackContainer');
+            // ✅ 修复：如果找不到卡片容器，强制给予默认宽高，保证绝对能弹出来
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+                panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+                panelWrapper.style.transform = 'translateX(-50%)';
+            } else {
+                // 兜底方案
+                panelWrapper.style.width = '320px';
+                panelWrapper.style.left = '50%';
+                panelWrapper.style.transform = 'translateX(-50%)';
+            }
+            panelWrapper.style.display = 'block'; // 绝对能显示！
+
+            setTimeout(() => { 
+                panel.classList.remove('translate-y-full'); 
+                setTimeout(() => { agentInput.focus(); }, 300);
+            }, 10);
+        } else {
+            panel.classList.add('translate-y-full');
+            setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
+        }
+    };
+    window.addEventListener('resize', updateAgentPanelPosition);
+
+    window.suggestSwitchToAgent = function(originalMessage) {
+        if (currentMode === 'discussion') {
+            radio2.checked = true; switchMode('agent');
+            const checkSwitchDone = setInterval(() => {
+                if (currentMode === 'agent') { clearInterval(checkSwitchDone); agentInput.value = originalMessage; sendMessageInternal(); }
+            }, 200);
+        } else if (currentMode === 'agent') {
+            agentInput.value = originalMessage; sendMessageInternal();
+        }
+    };
+
+    window.switchModel = function(model) {
+        if (model === currentModel) return;
+        currentModel = model;
+        localStorage.setItem('gsbot_model_preference', model);
+        switchModelUI(model);
+    };
+
+    function switchModelUI(model) {
+        const tabs = document.querySelectorAll('.model-tab');
+        tabs.forEach(tab => {
+            if (tab.dataset.model === model) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    }
+
+    window.performAction = function(actionObj) {
+        const action = actionObj.action;
+        const delay = actionObj.delay || 0;
+        
+        if (action === 'OPEN_MUSIC') document.getElementById('musicModal')?.classList.add('active');
+        else if (action === 'CLOSE_MUSIC') { document.getElementById('musicModal')?.classList.remove('active'); document.getElementById('bg-audio')?.pause(); if(document.getElementById('bg-audio')) document.getElementById('bg-audio').currentTime = 0; }
+        else if (action === 'OPEN_LOG') document.getElementById('updateLogModal')?.classList.add('active');
+        else if (action === 'CLOSE_LOG') document.getElementById('updateLogModal')?.classList.remove('active');
+        else if (action === 'TOGGLE_FULLSCREEN') { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        else if (action === 'OPEN_CONTACT') document.getElementById('contactModal')?.classList.add('active');
+        else if (action === 'OPEN_LOGIN') document.getElementById('loginModal')?.classList.add('active');
+        else if (action === 'OPEN_DEVELOPER') document.getElementById('becomeFanModal')?.classList.add('active');
+        else if (action === 'SWITCH_TO_DISCUSSION') { if (document.getElementById('radio-1')) document.getElementById('radio-1').click(); }
+        else if (action === 'SWITCH_TO_AGENT') { if (document.getElementById('radio-2')) document.getElementById('radio-2').click(); }
+        else if (action === 'MUSIC_PLAY') document.getElementById('bg-audio')?.play().catch(e => console.log('播放被拦截', e));
+        else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') document.getElementById('bg-audio')?.pause();
+    };
+
+    async function executeSequence(actions) {
+        for (let i = 0; i < actions.length; i++) {
+            const item = actions[i];
+            window.performAction(item);
+            const waitTime = item.delay || 0;
+            if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
+        }
+    }
 
     function sendMessageInternal() {
         if (isProcessing) return;
@@ -26,7 +228,6 @@
 
         fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
         .then(res => {
-            // ✅ 如果 API 状态码不是 200，直接抛出错误让 catch 捕获
             if (!res.ok) {
                 throw new Error(`API 请求失败，状态码: ${res.status}`);
             }
@@ -35,8 +236,6 @@
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // 正常响应处理（引导、确认、动作、纯文本）...
-            // ... (保留你之前的原有逻辑) ...
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你这条指令不够清晰。<br><button onclick="window.suggestSwitchToAgent('${data.reply || payload.message}')">点击尝试重新发给我</button>`;
@@ -44,11 +243,39 @@
                 isProcessing = false;
                 return;
             }
+
             if (data.action === 'ASK_CONFIRM') {
-                // ... (原有确认逻辑) ...
+                const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
+                const confirmActions = data.confirm_actions || [];
+                const actionStr = JSON.stringify(confirmActions);
+                confirmBox.innerHTML = `
+                    <div>${data.reply || '请确认以下操作？'}</div>
+                    <div class="btn-group">
+                        <button class="btn-confirm" data-actions='${actionStr}'>确认执行</button>
+                        <button class="btn-cancel">取消</button>
+                    </div>
+                `;
+                targetList.appendChild(confirmBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '等待确认...' });
+                
+                confirmBox.querySelector('.btn-confirm').addEventListener('click', function() {
+                    const actionStr = this.getAttribute('data-actions');
+                    try {
+                        const actions = JSON.parse(actionStr);
+                        if (actions.length > 0) { executeSequence(actions); }
+                    } catch(e) {}
+                    confirmBox.style.display = 'none';
+                });
+                
+                confirmBox.querySelector('.btn-cancel').addEventListener('click', function() {
+                    confirmBox.style.display = 'none';
+                    const msg = document.createElement('div'); msg.className = 'ai-text-msg'; msg.textContent = '已取消操作。';
+                    targetList.appendChild(msg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已取消操作。' });
+                });
+
                 isProcessing = false;
                 return;
             }
+
             if (isAgent) {
                 if (data.reply) {
                     const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply;
@@ -60,22 +287,19 @@
                 isProcessing = false;
                 return;
             }
+
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
         })
         .catch((error) => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            // ✅ 核心：一旦捕获到错误，立刻构造诊断指令，发给 AI！
             const errorText = error.message || '未知网络错误';
-            // 构造特殊的诊断触发字符串
             const diagnosticMessage = `[执行诊断] 用户尝试执行指令："${text}"，但遇到了网络或服务器错误。错误详情：${errorText}。请帮我分析解决。`;
             
-            // 直接把诊断消息当作新消息发送给 AI
             const errBubble = document.createElement('div'); errBubble.className = 'ai-text-msg text-red-400/80'; errBubble.textContent = '遇到系统异常，正在尝试调用智能诊断...';
             targetList.appendChild(errBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '触发系统诊断' });
 
-            // 再次调用 Fetch，但这次发送的是诊断字符串
             fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: diagnosticMessage, mode: currentMode, model_type: currentModel }) })
             .then(res => res.json())
             .then(diagData => {
@@ -90,5 +314,9 @@
             });
         });
     }
-// ... 后面的代码不变 ...
-</script>
+
+    agentSendBtn.addEventListener('click', sendMessageInternal);
+    agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
+    agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
+});
+    </script>
