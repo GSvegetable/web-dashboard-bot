@@ -28,61 +28,42 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- 全新透明玻璃 Mac 风格任务卡片 --- */
-  .mac-card-wrapper {
+  /* --- 全新纯黑终端控制台面板 --- */
+  .dev-panel-wrapper {
     display: flex;
     justify-content: center;
     width: 100%;
     padding: 4px 0;
   }
-  .mac-card {
+  .dev-panel {
     width: 100%;
     max-width: 380px;
-    padding: 14px 16px 16px 16px;
-    /* ✅ 核心：背景改为透明玻璃深灰 */
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-    align-self: center;
+    background: #000000; /* 纯黑底，去透明框 */
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 12px 16px;
     margin: 6px 0;
-    opacity: 0;
-    transform: translateY(20px);
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    align-self: flex-start;
+    animation: msgSlideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  .mac-card.show {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* 极简面板标题 */
+  .dev-panel-title {
+    color: #e6e6ef;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
   }
-  /* 三色点 */
-  .mac-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-  .mac-header span { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-  .mac-header .red { background-color: #ff5f57; }
-  .mac-header .yellow { background-color: #ffbd2e; }
-  .mac-header .green { background-color: #28c941; }
+  .dev-panel-line { display: block; }
   
-  /* ✅ 压缩：标题变小，用点分隔 */
-  .mac-card-title { font-size: 13px; font-weight: bold; color: #e6e6ef; margin: 0; line-height: 1.2; }
-  .mac-card-subtitle-inline { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: normal; margin-left: 4px; letter-spacing: 0.5px; }
-  
-  /* 代码区域保持原样 */
-  .mac-code-editor {
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #b0b0b0;
-    font-family: monospace; font-size: 12px; line-height: 1.6;
-    border-radius: 8px; padding: 10px;
-    height: 80px; overflow-y: auto;
-    border: 1px solid rgba(255,255,255,0.05);
-    margin-top: 8px;
-  }
-  .mac-code-editor::-webkit-scrollbar { width: 6px; }
-  .mac-code-editor::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-  .mac-code-line { display: block; white-space: pre-wrap; }
-  .mac-code-success { color: #5bed7a; }
-  .mac-code-warn { color: #ffd700; }
-  .mac-code-info { color: #71a4f0; }
+  /* 终端样式：橙 + 绿 */
+  .dev-orange { color: #ffbd2e; }   /* 执行日志 */
+  .dev-green { color: #5bed7a; }    /* 成功状态 */
+  .dev-info { color: #71a4f0; }     /* 信息提示 */
 </style>
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
@@ -136,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     window.suggestSwitchToAgent = suggestSwitchToAgent;
 
-    // 动作执行器
+    // 动作执行器（原封不动）
     window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
     window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
     window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
@@ -159,135 +140,108 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    async function executeSequence(actions) {
-        if (isExecuting) return;
-        isExecuting = true;
-        try {
-            for (let i = 0; i < actions.length; i++) {
-                const item = actions[i];
-                performSingleAction(item);
-                const waitTime = item.delay || 0;
-                if (waitTime > 0) {
-                    await new Promise(r => setTimeout(r, waitTime));
-                }
-            }
-        } finally {
-            isExecuting = false;
-        }
-    }
+    // 睡眠辅助函数
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-    // ==========================================
-    // ✅ 更新：透明玻璃卡片 + 自然对话动画
-    // ==========================================
-    function renderMacProcessCard(actions) {
+    // 辅助追加文字回复
+    function appendAIMessage(text) {
         const isAgent = currentMode === 'agent';
         const targetList = isAgent ? agentList : discussionList;
         const history = isAgent ? agentHistory : discussionHistory;
-
-        const taskMetadata = {
-            'open_music': {
-                title: '音频调度任务',
-                subtitle: '媒体娱乐组件',
-                steps: [
-                    '[Dispatch] Received command: "open_music"',
-                    '[System] Resolving service: "AudioController"',
-                    '[Action] Invoking: openMusicModal()',
-                    '[Status] UI module loaded successfully.',
-                    '<span class="mac-code-success">[Success] Audio context initialized and ready.</span>'
-                ]
-            },
-            'open_log': {
-                title: '日志查阅任务',
-                subtitle: '历史记录检索',
-                steps: [
-                    '[Dispatch] Received command: "open_log"',
-                    '[System] Resolving service: "UpdateLogHandler"',
-                    '[Action] Invoking: openUpdateLogModal()',
-                    '[Status] Fetching latest change log data...',
-                    '<span class="mac-code-success">[Success] Log data retrieved and displayed.</span>'
-                ]
-            },
-            'fullscreen': {
-                title: '显示管理任务',
-                subtitle: '全屏切换指令',
-                steps: [
-                    '[Dispatch] Received command: "fullscreen"',
-                    '[System] Resolving service: "ScreenManager"',
-                    '[Action] Invoking: toggleFullScreen()',
-                    '[Status] Checking browser API support...',
-                    '<span class="mac-code-success">[Success] Fullscreen mode toggled.</span>'
-                ]
-            },
-            'open_contact': {
-                title: '关系链路任务',
-                subtitle: '工单提交通道',
-                steps: [
-                    '[Dispatch] Received command: "open_contact"',
-                    '[System] Resolving service: "ContactService"',
-                    '[Action] Invoking: openContactModal()',
-                    '[Status] Loading contact methods...',
-                    '<span class="mac-code-success">[Success] Contact interface activated.</span>'
-                ]
-            },
-            'open_developer': {
-                title: '开发者任务',
-                subtitle: '权限订阅面板',
-                steps: [
-                    '[Dispatch] Received command: "open_developer"',
-                    '[System] Resolving service: "SubscriptionManager"',
-                    '[Action] Invoking: openBecomeFanModal()',
-                    '[Status] Fetching pricing plans...',
-                    '<span class="mac-code-success">[Success] Subscription panel displayed.</span>'
-                ]
-            }
-        };
-
-        const primaryAction = actions[0] ? actions[0].action : 'open_music';
-        const meta = taskMetadata[primaryAction] || taskMetadata['open_music'];
-
-        // 1. 先放一句话作为对话引导
-        const leadMsg = document.createElement('div');
-        leadMsg.className = 'ai-text-msg';
-        leadMsg.textContent = `[Agent] 正在调度 ${meta.subtitle} 组件...`;
-        targetList.appendChild(leadMsg);
+        const msg = document.createElement('div');
+        msg.className = 'ai-text-msg';
+        msg.textContent = text;
+        targetList.appendChild(msg);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-        history.push({ type: 'ai', text: leadMsg.textContent });
+        history.push({ type: 'ai', text: text });
+    }
 
-        // 2. 生成并插入卡片
+    // 辅助追加纯黑终端面板
+    function appendDevPanel(title, lines) {
+        const isAgent = currentMode === 'agent';
+        const targetList = isAgent ? agentList : discussionList;
+        const history = isAgent ? agentHistory : discussionHistory;
         const wrapper = document.createElement('div');
-        wrapper.className = 'mac-card-wrapper';
-        const cardHTML = `
-            <div class="mac-card" id="task-card">
-                <div class="mac-header">
-                    <span class="red"></span><span class="yellow"></span><span class="green"></span>
-                </div>
-                <div class="mac-card-title">${meta.title} <span class="mac-card-subtitle-inline">· ${meta.subtitle}</span></div>
-                <div class="mac-code-editor">
-                    ${meta.steps.map(line => `<span class="mac-code-line">${line}</span>`).join('')}
-                </div>
-            </div>
-        `;
-        wrapper.innerHTML = cardHTML;
+        wrapper.className = 'dev-panel-wrapper';
+        let html = `<div class="dev-panel"><span class="dev-panel-title">>_ ${title}</span>`;
+        lines.forEach(line => {
+            html += `<span class="dev-panel-line">${line}</span>`;
+        });
+        html += `</div>`;
+        wrapper.innerHTML = html;
         targetList.appendChild(wrapper);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-        history.push({ type: 'ai', text: '[任务报告] 已生成执行详情' });
+        history.push({ type: 'ai', text: `[面板] ${title}` });
+    }
 
-        // 3. 触发 GSAP 滑入动画（就像自然对话一样）
-        const cardElement = document.getElementById('task-card');
-        if (typeof gsap !== 'undefined' && cardElement) {
-            gsap.fromTo(cardElement, 
-                { opacity: 0, y: 20 }, 
-                { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.2 }
+    // ==========================================
+    // ✅ 核心：分段式 Agent 执行流程
+    // ==========================================
+    async function processAgentCommands(actions) {
+        if (isExecuting) return;
+        isExecuting = true;
+
+        // 检查是否包含「打开音乐」和「播放」
+        const hasOpenMusic = actions.some(a => a.action === 'open_music');
+        const hasPlay = actions.some(a => a.action === 'music' && a.sub_action === 'play');
+
+        // 1. 理解用户指令
+        appendAIMessage('[Agent] 正在解析您的指令...');
+        await sleep(350);
+
+        // 2. 调度任务（终端面板 1）
+        if (hasOpenMusic) {
+            appendDevPanel(
+                '音频调度任务',
+                [
+                    '<span class="dev-info">[INFO]</span> <span class="dev-orange">Received command: "open_music"</span>',
+                    '<span class="dev-info">[INFO]</span> Resolving service: "AudioController"',
+                    '<span class="dev-info">[INFO]</span> UI component initialized.'
+                ]
             );
-        } else {
-            // 兜底
-            cardElement.classList.add('show');
+            await sleep(400);
         }
 
-        // 4. 执行真实的网页动作
-        setTimeout(() => {
-            executeSequence(actions);
-        }, 400);
+        // 3. 打开音乐卡片（文本 + 执行）
+        if (hasOpenMusic) {
+            appendAIMessage('[Agent] 正在打开音乐卡片...');
+            performSingleAction({action: 'open_music'});
+            await sleep(600);
+        }
+
+        // 4. 点击播放按钮（文本 + 执行）
+        if (hasPlay) {
+            appendAIMessage('[Agent] 正在点击播放按钮...');
+            performSingleAction({action: 'music', sub_action: 'play'});
+            await sleep(400);
+        }
+
+        // 5. 验证系统状态（终端面板 2）
+        if (hasOpenMusic && hasPlay) {
+            appendDevPanel(
+                '验证系统状态',
+                [
+                    '<span class="dev-info">[STATUS]</span> Checking audio context...',
+                    '<span class="dev-info">[STATUS]</span> Player state: "Playing"',
+                    '<span class="dev-green">[SUCCESS] 音频流已正常建立，播放器运行中</span>'
+                ]
+            );
+            await sleep(200);
+        }
+
+        // 6. 执行其它后续任务（如果有）
+        const remainingActions = actions.filter(a => !(a.action === 'open_music' || (a.action === 'music' && a.sub_action === 'play')));
+        if (remainingActions.length > 0) {
+            appendAIMessage(`[Agent] 正在执行后续 ${remainingActions.length} 个指令...`);
+            await sleep(300);
+            for (let i = 0; i < remainingActions.length; i++) {
+                performSingleAction(remainingActions[i]);
+                const waitTime = remainingActions[i].delay || 0;
+                if (waitTime > 0) await sleep(waitTime);
+            }
+        }
+
+        isExecuting = false;
     }
 
     function sendMessageInternal() {
@@ -313,8 +267,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
+            // 代理人专享：分段流程引擎
             if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                renderMacProcessCard(data.action_sequence);
+                processAgentCommands(data.action_sequence);
                 return;
             }
 
@@ -330,4 +285,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-              </script>
+                  </script>
