@@ -26,7 +26,6 @@
   .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
   .suggest-switch-box button:active { transform: scale(0.95); }
   
-  /* 新增确认按钮样式 */
   .confirm-box { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 16px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; max-width: 90%; }
   .confirm-box .btn-group { display: flex; gap: 8px; margin-top: 8px; }
   .confirm-box .btn-group button { background: #493F36; color: white; border: none; padding: 4px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.15s; }
@@ -146,29 +145,27 @@ document.addEventListener("DOMContentLoaded", function() {
             targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         }
 
-        // 预先准备好请求体
         let payload = { message: text, mode: currentMode };
 
-        // ✅ 节省流：检测方位关键词才触发截图
+        // 更保守、更省钱的触发机制
         const visionKeywords = ['右上角', '左上角', '左下角', '右下角', '按钮', '图标', '那个', '位置', '哪个卡片', '在哪里'];
         const needsVision = isAgent && visionKeywords.some(kw => text.includes(kw));
 
         if (needsVision && typeof html2canvas !== 'undefined') {
-            // 截图并添加到负载
-            html2canvas(document.querySelector('#contentArea'), { scale: 0.4, useCORS: true, logging: false })
+            // ✅ 修复：极致压缩截图，防止网关拦截和超时
+            html2canvas(document.querySelector('#contentArea'), { scale: 0.25, useCORS: true, logging: false })
             .then(canvas => {
-                // 压缩为JPEG，宽限制在400像素
                 const img = new Image();
-                img.src = canvas.toDataURL('image/jpeg', 0.6);
+                img.src = canvas.toDataURL('image/jpeg', 0.5);
                 img.onload = function() {
-                    const maxWidth = 400;
+                    const maxWidth = 300;
                     const ratio = Math.min(maxWidth / img.width, 1);
                     const canvas2 = document.createElement('canvas');
                     canvas2.width = img.width * ratio;
                     canvas2.height = img.height * ratio;
                     const ctx = canvas2.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas2.width, canvas2.height);
-                    payload.image = canvas2.toDataURL('image/jpeg', 0.6);
+                    payload.image = canvas2.toDataURL('image/jpeg', 0.5);
                     performFetch(payload, targetList, history, loadingMsg);
                 };
                 img.onerror = function() { performFetch(payload, targetList, history, loadingMsg); };
@@ -179,10 +176,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // 分离 fetch 逻辑
+    // 分离 fetch 逻辑（添加 AbortController 防止超时卡死）
     function performFetch(payload, targetList, history, loadingMsg) {
-        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(res => res.json()).then(data => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 秒超时控制
+
+        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal })
+        .then(res => res.json())
+        .then(data => {
+            clearTimeout(timeoutId);
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
             // 引导切换
@@ -194,7 +196,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // ✅ 新增：确认指令（方案二）
+            // 确认指令
             if (data.action === 'ask_confirmation') {
                 const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
                 const confirmAction = data.confirm_action || '';
@@ -207,20 +209,16 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
                 targetList.appendChild(confirmBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '等待确认...' });
                 
-                // 确认按钮事件
                 confirmBox.querySelector('.btn-confirm').addEventListener('click', function() {
                     const action = this.getAttribute('data-action');
                     if (action && action !== '') {
-                        // 直接执行动作
                         performSingleAction({action: action});
                         const replyMsg = document.createElement('div'); replyMsg.className = 'ai-text-msg'; replyMsg.textContent = '已确认执行。';
                         targetList.appendChild(replyMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已确认执行。' });
                     }
-                    // 隐藏按钮
                     confirmBox.style.display = 'none';
                 });
                 
-                // 取消按钮事件
                 confirmBox.querySelector('.btn-cancel').addEventListener('click', function() {
                     confirmBox.style.display = 'none';
                     const msg = document.createElement('div'); msg.className = 'ai-text-msg'; msg.textContent = '已取消操作。';
@@ -251,14 +249,24 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
+            // ✅ 特殊处理：如果不是动作，而是超时或错误提示
+            if (data.reply && data.reply.includes('超时')) {
+                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg text-yellow-400/80';
+                botMsg.textContent = data.reply;
+                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
+                isProcessing = false;
+                return;
+            }
+
             // 纯文本
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
         }).catch(() => {
+            clearTimeout(timeoutId);
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '网络异常，请稍后再试。';
-            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
+            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '请求异常，可能是超时，请稍后重试。';
+            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '请求异常，可能是超时，请稍后重试。' });
             isProcessing = false;
         });
     }
