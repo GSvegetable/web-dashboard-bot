@@ -49,17 +49,16 @@
   #agentMessageArea {
     scrollbar-width: none;
     -ms-overflow-style: none;
-    /* ✅ 顶部渐隐遮罩，让气泡滑到顶时朦胧消失 */
+    /* 顶部渐隐遮罩，让气泡滑到顶时朦胧消失 */
     mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
   }
   #agentMessageArea::-webkit-scrollbar { display: none; }
 
   .chat-bubble {
-    /* ✅ 改成深灰色，文字为白色 */
     background: rgba(40, 40, 40, 0.95);
     color: #f0f0f0;
-    border-radius: 18px 18px 4px 18px; /* 模仿Telegram气泡 */
+    border-radius: 18px 18px 4px 18px;
     padding: 10px 16px;
     max-width: 85%;
     align-self: flex-end;
@@ -104,14 +103,14 @@
             </div>
         </div>
 
-        <!-- ✅ 消息显示区域：顶部渐隐，底部延伸无死角，气泡可穿过输入框下方 -->
-        <div id="agentMessageArea" class="absolute top-[70px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
+        <!-- ✅ 修改：消息区域 top 从 70px 改为 100px，第一条消息往下移 -->
+        <div id="agentMessageArea" class="absolute top-[100px] left-4 right-4 bottom-0 overflow-y-auto flex flex-col gap-4 z-10 px-1 pb-[90px]">
             <!-- 气泡动态生成区 -->
         </div>
 
-        <!-- ✅ 悬空的底部输入栏（输入框自动撑高，按钮保持右下角对齐） -->
+        <!-- ✅ 修改：输入框改用黑色半透 + 背景模糊，悬浮穿透依然保留 -->
         <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
-            <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+            <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
             <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none mb-1">
                 +
             </button>
@@ -151,8 +150,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 panelWrapper.style.transform = 'translateX(-50%)';
                 panelWrapper.style.display = 'block';
             }
-            // 清理旧消息（可选，保持每次打开清爽）
-            // agentMessageArea.innerHTML = ''; 
             setTimeout(() => { panel.classList.remove('translate-y-full'); }, 10);
         } else {
             panel.classList.add('translate-y-full');
@@ -162,7 +159,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ✅ 发送消息逻辑
     function sendMessage() {
         const text = agentInput.value.trim();
         if (!text) return;
@@ -175,24 +171,18 @@ document.addEventListener("DOMContentLoaded", function() {
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
         agentInput.value = '';
-        agentInput.rows = 1; // 清空后恢复单行
+        agentInput.rows = 1;
         agentInput.style.height = 'auto';
     }
 
     agentSendBtn.addEventListener('click', sendMessage);
 
-    // ✅ 核心逻辑：超过40个字自动撑开到4行高
     agentInput.addEventListener('input', function() {
-        // 自动触发高度适应
         this.style.height = 'auto';
         this.style.height = this.scrollHeight + 'px';
-
-        // 字数大于 40 时，强制高度撑到能容纳 4 行文字的高度（约 108px ~ 120px）
         if (this.value.length > 40 && this.scrollHeight < 108) {
-            this.style.height = '108px'; // 4 行的大致高度
+            this.style.height = '108px';
         }
-        
-        // 允许按回车键发送
     });
 
     agentInput.addEventListener('keypress', function(e) {
@@ -202,4 +192,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
-                       </script>
+          </script>
