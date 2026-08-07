@@ -22,7 +22,6 @@ from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
-# 读取两个 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY')
 
@@ -70,7 +69,7 @@ def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
-    model_type = data.get('model_type', 'zhipu') # 新增：接收选择的模型类型
+    model_type = data.get('model_type', 'zhipu')
     
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
@@ -86,9 +85,7 @@ def agent_chat():
             "enable_search": True
         }
 
-        # ==========================================
         # 模型 A：智谱 AI (GLM-4-Flash)
-        # ==========================================
         if model_type == 'zhipu':
             if not ZHIPU_API_KEY:
                 return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
@@ -96,21 +93,21 @@ def agent_chat():
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
             payload["model"] = "glm-4-flash"
 
-        # ==========================================
         # 模型 B：豆包 / 火山引擎 (Doubao-Lite)
-        # ==========================================
         elif model_type == 'doubao':
             if not DOUBAO_API_KEY:
                 return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
             url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
-            # 火山引擎这里填的是“接入点 ID”或模型名，推荐用 doubao-lite-32k
-            payload["model"] = "doubao-lite-32k"
+            
+            # ⚠️ 【重要修复说明】：
+            # 火山引擎豆包不使用模型名称（如 doubao-lite-32k），而是使用你在控制台创建的“接入点 ID (Endpoint ID)”！
+            # 请去火山引擎控制台 -> 模型广场 -> 接入点，复制你的接入点 ID（格式通常是 ep-xxxxxxxxxxxx），并替换掉下面这行字符串。
+            payload["model"] = "ep-xxxxxxxxxxxx"  # 👈 请把这里换成你的 ep- 接入点 ID！
         
         else:
             return jsonify({'reply': '未选择有效的模型。'})
 
-        # 发起请求
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
         
         if resp.status_code == 200:
