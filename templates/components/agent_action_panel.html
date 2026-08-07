@@ -88,36 +88,43 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ✅ 修复：绝对不要去覆盖原生关闭逻辑，只做调用
-    // 下面这些函数直接调用页面原有的 window 方法
-    // 如果原有的方法没挂载，再写兜底
-
+    // ✅ 终极修复：直接操作 DOM 元素，完全绕开全局函数作用域陷阱！
     window.performAction = function(actionObj) {
         const action = actionObj.action;
-        if (action === 'OPEN_MUSIC') { if (typeof window.openMusicModal === 'function') window.openMusicModal(); else console.error('未找到 openMusicModal'); }
-        // ✅ 核心修复：CLOSE_MUSIC 直接调用网页自带的关闭函数，绝对没有 display:none 这种死锁
-        else if (action === 'CLOSE_MUSIC') {
-            if (typeof window.closeMusicModal === 'function') {
-                window.closeMusicModal();
-            } else {
-                // 兜底方案，直接移除类名
-                const modal = document.getElementById('musicModal');
-                if (modal) modal.classList.remove('active');
-            }
+        
+        // 直接加类名，绝对可靠
+        if (action === 'OPEN_MUSIC') {
+            document.getElementById('musicModal')?.classList.add('active');
         }
-        else if (action === 'OPEN_LOG') { if (typeof window.openUpdateLogModal === 'function') window.openUpdateLogModal(); }
-        else if (action === 'CLOSE_LOG') { if (typeof window.closeUpdateLogModal === 'function') window.closeUpdateLogModal(); }
-        else if (action === 'TOGGLE_FULLSCREEN') { if (typeof window.toggleFullScreen === 'function') window.toggleFullScreen(); }
-        else if (action === 'OPEN_CONTACT') { if (typeof window.openContactModal === 'function') window.openContactModal(); }
-        else if (action === 'OPEN_LOGIN') { if (typeof window.openLoginModal === 'function') window.openLoginModal(); }
-        else if (action === 'OPEN_DEVELOPER') { if (typeof window.openBecomeFanModal === 'function') window.openBecomeFanModal(); }
+        else if (action === 'CLOSE_MUSIC') {
+            document.getElementById('musicModal')?.classList.remove('active');
+            document.getElementById('bg-audio')?.pause();
+            if(document.getElementById('bg-audio')) document.getElementById('bg-audio').currentTime = 0;
+        }
+        else if (action === 'OPEN_LOG') {
+            document.getElementById('updateLogModal')?.classList.add('active');
+        }
+        else if (action === 'CLOSE_LOG') {
+            document.getElementById('updateLogModal')?.classList.remove('active');
+        }
+        else if (action === 'TOGGLE_FULLSCREEN') {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        }
+        else if (action === 'OPEN_CONTACT') {
+            document.getElementById('contactModal')?.classList.add('active');
+        }
+        else if (action === 'OPEN_LOGIN') {
+            document.getElementById('loginModal')?.classList.add('active');
+        }
+        else if (action === 'OPEN_DEVELOPER') {
+            document.getElementById('becomeFanModal')?.classList.add('active');
+        }
         else if (action === 'MUSIC_PLAY') {
-            const audio = document.getElementById('bg-audio');
-            if (audio) audio.play().catch(e => console.log('播放被拦截', e));
+            document.getElementById('bg-audio')?.play().catch(e => console.log('播放被拦截', e));
         }
         else if (action === 'MUSIC_PAUSE' || action === 'MUSIC_STOP') {
-            const audio = document.getElementById('bg-audio');
-            if (audio) { audio.pause(); audio.currentTime = 0; }
+            document.getElementById('bg-audio')?.pause();
         }
     };
 
@@ -156,7 +163,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json()).then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // 1. 引导切换
             if (data.action === 'suggest_agent') {
                 const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
                 suggestBox.innerHTML = `看起来你这条指令不够清晰。<br><button onclick="window.suggestSwitchToAgent('${data.reply || payload.message}')">点击尝试重新发给我</button>`;
@@ -165,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // 2. 确认指令
             if (data.action === 'ASK_CONFIRM') {
                 const confirmBox = document.createElement('div'); confirmBox.className = 'confirm-box';
                 const confirmActions = data.confirm_actions || [];
@@ -198,14 +203,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // ✅ 核心：严格按照 blueprint 返回的格式处理
             if (isAgent) {
-                // 先显示回复的话
                 if (data.reply) {
                     const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply;
                     targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
                 }
-                // 再异步执行动作队列（无论多长都执行）
                 if (data.actions && Array.isArray(data.actions)) {
                     executeSequence(data.actions);
                 }
@@ -213,7 +215,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            // 纯文本兜底
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
             isProcessing = false;
@@ -229,4 +230,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-          </script>
+                                                                                                                              </script>
