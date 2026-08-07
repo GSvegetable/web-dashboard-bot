@@ -8,7 +8,6 @@
   .agent-tabs-wrapper .tabs {
     display: flex;
     position: relative;
-    /* 背景改为半透明白，融入玻璃质感 */
     background: rgba(255, 255, 255, 0.08);
     box-shadow: none;
     padding: 0.25rem;
@@ -31,7 +30,6 @@
     height: 30px;
     width: 70px;
     font-size: 0.8rem;
-    /* 未选中文字为半透明白色 */
     color: rgba(255, 255, 255, 0.6);
     font-weight: 500;
     border-radius: 99px;
@@ -61,8 +59,9 @@
     color: #ffffff;
   }
 
+  /* ✅ 选中状态的徽章背景改为 #93965F */
   .agent-tabs-wrapper input[type="radio"]:checked + label > .notification {
-    background-color: #3b82f6;
+    background-color: #93965F;
     color: #ffffff;
     margin: 0px;
   }
@@ -75,34 +74,33 @@
     transform: translateX(100%);
   }
 
+  /* ✅ 滑条（Glider）背景色也改为 #93965F */
   .agent-tabs-wrapper .glider {
     position: absolute;
     display: flex;
     height: 30px;
     width: 70px;
-    /* 滑条为纯白半透明，极简 */
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: #93965F;
     z-index: 1;
     border-radius: 8px;
     transition: 0.15s ease-out;
   }
 </style>
 
-<!-- z-index 只设到 50，不遮挡常规页面点击 -->
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
     <div id="agentPanel" 
          class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative"
          style="height: 660px; width: 100%;">
          
-        <!-- ✅ 将 Uiverse 的切换器放在了面板的左上角 -->
+        <!-- ✅ 左上角 Tabs 切换器 -->
         <div class="agent-tabs-wrapper absolute top-4 left-4">
             <div class="container">
               <div class="tabs">
                 <input checked="" name="tabs" id="radio-1" type="radio" />
-                <label for="radio-1" class="tab">基础</label>
+                <label for="radio-1" class="tab">回答</label>
 
                 <input name="tabs" id="radio-2" type="radio" />
-                <label for="radio-2" class="tab">专业<span class="notification">省 28%</span></label>
+                <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
 
                 <span class="glider"></span>
               </div>
@@ -118,7 +116,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const panel = document.getElementById('agentPanel');
     let isPanelOpen = false;
 
-    // 暴露到全局供 Agent 按钮调用
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
         
