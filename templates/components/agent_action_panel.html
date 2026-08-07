@@ -73,7 +73,6 @@
     transform: translateX(100%);
   }
 
-  /* ✅ 修改：滑条依然用黑色，但加上白边和微光，保证非常显眼！ */
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider {
     background-color: black;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -85,12 +84,11 @@
     display: flex;
     height: 30px;
     width: 70px;
-    /* 默认滑条底色保持 #93965F，选中时上面那条规则会覆盖它 */
     background-color: #93965F;
     z-index: 1;
     border-radius: 8px;
     transition: 0.15s ease-out;
-    border: 1px solid transparent; /* 预留边框位置 */
+    border: 1px solid transparent;
   }
 </style>
 
@@ -112,6 +110,19 @@
                 <span class="glider"></span>
               </div>
             </div>
+        </div>
+
+        <!-- ✅ 新增：底部输入框和发送按钮 -->
+        <div class="absolute bottom-6 left-6 right-6 flex items-center gap-3">
+            <!-- 输入框 -->
+            <input type="text" placeholder="输入你的指令..." class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-3.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all" />
+            <!-- 发送按钮（颜色使用 #493F36） -->
+            <button class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-5 py-3.5 flex items-center justify-center transition active:scale-95 shadow-lg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
         </div>
 
     </div>
@@ -146,4 +157,4 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 });
-              </script>
+</script>
