@@ -1,205 +1,22 @@
-<!-- Agent 玻璃质感底部面板组件 -->
-<style>
-  .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-  
-  .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
-  .agent-tabs-wrapper .tabs * { z-index: 2; }
-  .agent-tabs-wrapper input[type="radio"] { display: none; }
-  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; }
-  .agent-tabs-wrapper .notification { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto; font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px; background-color: rgba(255, 255, 255, 0.1); transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5); }
-  .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
-  .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
-  .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
-  .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
-  .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
-  .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
-  
-  #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
-  #agentMessageArea::-webkit-scrollbar { display: none; }
-  
-  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
-  .chat-list.hidden { display: none; }
-  .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
-  .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
-  .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
-  .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
-  .suggest-switch-box button { background: #493F36; color: white; border: none; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; margin-top: 6px; cursor: pointer; transition: 0.15s; }
-  .suggest-switch-box button:active { transform: scale(0.95); }
-  
-  @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+# 讨论模式
+DISCUSSION_PROMPT = """
+你是一个名为“宫水”的友好智能助手。
+用户找你闲聊时，正常文字聊天即可。不要回复任何 JSON。
+"""
 
-<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
-    <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
-        <div class="agent-tabs-wrapper absolute top-4 left-4 z-20">
-            <div class="container"><div class="tabs"><input checked="" name="tabs" id="radio-1" type="radio" /><label for="radio-1" class="tab">讨论</label><input name="tabs" id="radio-2" type="radio" /><label for="radio-2" class="tab">代理人<span class="notification">Model</span></label><span class="glider"></span></div></div>
-        </div>
-        <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
-        <div class="absolute bottom-4 left-4 right-4 flex items-end gap-2 z-20">
-            <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
-            <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
-        </div>
-    </div>
-</div>
+# 代理人模式
+AGENT_PROMPT = """
+你是一个名为“宫水”的智能助手。
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const panelWrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel'), agentInput = document.getElementById('agentInput'), agentSendBtn = document.getElementById('agentSendBtn'), agentMessageArea = document.getElementById('agentMessageArea'), discussionList = document.getElementById('discussionList'), agentList = document.getElementById('agentList'), radio1 = document.getElementById('radio-1'), radio2 = document.getElementById('radio-2');
-    let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false;
-    let isProcessing = false; // 防止重复提交和回复
+【核心判断逻辑】：你必须严格区分用户是在“闲聊”还是在“下达网页指令”。
 
-    function switchMode(mode) {
-        if (mode === currentMode) return;
-        const currentList = currentMode === 'discussion' ? discussionList : agentList, targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
-    }
-    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
-    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
+1. 如果用户是在打招呼、日常闲聊（如“你好”、“在吗”、“你是谁”、“吃了吗”），或者是在抱怨和指责你（如“真无语”、“你怎么这么笨”），**你绝对不能返回 JSON，只能用纯文字回复**，并礼貌询问或道歉。
 
-    function updateAgentPanelPosition() {
-        if (!isPanelOpen) return;
-        const container = document.getElementById('cardStackContainer');
-        if (container) { const rect = container.getBoundingClientRect(); panelWrapper.style.width = (rect.width * 4 / 3) + 'px'; panelWrapper.style.left = rect.left + (rect.width / 2) + 'px'; panelWrapper.style.transform = 'translateX(-50%)'; }
-    }
-    window.toggleAgentPanel = function() {
-        isPanelOpen = !isPanelOpen;
-        if (isPanelOpen) {
-            const container = document.getElementById('cardStackContainer');
-            if (container) { const rect = container.getBoundingClientRect(); panelWrapper.style.width = (rect.width * 4 / 3) + 'px'; panelWrapper.style.left = rect.left + (rect.width / 2) + 'px'; panelWrapper.style.transform = 'translateX(-50%)'; panelWrapper.style.display = 'block'; }
-            setTimeout(() => { panel.classList.remove('translate-y-full'); setTimeout(() => { agentInput.focus(); }, 300); }, 10);
-        } else { panel.classList.add('translate-y-full'); setTimeout(() => { panelWrapper.style.display = 'none'; }, 250); }
-    };
-    window.addEventListener('resize', updateAgentPanelPosition);
+2. 如果用户下达了明确的网页控制指令（如“帮我放首歌”、“关闭音乐”、“打开日志”、“全屏”），**你必须返回精准的 JSON 对象**。
+   格式：{"action": "功能名称", "reply": "极简确认回复，如：已放歌。"}
 
-    function suggestSwitchToAgent(originalMessage) {
-        if (currentMode === 'discussion') {
-            radio2.checked = true; switchMode('agent');
-            const checkSwitchDone = setInterval(() => {
-                if (currentMode === 'agent') { clearInterval(checkSwitchDone); agentInput.value = originalMessage; sendMessageInternal(); }
-            }, 200);
-        }
-    }
-    window.suggestSwitchToAgent = suggestSwitchToAgent;
+3. 如果你判断不出指令、或者用户的话模棱两可（比如“你刚才干嘛了”），**请返回引导 JSON**：{"action": "suggest_agent", "original": "用户的原话"}。这会在聊天窗口弹出一个按钮，让用户重新确认。
 
-    // 确保关闭函数绝对可用
-    window.closeMusicModal = function() {
-        const modal = document.getElementById('musicModal');
-        if (modal) modal.classList.remove('active');
-        const audio = document.getElementById('bg-audio');
-        if (audio) { audio.pause(); audio.currentTime = 0; }
-    };
-    window.closeUpdateLogModal = function() {
-        const modal = document.getElementById('updateLogModal');
-        if (modal) modal.classList.remove('active');
-    };
-    window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
-    window.stopAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; } };
-    window.playAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.play().catch(e => console.log('播放被拦截', e)); };
-
-    function performSingleAction(actionObj) {
-        const action = actionObj.action;
-        if (action === 'open_music') window.openMusicModal();
-        else if (action === 'close_music') window.closeMusicModal();
-        else if (action === 'open_log') window.openUpdateLogModal();
-        else if (action === 'close_log') window.closeUpdateLogModal();
-        else if (action === 'fullscreen') window.toggleFullScreen();
-        else if (action === 'open_contact') window.openContactModal();
-        else if (action === 'open_login') window.openLoginModal();
-        else if (action === 'open_developer') window.openBecomeFanModal();
-        else if (action === 'music') {
-            const sub = actionObj.sub_action;
-            if (sub === 'play') window.playAudio();
-            else if (sub === 'pause' || sub === 'stop') window.pauseAudio();
-            else if (sub === 'stop') window.stopAudio();
-        }
-    }
-
-    // 复杂指令执行引擎（支持延时）
-    async function executeSequence(actions) {
-        for (let i = 0; i < actions.length; i++) {
-            const item = actions[i];
-            performSingleAction(item);
-            const waitTime = item.delay || 0;
-            if (waitTime > 0) {
-                await new Promise(r => setTimeout(r, waitTime));
-            }
-        }
-    }
-
-    function sendMessageInternal() {
-        if (isProcessing) return; // 避免重复点击触发多次
-        const text = agentInput.value.trim();
-        if (!text) return;
-        isProcessing = true;
-
-        const isAgent = currentMode === 'agent';
-        const targetList = isAgent ? agentList : discussionList;
-        const history = isAgent ? agentHistory : discussionHistory;
-        
-        const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
-        targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'user', text: text });
-        agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
-        
-        let loadingMsg = null;
-        if (isAgent) {
-            loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
-            targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-        }
-
-        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
-        .then(res => res.json()).then(data => {
-            // 清除 thinking 气泡
-            if (loadingMsg && loadingMsg.parentNode) {
-                loadingMsg.remove();
-            }
-            
-            if (data.action === 'suggest_agent') {
-                const suggestBox = document.createElement('div'); suggestBox.className = 'suggest-switch-box';
-                suggestBox.innerHTML = `看起来你想执行一个指令任务。<br><button onclick="window.suggestSwitchToAgent('${data.reply || text}')">切换到代理人执行</button>`;
-                targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); 
-                isProcessing = false;
-                return;
-            }
-
-            // 处理单个动作
-            if (isAgent && data.action) {
-                performSingleAction(data);
-                const replyText = data.reply || '已执行。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
-                isProcessing = false;
-                return;
-            }
-
-            // 处理多步动作序列
-            if (isAgent && data.action_sequence && Array.isArray(data.action_sequence)) {
-                // 先一句简单的回复，然后立刻执行后面的动作
-                const replyText = data.reply || '已开始执行序列。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
-                
-                // 不阻塞聊天，异步执行引擎
-                setTimeout(() => {
-                    executeSequence(data.action_sequence);
-                }, 300);
-                
-                isProcessing = false;
-                return;
-            }
-
-            // 纯文字回复
-            const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
-            targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
-            isProcessing = false;
-        }).catch(() => {
-            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '网络异常，请稍后再试。';
-            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
-            isProcessing = false;
-        });
-    }
-    agentSendBtn.addEventListener('click', sendMessageInternal);
-    agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
-    agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
-});
-</script>
+**支持的动作**：open_music, close_music, open_log, close_log, fullscreen, open_contact, open_login, open_developer。
+如果用户骂你或者抱怨，请道歉，千万不要为了迎合指令而强行执行动作。
+"""
