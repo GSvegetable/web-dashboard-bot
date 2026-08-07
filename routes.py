@@ -62,7 +62,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 接口 -------------------
+# ------------------- 核心 AI 接口（已加入联网搜索） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -79,13 +79,15 @@ def agent_chat():
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
 
+        # ✅ 核心改动：在请求体中添加 enable_search: True
         payload = {
             "model": "glm-4-flash",
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
-            "temperature": 0.3
+            "temperature": 0.3,
+            "enable_search": True
         }
         
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -101,7 +103,6 @@ def agent_chat():
                 parsed = json.loads(stripped_reply)
                 # 标准格式：包含 reply 和 actions
                 if isinstance(parsed, dict) and 'reply' in parsed:
-                    # 确保任何含有 reply 的 JSON，都会把 reply 字段剥离出来作为文字
                     return jsonify({'reply': parsed['reply'], 'actions': parsed.get('actions', [])})
                 # 确认动作
                 if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
@@ -118,7 +119,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# 其他路由保持不变...
+# 其他路由保持不变（扫码、注册、登录、Webhook 等）
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
