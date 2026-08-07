@@ -1,10 +1,10 @@
 <!-- 订阅/爱好者卡片组件 -->
-<div class="modal-overlay" id="subscribeModal">
+<div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
         <div id="subscribeCardWrapper" class="subscribe-card relative overflow-hidden w-full max-w-[600px] p-6 sm:p-8">
             
             <!-- 左上角：返回按钮 -->
-            <button type="button" onclick="closeSubscribeModal()" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-10">
+            <button type="button" onclick="window.closeBecomeFanModal(event)" class="absolute top-4 left-4 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition z-10">
                 返回
             </button>
 
@@ -101,52 +101,15 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 打开卡片的方法
-    window.openSubscribeModal = function() {
-        // 如果音乐卡片开着，先关掉它
-        const musicModal = document.getElementById('musicModal');
-        if (musicModal && musicModal.classList.contains('active')) window.closeMusicModal();
-        
-        const modal = document.getElementById('subscribeModal');
-        if (!modal) return;
-        modal.classList.add('active');
-        
-        // 入场动画（GSAP）
-        const wrapper = document.getElementById('subscribeCardWrapper');
-        if (typeof gsap !== 'undefined' && wrapper) {
-            gsap.fromTo(wrapper, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
-        }
-    };
-
-    // 关闭卡片的方法
-    window.closeSubscribeModal = function() {
-        const modal = document.getElementById('subscribeModal');
-        if (!modal) return;
-        
-        const wrapper = document.getElementById('subscribeCardWrapper');
-        if (typeof gsap !== 'undefined' && wrapper) {
-            gsap.to(wrapper, { 
-                y: 30, opacity: 0, duration: 0.2, ease: "power1.in",
-                onComplete: () => { modal.classList.remove('active'); }
-            });
-        } else {
-            modal.classList.remove('active');
-        }
-    };
-
-    // 阻止点击模态框背景层时关闭卡片（可以点背景关闭，类似于 auth_card 的逻辑，但此处按你习惯保留关闭能力）
-    // 如果点击的是 modal-box 内部，不触发关闭。
-    const modalBox = document.querySelector('#subscribeModal .modal-box');
-    if (modalBox) {
-        modalBox.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-    }
-    const modalOverlay = document.getElementById('subscribeModal');
+    // 关联外部定义的 closeBecomeFanModal 方法，实现点击背景或返回按钮关闭
+    const modalOverlay = document.getElementById('becomeFanModal');
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                closeSubscribeModal();
+                // 调用 splash.html 中定义的关闭方法，并传入事件对象 e
+                if (typeof window.closeBecomeFanModal === 'function') {
+                    window.closeBecomeFanModal(e);
+                }
             }
         });
     }
