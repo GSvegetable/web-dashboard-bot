@@ -1,7 +1,7 @@
 <!-- Agent 玻璃质感底部面板组件 -->
 <style>
   .agent-panel-transition {
-    /* 保持 0.25s 快速弹入弹出 */
+    /* 面板上滑和下滑的速度：0.25s 无回弹 */
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -51,7 +51,6 @@
     margin-left: 5rem;
     border-radius: 8px;
     margin: 0px;
-    /* Model 保持纯透明/半透明白色，永远不变 */
     background-color: rgba(255, 255, 255, 0.1);
     transition: 0.15s ease-in;
     color: rgba(255, 255, 255, 0.5);
@@ -59,6 +58,13 @@
 
   .agent-tabs-wrapper input[type="radio"]:checked + label {
     color: #ffffff;
+  }
+
+  /* ✅ 保留：代理人（radio-2）被选中时，Model 徽章背景改为 #493F36 */
+  .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification {
+    background-color: #493F36;
+    color: #ffffff;
+    margin: 0px;
   }
 
   .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider {
@@ -69,21 +75,9 @@
     transform: translateX(100%);
   }
 
-  /* ✅ 修改：无论选哪个，底下的滑条背景都变成纯黑色 */
+  /* ✅ 修改：回答和代理人被选中时，滑条颜色改为纯黑色 */
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider {
-    background-color: #000000;
-  }
-
-  /* ✅ 未选中时的滑条背景色保持 #93965F */
-  .agent-tabs-wrapper .glider {
-    position: absolute;
-    display: flex;
-    height: 30px;
-    width: 70px;
-    background-color: #93965F;
-    z-index: 1;
-    border-radius: 8px;
-    transition: 0.15s ease-out;
+    background-color: black;
   }
 </style>
 
