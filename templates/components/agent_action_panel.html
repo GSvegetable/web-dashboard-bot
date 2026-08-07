@@ -129,18 +129,27 @@ document.addEventListener("DOMContentLoaded", function() {
                 targetList.appendChild(suggestBox); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: '已识别指令意图' }); return;
             }
 
-            // 2. 执行动作指令并回复简单的文字
-            if (isAgent && data.action) {
+            // 2. 先显示确认回复文字
+            if (data.reply) {
+                const replyMsg = document.createElement('div'); replyMsg.className = 'ai-text-msg'; replyMsg.textContent = data.reply;
+                targetList.appendChild(replyMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply });
+            }
+
+            // 3. 执行动作序列（如果是单步 actions 或者多步 actions 数组）
+            if (data.actions && Array.isArray(data.actions)) {
+                data.actions.forEach(action => {
+                    performSingleAction(action);
+                });
+                return;
+            }
+            
+            // 4. 兜底：如果是单步旧格式
+            if (data.action) {
                 performSingleAction(data);
-                
-                // 弹出一句确认的话
-                const replyText = data.reply || '指令已执行。';
-                const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = replyText;
-                targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: replyText });
                 return;
             }
 
-            // 3. 普通聊天
+            // 5. 纯普通聊天
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg'; botMsg.textContent = data.reply || '抱歉，无法回答。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; history.push({ type: 'ai', text: data.reply || '抱歉，无法回答。' });
         }).catch(() => {
@@ -153,4 +162,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-          </script>
+      </script>
