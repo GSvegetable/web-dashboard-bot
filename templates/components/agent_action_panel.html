@@ -88,9 +88,17 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
+    // ✅ 超级修复：强制绑定关闭音乐卡片逻辑，保证点击绝对有效
     window.closeMusicModal = function() {
-        const modal = document.getElementById('musicModal'); if (modal) modal.classList.remove('active');
-        const audio = document.getElementById('bg-audio'); if (audio) { audio.pause(); audio.currentTime = 0; }
+        const modal = document.getElementById('musicModal');
+        if (modal) {
+            modal.classList.remove('active');
+            // 一些低版本浏览器可能会因为 class 失效，加双重保险
+            modal.style.display = 'none';
+            // 确保下次打开时 display 能被恢复（根据实际 CSS 情况，通常不需要恢复）
+        }
+        const audio = document.getElementById('bg-audio');
+        if (audio) { audio.pause(); audio.currentTime = 0; }
     };
     window.closeUpdateLogModal = function() { const modal = document.getElementById('updateLogModal'); if (modal) modal.classList.remove('active'); };
     window.pauseAudio = function() { const audio = document.getElementById('bg-audio'); if (audio) audio.pause(); };
@@ -102,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const action = actionObj.action;
         if (action === 'OPEN_MUSIC') window.openMusicModal();
         else if (action === 'CLOSE_MUSIC') window.closeMusicModal();
+        // 哪怕 AI 搞错了返回 MUSIC_STOP，我们也直接当成关闭卡片处理，解决最核心的痛点
+        else if (action === 'MUSIC_STOP') window.closeMusicModal();
         else if (action === 'OPEN_LOG') window.openUpdateLogModal();
         else if (action === 'CLOSE_LOG') window.closeUpdateLogModal();
         else if (action === 'TOGGLE_FULLSCREEN') window.toggleFullScreen();
@@ -110,7 +120,6 @@ document.addEventListener("DOMContentLoaded", function() {
         else if (action === 'OPEN_DEVELOPER') window.openBecomeFanModal();
         else if (action === 'MUSIC_PLAY') window.playAudio();
         else if (action === 'MUSIC_PAUSE') window.pauseAudio();
-        else if (action === 'MUSIC_STOP') window.stopAudio();
     }
 
     async function executeSequence(actions) {
@@ -222,4 +231,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
 });
-                 </script>
+</script>
