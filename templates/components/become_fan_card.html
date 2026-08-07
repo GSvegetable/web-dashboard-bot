@@ -1,4 +1,4 @@
-<!-- 订阅卡片下拉组件（动态吸附按钮下方） -->
+<!-- 订阅卡片下拉组件（绝对定位修正版） -->
 <div id="becomeFanDropdown" class="hidden fixed z-[9999]">
     <div id="becomeFanCardWrapper" class="bg-black/60 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-4 pt-3 pb-4 w-[320px] md:w-[360px]">
         <div class="fan-container flex justify-center items-center w-full relative">
@@ -32,7 +32,6 @@
 </div>
 
 <style>
-/* 卡片容器 */
 .fan-container {
     position: relative;
     display: flex;
@@ -41,8 +40,6 @@
     width: 100%;
     padding: 10px 0;
 }
-
-/* 单张卡片 - 紧凑折叠 */
 .fan-container .fan-card {
     position: relative;
     width: 100px;
@@ -54,25 +51,21 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 0 -32px; /* 折叠状态极度紧凑 */
+    margin: 0 -32px;
     transform: rotate(calc(var(--r) * 1deg));
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     cursor: pointer;
     z-index: 1;
 }
-
-/* 悬停展开效果 */
 .fan-container:hover .fan-card,
 .fan-container:focus-within .fan-card {
     transform: rotate(0deg);
-    margin: 0 6px; /* 展开拉开刚好 */
+    margin: 0 6px;
     z-index: 10;
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
 }
-
-/* 手机适配 */
 @media (max-width: 600px) {
     #becomeFanCardWrapper {
         width: 260px !important;
@@ -99,31 +92,35 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // 重写全局点击事件
     window.openBecomeFanModal = function() {
         const el = document.getElementById('becomeFanDropdown');
         if (!el) return;
 
-        // 动态计算按钮位置，贴在按钮正下方
-        const btn = document.querySelector('.top-actions .top-btn:last-child');
+        console.log("触发开发者卡片菜单"); // 如果你在控制台能看到这句，说明代码跑进来了！
+
+        // 精准查找文字为“开发者”的按钮
+        const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
+                          .find(el => el.innerText.trim() === '开发者');
+
+        // 【保底安全位置】无论按钮在哪，先把卡片放在右上角靠下的位置，一定能看见
+        let top = 60;
+        let right = 20;
+
         if (btn) {
             const rect = btn.getBoundingClientRect();
-            const top = rect.bottom + 8; // 距离按钮底部8px
-            const right = window.innerWidth - rect.right;
-            el.style.top = top + 'px';
-            el.style.right = right + 'px';
-        } else {
-            // 兜底位置
-            el.style.top = '70px';
-            el.style.right = '20px';
+            // 如果确实找到了按钮，就精确贴着它下方
+            top = rect.bottom + 8;
+            right = window.innerWidth - rect.right;
         }
+
+        el.style.top = top + 'px';
+        el.style.right = right + 'px';
 
         // 切换显示状态
         if (el.classList.contains('hidden')) {
             el.classList.remove('hidden');
-            // 绑定点击外部关闭
-            setTimeout(() => {
-                document.addEventListener('click', closeDropdownOutside);
-            }, 10);
+            setTimeout(() => { document.addEventListener('click', closeDropdownOutside); }, 10);
         } else {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
@@ -132,10 +129,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function closeDropdownOutside(e) {
         const el = document.getElementById('becomeFanDropdown');
-        const btn = document.querySelector('.top-actions .top-btn');
+        const btn = Array.from(document.querySelectorAll('.top-actions .top-btn'))
+                          .find(el => el.innerText.trim() === '开发者');
         if (!el || el.classList.contains('hidden')) return;
-        
-        // 点击的不是卡片本身，也不是触发按钮，则关闭
         if (!el.contains(e.target) && !btn.contains(e.target)) {
             el.classList.add('hidden');
             document.removeEventListener('click', closeDropdownOutside);
