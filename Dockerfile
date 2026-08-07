@@ -4,4 +4,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["python", "main.py"]
+# ✅ 核心修复：把 main.py 改成 app.py
+CMD ["python", "app.py"]
