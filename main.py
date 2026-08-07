@@ -4,11 +4,17 @@ import re
 import requests
 import uuid
 from datetime import datetime
+import io
+import base64
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# 新增二维码生成库
+import qrcode
+from PIL import Image, ImageDraw, ImageFont
 
 from models import db, User, EmailCode, BotConfig, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
@@ -78,7 +84,46 @@ def get_qr_login():
     new_session = QrLoginSession(token=token, status='pending')
     db.session.add(new_session)
     db.session.commit()
-    return jsonify({'success': True, 'token': token, 'url': deep_link})
+
+    # ✨ 核心改动：在服务器端生成带 "GS" 水印的二维码
+    try:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H, # 高容错率，保证水印不影响扫描
+            box_size=10,
+            border=2,
+        )
+        qr.add_data(deep_link)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGBA')
+
+        # 创建半透明水印叠加层
+        txt = Image.new('RGBA', img.size, (255, 255, 255, 0))
+        d = ImageDraw.Draw(txt)
+        # 为了隐约可见的效果，使用默认字体
+        font = ImageFont.load_default()
+        text = "GS"
+        
+        # 计算文字居中位置
+        bbox = d.textbbox((0, 0), text, font=font)
+        w = bbox[2] - bbox[0]
+        h = bbox[3] - bbox[1]
+        x = (img.width - w) / 2
+        y = (img.height - h) / 2
+        
+        # 颜色为浅灰白色(210,210,210)，透明度设为 120 (0-255) 达到“隐隐约约”
+        d.text((x, y), text, fill=(210, 210, 210, 120), font=font)
+        
+        out = Image.alpha_composite(img, txt)
+        buffered = io.BytesIO()
+        out.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+        return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{img_base64}"})
+    except Exception as e:
+        # 如果生成失败（容错保障），退回 qrserver 外部接口，但会丢失水印
+        fallback_url = f"https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={deep_link}&margin=10"
+        return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': fallback_url})
 
 @app.route('/api/check_qr_login/<token>', methods=['GET'])
 def check_qr_login(token):
@@ -108,7 +153,6 @@ def process_qr_token():
     token = data.get('token')
     chat_id = data.get('chat_id')
     session = QrLoginSession.query.filter_by(token=token).first()
-    # 只有状态是 pending 才能通过
     if session and session.status == 'pending':
         session.status = 'success'
         session.telegram_id = chat_id
