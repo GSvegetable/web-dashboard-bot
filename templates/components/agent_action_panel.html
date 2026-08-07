@@ -112,12 +112,12 @@
             </div>
         </div>
 
-        <!-- ✅ 底部输入框和发送按钮（收窄变细） -->
-        <div class="absolute bottom-6 left-6 right-6 flex items-center gap-3">
-            <!-- 输入框：改为 py-2.5，文字改为 输入任何问题 -->
+        <!-- ✅ 修改：整体往左移动（left-4, right-10），按钮缩小（px-3 py-1.5 text-lg） -->
+        <div class="absolute bottom-6 left-4 right-10 flex items-center gap-2">
+            <!-- 输入框 -->
             <input type="text" placeholder="输入任何问题" class="flex-1 bg-white/10 border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all" />
-            <!-- 发送按钮：收窄为 py-2.5 px-4，图标换成了 ➠ -->
-            <button class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-4 py-2.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl">
+            <!-- 发送按钮：缩小尺寸 -->
+            <button class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-lg">
                 ➠
             </button>
         </div>
@@ -131,7 +131,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const panel = document.getElementById('agentPanel');
     let isPanelOpen = false;
 
-    // ✅ 新增：专门用于更新面板位置的函数（解决缩放浏览器时跑偏的问题）
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
@@ -166,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
-    // ✅ 新增：监听窗口缩放事件，保持面板紧贴卡片移动
     window.addEventListener('resize', updateAgentPanelPosition);
 });
 </script>
