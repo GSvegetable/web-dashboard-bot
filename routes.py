@@ -62,7 +62,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 纯文本动作映射 AI 接口 -------------------
+# ------------------- 核心 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -99,24 +99,16 @@ def agent_chat():
             
             try:
                 parsed = json.loads(stripped_reply)
-                
-                # 1. 标准格式：包含 reply 和 actions (这是我们现在的主打格式)
+                # 1. 标准格式：包含 reply 和 actions
                 if isinstance(parsed, dict) and 'reply' in parsed and 'actions' in parsed:
                     return jsonify({'reply': parsed['reply'], 'actions': parsed['actions']})
-                
-                # 2. 兼容格式：如果是动作数组
-                if isinstance(parsed, list):
-                    return jsonify({'actions': parsed})
-                    
-                # 3. 确认动作
+                # 2. 确认动作
                 if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
                     return jsonify(parsed)
-                    
-                # 4. 单动作兼容
+                # 3. 单动作兼容
                 if isinstance(parsed, dict) and parsed.get('action'):
-                    return jsonify({'actions': [parsed]})
-                    
-                # 5. 纯文本
+                    return jsonify({'reply': parsed.get('reply', '已执行。'), 'actions': [parsed]})
+                # 4. 纯文本
                 return jsonify({'reply': stripped_reply})
             except:
                 return jsonify({'reply': stripped_reply})
@@ -126,7 +118,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': 'An error occurred.'})
 
-# 以下路由保持不变（扫码、注册、登录、Webhook 等）
+# 其他路由完全保持不变...
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
