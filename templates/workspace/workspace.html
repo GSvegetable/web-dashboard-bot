@@ -54,7 +54,7 @@
 </head>
 <body>
     
-    <!-- 右上角三枚完美等宽按钮 -->
+    <!-- 右上角三个按钮 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-[340px]">
         <button onclick="toggleAgentPanel()" class="flex-1 text-center px-3 py-2 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -70,7 +70,7 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- 左侧面板 -->
+        <!-- 左侧配置面板 -->
         <div class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20 rounded-3xl">
             <h1 class="text-4xl font-bold text-white tracking-wide mb-8">机器人配置</h1>
             
@@ -82,13 +82,12 @@
             </div>
         </div>
 
-        <!-- 右侧：无限画布 -->
+        <!-- 右侧无限画布 -->
         <div class="flex-1 h-full relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- ✅ 终极修复：图片路径指向 static/ 根目录的 ws_bg.jpg -->
-            <!-- 请在 GitHub 上将你的图片重命名为 ws_bg.jpg，并放在 static 根目录下 -->
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='ws_bg.jpg') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
+            <!-- ✅ 背景图路径：指向 static 根目录下的 IMG_20260808_170606.png -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <div id="nodeContainer" class="relative w-full h-full">
                 </div>
             </div>
@@ -104,6 +103,7 @@
         </div>
     </div>
 
+    <!-- 引入外部 JS -->
     <script src="{{ url_for('static', filename='workspace/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
