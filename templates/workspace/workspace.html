@@ -85,12 +85,8 @@
         <!-- 左侧大卡片 -->
         <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
             
-            <!-- ✅ 隐藏时的顶部展开热区 (默认隐藏，隐藏卡片后显示) -->
-            <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden flex items-center justify-center" onclick="togglePanel()">
-                <div class="px-4 py-1.5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] backdrop-blur-[6px] rounded-full text-white/70 text-sm font-medium transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
-                    <span id="handleText">点击展开</span>
-                </div>
-            </div>
+            <!-- ✅ 修改：隐藏时的顶部点击展开热区 (无任何文字提示，只有纯粹的点击区域) -->
+            <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
             <!-- 展开时的内容区域 -->
             <div class="flex-1 flex flex-col p-8 relative">
@@ -153,7 +149,7 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 核心修复：全屏显示函数 -->
+    <!-- 全屏显示函数 -->
     <script>
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
@@ -164,7 +160,7 @@
     }
     </script>
 
-    <!-- ✅ 核心修复：完美隐藏/展开逻辑 -->
+    <!-- 隐藏/展开逻辑 -->
     <script>
     function togglePanel() {
         const panel = document.getElementById('configPanel');
@@ -181,8 +177,7 @@
         } else {
             // 隐藏：向下平移，让顶部60px露在屏幕最底端
             const vh = window.innerHeight;
-            // 24(卡片距离屏幕顶部的距离) + 60(想要露出的高度) = 84
-            const translateY = vh - 84;
+            const translateY = vh - 84; // 24(原距顶部) + 60(露出的高度) = 84
             panel.style.transform = `translateY(${translateY}px)`;
             panel.dataset.hidden = 'true';
             handle.classList.remove('hidden');
@@ -191,7 +186,7 @@
     }
     </script>
 
-    <!-- 修复 Agent 卡片弹出定位（右下角） -->
+    <!-- 修复 Agent 卡片弹出定位 -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
