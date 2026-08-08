@@ -118,15 +118,13 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // ✅ 核心修改：绑定机器人生成的节点，固定在卡片右侧并依次向下排列
+    // ✅ 核心修改：位置大幅往右下角偏移
     window.addBotNode = function(name) {
-        // 统计已经有多少个机器人节点，以此计算 Y 轴的偏移量
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
-        // 左侧大卡片宽 480px，距离左侧 24px，所以右侧大约从 600px 开始
-        const baseX = 600; 
-        // 第一个机器人的顶部距离，之后的每个机器人往下偏移 140px
-        const baseY = 60 + (botCount * 140);
+        // 大幅增加 X 和 Y 的偏移量，让它靠近右下角空旷区域
+        const baseX = 1200; 
+        const baseY = 300 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
