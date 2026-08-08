@@ -63,9 +63,7 @@
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        /* ==========================================
-           Uiverse 自定义悬浮菜单样式适配
-        ========================================== */
+        /* 自定义悬浮菜单样式 */
         .ctx-menu {
             display: flex;
             flex-direction: column;
@@ -222,7 +220,7 @@
         </div>
     </div>
 
-    <!-- ✅ 新增：悬浮菜单 HTML -->
+    <!-- 悬浮菜单 HTML -->
     <div id="ctxMenu" class="ctx-menu">
         <button class="ctx-item" onclick="addNode('text'); hideContextMenu();">
             <svg viewBox="0 0 16 16"><path fill="#8b949e" d="M8 2v12M2 8h12"/></svg>
@@ -243,53 +241,60 @@
     {% include 'components/agent_action_panel.html' %}
 
     <!-- ========================================== -->
-    <!-- 悬浮菜单交互逻辑（智能定位 + 弹出/关闭） -->
+    <!-- ✅ 终极修复：悬浮菜单稳定停留在屏幕上的交互逻辑 -->
     <!-- ========================================== -->
     <script>
+    let hideTimeout = null;
+
     function hideContextMenu() {
         const menu = document.getElementById('ctxMenu');
+        if (!menu.classList.contains('open')) return;
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+        }
         menu.classList.remove('open');
-        setTimeout(() => { menu.style.display = 'none'; }, 150);
+        hideTimeout = setTimeout(() => {
+            menu.style.display = 'none';
+            hideTimeout = null;
+        }, 150);
     }
 
     function showContextMenu(e) {
-        e.preventDefault();
         const menu = document.getElementById('ctxMenu');
+        // 如果菜单正在隐藏，立刻打断它
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+        }
         
-        // 如果菜单已经打开，先关闭它
+        // 切换逻辑：如果已经展开，再次点击直接收回
         if (menu.classList.contains('open')) {
             hideContextMenu();
             return;
         }
 
-        // 获取鼠标点击位置
         let x = e.clientX;
         let y = e.clientY;
 
-        // 先隐藏计算尺寸
         menu.style.display = 'block';
         menu.classList.remove('open');
 
-        // 智能定位：默认右下角（偏移 +12px）
         let left = x + 12;
         let top = y + 12;
 
-        // 获取屏幕宽高和菜单宽高
         const menuWidth = menu.offsetWidth;
         const menuHeight = menu.offsetHeight;
         const winWidth = window.innerWidth;
         const winHeight = window.innerHeight;
 
-        // 如果超出了右边界，往左弹
         if (left + menuWidth > winWidth) {
             left = x - menuWidth - 12;
         }
-        // 如果超出了下边界，往上弹
         if (top + menuHeight > winHeight) {
             top = y - menuHeight - 12;
         }
 
-        // 重新定位并弹出
         menu.style.left = left + 'px';
         menu.style.top = top + 'px';
         setTimeout(() => { menu.classList.add('open'); }, 20);
@@ -299,19 +304,21 @@
         const canvasArea = document.getElementById('canvasArea');
         const menu = document.getElementById('ctxMenu');
 
-        // 监听画布空白处的左键点击
-        canvasArea.addEventListener('click', function(e) {
-            // 只有点击的是画布本身，或者是画布背景层才触发
-            if (e.target === canvasArea || e.target.closest('#canvasArea') === canvasArea && !e.target.closest('.canvas-node')) {
-                showContextMenu(e);
-            }
-        });
-
-        // 点击页面的其他任何地方（只要不是菜单本身），就关闭菜单
+        // ✅ 核心：只有点击菜单外部才关闭，点击菜单内部不动
         document.addEventListener('click', function(e) {
-            if (!menu.contains(e.target) && e.target !== canvasArea) {
-                hideContextMenu();
+            // 1. 点击的是菜单内部，什么都不做，保持打开
+            if (menu.contains(e.target)) {
+                return;
             }
+
+            // 2. 点击的是画布的空白处
+            if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
+                showContextMenu(e);
+                return;
+            }
+
+            // 3. 点击的是屏幕的其他任何地方，立刻关闭
+            hideContextMenu();
         });
     });
     </script>
