@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // 添加节点
+    // 添加节点（从左侧面板触发）
     window.addNode = function(type) {
         const baseX = 200 + Math.random() * 300;
         const baseY = 200 + Math.random() * 300;
@@ -124,8 +124,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // --- 画布拖拽平移（支持鼠标和触摸） ---
-    
-    // 1. 鼠标事件
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
         isDraggingCanvas = true;
@@ -172,9 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ==========================================
-    // ✅ 核心修复：新增触摸事件支持（平板可用）
-    // ==========================================
+    // 触摸事件支持
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
             const touch = e.touches[0];
@@ -205,10 +201,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ==========================================
-
-    // 初始化一个默认节点
-    window.addNode('text');
+    // ✅ 删除：不再生成默认的节点 #1，保持页面绝对干净
+    // window.addNode('text');
 
     // --- 预览交互逻辑 ---
     window.togglePreview = function() {
