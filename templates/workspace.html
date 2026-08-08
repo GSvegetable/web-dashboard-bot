@@ -13,16 +13,17 @@
             overflow: hidden; 
         }
         
-        /* ✅ 优化：左侧面板真正的高透毛玻璃 */
+        /* ✅ 终极修复：超高透毛玻璃面板 */
         .glass-panel {
-            background: rgba(20, 20, 22, 0.12);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            background: rgba(15, 15, 18, 0.2);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8);
+            border-radius: 24px;
         }
         
-        /* 画布上的节点 */
+        /* 画布节点 */
         .canvas-node {
             position: absolute;
             padding: 12px 16px;
@@ -61,7 +62,6 @@
         .preview-input-bar input { flex: 1; background: rgba(0,0,0,0.3); border: none; padding: 8px 12px; border-radius: 8px; color: #fff; outline: none; font-size: 13px; }
         .preview-input-bar button { background: #493F36; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; }
         
-        /* 隐藏滚动条 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -69,13 +69,11 @@
 </head>
 <body>
     
-    <!-- ✅ 修改：右上角按钮合并成一组，并排对齐 -->
+    <!-- 右上角按钮组（与主页保持同款毛玻璃质感） -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <!-- 右上角 Agent 按钮（联动全局 Agent 面板） -->
         <button onclick="toggleAgentPanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
         </button>
-        <!-- 返回主页按钮 -->
         <button onclick="window.location.href='/'" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             返回主页
         </button>
@@ -84,11 +82,12 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 修改：面板拉宽至 480px，加入 margin 与上下左右脱离，圆角更大，质感更透明 -->
-        <div class="w-[480px] h-[calc(100vh-48px)] my-6 ml-6 rounded-3xl glass-panel border border-white/5 flex flex-col p-6 overflow-y-auto z-10 shrink-0">
+        <!-- ✅ 左侧悬浮面板：彻底修复紧贴与纯黑问题 -->
+        <!-- 使用 mx-6 实现左右悬浮不贴边，高度精确计算，背景高透 -->
+        <div class="w-[480px] h-[calc(100vh-56px)] my-6 mx-6 glass-panel flex flex-col p-6 overflow-y-auto z-10 shrink-0">
             <div class="mb-6">
                 <h2 class="text-white text-lg font-bold mb-2">机器人配置</h2>
-                <div class="flex items-center gap-2 bg-black/30 rounded-xl p-2 border border-white/10">
+                <div class="flex items-center gap-2 bg-black/20 rounded-xl p-2 border border-white/10">
                     <input id="botTokenInput" type="password" placeholder="输入 Bot Token" class="flex-1 bg-transparent border-none text-white placeholder-gray-500 text-xs focus:outline-none">
                     <button onclick="connectBot()" class="px-3 py-1 bg-[#493F36] hover:bg-[#3a322c] text-white rounded-lg text-xs transition">连接</button>
                 </div>
@@ -153,11 +152,55 @@
         </div>
     </div>
 
-    <!-- 引入核心 JS -->
+    <!-- 核心脚本 -->
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     
-    <!-- ✅ 引入 Agent 底部面板组件（确保右上角 Agent 按钮联动有效） -->
+    <!-- Agent 面板组件 -->
     {% include 'components/agent_action_panel.html' %}
 
+    <!-- ✅ 针对开发作品页面的终极 Agent 定位修补 -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 拦截原有的 toggleAgentPanel，针对开发作品页重写位置
+        const originalToggle = window.toggleAgentPanel;
+        window.toggleAgentPanel = function() {
+            const wrapper = document.getElementById('agentPanelWrapper');
+            const panel = document.getElementById('agentPanel');
+            
+            if (!wrapper || !panel) return;
+
+            // 判断是否在开发作品页（没有卡片堆叠容器）
+            const isWorkspace = !document.getElementById('cardStackContainer');
+
+            if (isWorkspace) {
+                // ✅ 开发作品页面专属：靠右侧边缘弹出
+                if (wrapper.style.display === 'block') {
+                    // 关闭
+                    panel.classList.add('translate-y-full');
+                    setTimeout(() => { wrapper.style.display = 'none'; }, 300);
+                } else {
+                    // 打开
+                    wrapper.style.display = 'block';
+                    wrapper.style.width = '360px';
+                    wrapper.style.left = 'auto';
+                    wrapper.style.right = '24px';
+                    wrapper.style.transform = 'none';
+                    
+                    setTimeout(() => {
+                        panel.classList.remove('translate-y-full');
+                        // 聚焦输入框（如果存在）
+                        const input = document.getElementById('agentInput');
+                        if (input) setTimeout(() => input.focus(), 400);
+                    }, 10);
+                }
+            } else {
+                // 首页/正常模式：调用主页原有的逻辑
+                if (typeof originalToggle === 'function') {
+                    originalToggle();
+                }
+            }
+        };
+    });
+    </script>
 </body>
 </html>
