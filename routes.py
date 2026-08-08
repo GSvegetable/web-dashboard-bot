@@ -31,12 +31,6 @@ KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 def splash():
     return render_template('splash.html')
 
-@main_bp.route('/index')
-def index():
-    if not current_user.is_authenticated:
-        return redirect(url_for('main.splash'))
-    return render_template('index.html')
-
 @main_bp.route('/warehouse')
 def warehouse():
     return render_template('warehouse.html')
@@ -75,35 +69,6 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ==========================================
-# ✅ 新增：用户手动绑定机器人并主动发送消息的接口
-# ==========================================
-@main_bp.route('/api/bind_bot', methods=['POST'])
-def bind_bot():
-    data = request.get_json()
-    token = data.get('token')
-    name = data.get('name')
-    tg_id = data.get('telegram_id')
-
-    if not token:
-        return jsonify({'ok': False, 'msg': '请输入 Bot Token'})
-    if not tg_id:
-        return jsonify({'ok': False, 'msg': '请输入你的 Telegram 账号 ID，用于接收通知'})
-        
-    try:
-        # 通过用户的 Bot Token，向用户提供的 Telegram ID 主动发送消息
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": tg_id, "text": "机器人已连接宫水编辑器"}
-        resp = requests.post(url, json=payload, timeout=10)
-        
-        if resp.status_code == 200:
-            return jsonify({'ok': True, 'msg': '绑定成功，已主动向 Telegram 发送消息！'})
-        else:
-            return jsonify({'ok': False, 'msg': 'Bot Token 或 ID 无效，发送失败。'})
-    except Exception as e:
-        return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
-# ==========================================
-
 # ------------------- 核心 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -118,6 +83,7 @@ def agent_chat():
     try:
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
         
+        # 基础请求体
         payload = {
             "messages": [
                 {"role": "system", "content": system_prompt},
@@ -146,8 +112,10 @@ def agent_chat():
                 return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
             url = "https://api.moonshot.cn/v1/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
+            # 🔥 核心修复 1：Kimi 不支持 enable_search，必须删除否则 404
             if 'enable_search' in payload:
                 del payload['enable_search']
+            # 🔥 核心修复 2：改用 Kimi 稳定且兼容的旧款模型名称
             payload["model"] = "moonshot-v1-32k"
         
         else:
@@ -186,8 +154,6 @@ def handle_external_command():
     data = request.get_json()
     user_text = data.get('text', '')
     print(f"收到外部指令: {user_text}")
-    if user_text.startswith('/start'):
-        return jsonify({'status': 'ok', 'reply': '机器人已连接宫水编辑器'})
     if '放首歌' in user_text or '打开音乐' in user_text or '听音乐' in user_text:
         return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_ON', 'reply': '已收到指令，正在调用 AI 大脑...'})
     elif '关闭音乐' in user_text:
