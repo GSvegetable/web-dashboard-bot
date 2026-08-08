@@ -27,7 +27,6 @@
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
-  .suggest-switch-box { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; color: #e5e7eb; font-size: 0.85rem; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 4px; }
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -155,16 +154,25 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ✅ 核心：执行纯脚本引擎，直接调用 agent_macros.js 里的宏
+    // ✅ 核心执行引擎：加入致命错误检查！
     async function executeMacroSequence(actions) {
+        // ⚠️ 第一步就检查手脚有没有接上
+        if (typeof window.AgentMacros === 'undefined' || window.AgentMacros === null) {
+            const errMsg = document.createElement('div');
+            errMsg.className = 'ai-text-msg text-red-400/80';
+            errMsg.textContent = '❌ 执行系统故障：未找到 agent_macros.js 脚本文件！请确保已正确引入该脚本。';
+            const targetList = currentMode === 'agent' ? agentList : discussionList;
+            targetList.appendChild(errMsg);
+            targetList.scrollTop = targetList.scrollHeight;
+            return; // 直接终止执行
+        }
+
         for (let i = 0; i < actions.length; i++) {
             const item = actions[i];
             const macroName = item.action;
             
-            // 检查全局宏是否存在
             if (window.AgentMacros && typeof window.AgentMacros[macroName] === 'function') {
                 try {
-                    // 调用宏，支持 await
                     await window.AgentMacros[macroName]();
                 } catch (e) {
                     console.error(`宏 ${macroName} 执行出错:`, e);
@@ -209,7 +217,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // 1. 引导/确认动作
             if (data.action === 'suggest_agent' || data.action === 'ASK_CONFIRM') {
                 isProcessing = false; return;
             }
@@ -217,7 +224,6 @@ document.addEventListener("DOMContentLoaded", function() {
             let actualReply = data.reply || '抱歉，无法回答。';
             let actions = data.actions || [];
 
-            // 2. 修复可能的 JSON 透传
             if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
                 try {
                     const parsed = JSON.parse(actualReply);
@@ -225,7 +231,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 } catch (e) {}
             }
 
-            // 3. 先显示 AI 的回复（比如“好的，正在为您播放音乐”）
             const botMsg = document.createElement('div');
             botMsg.className = 'ai-text-msg';
             botMsg.textContent = actualReply;
@@ -233,9 +238,8 @@ document.addEventListener("DOMContentLoaded", function() {
             targetList.scrollTop = targetList.scrollHeight;
             history.push({ type: 'ai', text: actualReply });
 
-            // 4. 如果有宏命令，直接调出“手脚”去执行
+            // ✅ 识别到宏命令，执行“手脚”
             if (isAgent && actions && actions.length > 0) {
-                // 释放 UI 锁，让后台跑宏
                 isProcessing = false; 
                 setTimeout(() => {
                     executeMacroSequence(actions);
