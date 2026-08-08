@@ -3,145 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>gsbot 仓库页</title>
+    <title>开发工作台 - gsbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
-
-        .top-image-wrapper { position: relative; width: 100vw; height: 100vh; flex-shrink: 0; z-index: 1; display: flex; justify-content: center; align-items: center; }
-        .top-image { position: absolute; inset: 0; width: 100%; height: 100%; background-image: url("{{ url_for('static', filename='IMG_20260804_070056.png') }}"); background-size: cover; background-position: center; background-repeat: no-repeat; z-index: 0; }
-
-        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 8px; width: 280px; }
-        .top-btn { flex: 1; min-width: 50px; text-align: center; padding: 8px 6px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; }
-        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-
-        /* ========== 搬运卡片 CSS ========== */
-        .modal-overlay { position: fixed; inset: 0; background: transparent; backdrop-filter: none; z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
-        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
-        .modal-box { transform: translateY(-10px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .modal-overlay.active .modal-box { transform: translateY(0); }
-
-        .music-glass-card {
-            max-width: 420px; width: 90%;
-            padding: 18px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            color: white; font-family: -apple-system, system-ui, sans-serif;
-            display: flex; flex-direction: column; gap: 14px;
+        body { 
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
+            background-color: #0f0f10;
+            overflow: hidden; 
         }
-        .track-info { display: flex; align-items: center; gap: 12px; }
-        .album-art { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #ff9a9e, #fad0c4); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); flex-shrink: 0; transition: transform 0.3s ease; }
-        .album-art:hover { transform: scale(1.05); }
-        .track-details { flex-grow: 1; overflow: hidden; }
-        .track-title { font-size: 1.3em; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .artist-name { font-size: 0.9em; color: #d1d1d6; margin-top: 2px; }
-        .volume-bars { display: flex; align-items: flex-end; gap: 2px; width: 38px; height: 32px; }
-        .volume-bars .bar { width: 3px; background: linear-gradient(180deg, #00c6ff, #0072ff); border-radius: 2px; animation: bounce 0.8s infinite ease-in-out; animation-delay: var(--delay); animation-play-state: running; }
-        @keyframes bounce { 0%, 100% { height: 6px; } 50% { height: 26px; } }
-        .playback-controls { display: flex; flex-direction: column; gap: 8px; }
-        .time-info { display: flex; justify-content: space-between; font-size: 0.8em; color: #8e8e93; }
-        .current-time::before { content: "0:00"; animation: timer 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-        .remaining-time::before { content: "0:45"; animation: timerDown 45s steps(45) infinite; display: inline-block; animation-play-state: running; }
-        @keyframes timer { 0% { content: "0:00"; } 100% { content: "0:45"; } }
-        @keyframes timerDown { 0% { content: "0:45"; } 100% { content: "0:00"; } }
-        .progress-bar { width: 100%; height: 4px; background-color: rgba(255, 255, 255, 0.1); border-radius: 2px; position: relative; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #00c6ff, #0072ff); border-radius: 2px; animation: progressAnim 45s linear infinite; animation-play-state: running; }
-        .progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: white; border-radius: 50%; box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); animation: handleAnim 45s linear infinite; animation-play-state: running; }
-        @keyframes progressAnim { from { width: 0; } to { width: 100%; } }
-        @keyframes handleAnim { from { left: 0%; } to { left: 100%; } }
-        .button-row { display: flex; justify-content: space-between; gap: 12px; }
-        .control-button { margin-top: 2%; width: 52px; height: 52px; border-radius: 50%; border: none; background: none; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background 0.2s, transform 0.2s; color: #fff; }
-        .control-button.play-pause-button:hover, .control-button.d:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
-        .main-control-btns { justify-content: center; align-items: center; display: flex; margin-left: 10%; gap: 20%; }
-        .play-pause-button .icon-pause { display: none; }
-        #play-toggle:checked ~ .track-info .volume-bars .bar { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .progress-fill, #play-toggle:checked ~ .playback-controls .progress-handle { animation-play-state: paused; }
-        .music-glass-card:has(#play-toggle:checked) .time-info .current-time::before,
-        .music-glass-card:has(#play-toggle:checked) .time-info .remaining-time::before { animation-play-state: paused; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-play { display: block; }
-        #play-toggle:checked ~ .playback-controls .play-pause-button .icon-pause { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-play { display: none; }
-        #play-toggle:not(:checked) ~ .playback-controls .play-pause-button .icon-pause { display: block; }
-
-        @media (max-width: 600px) {
-            .top-actions { top: 16px; right: 16px; gap: 4px; width: 200px; }
-            .top-btn { font-size: 11px; padding: 4px 6px; min-width: 40px; }
-            .modal-overlay { padding-top: 70px; padding-right: 12px; }
-            .music-glass-card { width: 280px; padding: 16px; }
+        .glass-panel {
+            background: rgba(15, 15, 18, 0.15);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+            border-radius: 28px;
         }
+        .canvas-node {
+            position: absolute;
+            padding: 12px 16px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #e5e7eb;
+            cursor: grab;
+            min-width: 120px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            user-select: none;
+            transition: box-shadow 0.2s;
+            z-index: 10;
+        }
+        .canvas-node:active { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.8); }
+        .canvas-node .node-title { font-weight: 600; font-size: 14px; margin-top: 4px; }
+        
+        .preview-box {
+            position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
+            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .preview-box.open { transform: translateY(0); opacity: 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body>
-    <div class="top-image-wrapper">
-        <div class="top-image"></div>
-    </div>
-
-    <div class="top-actions">
-        <a href="https://t.me/gsyxyc" class="top-btn" target="_blank">联系开发者</a>
-        <button class="top-btn" id="musicBtn" onclick="openMusicModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    
+    <!-- 右上角三枚完美等宽按钮 -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-[340px]">
+        <button onclick="toggleAgentPanel()" class="flex-1 text-center px-3 py-2 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+            Agent
         </button>
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" id="loginBtn" onclick="alert('登录功能请前往首页 Log in 弹窗操作。')">Log in</button>
+        <button onclick="toggleFullScreen()" class="flex-1 text-center px-3 py-2 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+            全屏显示
+        </button>
+        <button onclick="window.location.href='/'" class="flex-1 text-center px-3 py-2 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+            返回主页
+        </button>
     </div>
 
-    <!-- 仓库页的音乐卡片 -->
-    <div class="modal-overlay" id="musicModal">
-        <div class="modal-box">
-            <div class="music-glass-card">
-                <input type="checkbox" id="play-toggle" hidden="">
-                <div class="track-info">
-                    <div class="album-art"></div>
-                    <div class="track-details">
-                        <div class="track-title">Glow</div>
-                        <div class="artist-name">Echo</div>
-                    </div>
-                    <div class="volume-bars">
-                        <div class="bar" style="--delay:0s"></div>
-                        <div class="bar" style="--delay:0.1s"></div>
-                        <div class="bar" style="--delay:0.2s"></div>
-                        <div class="bar" style="--delay:0.3s"></div>
-                        <div class="bar" style="--delay:0.4s"></div>
-                        <div class="bar" style="--delay:0.5s"></div>
-                        <div class="bar" style="--delay:0.6s"></div>
-                        <div class="bar" style="--delay:0.7s"></div>
-                    </div>
-                </div>
-                <div class="playback-controls">
-                    <div class="time-info"><span class="current-time"></span><span class="remaining-time"></span></div>
-                    <div class="progress-bar"><div class="progress-fill"></div><div class="progress-handle"></div></div>
-                    <div class="button-row">
-                        <div class="main-control-btns">
-                            <button class="control-button back"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-backward-fill" viewBox="0 0 16 16"><path d="M.5 3.5A.5.5 0 0 0 0 4v8a.5.5 0 0 0 1 0V8.753l6.267 3.636c.54.313 1.233-.066 1.233-.697v-2.94l6.267 3.636c.54.314 1.233-.065 1.233-.696V4.308c0-.63-.693-1.01-1.233-.696L8.5 7.248v-2.94c0-.63-.692-1.01-1.233-.696L1 7.248V4a.5.5 0 0 0-.5-.5"></path></svg></button>
-                            <div class="play-pause-btns">
-                                <label for="play-toggle" class="control-button play-pause-button">
-                                    <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M11.596 8.697l-6.363 3.692c-.54.314-1.233-.065-1.233-.696V4.308c0-.63.693-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"></path></svg>
-                                    <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5"></path></svg>
-                                </label>
-                            </div>
-                            <button class="control-button next"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-skip-forward-fill" viewBox="0 0 16 16"><path d="M15.5 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V8.753l-6.267 3.636c-.54.313-1.233-.066-1.233-.697v-2.94l-6.267 3.636C.693 12.703 0 12.324 0 11.693V4.308c0-.63.693-1.01 1.233-.696L7.5 7.248v-2.94c0-.63.693-1.01 1.233-.696L15 7.248V4a.5.5 0 0 1 .5-.5"></path></svg></button>
-                        </div>
-                        <button class="control-button d"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-radar" viewBox="0 0 16 16"><path d="M6.634 1.135A7 7 0 0 1 15 8a.5.5 0 0 1-1 0 6 6 0 1 0-6.5 5.98v-1.005A5 5 0 1 1 13 8a.5.5 0 0 1-1 0 4 4 0 1 0-4.5 3.969v-1.011A2.999 2.999 0 1 1 11 8a.5.5 0 0 1-1 0 2 2 0 1 0-2.5 1.936v-1.07a1 1 0 1 1 1 0V15.5a.5.5 0 0 1-1 0v-.518a7 7 0 0 1-.866-13.847"></path></svg></button>
-                    </div>
+    <!-- 主工作区 -->
+    <div class="flex w-screen h-screen">
+        
+        <!-- 左侧面板 -->
+        <div class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20 rounded-3xl">
+            <h1 class="text-4xl font-bold text-white tracking-wide mb-8">机器人配置</h1>
+            
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input id="botTokenInput" type="password" placeholder="请输入 Bot Token" class="flex-1 bg-black/20 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-white/30 transition-all">
+                <button onclick="bindBotToken()" class="bg-[#493F36] hover:bg-[#3a322c] text-white font-medium rounded-xl px-6 py-4 text-sm transition active:scale-95 whitespace-nowrap">
+                    绑定
+                </button>
+            </div>
+        </div>
+
+        <!-- 右侧：无限画布 -->
+        <div class="flex-1 h-full relative overflow-hidden">
+            <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
+            
+            <!-- ✅ 背景图路径指向 static/js/ 文件夹（已恢复） -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
+                <div id="nodeContainer" class="relative w-full h-full">
                 </div>
             </div>
         </div>
+
+        <!-- 预览窗口 -->
+        <div id="previewBox" class="preview-box z-50">
+            <div class="preview-header px-4 py-3 border-b border-white/5 text-white/60 text-sm flex justify-between">
+                <span>🤖 机器人预览</span>
+                <span onclick="document.getElementById('previewBox').classList.remove('open')" class="cursor-pointer hover:text-white">✕</span>
+            </div>
+            <div class="flex-1 bg-transparent p-4 text-white/50 text-sm flex items-center justify-center">绑定机器人后，此处将显示节点</div>
+        </div>
     </div>
 
+    <!-- 引入独立的外部 JS 脚本 -->
+    <script src="{{ url_for('static', filename='workspace/workspace.js') }}"></script>
+    {% include 'components/agent_action_panel.html' %}
+
     <script>
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { if (document.exitFullscreen) { document.exitFullscreen(); } }
-        }
-        function openMusicModal() { document.getElementById('musicModal').classList.add('active'); }
-        function closeMusicModal() { document.getElementById('musicModal').classList.remove('active'); }
-        
-        document.getElementById('musicModal').addEventListener('click', function(e) {
-            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.control-button')) return;
-            closeMusicModal();
-        });
+        // 全屏显示暴露到全局
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        };
+
+        // 开发工作台的 Agent 弹窗位置修正（右下角）
+        const originalToggle = window.toggleAgentPanel;
+        window.toggleAgentPanel = function() {
+            const wrapper = document.getElementById('agentPanelWrapper');
+            const panel = document.getElementById('agentPanel');
+            if (!wrapper || !panel) return;
+            
+            const isWorkspace = !document.getElementById('cardStackContainer');
+            if (isWorkspace) {
+                if (wrapper.style.display === 'block') {
+                    panel.classList.add('translate-y-full');
+                    setTimeout(() => { wrapper.style.display = 'none'; }, 300);
+                } else {
+                    wrapper.style.display = 'block';
+                    wrapper.style.width = '360px';
+                    wrapper.style.left = 'auto';
+                    wrapper.style.right = '24px';
+                    wrapper.style.transform = 'none';
+                    setTimeout(() => {
+                        panel.classList.remove('translate-y-full');
+                        const input = document.getElementById('agentInput');
+                        if (input) setTimeout(() => input.focus(), 400);
+                    }, 10);
+                }
+            } else {
+                if (typeof originalToggle === 'function') originalToggle();
+            }
+        };
     </script>
 </body>
 </html>
