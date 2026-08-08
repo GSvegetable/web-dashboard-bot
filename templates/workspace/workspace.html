@@ -41,7 +41,6 @@
         .canvas-node .node-handle { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 10px; color: rgba(255,255,255,0.4); }
         .canvas-node .node-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
         .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
-        .canvas-node .node-button { display: inline-block; background: #493F36; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-top: 4px; margin-right: 4px; }
         
         .preview-box {
             position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
@@ -81,18 +80,31 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 修改：面板宽度拉长到 480px -->
+        <!-- 左侧面板：宽度 480px -->
         <div class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20">
-            <div class="mb-8">
+            <div class="flex-1 flex flex-col">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 
-                <div class="flex items-center gap-3 w-full">
-                    <input id="botTokenInput" type="password" placeholder="请输入 Bot Token" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
-                    <button onclick="connectBot()" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95 whitespace-nowrap">
-                        绑定
+                <!-- 输入区域 -->
+                <div class="flex flex-col gap-4">
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Bot Token</label>
+                        <input id="botTokenInput" type="password" placeholder="请输入 Bot Token" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">机器人名称</label>
+                        <input id="botNameInput" type="text" placeholder="例如：我的测试机器人" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+                    </div>
+                </div>
+
+                <!-- 绑定按钮 -->
+                <div class="mt-6">
+                    <button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">
+                        绑定机器人
                     </button>
                 </div>
-                <div id="botStatus" class="mt-2 text-[10px] text-gray-400">未连接</div>
+                
+                <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
         </div>
 
@@ -133,9 +145,7 @@
             const wrapper = document.getElementById('agentPanelWrapper');
             const panel = document.getElementById('agentPanel');
             if (!wrapper || !panel) return;
-
             const isWorkspace = !document.getElementById('cardStackContainer');
-
             if (isWorkspace) {
                 if (wrapper.style.display === 'block') {
                     panel.classList.add('translate-y-full');
@@ -146,7 +156,6 @@
                     wrapper.style.left = 'auto';
                     wrapper.style.right = '24px';
                     wrapper.style.transform = 'none';
-                    
                     setTimeout(() => {
                         panel.classList.remove('translate-y-full');
                         const input = document.getElementById('agentInput');
