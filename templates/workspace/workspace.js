@@ -86,8 +86,8 @@
         <div class="flex-1 h-full relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- ✅ 背景图路径指向 static/js/ 文件夹（已恢复） -->
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
+            <!-- ✅ 重点修复：图片路径直接指向 static/ 根目录 -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <div id="nodeContainer" class="relative w-full h-full">
                 </div>
             </div>
@@ -103,27 +103,21 @@
         </div>
     </div>
 
-    <!-- 引入独立的外部 JS 脚本 -->
+    <!-- 引入 JS -->
     <script src="{{ url_for('static', filename='workspace/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
     <script>
-        // 全屏显示暴露到全局
         window.toggleFullScreen = function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
         };
 
-        // 开发工作台的 Agent 弹窗位置修正（右下角）
         const originalToggle = window.toggleAgentPanel;
         window.toggleAgentPanel = function() {
             const wrapper = document.getElementById('agentPanelWrapper');
             const panel = document.getElementById('agentPanel');
             if (!wrapper || !panel) return;
-            
             const isWorkspace = !document.getElementById('cardStackContainer');
             if (isWorkspace) {
                 if (wrapper.style.display === 'block') {
