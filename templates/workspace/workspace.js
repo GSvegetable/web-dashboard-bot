@@ -4,61 +4,48 @@ document.addEventListener("DOMContentLoaded", function() {
     let nodes = [];
     let isDraggingCanvas = false;
     let canvasOffsetX = 0, canvasOffsetY = 0;
-    let lastMouseX = 0, lastMouseY = 0;
+    let lastTouchX = 0, lastTouchY = 0;
 
-    // ✅ 终极防御：禁止整个网页在任何情况下上下滚动
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-
-    // ------------------- 画布拖拽逻辑 -------------------
-    // 1. 鼠标拖拽（PC端）
+    // ---------- 画布平移（PC 鼠标） ----------
     canvasArea.addEventListener('mousedown', (e) => {
         isDraggingCanvas = true;
-        lastMouseX = e.clientX; lastMouseY = e.clientY;
-        canvasArea.style.cursor = 'grabbing';
+        lastTouchX = e.clientX; lastTouchY = e.clientY;
         e.preventDefault();
     });
     document.addEventListener('mousemove', (e) => {
         if (!isDraggingCanvas) return;
-        const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
+        const dx = e.clientX - lastTouchX, dy = e.clientY - lastTouchY;
         canvasOffsetX += dx; canvasOffsetY += dy;
-        canvasOffsetX = Math.max(-window.innerWidth * 0.8, Math.min(window.innerWidth * 0.8, canvasOffsetX));
-        canvasOffsetY = Math.max(-window.innerHeight * 0.8, Math.min(window.innerHeight * 0.8, canvasOffsetY));
         canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-        lastMouseX = e.clientX; lastMouseY = e.clientY;
+        lastTouchX = e.clientX; lastTouchY = e.clientY;
     });
-    document.addEventListener('mouseup', () => { isDraggingCanvas = false; canvasArea.style.cursor = 'grab'; });
+    document.addEventListener('mouseup', () => { isDraggingCanvas = false; });
 
-    // 2. 触摸/手指拖拽（iPad/手机端）
+    // ---------- 画布平移（iPad 触摸） ----------
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
-            e.preventDefault(); // 强制拦截浏览器上下滚动作死
-            // ⚠️ 关键诊断：如果这里弹出了框，说明你的手指确实触摸成功了！
-            alert('✅ 触摸成功！如果看到这个弹窗，说明代码生效了。点击确定后，请尝试滑动画布。');
-            
+            e.preventDefault(); // 阻止网页滚动
             isDraggingCanvas = true;
-            lastMouseX = e.touches[0].clientX;
-            lastMouseY = e.touches[0].clientY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
     }, { passive: false });
 
     document.addEventListener('touchmove', (e) => {
         if (isDraggingCanvas && e.touches.length === 1) {
             e.preventDefault();
-            const dx = e.touches[0].clientX - lastMouseX;
-            const dy = e.touches[0].clientY - lastMouseY;
+            const dx = e.touches[0].clientX - lastTouchX;
+            const dy = e.touches[0].clientY - lastTouchY;
             canvasOffsetX += dx; canvasOffsetY += dy;
-            canvasOffsetX = Math.max(-window.innerWidth * 0.8, Math.min(window.innerWidth * 0.8, canvasOffsetX));
-            canvasOffsetY = Math.max(-window.innerHeight * 0.8, Math.min(window.innerHeight * 0.8, canvasOffsetY));
             canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-            lastMouseX = e.touches[0].clientX;
-            lastMouseY = e.touches[0].clientY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
     }, { passive: false });
 
     document.addEventListener('touchend', () => { isDraggingCanvas = false; });
 
-    // ------------------- 节点拖拽 -------------------
+    // ---------- 节点渲染 ----------
     function renderNode(node) {
         const el = document.createElement('div');
         el.className = 'canvas-node';
@@ -85,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ------------------- 绑定 Token -------------------
+    // ---------- 绑定 Token ----------
     window.bindBotToken = function() {
         const tokenInput = document.getElementById('botTokenInput');
         const token = tokenInput.value.trim();
