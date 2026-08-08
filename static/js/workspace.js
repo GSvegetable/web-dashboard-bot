@@ -23,12 +23,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // 保存历史快照
     function saveHistory() {
-        // 截断后面的历史
         history = history.slice(0, historyIndex + 1);
-        // 深拷贝当前节点状态
         history.push(JSON.parse(JSON.stringify(nodes)));
         historyIndex++;
-        // 限制历史长度避免内存爆炸
         if (history.length > 50) {
             history.shift();
             historyIndex--;
@@ -71,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function() {
             el.style.top = node.y + 'px';
             el.dataset.index = index;
 
-            // 节点内容
             let bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
             if (node.type === 'text') {
                 bodyHtml += `<div class="node-title">自动回复</div>`;
@@ -87,14 +83,13 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             el.innerHTML = bodyHtml;
 
-            // 节点拖拽逻辑
+            // 节点鼠标拖拽
             el.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
                 if (e.button !== 0) return;
                 isDraggingNode = true;
                 currentDragNode = el;
                 const rect = el.getBoundingClientRect();
-                // 计算鼠标在节点内部的偏移量
                 startX = e.clientX - rect.left;
                 startY = e.clientY - rect.top;
                 el.style.zIndex = 100;
@@ -111,9 +106,8 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // 添加节点（从左侧面板触发）
+    // 添加节点
     window.addNode = function(type) {
-        // 取一个随机位置，不要在左上角堆叠
         const baseX = 200 + Math.random() * 300;
         const baseY = 200 + Math.random() * 300;
         const newNode = {
@@ -129,7 +123,9 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // --- 画布拖拽平移 ---
+    // --- 画布拖拽平移（支持鼠标和触摸） ---
+    
+    // 1. 鼠标事件
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
         isDraggingCanvas = true;
@@ -140,7 +136,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.addEventListener('mousemove', (e) => {
         if (isDraggingNode && currentDragNode) {
-            // 计算节点新位置
             const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
             const top = e.clientY - startY - canvasArea.getBoundingClientRect().top;
             currentDragNode.style.left = left + 'px';
@@ -151,7 +146,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const dy = e.clientY - lastMouseY;
             canvasOffsetX += dx;
             canvasOffsetY += dy;
-            // 限制平移范围，不要跑出无限画布太远
             canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
             canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
             canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
@@ -162,7 +156,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.addEventListener('mouseup', (e) => {
         if (isDraggingNode && currentDragNode) {
-            // 保存节点绝对位置到数据
             const index = parseInt(currentDragNode.dataset.index);
             if (!isNaN(index)) {
                 nodes[index].x = parseFloat(currentDragNode.style.left);
@@ -178,6 +171,41 @@ document.addEventListener("DOMContentLoaded", function() {
             canvasArea.style.cursor = 'grab';
         }
     });
+
+    // ==========================================
+    // ✅ 核心修复：新增触摸事件支持（平板可用）
+    // ==========================================
+    canvasArea.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            const touch = e.touches[0];
+            isDraggingCanvas = true;
+            lastMouseX = touch.clientX;
+            lastMouseY = touch.clientY;
+        }
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDraggingCanvas && e.touches.length === 1) {
+            const touch = e.touches[0];
+            const dx = touch.clientX - lastMouseX;
+            const dy = touch.clientY - lastMouseY;
+            canvasOffsetX += dx;
+            canvasOffsetY += dy;
+            canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
+            canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
+            canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+            lastMouseX = touch.clientX;
+            lastMouseY = touch.clientY;
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', (e) => {
+        if (isDraggingCanvas) {
+            isDraggingCanvas = false;
+        }
+    });
+
+    // ==========================================
 
     // 初始化一个默认节点
     window.addNode('text');
@@ -195,8 +223,6 @@ document.addEventListener("DOMContentLoaded", function() {
     window.sendPreviewMessage = function() {
         const text = previewInput.value.trim();
         if (!text) return;
-
-        // 1. 显示用户消息
         const userMsg = document.createElement('div');
         userMsg.className = 'preview-msg-user';
         userMsg.innerText = text;
@@ -204,16 +230,12 @@ document.addEventListener("DOMContentLoaded", function() {
         previewMessages.scrollTop = previewMessages.scrollHeight;
         previewInput.value = '';
 
-        // 2. 模拟机器人回复 (根据画布第一个匹配的规则)
         setTimeout(() => {
             const botMsg = document.createElement('div');
             botMsg.className = 'preview-msg-bot';
-            // 简单模拟：如果有文本节点，就回那个
             const textNode = nodes.find(n => n.type === 'text');
             if (textNode) {
                 botMsg.innerText = textNode.content || '预设回复内容';
-                
-                // 如果是按钮节点，把按钮加在回复下面
                 const btnNode = nodes.find(n => n.type === 'button');
                 if (btnNode && btnNode.buttons) {
                     const btnContainer = document.createElement('div');
