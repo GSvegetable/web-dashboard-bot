@@ -1,0 +1,5 @@
+<div id="previewBox" class="preview-box z-50">
+    <div class="preview-header"><span>🤖 机器人对话预览</span><span onclick="togglePreview()" class="cursor-pointer hover:text-white">✕</span></div>
+    <div id="previewMessages" class="preview-messages"><div class="preview-msg-bot">你好！我是你创建的机器人。</div></div>
+    <div class="preview-input-bar"><input id="previewInput" placeholder="输入测试消息..." onkeydown="if(event.key==='Enter') sendPreviewMessage()"><button onclick="sendPreviewMessage()">发送</button></div>
+</div>
