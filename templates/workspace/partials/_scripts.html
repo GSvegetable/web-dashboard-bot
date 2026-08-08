@@ -1,0 +1,269 @@
+<script>
+let hideTimeout = null;
+function hideContextMenu() {
+    const menu = document.getElementById('ctxMenu');
+    if (!menu.classList.contains('open')) return;
+    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+    menu.classList.remove('open');
+    hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 150);
+}
+function showContextMenu(e) {
+    const menu = document.getElementById('ctxMenu');
+    const menuItems = document.querySelectorAll('#ctxMenu .value');
+    if (menu.classList.contains('open')) { hideContextMenu(); return; }
+    menuItems.forEach(b => b.classList.remove('active'));
+    let x = e.clientX, y = e.clientY;
+    menu.style.display = 'block'; menu.classList.remove('open');
+    let left = x + 12, top = y + 12;
+    const menuWidth = menu.offsetWidth, menuHeight = menu.offsetHeight;
+    const winWidth = window.innerWidth, winHeight = window.innerHeight;
+    if (left + menuWidth > winWidth) { left = x - menuWidth - 12; }
+    if (top + menuHeight > winHeight) { top = y - menuHeight - 12; }
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+    setTimeout(() => { menu.classList.add('open'); }, 20);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const canvasArea = document.getElementById('canvasArea');
+    const menu = document.getElementById('ctxMenu');
+    const menuItems = document.querySelectorAll('#ctxMenu .value');
+
+    document.addEventListener('click', function(e) {
+        if (menu.contains(e.target)) {
+            const item = e.target.closest('.value');
+            if (item) {
+                e.stopPropagation();
+                e.preventDefault();
+                menuItems.forEach(b => b.classList.remove('active'));
+                item.classList.add('active');
+
+                if (item.dataset.action === 'toggle_panel') {
+                    const btnText = item.querySelector('.btn-text');
+                    togglePanel();
+                    const isHidden = document.getElementById('configPanel').dataset.hidden === 'true';
+                    btnText.textContent = isHidden ? '展开面板' : '隐藏面板';
+                    hideContextMenu();
+                } else {
+                    hideContextMenu();
+                }
+            }
+            return;
+        }
+
+        if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
+            showContextMenu(e);
+            return;
+        }
+
+        hideContextMenu();
+    });
+});
+
+window.connectBot = function() {
+    const token = document.getElementById('botTokenInput').value;
+    const chatId = document.getElementById('telegramIdInput').value;
+    const name = '宫水编辑器';
+    
+    const status = document.getElementById('botStatus');
+    
+    if (token.length < 10) {
+        status.innerHTML = '❌ Token 格式错误';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
+    }
+    if (!chatId || chatId.length < 1) {
+        status.innerHTML = '❌ 请输入绑定的 Telegram ID';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
+    }
+
+    status.innerHTML = '⏳ 正在验证并发送绑定消息...';
+    status.className = 'mt-2 text-[10px] text-gray-400';
+
+    fetch('/api/bind_bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token, telegram_id: chatId, name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
+            status.className = 'mt-2 text-[10px] text-green-400';
+            window.addBotNode(data.bot_name || name, data.bot_avatar_url);
+        } else {
+            status.innerHTML = `❌ 绑定失败: ${data.msg}`;
+            status.className = 'mt-2 text-[10px] text-red-400';
+        }
+    })
+    .catch(() => {
+        status.innerHTML = '❌ 网络请求失败，请稍后重试。';
+        status.className = 'mt-2 text-[10px] text-red-400';
+    });
+};
+
+window.autoFillBot = function() {
+    const tokenInput = document.getElementById('botTokenInput');
+    const idInput = document.getElementById('telegramIdInput');
+    const status = document.getElementById('botStatus');
+
+    if (!navigator.clipboard) {
+        status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
+    }
+
+    navigator.clipboard.readText().then(text => {
+        if (!text || text.trim() === '') {
+            status.innerHTML = '❌ 自动填写失败：剪贴板为空';
+            status.className = 'mt-2 text-[10px] text-red-400';
+            return;
+        }
+        
+        let foundToken = false;
+        let foundId = false;
+
+        const lines = text.split(/\r?\n/);
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+
+            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                tokenInput.value = trimmed;
+                foundToken = true;
+            } 
+            else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
+                idInput.value = trimmed;
+                foundId = true;
+            }
+        });
+
+        if (foundToken || foundId) {
+            let msg = `✅ 自动识别成功！`;
+            if (foundToken) msg += ` Token 已填入`;
+            if (foundId) msg += ` ID 已填入`;
+            status.innerHTML = msg;
+            status.className = 'mt-2 text-[10px] text-green-400';
+        } else {
+            status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+            status.className = 'mt-2 text-[10px] text-red-400';
+        }
+    }).catch(err => {
+        status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
+        status.className = 'mt-2 text-[10px] text-red-400';
+    });
+};
+</script>
+
+<script>
+function toggleFullScreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else if (document.exitFullscreen) document.exitFullscreen();
+}
+function togglePanel() {
+    const panel = document.getElementById('configPanel'), handle = document.getElementById('panelHandle');
+    const isHidden = panel.dataset.hidden === 'true';
+    if (isHidden) {
+        panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden');
+    } else {
+        const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`;
+        panel.dataset.hidden = 'true'; handle.classList.remove('hidden');
+    }
+}
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const originalToggle = window.toggleAgentPanel;
+    window.toggleAgentPanel = function() {
+        const wrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel');
+        if (!wrapper || !panel) return;
+        const isWorkspace = !document.getElementById('cardStackContainer');
+        if (isWorkspace) {
+            if (wrapper.style.display === 'block') { panel.classList.add('translate-y-full'); setTimeout(() => { wrapper.style.display = 'none'; }, 300); }
+            else {
+                wrapper.style.display = 'block'; wrapper.style.width = '360px'; wrapper.style.left = 'auto'; wrapper.style.right = '24px'; wrapper.style.transform = 'none';
+                setTimeout(() => { panel.classList.remove('translate-y-full'); const input = document.getElementById('agentInput'); if (input) setTimeout(() => input.focus(), 400); }, 10);
+            }
+        } else { if (typeof originalToggle === 'function') originalToggle(); }
+    };
+});
+
+function renderNodes() {
+    nodeContainer.innerHTML = '';
+    nodes.forEach((node, index) => {
+        const el = document.createElement('div');
+        el.className = 'canvas-node';
+        
+        if (node.type === 'bot') {
+            el.classList.add('bot-node');
+        }
+        
+        el.style.left = node.x + 'px';
+        el.style.top = node.y + 'px';
+        el.dataset.index = index;
+
+        let bodyHtml = ``;
+        if (node.type === 'text') {
+            bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
+            bodyHtml += `<div class="node-title">自动回复</div>`;
+            bodyHtml += `<div class="node-body">${node.content || '点击输入文本...'}</div>`;
+        } else if (node.type === 'button') {
+            bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
+            bodyHtml += `<div class="node-title">按钮菜单</div>`;
+            bodyHtml += `<div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
+            if (node.buttons && node.buttons.length > 0) {
+                node.buttons.forEach(b => {
+                    bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
+                });
+            }
+        } else if (node.type === 'bot') {
+            const avatarUrl = node.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(node.name)}&background=493F36&color=fff&size=128`;
+            bodyHtml = `
+                <div class="relative">
+                    <div class="absolute -top-3 -right-3 z-10 cursor-pointer w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[11px] text-gray-400 hover:text-red-400 transition border border-white/10" onclick="deleteNode(${index})">✕</div>
+                    <div class="flex flex-col items-center justify-center gap-2 pt-2">
+                        <div class="w-[80px] h-[80px] rounded-full overflow-hidden border-2 border-[#F5E6CF]/30 shadow-lg bg-[#333] flex items-center justify-center flex-shrink-0">
+                            <img src="${avatarUrl}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Bot&background=493F36&color=fff&size=128'">
+                        </div>
+                        <div class="text-[#F5E6CF] font-bold text-[15px] truncate max-w-[140px] text-center mt-1">${node.name}</div>
+                        <div class="text-[10px] text-gray-400/80 mt-1">已绑定</div>
+                    </div>
+                </div>
+            `;
+        }
+        el.innerHTML = bodyHtml;
+
+        el.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            if (e.button !== 0) return;
+            isDraggingNode = true;
+            currentDragNode = el;
+            const rect = el.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            el.style.zIndex = 100;
+        });
+
+        nodeContainer.appendChild(el);
+    });
+}
+
+window.addBotNode = function(name, avatar) {
+    const botCount = nodes.filter(n => n.type === 'bot').length;
+    const baseX = 1500; 
+    const baseY = 750 + (botCount * 160);
+
+    const newNode = {
+        id: Date.now() + Math.random(),
+        type: 'bot',
+        name: name || '我的机器人',
+        avatar: avatar || null,
+        x: baseX,
+        y: baseY
+    };
+    nodes.push(newNode);
+    saveHistory();
+    renderNodes();
+};
+</script>
