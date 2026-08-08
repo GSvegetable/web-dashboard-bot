@@ -7,19 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background-color: #0f0f10; overflow: hidden; }
-        /* 毛玻璃侧边栏基础 */
+        /* ✅ 核心修改：引入你刚上传的图片作为背景 */
+        body { 
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
+            /* 根据你图片的实际位置选择路径。如果你把它拖到了 static/ 根目录，请用 'IMG_20260808_170606.png' */
+            /* 目前你上传的位置是 static/js/ 下，所以使用下面的路径 */
+            background-image: url("{{ url_for('static', filename='js/IMG_20260808_170606.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden; 
+        }
+        
+        /* 毛玻璃侧边栏基础（调整了深色底色和模糊度，以适配复杂背景） */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(15, 15, 16, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
         /* 画布上的节点 */
         .canvas-node {
             position: absolute;
             padding: 12px 16px;
-            background: rgba(40, 40, 40, 0.85);
+            background: rgba(30, 30, 30, 0.85);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -37,10 +49,10 @@
         .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
         .canvas-node .node-button { display: inline-block; background: #493F36; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-top: 4px; margin-right: 4px; }
         
-        /* 实时预览窗口 */
+        /* 实时预览窗口（增强背景模糊） */
         .preview-box {
             position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
-            background: rgba(15, 15, 16, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8);
             display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0;
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -113,10 +125,10 @@
             </div>
         </div>
 
-        <!-- 右侧：无限画布区域 -->
-        <div class="flex-1 h-full relative bg-[#121213] overflow-hidden">
-            <!-- 背景网格 -->
-            <div class="absolute inset-0 pointer-events-none opacity-10" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
+        <!-- 右侧：无限画布区域（背景保持透明，铺在 body 的背景图上） -->
+        <div class="flex-1 h-full relative overflow-hidden">
+            <!-- 背景网格（减弱透明度，避免抢戏） -->
+            <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
             <!-- 画布容器 -->
             <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing">
