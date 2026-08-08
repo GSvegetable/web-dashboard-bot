@@ -23,9 +23,6 @@
             position: relative;
         }
         
-        .panel-up { transform: translateY(0); }
-        .panel-down { transform: translateY(calc(100vh - 60px - 24px)); }
-        
         .canvas-node {
             position: absolute;
             padding: 12px 16px;
@@ -69,7 +66,6 @@
 </head>
 <body>
     
-    <!-- 右上角三个均分按钮 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
         <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -85,10 +81,13 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 修改：大卡片底部加上 `bottom-6`，彻底解决底部紧贴屏幕的问题 -->
-        <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20 panel-up transition-all duration-500 ease-out">
+        <!-- ✅ 大卡片容器 (添加 ID 和过渡动画) -->
+        <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
             
-            <div class="flex-1 flex flex-col">
+            <!-- ✅ 新增：展开触发区域（隐藏时露出的 60px 顶部） -->
+            <div id="panelClickArea" onclick="togglePanel()" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 hidden rounded-t-[28px]"></div>
+
+            <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 
                 <div class="flex flex-col gap-4">
@@ -111,13 +110,10 @@
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
 
-            <!-- ✅ 左下角隐藏/展开按钮（固定定位，不会被卡片内容遮挡） -->
-            <div class="absolute bottom-6 left-6 z-30">
-                <button id="hideBtn" onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
-                    隐藏
-                </button>
-            </div>
-
+            <!-- ✅ 隐藏按钮移到了左上角内部，确保能点到 -->
+            <button id="hideBtn" onclick="togglePanel()" class="absolute top-8 left-8 z-30 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+                隐藏
+            </button>
         </div>
 
         <!-- 右侧：无限画布 -->
@@ -150,7 +146,7 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 修复1：全屏显示功能失效（你原来没暴露这个函数） -->
+    <!-- ✅ 修复：全屏显示功能 -->
     <script>
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
@@ -161,25 +157,34 @@
     }
     </script>
 
-    <!-- ✅ 修复2：确保隐藏/展开按钮正常工作 -->
+    <!-- ✅ 终极修复：隐藏/展开面板逻辑（绝不会掉到底部看不见） -->
     <script>
     function togglePanel() {
         const panel = document.getElementById('configPanel');
         const btn = document.getElementById('hideBtn');
+        const area = document.getElementById('panelClickArea');
+        const isHidden = panel.dataset.hidden === 'true';
         
-        if (panel.classList.contains('panel-up')) {
-            panel.classList.remove('panel-up');
-            panel.classList.add('panel-down');
-            btn.innerText = '展开';
-        } else {
-            panel.classList.remove('panel-down');
-            panel.classList.add('panel-up');
+        if (isHidden) {
+            // 展开：取消平移
+            panel.style.transform = 'translateY(0)';
+            panel.dataset.hidden = 'false';
             btn.innerText = '隐藏';
+            area.classList.add('hidden'); // 隐藏展开热区
+        } else {
+            // 隐藏：向下平移，刚好让顶部 60px 露在屏幕最下方
+            // 当前面板顶部是 24px(距离顶部)，我们要让顶部刚好在屏幕底部往上 60px 的地方
+            const vh = window.innerHeight;
+            const diff = vh - 84; // 24(原来距顶部) + 60(想露出的高度) = 84
+            panel.style.transform = `translateY(${diff}px)`;
+            panel.dataset.hidden = 'true';
+            btn.innerText = '展开';
+            area.classList.remove('hidden'); // 显示展开热区
         }
     }
     </script>
 
-    <!-- ✅ 修复 Agent 卡片弹出定位（右下角） -->
+    <!-- 修复 Agent 卡片弹出定位（右下角） -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
