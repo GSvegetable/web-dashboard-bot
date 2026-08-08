@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
         
         // 画布正中心坐标
         const baseX = 1500; 
-        const baseY = 800 + (botCount * 140);
+        const baseY = 750 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
