@@ -180,7 +180,7 @@
         });
     };
 
-    // 🔥 重新定义自动填写按钮
+    // 🔥 重新定义自动填写按钮（优化：不限行数，智能提取）
     window.autoFillBot = function() {
         console.log("👉 点击了自动填写按钮");
         const tokenInput = document.getElementById('botTokenInput');
@@ -193,29 +193,36 @@
             return;
         }
 
-        // 此处加 try...catch 防止 iOS 静默失败
         navigator.clipboard.readText()
         .then(text => {
-            console.log("剪贴板内容:", text);
+            console.log("剪贴板原始内容:", text);
             if (!text || text.trim() === '') {
                 status.innerHTML = '❌ 自动填写失败：剪贴板为空';
                 status.className = 'mt-2 text-[10px] text-red-400';
                 return;
             }
+
             let foundToken = false;
             let foundId = false;
-            const lines = text.split(/\r?\n/);
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return;
-                if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-                    tokenInput.value = trimmed;
-                    foundToken = true;
-                } else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
-                    idInput.value = trimmed;
-                    foundId = true;
-                }
-            });
+            let tempText = text; // 用临时变量做剔除操作，避免污染
+
+            // 1. 从任意位置提取 Token（匹配 数字:字母/数字/下划线 组合）
+            const tokenMatch = tempText.match(/(\b\d+:[a-zA-Z0-9_-]+\b)/);
+            if (tokenMatch) {
+                tokenInput.value = tokenMatch[0];
+                foundToken = true;
+                // 👉 关键步骤：把提取出的 Token 从文本中删掉，防止它前面的数字被误当为 ID
+                tempText = tempText.replace(tokenMatch[0], '');
+            }
+
+            // 2. 从剩余文本中提取纯数字 ID（Telegram 官方 ID 通常为 5~15 位纯数字）
+            const idMatch = tempText.match(/(\b\d{5,15}\b)/);
+            if (idMatch) {
+                idInput.value = idMatch[0];
+                foundId = true;
+            }
+
+            // 3. 反馈结果
             if (foundToken || foundId) {
                 let msg = `✅ 自动识别成功！`;
                 if (foundToken) msg += ` Token 已填入`;
@@ -223,13 +230,18 @@
                 status.innerHTML = msg;
                 status.className = 'mt-2 text-[10px] text-green-400';
             } else {
-                status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+                status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 Token 或 ID 的格式';
                 status.className = 'mt-2 text-[10px] text-red-400';
             }
         })
         .catch(err => {
             console.error("剪贴板读取错误:", err);
-            status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置（iOS设备需在设置中允许剪贴板读取）';
+            // 针对 iOS 限制特别优化了提示语
+            if (err.message && err.message.includes('NotAllowedError')) {
+                status.innerHTML = '❌ 读取失败：请在 iOS 设置/当前网页中允许“粘贴”权限，并重新点击按钮。';
+            } else {
+                status.innerHTML = '❌ 读取剪贴板失败：请确保是通过 HTTPS 或 localhost 访问该页面。';
+            }
             status.className = 'mt-2 text-[10px] text-red-400';
         });
     };
