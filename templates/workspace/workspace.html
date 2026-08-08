@@ -13,7 +13,6 @@
             overflow: hidden; 
         }
         
-        /* 完美复刻截图的半透毛玻璃面板 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(24px);
@@ -24,9 +23,7 @@
             position: relative;
         }
         
-        /* ✅ 面板滑动状态类 */
         .panel-up { transform: translateY(0); }
-        /* 计算：向下平移直到底部，保留 60px 高的头部可见 (高度 - 60px 头部 - 24px 下边距) */
         .panel-down { transform: translateY(calc(100vh - 60px - 24px)); }
         
         .canvas-node {
@@ -88,8 +85,8 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 左侧面板：拉长至 480px，加入滑动收起的 ID 和类 -->
-        <div id="configPanel" class="fixed left-6 top-6 w-[480px] h-[calc(100vh-48px)] glass-panel flex flex-col p-8 z-20 panel-up transition-all duration-500 ease-out">
+        <!-- ✅ 修改：大卡片底部加上 `bottom-6`，彻底解决底部紧贴屏幕的问题 -->
+        <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20 panel-up transition-all duration-500 ease-out">
             
             <div class="flex-1 flex flex-col">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
@@ -114,7 +111,7 @@
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
 
-            <!-- ✅ 新增：左下角隐藏/展开按钮 -->
+            <!-- ✅ 左下角隐藏/展开按钮（固定定位，不会被卡片内容遮挡） -->
             <div class="absolute bottom-6 left-6 z-30">
                 <button id="hideBtn" onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
                     隐藏
@@ -153,27 +150,36 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 新增：隐藏/展开面板的交互逻辑 -->
+    <!-- ✅ 修复1：全屏显示功能失效（你原来没暴露这个函数） -->
     <script>
-        function togglePanel() {
-            const panel = document.getElementById('configPanel');
-            const btn = document.getElementById('hideBtn');
-            
-            if (panel.classList.contains('panel-up')) {
-                // 执行隐藏操作：滑向屏幕最下方，只留 60px 高的顶部边缘
-                panel.classList.remove('panel-up');
-                panel.classList.add('panel-down');
-                btn.innerText = '展开';
-            } else {
-                // 执行展开操作：滑回原位
-                panel.classList.remove('panel-down');
-                panel.classList.add('panel-up');
-                btn.innerText = '隐藏';
-            }
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
         }
+    }
     </script>
 
-    <!-- 修复 Agent 卡片弹出定位（右下角悬浮） -->
+    <!-- ✅ 修复2：确保隐藏/展开按钮正常工作 -->
+    <script>
+    function togglePanel() {
+        const panel = document.getElementById('configPanel');
+        const btn = document.getElementById('hideBtn');
+        
+        if (panel.classList.contains('panel-up')) {
+            panel.classList.remove('panel-up');
+            panel.classList.add('panel-down');
+            btn.innerText = '展开';
+        } else {
+            panel.classList.remove('panel-down');
+            panel.classList.add('panel-up');
+            btn.innerText = '隐藏';
+        }
+    }
+    </script>
+
+    <!-- ✅ 修复 Agent 卡片弹出定位（右下角） -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
