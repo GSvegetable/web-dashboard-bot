@@ -9,7 +9,6 @@
     <style>
         body { 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
-            /* ✅ 移除 body 的背景图，让背景图只属于右侧画布 */
             background-color: #0f0f10;
             overflow: hidden; 
         }
@@ -120,13 +119,13 @@
             </div>
         </div>
 
-        <!-- ✅ 右侧：背景图绑定在巨大的画布上 -->
+        <!-- ✅ 右侧：背景图绑定在巨大的画布上，并修复平板触摸 -->
         <div class="flex-1 h-full relative overflow-hidden">
             <!-- 背景网格（减弱透明度） -->
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- 画布容器：使用背景图片，支持随拖拽平移 -->
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+            <!-- 画布容器：加入 touch-action: none 防止平板触摸时滚动网页 -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <!-- 节点将会通过 JS 动态添加到这里 -->
                 <div id="nodeContainer" class="relative w-full h-full">
                 </div>
