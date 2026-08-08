@@ -3,10 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from models import db, User
-
-# 引入两个蓝图
 from routes import main_bp
-from routes_workspace import workspace_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
@@ -22,9 +19,8 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 注册蓝图
+# 注册蓝图（所有路由都移到了 routes.py）
 app.register_blueprint(main_bp)
-app.register_blueprint(workspace_bp)
 
 if __name__ == '__main__':
     with app.app_context():
