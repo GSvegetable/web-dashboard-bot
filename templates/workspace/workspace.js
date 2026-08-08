@@ -4,42 +4,45 @@ document.addEventListener("DOMContentLoaded", function() {
     let nodes = [];
     let isDraggingCanvas = false;
     let canvasOffsetX = 0, canvasOffsetY = 0;
-    let lastTouchX = 0, lastTouchY = 0;
+    let lastMouseX = 0, lastMouseY = 0;
 
     // ---------- 画布平移（PC 鼠标） ----------
     canvasArea.addEventListener('mousedown', (e) => {
         isDraggingCanvas = true;
-        lastTouchX = e.clientX; lastTouchY = e.clientY;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+        canvasArea.style.cursor = 'grabbing';
         e.preventDefault();
     });
     document.addEventListener('mousemove', (e) => {
         if (!isDraggingCanvas) return;
-        const dx = e.clientX - lastTouchX, dy = e.clientY - lastTouchY;
+        const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
         canvasOffsetX += dx; canvasOffsetY += dy;
         canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-        lastTouchX = e.clientX; lastTouchY = e.clientY;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
     });
-    document.addEventListener('mouseup', () => { isDraggingCanvas = false; });
+    document.addEventListener('mouseup', () => { isDraggingCanvas = false; canvasArea.style.cursor = 'grab'; });
 
     // ---------- 画布平移（iPad 触摸） ----------
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
-            e.preventDefault(); // 阻止网页滚动
             isDraggingCanvas = true;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+            // 阻止浏览器默认上下滚动
         }
-    }, { passive: false });
+    });
 
     document.addEventListener('touchmove', (e) => {
         if (isDraggingCanvas && e.touches.length === 1) {
-            e.preventDefault();
-            const dx = e.touches[0].clientX - lastTouchX;
-            const dy = e.touches[0].clientY - lastTouchY;
+            const touch = e.touches[0];
+            const dx = touch.clientX - lastMouseX;
+            const dy = touch.clientY - lastMouseY;
             canvasOffsetX += dx; canvasOffsetY += dy;
             canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
+            lastMouseX = touch.clientX;
+            lastMouseY = touch.clientY;
         }
     }, { passive: false });
 
@@ -72,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ---------- 绑定 Token ----------
+    // ---------- 绑定机器人 Token ----------
     window.bindBotToken = function() {
         const tokenInput = document.getElementById('botTokenInput');
         const token = tokenInput.value.trim();
