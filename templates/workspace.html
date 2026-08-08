@@ -7,19 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        /* ✅ 核心修改：引入你刚上传的图片作为背景 */
         body { 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
-            /* 根据你图片的实际位置选择路径。如果你把它拖到了 static/ 根目录，请用 'IMG_20260808_170606.png' */
-            /* 目前你上传的位置是 static/js/ 下，所以使用下面的路径 */
-            background-image: url("{{ url_for('static', filename='js/IMG_20260808_170606.png') }}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            /* ✅ 移除 body 的背景图，让背景图只属于右侧画布 */
+            background-color: #0f0f10;
             overflow: hidden; 
         }
         
-        /* 毛玻璃侧边栏基础（调整了深色底色和模糊度，以适配复杂背景） */
+        /* 毛玻璃侧边栏基础 */
         .glass-panel {
             background: rgba(15, 15, 16, 0.65);
             backdrop-filter: blur(16px);
@@ -49,7 +44,7 @@
         .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
         .canvas-node .node-button { display: inline-block; background: #493F36; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-top: 4px; margin-right: 4px; }
         
-        /* 实时预览窗口（增强背景模糊） */
+        /* 实时预览窗口 */
         .preview-box {
             position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
             background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
@@ -125,13 +120,13 @@
             </div>
         </div>
 
-        <!-- 右侧：无限画布区域（背景保持透明，铺在 body 的背景图上） -->
+        <!-- ✅ 右侧：背景图绑定在巨大的画布上 -->
         <div class="flex-1 h-full relative overflow-hidden">
-            <!-- 背景网格（减弱透明度，避免抢戏） -->
+            <!-- 背景网格（减弱透明度） -->
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- 画布容器 -->
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing">
+            <!-- 画布容器：使用背景图片，支持随拖拽平移 -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
                 <!-- 节点将会通过 JS 动态添加到这里 -->
                 <div id="nodeContainer" class="relative w-full h-full">
                 </div>
