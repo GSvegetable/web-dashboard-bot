@@ -31,6 +31,12 @@ KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 def splash():
     return render_template('splash.html')
 
+@main_bp.route('/index')
+def index():
+    if not current_user.is_authenticated:
+        return redirect(url_for('main.splash'))
+    return render_template('index.html')
+
 @main_bp.route('/warehouse')
 def warehouse():
     return render_template('warehouse.html')
