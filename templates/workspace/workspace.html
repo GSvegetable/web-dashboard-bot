@@ -66,7 +66,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
 
         /* ==========================================
-           🖤 终极黑色玻璃质感悬浮小卡片（瞬切版）
+           🖤 终极黑色玻璃质感悬浮小卡片（丝滑切换版）
         ========================================== */
         #ctxMenu {
             display: flex;
@@ -82,7 +82,7 @@
             z-index: 9999;
             opacity: 0;
             transform: scale(0.95);
-            transition: opacity 0s, transform 0s;
+            transition: opacity 0.15s ease, transform 0.15s ease;
             pointer-events: none;
             box-shadow: 0 12px 36px rgba(0,0,0,0.8);
         }
@@ -104,8 +104,7 @@
             border-radius: 8px;
             align-items: center;
             font-size: 12px;
-            /* ✅ 移除了过渡动画，实现瞬间切换 */
-            transition: none;
+            transition: background 0.15s ease, color 0.15s ease;
         }
 
         #ctxMenu .value:not(:active):hover,
@@ -118,18 +117,18 @@
             outline: none;
         }
         
-        /* ✅ 小竖线：改成 left: 6px; */
+        /* ✅ 小竖线：修正到卡片外边缘，不再往图标里钻 */
         #ctxMenu .value::before {
             content: "";
             position: absolute;
             top: 8px;
-            left: 6px; 
+            left: -14px; /* 精准卡在 14px 父级内边距之外，放在卡片外侧 */
             width: 4px;
             height: 60%;
             background-color: #493F36;
             border-radius: 2px;
             opacity: 0;
-            transition: none;
+            transition: opacity 0.15s ease;
         }
         #ctxMenu .value:focus::before,
         #ctxMenu .value:active::before,
@@ -148,9 +147,9 @@
             fill: #f0f6fc;
         }
 
-        /* ✅ 虚化逻辑：取消了 120ms 过渡，变成 0s 瞬间生效 */
+        /* ✅ 重新加入丝滑的过渡动画 */
         #ctxMenu:hover > .value:not(.active):not(:hover) {
-            transition: none;
+            transition: all 0.15s ease;
             filter: blur(1px);
             transform: scale(0.95,0.95);
         }
@@ -194,7 +193,7 @@
         </div>
     </div>
 
-    <!-- ✅ 悬浮小卡片 HTML（纯黑玻璃质感，点击即选中） -->
+    <!-- ✅ 悬浮小卡片 HTML -->
     <div id="ctxMenu">
       <button class="value" onclick="void(0)">
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg>
@@ -229,7 +228,7 @@
         if (!menu.classList.contains('open')) return;
         if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
         menu.classList.remove('open');
-        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 0);
+        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 150);
     }
     function showContextMenu(e) {
         const menu = document.getElementById('ctxMenu');
@@ -243,7 +242,7 @@
         if (left + menuWidth > winWidth) { left = x - menuWidth - 12; }
         if (top + menuHeight > winHeight) { top = y - menuHeight - 12; }
         menu.style.left = left + 'px'; menu.style.top = top + 'px';
-        setTimeout(() => { menu.classList.add('open'); }, 0);
+        setTimeout(() => { menu.classList.add('open'); }, 20);
     }
     document.addEventListener("DOMContentLoaded", function() {
         const canvasArea = document.getElementById('canvasArea');
@@ -254,10 +253,20 @@
             hideContextMenu();
         });
 
-        // ✅ 点击菜单项：极速切换选中状态，无任何其他副作用
+        // ✅ 修复点击激活状态：点击已选中项保持选中，切换时冒泡控制，过渡丝滑
         const menuItems = document.querySelectorAll('#ctxMenu .value');
         menuItems.forEach(item => {
             item.addEventListener('click', function(e) {
+                // 阻止事件冒泡和文本选中
+                e.stopPropagation();
+                e.preventDefault();
+
+                // 如果当前点击的已经是被选中的状态，直接返回，保持状态不变
+                if (this.classList.contains('active')) {
+                    return;
+                }
+
+                // 否则移除所有选中状态，给自己加上选中状态
                 menuItems.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
             });
