@@ -22,7 +22,6 @@ from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, DIAGNOSTIC_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
-# 读入三个模型的 API Key
 ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
 DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY')
 KIMI_API_KEY = os.getenv('KIMI_API_KEY')
@@ -69,6 +68,41 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
+# ==========================================
+# ✨ 新增：真实绑定机器人的接口
+# ==========================================
+@main_bp.route('/api/bind_bot', methods=['POST'])
+def bind_bot():
+    data = request.get_json()
+    token = data.get('token')
+    chat_id = data.get('telegram_id')
+    bot_name = data.get('name', '我的机器人')
+
+    if not token or not chat_id:
+        return jsonify({'ok': False, 'msg': '缺少 Token 或 Telegram ID'})
+
+    try:
+        # 1. 验证这个 Token 是否有效
+        test_url = f"https://api.telegram.org/bot{token}/getMe"
+        test_resp = requests.get(test_url, timeout=10)
+        if test_resp.status_code != 200:
+            return jsonify({'ok': False, 'msg': 'Bot Token 无效或网络错误'})
+
+        # 2. 向指定的 Telegram ID 发送“绑定成功”消息
+        msg = f"机器人已绑定{bot_name}"
+        send_url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": msg}
+        send_resp = requests.post(send_url, json=payload, timeout=10)
+        
+        if send_resp.status_code == 200:
+            return jsonify({'ok': True, 'msg': '绑定成功，已发送测试消息'})
+        else:
+            # 如果 Token 正确，但发给这个 ID 失败（可能是 ID 填错了）
+            return jsonify({'ok': False, 'msg': 'Token有效，但向该ID发送失败，请检查Telegram ID是否正确'})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
+# ==========================================
+
 # ------------------- 核心 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -82,8 +116,6 @@ def agent_chat():
 
     try:
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-        
-        # 基础请求体
         payload = {
             "messages": [
                 {"role": "system", "content": system_prompt},
@@ -94,43 +126,34 @@ def agent_chat():
         }
 
         if model_type == 'zhipu':
-            if not ZHIPU_API_KEY:
-                return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
+            if not ZHIPU_API_KEY: return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
             url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
             payload["model"] = "glm-4-flash"
 
         elif model_type == 'doubao':
-            if not DOUBAO_API_KEY:
-                return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
+            if not DOUBAO_API_KEY: return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
             url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
             payload["model"] = "ep-xxxxxxxxxxxx" 
 
         elif model_type == 'kimi':
-            if not KIMI_API_KEY:
-                return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
+            if not KIMI_API_KEY: return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
             url = "https://api.moonshot.cn/v1/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
-            # 🔥 核心修复 1：Kimi 不支持 enable_search，必须删除否则 404
-            if 'enable_search' in payload:
-                del payload['enable_search']
-            # 🔥 核心修复 2：改用 Kimi 稳定且兼容的旧款模型名称
+            if 'enable_search' in payload: del payload['enable_search']
             payload["model"] = "moonshot-v1-32k"
         
         else:
             return jsonify({'reply': '未选择有效的模型。'})
 
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        
         if resp.status_code == 200:
             result = resp.json()
             reply = result['choices'][0]['message']['content']
-            
             stripped_reply = reply
             if '```json' in stripped_reply:
                 stripped_reply = stripped_reply.replace('```json', '').replace('```', '').strip()
-            
             try:
                 parsed = json.loads(stripped_reply)
                 if isinstance(parsed, dict) and 'reply' in parsed:
@@ -148,7 +171,6 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# ------------------- 外部指令接管接口（AstroBot 入口） -------------------
 @main_bp.route('/api/command', methods=['POST'])
 def handle_external_command():
     data = request.get_json()
