@@ -58,10 +58,10 @@
   }
 </style>
 
-<!-- ✅ 修改：外层 max-w 从 300px 缩小到 240px，整体变短 -->
+<!-- 外层容器 max-w 240px，两个按钮 flex-1 均分 -->
 <div class="flex flex-row items-center gap-3 w-full max-w-[240px]">
   
-  <!-- 按钮 1：Agent（保留图标，保留正常功能，字体加粗） -->
+  <!-- 按钮 1：Agent（保留正常功能） -->
   <div class="outer-cont flex-1" onclick="toggleAgentPanel()">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
@@ -74,8 +74,8 @@
     </span>
   </div>
 
-  <!-- 按钮 2：开发作品（去掉了图标，只留四个字，字体加粗） -->
-  <div class="outer-cont flex-1" onclick="void(0)">
+  <!-- ✅ 按钮 2：开发作品（修复点击事件，跳转至 /workspace） -->
+  <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold">
       <span>开发作品</span>
     </span>
