@@ -123,8 +123,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
         // 大幅增加 X 和 Y 的偏移量，让它靠近右下角空旷区域
-        const baseX = 55000; 
-        const baseY = 31000 + (botCount * 140);
+        const baseX = 555000; 
+        const baseY = 531000 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
