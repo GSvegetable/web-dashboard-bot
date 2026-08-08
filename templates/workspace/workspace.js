@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             let bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
             
-            // ✅ 针对“机器人节点”的特殊渲染
             if (node.type === 'bot') {
                 bodyHtml += `<div class="node-title text-[#F5E6CF] flex items-center gap-2"><span>🤖</span> ${node.name}</div>`;
                 bodyHtml += `<div class="node-body text-[10px] text-gray-400 mt-1">已绑定，等待配置回复...</div>`;
@@ -87,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             el.innerHTML = bodyHtml;
 
-            // 节点鼠标拖拽
             el.addEventListener('mousedown', (e) => {
                 e.stopPropagation();
                 if (e.button !== 0) return;
@@ -110,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // 添加普通节点
+    // 添加普通节点（由左侧按钮触发）
     window.addNode = function(type) {
         const baseX = 200 + Math.random() * 300;
         const baseY = 200 + Math.random() * 300;
@@ -127,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // ✅ 新增：添加专属的机器人节点
+    // 添加专属的机器人节点（绑定成功后触发）
     window.addBotNode = function(name) {
         const baseX = 200 + Math.random() * 300;
         const baseY = 200 + Math.random() * 300;
@@ -143,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // --- 画布拖拽平移（支持鼠标和触摸） ---
+    // --- 画布拖拽平移 ---
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
         isDraggingCanvas = true;
@@ -267,19 +265,16 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 600);
     };
 
-    // ✅ 核心更新：绑定机器人生成节点
+    // 机器人连接绑定
     window.connectBot = function() {
         const token = document.getElementById('botTokenInput').value;
         const name = document.getElementById('botNameInput').value;
         const status = document.getElementById('botStatus');
         
         if (token.length > 10) {
-            // 使用用户输入的名字，未填写则用默认名
             const botName = name.trim() || '我的机器人';
             status.innerHTML = `✅ 已绑定机器人：${botName}`;
             status.className = 'mt-2 text-[10px] text-green-400';
-            
-            // 调用专用的机器人节点生成
             window.addBotNode(botName);
         } else {
             status.innerHTML = '❌ Token 格式错误，请输入有效的 Bot Token';
