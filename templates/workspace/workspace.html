@@ -66,25 +66,28 @@
         ::-webkit-scrollbar-track { background: transparent; }
 
         /* ==========================================
-           你的风格悬浮小卡片（毛玻璃版）
+           🖤 终极黑色玻璃质感悬浮小卡片
         ========================================== */
         #ctxMenu {
             display: flex;
             flex-direction: column;
             width: 200px;
-            /* ✅ 改为透明毛玻璃风格 */
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            /* ✅ 纯黑玻璃质感 */
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px; /* ✅ 圆角稍微大了一点点 */
+            /* ✅ 边缘更加圆润 */
+            border-radius: 16px;
+            /* ✅ 左侧留出空隙，给小竖条腾位置 */
+            padding: 6px 6px 6px 14px;
             position: fixed;
             z-index: 9999;
             opacity: 0;
             transform: scale(0.95);
             transition: opacity 0.15s ease, transform 0.15s ease;
             pointer-events: none;
-            box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+            box-shadow: 0 12px 36px rgba(0,0,0,0.8);
         }
         #ctxMenu.open {
             opacity: 1;
@@ -95,42 +98,43 @@
         #ctxMenu .value {
             background-color: transparent;
             border: none;
-            padding: 10px;
-            color: #e5e7eb; /* 文字颜色调亮 */
+            padding: 10px 10px 10px 12px; /* 左侧让出一点位置给外面小竖条 */
+            color: #e5e7eb;
             display: flex;
             position: relative;
             gap: 5px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 8px;
             align-items: center;
-            font-size: 12px; /* ✅ 字体略微缩小 */
+            font-size: 12px;
             transition: background 0.2s, color 0.2s;
         }
 
         /* 悬浮和聚焦时的状态 */
         #ctxMenu .value:not(:active):hover,
         #ctxMenu .value:focus {
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: rgba(255, 255, 255, 0.06);
         }
         #ctxMenu .value:focus,
         #ctxMenu .value:active {
-            background-color: rgba(255, 255, 255, 0.12);
+            background-color: rgba(255, 255, 255, 0.10);
             outline: none;
         }
-        /* ✅ 左侧蓝色指示条（激活/聚焦时的“特效”） */
+        
+        /* ✅ 小竖条：颜色改为了 #493F36，并且移到了卡片外面，仅保留一条缝隙 */
         #ctxMenu .value::before {
             content: "";
             position: absolute;
-            top: 5px;
-            left: -2px;
+            top: 8px;
+            /* ✅ 放置在卡片外部边缘 */
+            left: -12px;
             width: 4px;
-            height: 80%;
-            background-color: #2F81F7;
-            border-radius: 4px;
+            height: 60%;
+            background-color: #493F36;
+            border-radius: 2px;
             opacity: 0;
             transition: opacity 0.2s;
         }
-        /* 聚焦、激活、或者通过 JS 添加的 active 类都会触发 */
         #ctxMenu .value:focus::before,
         #ctxMenu .value:active::before,
         #ctxMenu .value.active::before {
@@ -148,8 +152,9 @@
             fill: #f0f6fc;
         }
 
-        /* 悬停时的特效（其他项模糊缩小） */
-        #ctxMenu:hover > :not(.value:hover) {
+        /* ✅ 修复 Bug：选中后，再点自身变虚化的问题 */
+        /* 只有当该选项没有被选中，也没有被鼠标悬停时，才应用模糊效果 */
+        #ctxMenu:hover > .value:not(.active):not(:hover) {
             transition: 300ms;
             filter: blur(1px);
             transform: scale(0.95,0.95);
@@ -194,9 +199,9 @@
         </div>
     </div>
 
-    <!-- ✅ 悬浮小卡片 HTML（现为透明毛玻璃风格） -->
-    <div id="ctxMenu" class="input">
-      <button class="value" onclick="void(0)"> <!-- 去掉了实际功能，只保留特效 -->
+    <!-- ✅ 悬浮小卡片 HTML（纯黑玻璃质感，结构未改） -->
+    <div id="ctxMenu">
+      <button class="value" onclick="void(0)">
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg>
         添加文本回复
       </button>
@@ -254,13 +259,11 @@
             hideContextMenu();
         });
 
-        // ✅ 新增：实现点击某个选项后，它“停住”（保持激活高亮特效），且不做任何事
+        // 点击菜单项，保持激活高亮，且不产生任何执行动作
         const menuItems = document.querySelectorAll('#ctxMenu .value');
         menuItems.forEach(item => {
             item.addEventListener('click', function(e) {
-                // 移除所有项的 active 状态
                 menuItems.forEach(b => b.classList.remove('active'));
-                // 给当前点击的这一项添加 active 状态
                 this.classList.add('active');
             });
         });
