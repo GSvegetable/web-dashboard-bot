@@ -40,14 +40,14 @@
 </head>
 <body>
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
-        <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">Agent</button>
-        <button onclick="toggleFullScreen()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">全屏显示</button>
+        <button onclick="window.toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">Agent</button>
+        <button onclick="window.toggleFullScreen()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">全屏显示</button>
         <button onclick="window.location.href='/'" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">返回主页</button>
     </div>
 
     <div class="flex w-screen h-screen">
         <div id="configPanel" class="fixed left-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
-            <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
+            <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="window.togglePanel()"></div>
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 <div class="flex flex-col gap-4">
@@ -55,11 +55,11 @@
                     <div><label class="text-gray-400 text-xs mb-1 block">Telegram ID</label><input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                     <div><label class="text-gray-400 text-xs mb-1 block">Bot名称</label><input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                 </div>
-                <div class="mt-4 mb-2"><button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">自动填写</button></div>
-                <div class="mt-2"><button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
+                <div class="mt-4 mb-2"><button onclick="window.autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">自动填写</button></div>
+                <div class="mt-2"><button onclick="window.connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
-            <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30"><button onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">隐藏</button></div>
+            <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30"><button onclick="window.togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">隐藏</button></div>
         </div>
 
         <div id="canvasAreaWrapper" class="flex-1 h-full relative overflow-hidden overscroll-none touch-none">
@@ -70,180 +70,289 @@
         </div>
 
         <div id="previewBox" class="preview-box z-50">
-            <div class="preview-header"><span>🤖 机器人对话预览</span><span onclick="togglePreview()" class="cursor-pointer hover:text-white">✕</span></div>
+            <div class="preview-header"><span>🤖 机器人对话预览</span><span onclick="window.togglePreview()" class="cursor-pointer hover:text-white">✕</span></div>
             <div id="previewMessages" class="preview-messages"><div class="preview-msg-bot">你好！我是你创建的机器人。</div></div>
-            <div class="preview-input-bar"><input id="previewInput" placeholder="输入测试消息..." onkeydown="if(event.key==='Enter') sendPreviewMessage()"><button onclick="sendPreviewMessage()">发送</button></div>
+            <div class="preview-input-bar"><input id="previewInput" placeholder="输入测试消息..." onkeydown="if(event.key==='Enter') window.sendPreviewMessage()"><button onclick="window.sendPreviewMessage()">发送</button></div>
         </div>
     </div>
 
     <div id="ctxMenu">
-      <button class="value"> <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg> 添加文本回复 </button>
-      <button class="value"> <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#7D8590" id="XMLID_1646_" d="m17.074 30h-2.148c-1.038 0-1.914-.811-1.994-1.846l-.125-1.635c-.687-.208-1.351-.484-1.985-.824l-1.246 1.067c-.788.677-1.98.631-2.715-.104l-1.52-1.52c-.734-.734-.78-1.927-.104-2.715l1.067-1.246c-.34-.635-.616-1.299-.824-1.985l-1.634-.125c-1.035-.079-1.846-.955-1.846-1.993v-2.148c0-1.038.811-1.914 1.846-1.994l1.635-.125c.208-.687.484-1.351.824-1.985l-1.068-1.247c-.676-.788-.631-1.98.104-2.715l1.52-1.52c.734-.734 1.927-.779 2.715-.104l1.246 1.067c.635-.34 1.299-.616 1.985-.824l.125-1.634c.08-1.034.956-1.845 1.994-1.845h2.148c1.038 0 1.914.811 1.994 1.846l.125 1.635c.687.208 1.351.484 1.985.824l1.246-1.067c.787-.676 1.98-.631 2.715.104l1.52 1.52c.734.734.78 1.927.104 2.715l-1.067 1.246c.34.635.616 1.299.824 1.985l1.634.125c1.035.079 1.846.955 1.846 1.993v2.148c0 1.038-.811 1.914-1.846 1.994l-1.635.125c-.208.687-.484 1.351-.824 1.985l1.067 1.246c.677.788.631 1.98-.104 2.715l-1.52 1.52c-.734.734-1.928.78-2.715.104l-1.246-1.067c-.635.34-1.299.616-1.985.824l-.125 1.634c-.079 1.035-.955 1.846-1.993 1.846zm-5.835-6.373c.848.53 1.768.912 2.734 1.135.426.099.739.462.772.898l.18 2.341 2.149-.001.18-2.34c.033-.437.347-.8.772-.898.967-.223 1.887-.604 2.734-1.135.371-.232.849-.197 1.181.089l1.784 1.529 1.52-1.52-1.529-1.784c-.285-.332-.321-.811-.089-1.181.53-.848.912-1.768 1.135-2.734.099-.426.462-.739.898-.772l2.341-.18h-.001v-2.148l-2.34-.18c-.437-.033-.8-.347-.898-.772-.223-.967-.604-1.887-1.135-2.734-.232-.37-.196-.849.089-1.181l1.529-1.784-1.52-1.52-1.784 1.529c-.332.286-.81.321-1.181.089-.848-.53-1.768-.912-2.734-1.135-.426-.099-.739-.462-.772-.898l-.18-2.341-2.148.001-.18 2.34c-.033.437-.347.8-.772.898-.967.223-1.887.604-2.734 1.135-.37.232-.849.197-1.181-.089l-1.785-1.529-1.52 1.52 1.529 1.784c.285.332.321.811.089 1.181-.53.848-.912 1.768-1.135 2.734-.099.426-.462.739-.898.772l-2.341.18.002 2.148 2.34.18c.437.033.8.347.898.772.223.967.604 1.887 1.135 2.734.232.37.196.849-.089 1.181l-1.529 1.784 1.52 1.52 1.784-1.529c.332-.287.813-.32 1.18-.089z"></path><path id="XMLID_1645_" fill="#7D8590" d="m16 23c-3.859 0-7-3.141-7-7s3.141-7 7-7 7 3.141 7 7-3.141 7-7 7zm0-12c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z"></path></svg> 添加按钮菜单 </button>
-      <button class="value"> <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path fill="#7D8590" d="m109.9 20.63a6.232 6.232 0 0 0 -8.588-.22l-57.463 51.843c-.012.011-.02.024-.031.035s-.023.017-.034.027l-4.721 4.722a1.749 1.749 0 0 0 0 2.475l.341.342-3.16 3.16a8 8 0 0 0 -1.424 1.967 11.382 11.382 0 0 0 -12.055 10.609c-.006.036-.011.074-.015.111a5.763 5.763 0 0 1 -4.928 5.41 1.75 1.75 0 0 0 -.844 3.14c4.844 3.619 9.4 4.915 13.338 4.915a17.14 17.14 0 0 0 11.738-4.545l.182-.167a11.354 11.354 0 0 0 3.348-8.081c0-.225-.02-.445-.032-.667a8.041 8.041 0 0 0 1.962-1.421l3.16-3.161.342.342a1.749 1.749 0 0 0 2.475 0l4.722-4.722c.011-.011.018-.025.029-.036s.023-.018.033-.029l51.844-57.46a6.236 6.236 0 0 0 -.219-8.589zm-70.1 81.311-.122.111c-.808.787-7.667 6.974-17.826 1.221a9.166 9.166 0 0 0 4.36-7.036 1.758 1.758 0 0 0 .036-.273 7.892 7.892 0 0 1 9.122-7.414c.017.005.031.014.048.019a1.717 1.717 0 0 0 .379.055 7.918 7.918 0 0 1 4 13.317zm5.239-10.131c-.093.093-.194.176-.293.26a11.459 11.459 0 0 0 -6.289-6.286c.084-.1.167-.2.261-.3l3.161-3.161 6.321 6.326zm7.214-4.057-9.479-9.479 2.247-2.247 9.479 9.479zm55.267-60.879-50.61 56.092-9.348-9.348 56.092-50.61a2.737 2.737 0 0 1 3.866 3.866z"></path></svg> 清空画布 </button>
-      <button class="value"> <svg id="svg8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g id="layer1" transform="translate(-33.022 -30.617)"><path fill="#7D8590" id="path26276" d="m49.021 31.617c-2.673 0-4.861 2.188-4.861 4.861 0 1.606.798 3.081 1.873 3.834h-7.896c-1.7 0-3.098 1.401-3.098 3.1s1.399 3.098 3.098 3.098h4.377l.223 2.641s-1.764 8.565-1.764 8.566c-.438 1.642.55 3.355 2.191 3.795s3.327-.494 3.799-2.191l2.059-5.189 2.059 5.189c.44 1.643 2.157 2.631 3.799 2.191s2.63-2.153 2.191-3.795l-1.764-8.566.223-2.641h4.377c1.699 0 3.098-1.399 3.098-3.098s-1.397-3.1-3.098-3.1h-7.928c1.102-.771 1.904-2.228 1.904-3.834 0-2.672-2.189-4.861-4.862-4.861zm0 2c1.592 0 2.861 1.27 2.861 2.861 0 1.169-.705 2.214-1.789 2.652-.501.203-.75.767-.563 1.273l.463 1.254c.145.393.519.654.938.654h8.975c.626 0 1.098.473 1.098 1.1s-.471 1.098-1.098 1.098h-5.297c-.52 0-.952.398-.996.916l-.311 3.701c-.008.096-.002.191.018.285 0 0 1.813 8.802 1.816 8.82.162.604-.173 1.186-.777 1.348s-1.184-.173-1.346-.777c-.01-.037-3.063-7.76-3.063-7.76-.334-.842-1.525-.842-1.859 0 0 0-3.052 7.723-3.063 7.76-.162.604-.741.939-1.346.777s-.939-.743-.777-1.348c.004-.019 1.816-8.82 1.816-8.82.02-.094.025-.189.018-.285l-.311-3.701c-.044-.518-.477-.916-.996-.916h-5.297c-.627 0-1.098-.471-1.098-1.098s.472-1.1 1.098-1.1h8.975c.419 0 .793-.262.938-.654l.463-1.254c.188-.507-.062-1.07-.563-1.273-1.084-.438-1.789-1.483-1.789-2.652.001-1.591 1.271-2.861 2.862-2.861z"></path></g></svg> 隐藏面板 </button>
-      <button class="value"> <svg fill="none" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="m11.9572 4.31201c-3.35401 0-6.00906 2.59741-6.00906 5.67742v3.29037c0 .1986-.05916.3927-.16992.5576l-1.62529 2.4193-.01077.0157c-.18701.2673-.16653.5113-.07001.6868.10031.1825.31959.3528.67282.3528h14.52603c.2546 0 .5013-.1515.6391-.3968.1315-.2343.1117-.4475-.0118-.6093-.0065-.0085-.0129-.0171-.0191-.0258l-1.7269-2.4194c-.121-.1695-.186-.3726-.186-.5809v-3.29037c0-1.54561-.6851-3.023-1.7072-4.00431-1.1617-1.01594-2.6545-1.67311-4.3019-1.67311zm-8.00906 5.67742c0-4.27483 3.64294-7.67742 8.00906-7.67742 2.2055 0 4.1606.88547 5.6378 2.18455.01.00877.0198.01774.0294.02691 1.408 1.34136 2.3419 3.34131 2.3419 5.46596v2.97007l1.5325 2.1471c.6775.8999.6054 1.9859.1552 2.7877-.4464.795-1.3171 1.4177-2.383 1.4177h-14.52603c-2.16218 0-3.55087-2.302-2.24739-4.1777l1.45056-2.1593zm4.05187 11.32257c0-.5523.44772-1 1-1h5.99999c.5523 0 1 .4477 1 1s-.4477 1-1 1h-5.99999c-.55228 0-1-.4477-1-1z" fill="#7D8590" fill-rule="evenodd"></path></svg> 退出工作台 </button>
+      <button class="value" onclick="window.addNode('text')"> <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg> 添加文本回复 </button>
+      <button class="value" onclick="window.addNode('button')"> <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#7D8590" id="XMLID_1646_" d="m17.074 30h-2.148c-1.038 0-1.914-.811-1.994-1.846l-.125-1.635c-.687-.208-1.351-.484-1.985-.824l-1.246 1.067c-.788.677-1.98.631-2.715-.104l-1.52-1.52c-.734-.734-.78-1.927-.104-2.715l1.067-1.246c-.34-.635-.616-1.299-.824-1.985l-1.634-.125c-1.035-.079-1.846-.955-1.846-1.993v-2.148c0-1.038.811-1.914 1.846-1.994l1.635-.125c.208-.687.484-1.351.824-1.985l-1.068-1.247c-.676-.788-.631-1.98.104-2.715l1.52-1.52c.734-.734 1.927-.779 2.715-.104l1.246 1.067c.635-.34 1.299-.616 1.985-.824l.125-1.634c.08-1.034.956-1.845 1.994-1.845h2.148c1.038 0 1.914.811 1.994 1.846l.125 1.635c.687.208 1.351.484 1.985.824l1.246-1.067c.787-.676 1.98-.631 2.715.104l1.52 1.52c.734.734.78 1.927.104 2.715l-1.067 1.246c.34.635.616 1.299.824 1.985l1.634.125c1.035.079 1.846.955 1.846 1.993v2.148c0 1.038-.811 1.914-1.846 1.994l-1.635.125c-.208.687-.484 1.351-.824 1.985l1.067 1.246c.677.788.631 1.98-.104 2.715l-1.52 1.52c-.734.734-1.928.78-2.715.104l-1.246-1.067c-.635.34-1.299.616-1.985.824l-.125 1.634c-.079 1.035-.955 1.846-1.993 1.846zm-5.835-6.373c.848.53 1.768.912 2.734 1.135.426.099.739.462.772.898l.18 2.341 2.149-.001.18-2.34c.033-.437.347-.8.772-.898.967-.223 1.887-.604 2.734-1.135.371-.232.849-.197 1.181.089l1.784 1.529 1.52-1.52-1.529-1.784c-.285-.332-.321-.811-.089-1.181.53-.848.912-1.768 1.135-2.734.099-.426.462-.739.898-.772l2.341-.18h-.001v-2.148l-2.34-.18c-.437-.033-.8-.347-.898-.772-.223-.967-.604-1.887-1.135-2.734-.232-.37-.196-.849.089-1.181l1.529-1.784-1.52-1.52-1.784 1.529c-.332.286-.81.321-1.181.089-.848-.53-1.768-.912-2.734-1.135-.426-.099-.739-.462-.772-.898l-.18-2.341-2.148.001-.18 2.34c-.033.437-.347.8-.772.898-.967.223-1.887.604-2.734 1.135-.37.232-.849.197-1.181-.089l-1.785-1.529-1.52 1.52 1.529 1.784c.285.332.321.811.089 1.181-.53.848-.912 1.768-1.135 2.734-.099.426-.462.739-.898.772l-2.341.18.002 2.148 2.34.18c.437.033.8.347.898.772.223.967.604 1.887 1.135 2.734.232.37.196.849-.089 1.181l-1.529 1.784 1.52 1.52 1.784-1.529c.332-.287.813-.32 1.18-.089z"></path><path id="XMLID_1645_" fill="#7D8590" d="m16 23c-3.859 0-7-3.141-7-7s3.141-7 7-7 7 3.141 7 7-3.141 7-7 7zm0-12c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z"></path></svg> 添加按钮菜单 </button>
+      <button class="value" onclick="window.clearCanvas()"> <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><path fill="#7D8590" d="m109.9 20.63a6.232 6.232 0 0 0 -8.588-.22l-57.463 51.843c-.012.011-.02.024-.031.035s-.023.017-.034.027l-4.721 4.722a1.749 1.749 0 0 0 0 2.475l.341.342-3.16 3.16a8 8 0 0 0 -1.424 1.967 11.382 11.382 0 0 0 -12.055 10.609c-.006.036-.011.074-.015.111a5.763 5.763 0 0 1 -4.928 5.41 1.75 1.75 0 0 0 -.844 3.14c4.844 3.619 9.4 4.915 13.338 4.915a17.14 17.14 0 0 0 11.738-4.545l.182-.167a11.354 11.354 0 0 0 3.348-8.081c0-.225-.02-.445-.032-.667a8.041 8.041 0 0 0 1.962-1.421l3.16-3.161.342.342a1.749 1.749 0 0 0 2.475 0l4.722-4.722c.011-.011.018-.025.029-.036s.023-.018.033-.029l51.844-57.46a6.236 6.236 0 0 0 -.219-8.589zm-70.1 81.311-.122.111c-.808.787-7.667 6.974-17.826 1.221a9.166 9.166 0 0 0 4.36-7.036 1.758 1.758 0 0 0 .036-.273 7.892 7.892 0 0 1 9.122-7.414c.017.005.031.014.048.019a1.717 1.717 0 0 0 .379.055 7.918 7.918 0 0 1 4 13.317zm5.239-10.131c-.093.093-.194.176-.293.26a11.459 11.459 0 0 0 -6.289-6.286c.084-.1.167-.2.261-.3l3.161-3.161 6.321 6.326zm7.214-4.057-9.479-9.479 2.247-2.247 9.479 9.479zm55.267-60.879-50.61 56.092-9.348-9.348 56.092-50.61a2.737 2.737 0 0 1 3.866 3.866z"></path></svg> 清空画布 </button>
+      <button class="value" onclick="window.togglePanel()"> <svg id="svg8" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g id="layer1" transform="translate(-33.022 -30.617)"><path fill="#7D8590" id="path26276" d="m49.021 31.617c-2.673 0-4.861 2.188-4.861 4.861 0 1.606.798 3.081 1.873 3.834h-7.896c-1.7 0-3.098 1.401-3.098 3.1s1.399 3.098 3.098 3.098h4.377l.223 2.641s-1.764 8.565-1.764 8.566c-.438 1.642.55 3.355 2.191 3.795s3.327-.494 3.799-2.191l2.059-5.189 2.059 5.189c.44 1.643 2.157 2.631 3.799 2.191s2.63-2.153 2.191-3.795l-1.764-8.566.223-2.641h4.377c1.699 0 3.098-1.399 3.098-3.098s-1.397-3.1-3.098-3.1h-7.928c1.102-.771 1.904-2.228 1.904-3.834 0-2.672-2.189-4.861-4.862-4.861zm0 2c1.592 0 2.861 1.27 2.861 2.861 0 1.169-.705 2.214-1.789 2.652-.501.203-.75.767-.563 1.273l.463 1.254c.145.393.519.654.938.654h8.975c.626 0 1.098.473 1.098 1.1s-.471 1.098-1.098 1.098h-5.297c-.52 0-.952.398-.996.916l-.311 3.701c-.008.096-.002.191.018.285 0 0 1.813 8.802 1.816 8.82.162.604-.173 1.186-.777 1.348s-1.184-.173-1.346-.777c-.01-.037-3.063-7.76-3.063-7.76-.334-.842-1.525-.842-1.859 0 0 0-3.052 7.723-3.063 7.76-.162.604-.741.939-1.346.777s-.939-.743-.777-1.348c.004-.019 1.816-8.82 1.816-8.82.02-.094.025-.189.018-.285l-.311-3.701c-.044-.518-.477-.916-.996-.916h-5.297c-.627 0-1.098-.471-1.098-1.098s.472-1.1 1.098-1.1h8.975c.419 0 .793-.262.938-.654l.463-1.254c.188-.507-.062-1.07-.563-1.273-1.084-.438-1.789-1.483-1.789-2.652.001-1.591 1.271-2.861 2.862-2.861z"></path></g></svg> 隐藏面板 </button>
+      <button class="value" onclick="window.location.href='/'"> <svg fill="none" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="m11.9572 4.31201c-3.35401 0-6.00906 2.59741-6.00906 5.67742v3.29037c0 .1986-.05916.3927-.16992.5576l-1.62529 2.4193-.01077.0157c-.18701.2673-.16653.5113-.07001.6868.10031.1825.31959.3528.67282.3528h14.52603c.2546 0 .5013-.1515.6391-.3968.1315-.2343.1117-.4475-.0118-.6093-.0065-.0085-.0129-.0171-.0191-.0258l-1.7269-2.4194c-.121-.1695-.186-.3726-.186-.5809v-3.29037c0-1.54561-.6851-3.023-1.7072-4.00431-1.1617-1.01594-2.6545-1.67311-4.3019-1.67311zm-8.00906 5.67742c0-4.27483 3.64294-7.67742 8.00906-7.67742 2.2055 0 4.1606.88547 5.6378 2.18455.01.00877.0198.01774.0294.02691 1.408 1.34136 2.3419 3.34131 2.3419 5.46596v2.97007l1.5325 2.1471c.6775.8999.6054 1.9859.1552 2.7877-.4464.795-1.3171 1.4177-2.383 1.4177h-14.52603c-2.16218 0-3.55087-2.302-2.24739-4.1777l1.45056-2.1593zm4.05187 11.32257c0-.5523.44772-1 1-1h5.99999c.5523 0 1 .4477 1 1s-.4477 1-1 1h-5.99999c-.55228 0-1-.4477-1-1z" fill="#7D8590" fill-rule="evenodd"></path></svg> 退出工作台 </button>
     </div>
 
-    <!-- 引入外部 JS（仅用于画布节点，会被下方覆盖） -->
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 核心 JS 全部内联，杜绝缓存干扰与函数覆盖 -->
+    <!-- ✅ 核心修复：所有功能函数全部挂载到 window 对象上 -->
     <script>
-    let hideTimeout = null;
-    function hideContextMenu() {
-        const menu = document.getElementById('ctxMenu');
-        if (!menu.classList.contains('open')) return;
-        if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-        menu.classList.remove('open');
-        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 150);
-    }
-    function showContextMenu(e) {
-        const menu = document.getElementById('ctxMenu');
-        const menuItems = document.querySelectorAll('#ctxMenu .value');
-        if (menu.classList.contains('open')) { hideContextMenu(); return; }
-        menuItems.forEach(b => b.classList.remove('active'));
-        let x = e.clientX, y = e.clientY;
-        menu.style.display = 'block'; menu.classList.remove('open');
-        let left = x + 12, top = y + 12;
-        const menuWidth = menu.offsetWidth, menuHeight = menu.offsetHeight;
-        const winWidth = window.innerWidth, winHeight = window.innerHeight;
-        if (left + menuWidth > winWidth) { left = x - menuWidth - 12; }
-        if (top + menuHeight > winHeight) { top = y - menuHeight - 12; }
-        menu.style.left = left + 'px'; menu.style.top = top + 'px';
-        setTimeout(() => { menu.classList.add('open'); }, 20);
-    }
-    document.addEventListener("DOMContentLoaded", function() {
-        const canvasArea = document.getElementById('canvasArea');
-        const menu = document.getElementById('ctxMenu');
-        const menuItems = document.querySelectorAll('#ctxMenu .value');
-        document.addEventListener('click', function(e) {
-            if (menu.contains(e.target)) return;
-            if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) { showContextMenu(e); return; }
-            hideContextMenu();
-        });
-        menuItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation(); e.preventDefault();
-                menuItems.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                hideContextMenu();
+    // 1. 基础全局变量和渲染引擎
+    let nodes = [];
+    let history = [];
+    let historyIndex = -1;
+    const nodeContainer = document.getElementById('nodeContainer');
+    const previewMessages = document.getElementById('previewMessages');
+    const previewInput = document.getElementById('previewInput');
+
+    window.saveHistory = function() {
+        history = history.slice(0, historyIndex + 1);
+        history.push(JSON.parse(JSON.stringify(nodes)));
+        historyIndex++;
+        if (history.length > 50) {
+            history.shift();
+            historyIndex--;
+        }
+    };
+
+    window.renderNodes = function() {
+        nodeContainer.innerHTML = '';
+        nodes.forEach((node, index) => {
+            const el = document.createElement('div');
+            el.className = 'canvas-node';
+            el.style.left = node.x + 'px';
+            el.style.top = node.y + 'px';
+            el.dataset.index = index;
+
+            let bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="window.deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
+            if (node.type === 'text') {
+                bodyHtml += `<div class="node-title">自动回复</div>`;
+                bodyHtml += `<div class="node-body">${node.content || '点击输入文本...'}</div>`;
+            } else if (node.type === 'button') {
+                bodyHtml += `<div class="node-title">按钮菜单</div>`;
+                bodyHtml += `<div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
+                if (node.buttons && node.buttons.length > 0) {
+                    node.buttons.forEach(b => {
+                        bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
+                    });
+                }
+            }
+            el.innerHTML = bodyHtml;
+            el.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                if (e.button !== 0) return;
+                window.isDraggingNode = true;
+                window.currentDragNode = el;
+                const rect = el.getBoundingClientRect();
+                window.startX = e.clientX - rect.left;
+                window.startY = e.clientY - rect.top;
+                el.style.zIndex = 100;
             });
+            nodeContainer.appendChild(el);
         });
+    };
 
-        // 在页面加载后检查是否挂载成功
-        console.log("✅ 核心按钮事件挂载完成");
-    });
+    // 2. 画布拖拽引擎
+    const canvasArea = document.getElementById('canvasArea');
+    let canvasOffsetX = 0, canvasOffsetY = 0;
+    let lastMouseX = 0, lastMouseY = 0;
+    let isDraggingCanvas = false;
 
-    // 🔥 重新定义绑定机器人按钮（确保覆盖缓存内的旧代码）
+    if (canvasArea) {
+        canvasArea.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
+            isDraggingCanvas = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvasArea.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (window.isDraggingNode && window.currentDragNode) {
+                const rect = canvasArea.getBoundingClientRect();
+                const left = e.clientX - window.startX - rect.left;
+                const top = e.clientY - window.startY - rect.top;
+                window.currentDragNode.style.left = left + 'px';
+                window.currentDragNode.style.top = top + 'px';
+            }
+            if (isDraggingCanvas) {
+                const dx = e.clientX - lastMouseX;
+                const dy = e.clientY - lastMouseY;
+                canvasOffsetX += dx; canvasOffsetY += dy;
+                canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
+                canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
+                canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+                lastMouseX = e.clientX; lastMouseY = e.clientY;
+            }
+        });
+        document.addEventListener('mouseup', (e) => {
+            if (window.isDraggingNode && window.currentDragNode) {
+                const index = parseInt(window.currentDragNode.dataset.index);
+                if (!isNaN(index)) {
+                    nodes[index].x = parseFloat(window.currentDragNode.style.left);
+                    nodes[index].y = parseFloat(window.currentDragNode.style.top);
+                    window.saveHistory();
+                }
+                window.currentDragNode.style.zIndex = 1;
+                window.isDraggingNode = false;
+                window.currentDragNode = null;
+            }
+            if (isDraggingCanvas) {
+                isDraggingCanvas = false;
+                canvasArea.style.cursor = 'grab';
+            }
+        });
+        // 移动端触摸事件
+        canvasArea.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                isDraggingCanvas = true;
+                lastMouseX = touch.clientX;
+                lastMouseY = touch.clientY;
+            }
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (isDraggingCanvas && e.touches.length === 1) {
+                const touch = e.touches[0];
+                const dx = touch.clientX - lastMouseX;
+                const dy = touch.clientY - lastMouseY;
+                canvasOffsetX += dx; canvasOffsetY += dy;
+                canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
+                canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
+                canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+                lastMouseX = touch.clientX; lastMouseY = touch.clientY;
+            }
+        }, { passive: false });
+        document.addEventListener('touchend', (e) => { isDraggingCanvas = false; });
+    }
+
+    // 3. 节点操作挂载到 window
+    window.deleteNode = function(index) {
+        nodes.splice(index, 1);
+        window.saveHistory();
+        window.renderNodes();
+    };
+
+    window.addNode = function(type) {
+        const baseX = 200 + Math.random() * 300;
+        const baseY = 200 + Math.random() * 300;
+        const newNode = {
+            id: Date.now() + Math.random(),
+            type: type,
+            x: baseX, y: baseY,
+            content: type === 'text' ? '输入你的回复...' : '按钮名称',
+            buttons: type === 'button' ? ['按钮1', '按钮2'] : []
+        };
+        nodes.push(newNode);
+        window.saveHistory();
+        window.renderNodes();
+    };
+
+    window.addBotNode = function(name) {
+        const baseX = 200 + Math.random() * 300;
+        const baseY = 200 + Math.random() * 300;
+        const newNode = {
+            id: Date.now() + Math.random(),
+            type: 'bot', name: name || '我的机器人',
+            x: baseX, y: baseY
+        };
+        nodes.push(newNode);
+        window.saveHistory();
+        window.renderNodes();
+    };
+
+    window.clearCanvas = function() {
+        if (nodes.length === 0) return;
+        nodes = [];
+        window.saveHistory();
+        window.renderNodes();
+    };
+
+    window.undoAction = function() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+            window.renderNodes();
+        }
+    };
+
+    window.redoAction = function() {
+        if (historyIndex < history.length - 1) {
+            historyIndex++;
+            nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+            window.renderNodes();
+        }
+    };
+
+    // 4. 预览窗口挂载到 window
+    const previewBox = document.getElementById('previewBox');
+    window.togglePreview = function() {
+        previewBox.classList.toggle('open');
+        document.getElementById('previewToggleBtn').innerText = previewBox.classList.contains('open') ? '👁 关闭预览' : '👁 预览';
+    };
+    window.sendPreviewMessage = function() {
+        const text = previewInput.value.trim();
+        if (!text) return;
+        const userMsg = document.createElement('div'); userMsg.className = 'preview-msg-user'; userMsg.innerText = text;
+        previewMessages.appendChild(userMsg); previewMessages.scrollTop = previewMessages.scrollHeight;
+        previewInput.value = '';
+        setTimeout(() => {
+            const botMsg = document.createElement('div'); botMsg.className = 'preview-msg-bot';
+            const textNode = nodes.find(n => n.type === 'text');
+            if (textNode) {
+                botMsg.innerText = textNode.content || '预设回复内容';
+                const btnNode = nodes.find(n => n.type === 'button');
+                if (btnNode && btnNode.buttons) {
+                    const btnContainer = document.createElement('div'); btnContainer.style.marginTop = '8px';
+                    btnNode.buttons.forEach(b => {
+                        const btn = document.createElement('span'); btn.className = 'inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1 cursor-pointer';
+                        btn.innerText = b; btnContainer.appendChild(btn);
+                    });
+                    botMsg.appendChild(btnContainer);
+                }
+            } else {
+                botMsg.innerText = '暂无配置回复节点，请先在左侧添加文本回复！';
+            }
+            previewMessages.appendChild(botMsg); previewMessages.scrollTop = previewMessages.scrollHeight;
+        }, 600);
+    };
+
+    // 5. 业务功能挂载到 window
     window.connectBot = function() {
-        alert("👉 绑定按钮被点击了"); // 加了这个弹窗用来测试 iPad 上 JS 是否运行
-        console.log("👉 点击了绑定机器人按钮");
         const token = document.getElementById('botTokenInput').value;
         const chatId = document.getElementById('telegramIdInput').value;
         const name = document.getElementById('botNameInput').value.trim() || '宫水编辑器';
         const status = document.getElementById('botStatus');
-        
-        if (token.length < 10) {
-            status.innerHTML = '❌ Token 格式错误';
-            status.className = 'mt-2 text-[10px] text-red-400';
-            return;
-        }
-        if (!chatId || chatId.length < 1) {
-            status.innerHTML = '❌ 请输入绑定的 Telegram ID';
-            status.className = 'mt-2 text-[10px] text-red-400';
-            return;
-        }
-
-        status.innerHTML = '⏳ 正在验证并发送绑定消息...';
-        status.className = 'mt-2 text-[10px] text-gray-400';
-
-        fetch('/api/bind_bot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: token, telegram_id: chatId, name: name })
-        })
+        if (token.length < 10) { status.innerHTML = '❌ Token 格式错误'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        if (!chatId || chatId.length < 1) { status.innerHTML = '❌ 请输入绑定的 Telegram ID'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        status.innerHTML = '⏳ 正在验证并发送绑定消息...'; status.className = 'mt-2 text-[10px] text-gray-400';
+        fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
         .then(res => res.json())
         .then(data => {
-            if (data.ok) {
-                status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
-                status.className = 'mt-2 text-[10px] text-green-400';
-                window.addBotCard(name);
-            } else {
-                status.innerHTML = `❌ 绑定失败: ${data.msg}`;
-                status.className = 'mt-2 text-[10px] text-red-400';
-            }
+            if (data.ok) { status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`; status.className = 'mt-2 text-[10px] text-green-400'; window.addBotCard(name); }
+            else { status.innerHTML = `❌ 绑定失败: ${data.msg}`; status.className = 'mt-2 text-[10px] text-red-400'; }
         })
-        .catch((err) => {
-            console.error("绑定请求失败:", err);
-            status.innerHTML = '❌ 网络请求失败，请稍后重试。';
-            status.className = 'mt-2 text-[10px] text-red-400';
-        });
+        .catch(() => { status.innerHTML = '❌ 网络请求失败，请稍后重试。'; status.className = 'mt-2 text-[10px] text-red-400'; });
     };
 
-    // 🔥 重新定义自动填写按钮（优化：不限行数，智能提取）
     window.autoFillBot = function() {
-        alert("👉 自动填写被点击了"); // 加了这个弹窗用来测试 iPad 上 JS 是否运行
-        console.log("👉 点击了自动填写按钮");
         const tokenInput = document.getElementById('botTokenInput');
         const idInput = document.getElementById('telegramIdInput');
         const status = document.getElementById('botStatus');
-
-        if (!navigator.clipboard) {
-            status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
-            status.className = 'mt-2 text-[10px] text-red-400';
-            return;
-        }
-
-        navigator.clipboard.readText()
-        .then(text => {
-            console.log("剪贴板原始内容:", text);
-            if (!text || text.trim() === '') {
-                status.innerHTML = '❌ 自动填写失败：剪贴板为空';
-                status.className = 'mt-2 text-[10px] text-red-400';
-                return;
-            }
-
-            let foundToken = false;
-            let foundId = false;
-            let tempText = text; // 用临时变量做剔除操作，避免污染
-
-            // 1. 从任意位置提取 Token（匹配 数字:字母/数字/下划线 组合）
-            const tokenMatch = tempText.match(/(\b\d+:[a-zA-Z0-9_-]+\b)/);
-            if (tokenMatch) {
-                tokenInput.value = tokenMatch[0];
-                foundToken = true;
-                // 👉 关键步骤：把提取出的 Token 从文本中删掉，防止它前面的数字被误当为 ID
-                tempText = tempText.replace(tokenMatch[0], '');
-            }
-
-            // 2. 从剩余文本中提取纯数字 ID（Telegram 官方 ID 通常为 5~15 位纯数字）
-            const idMatch = tempText.match(/(\b\d{5,15}\b)/);
-            if (idMatch) {
-                idInput.value = idMatch[0];
-                foundId = true;
-            }
-
-            // 3. 反馈结果
+        if (!navigator.clipboard) { status.innerHTML = '❌ 你的浏览器不支持读取剪贴板'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        navigator.clipboard.readText().then(text => {
+            if (!text || text.trim() === '') { status.innerHTML = '❌ 自动填写失败：剪贴板为空'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+            let foundToken = false, foundId = false;
+            const lines = text.split(/\r?\n/);
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) { tokenInput.value = trimmed; foundToken = true; }
+                else if (/^\d{5,15}$/.test(trimmed) && !foundId) { idInput.value = trimmed; foundId = true; }
+            });
             if (foundToken || foundId) {
                 let msg = `✅ 自动识别成功！`;
                 if (foundToken) msg += ` Token 已填入`;
                 if (foundId) msg += ` ID 已填入`;
-                status.innerHTML = msg;
-                status.className = 'mt-2 text-[10px] text-green-400';
+                status.innerHTML = msg; status.className = 'mt-2 text-[10px] text-green-400';
             } else {
-                status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 Token 或 ID 的格式';
+                status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
                 status.className = 'mt-2 text-[10px] text-red-400';
             }
-        })
-        .catch(err => {
-            console.error("剪贴板读取错误:", err);
-            // 针对 iOS 限制特别优化了提示语
-            if (err.message && err.message.includes('NotAllowedError')) {
-                status.innerHTML = '❌ 读取失败：请在 iOS 设置/当前网页中允许“粘贴”权限，并重新点击按钮。';
-            } else {
-                status.innerHTML = '❌ 读取剪贴板失败：请确保是通过 HTTPS 或 localhost 访问该页面。';
-            }
+        }).catch(err => {
+            console.error('剪贴板读取错误:', err);
+            status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置（iOS设备需在设置中允许剪贴板读取）';
             status.className = 'mt-2 text-[10px] text-red-400';
         });
     };
@@ -253,7 +362,6 @@
         const uniqueId = 'bot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         const posX = 200 + Math.random() * 400;
         const posY = 200 + Math.random() * 400;
-
         fetch('/static/templates/connected_bot_card.html')
             .then(response => response.text())
             .then(html => {
@@ -262,33 +370,41 @@
                     .replace(/{{ bot_name }}/g, name)
                     .replace(/{{ pos_x }}/g, posX)
                     .replace(/{{ pos_y }}/g, posY);
-                
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = cardHtml;
                 const cardElement = tempDiv.firstElementChild;
-                
-                if (cardElement) {
-                    container.appendChild(cardElement);
-                }
+                if (cardElement) container.appendChild(cardElement);
             })
             .catch(err => {
                 console.error("加载 3D 卡片失败，使用兜底节点:", err);
-                // 如果文件加载失败，用旧方法回退
                 window.addBotNode(name);
             });
     };
 
-    function toggleFullScreen() {
+    // 6. 面板隐藏/展开功能挂载到 window
+    window.togglePanel = function() {
+        const panel = document.getElementById('configPanel');
+        const handle = document.getElementById('panelHandle');
+        const btnContainer = document.getElementById('hideBtnContainer');
+        const isHidden = panel.dataset.hidden === 'true';
+        if (isHidden) {
+            panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false';
+            handle.classList.add('hidden'); btnContainer.classList.remove('hidden');
+        } else {
+            const translateY = window.innerHeight - 84;
+            panel.style.transform = `translateY(${translateY}px)`;
+            panel.dataset.hidden = 'true';
+            handle.classList.remove('hidden'); btnContainer.classList.add('hidden');
+        }
+    };
+
+    // 7. 全屏切换挂载到 window
+    window.toggleFullScreen = function() {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen();
         else if (document.exitFullscreen) document.exitFullscreen();
-    }
-    function togglePanel() {
-        const panel = document.getElementById('configPanel'), handle = document.getElementById('panelHandle'), btnContainer = document.getElementById('hideBtnContainer');
-        const isHidden = panel.dataset.hidden === 'true';
-        if (isHidden) { panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden'); btnContainer.classList.remove('hidden'); }
-        else { const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`; panel.dataset.hidden = 'true'; handle.classList.remove('hidden'); btnContainer.classList.add('hidden'); }
-    }
+    };
 
+    // 8. Agent 面板切换挂载到 window
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
         window.toggleAgentPanel = function() {
