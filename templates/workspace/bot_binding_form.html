@@ -1,0 +1,30 @@
+<!-- 机器人绑定模块（包含 Telegram ID 输入） -->
+<div id="botBindingArea" class="mt-4 flex flex-col gap-4">
+    <!-- Bot Token -->
+    <div>
+        <label class="text-gray-400 text-xs mb-1 block">Bot Token</label>
+        <input id="botTokenInput" type="password" placeholder="请输入 Bot Token" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+    </div>
+    
+    <!-- 机器人名称 -->
+    <div>
+        <label class="text-gray-400 text-xs mb-1 block">机器人名称</label>
+        <input id="botNameInput" type="text" placeholder="例如：我的测试机器人" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+    </div>
+
+    <!-- ✅ 新增：Telegram ID 输入框 -->
+    <div>
+        <label class="text-gray-400 text-xs mb-1 block">Telegram 账号 ID</label>
+        <input id="telegramIdInput" type="text" placeholder="例如：123456789（用来接收连接通知）" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+        <p class="text-[10px] text-gray-500 mt-1">可以找 @userinfobot 或 @getmyid_bot 获取你的 ID</p>
+    </div>
+
+    <!-- 绑定按钮 -->
+    <div class="mt-2">
+        <button onclick="realConnectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">
+            绑定机器人
+        </button>
+    </div>
+    
+    <div id="botStatus" class="mt-1 text-[10px] text-gray-400">未连接</div>
+</div>
