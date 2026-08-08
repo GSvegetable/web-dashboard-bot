@@ -137,6 +137,7 @@
 
     // 🔥 重新定义绑定机器人按钮（确保覆盖缓存内的旧代码）
     window.connectBot = function() {
+        alert("👉 绑定按钮被点击了"); // 加了这个弹窗用来测试 iPad 上 JS 是否运行
         console.log("👉 点击了绑定机器人按钮");
         const token = document.getElementById('botTokenInput').value;
         const chatId = document.getElementById('telegramIdInput').value;
@@ -182,6 +183,7 @@
 
     // 🔥 重新定义自动填写按钮（优化：不限行数，智能提取）
     window.autoFillBot = function() {
+        alert("👉 自动填写被点击了"); // 加了这个弹窗用来测试 iPad 上 JS 是否运行
         console.log("👉 点击了自动填写按钮");
         const tokenInput = document.getElementById('botTokenInput');
         const idInput = document.getElementById('telegramIdInput');
