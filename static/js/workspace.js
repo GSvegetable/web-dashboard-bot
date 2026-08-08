@@ -3,14 +3,12 @@
 // ==========================================
 document.addEventListener("DOMContentLoaded", function() {
 
-    // --- 基础元素获取 ---
     const canvasArea = document.getElementById('canvasArea');
     const nodeContainer = document.getElementById('nodeContainer');
     const previewBox = document.getElementById('previewBox');
     const previewMessages = document.getElementById('previewMessages');
     const previewInput = document.getElementById('previewInput');
 
-    // --- 状态存储与历史记录 ---
     let nodes = [];
     let history = [];
     let historyIndex = -1;
@@ -118,15 +116,13 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // ✅ 核心修改：绑定机器人生成的节点，固定在卡片右侧并依次向下排列
+    // ✅ 终极修正：精确放在画布几何中心
     window.addBotNode = function(name) {
-        // 统计已经有多少个机器人节点，以此计算 Y 轴的偏移量
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
-        // 左侧大卡片宽 480px，距离左侧 24px，所以右侧大约从 600px 开始
-        const baseX = 600; 
-        // 第一个机器人的顶部距离，之后的每个机器人往下偏移 140px
-        const baseY = 60 + (botCount * 140);
+        // 画布中心 0,0 正好是屏幕视角的中心
+        const baseX = 0; 
+        const baseY = 0 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
@@ -140,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // --- 画布拖拽平移 ---
+    // --- 画布拖拽 ---
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
         isDraggingCanvas = true;
