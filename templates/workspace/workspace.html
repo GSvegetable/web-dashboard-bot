@@ -55,7 +55,6 @@
                     <div><label class="text-gray-400 text-xs mb-1 block">Telegram ID</label><input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                     <div><label class="text-gray-400 text-xs mb-1 block">Bot名称</label><input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                 </div>
-                <!-- ✅ 修改：去掉了 📋 表情，只有四个字 -->
                 <div class="mt-4 mb-2"><button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">自动填写</button></div>
                 <div class="mt-2"><button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
@@ -85,9 +84,11 @@
       <button class="value"> <svg fill="none" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg"><path clip-rule="evenodd" d="m11.9572 4.31201c-3.35401 0-6.00906 2.59741-6.00906 5.67742v3.29037c0 .1986-.05916.3927-.16992.5576l-1.62529 2.4193-.01077.0157c-.18701.2673-.16653.5113-.07001.6868.10031.1825.31959.3528.67282.3528h14.52603c.2546 0 .5013-.1515.6391-.3968.1315-.2343.1117-.4475-.0118-.6093-.0065-.0085-.0129-.0171-.0191-.0258l-1.7269-2.4194c-.121-.1695-.186-.3726-.186-.5809v-3.29037c0-1.54561-.6851-3.023-1.7072-4.00431-1.1617-1.01594-2.6545-1.67311-4.3019-1.67311zm-8.00906 5.67742c0-4.27483 3.64294-7.67742 8.00906-7.67742 2.2055 0 4.1606.88547 5.6378 2.18455.01.00877.0198.01774.0294.02691 1.408 1.34136 2.3419 3.34131 2.3419 5.46596v2.97007l1.5325 2.1471c.6775.8999.6054 1.9859.1552 2.7877-.4464.795-1.3171 1.4177-2.383 1.4177h-14.52603c-2.16218 0-3.55087-2.302-2.24739-4.1777l1.45056-2.1593zm4.05187 11.32257c0-.5523.44772-1 1-1h5.99999c.5523 0 1 .4477 1 1s-.4477 1-1 1h-5.99999c-.55228 0-1-.4477-1-1z" fill="#7D8590" fill-rule="evenodd"></path></svg> 退出工作台 </button>
     </div>
 
+    <!-- 引入外部 JS（仅用于画布节点，会被下方覆盖） -->
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
+    <!-- ✅ 核心 JS 全部内联，杜绝缓存干扰与函数覆盖 -->
     <script>
     let hideTimeout = null;
     function hideContextMenu() {
@@ -129,9 +130,14 @@
                 hideContextMenu();
             });
         });
+
+        // 在页面加载后检查是否挂载成功
+        console.log("✅ 核心按钮事件挂载完成");
     });
 
+    // 🔥 重新定义绑定机器人按钮（确保覆盖缓存内的旧代码）
     window.connectBot = function() {
+        console.log("👉 点击了绑定机器人按钮");
         const token = document.getElementById('botTokenInput').value;
         const chatId = document.getElementById('telegramIdInput').value;
         const name = document.getElementById('botNameInput').value.trim() || '宫水编辑器';
@@ -167,14 +173,16 @@
                 status.className = 'mt-2 text-[10px] text-red-400';
             }
         })
-        .catch(() => {
+        .catch((err) => {
+            console.error("绑定请求失败:", err);
             status.innerHTML = '❌ 网络请求失败，请稍后重试。';
             status.className = 'mt-2 text-[10px] text-red-400';
         });
     };
 
-    // ✅ 自动填写逻辑
+    // 🔥 重新定义自动填写按钮
     window.autoFillBot = function() {
+        console.log("👉 点击了自动填写按钮");
         const tokenInput = document.getElementById('botTokenInput');
         const idInput = document.getElementById('telegramIdInput');
         const status = document.getElementById('botStatus');
@@ -185,7 +193,10 @@
             return;
         }
 
-        navigator.clipboard.readText().then(text => {
+        // 此处加 try...catch 防止 iOS 静默失败
+        navigator.clipboard.readText()
+        .then(text => {
+            console.log("剪贴板内容:", text);
             if (!text || text.trim() === '') {
                 status.innerHTML = '❌ 自动填写失败：剪贴板为空';
                 status.className = 'mt-2 text-[10px] text-red-400';
@@ -215,8 +226,9 @@
                 status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
                 status.className = 'mt-2 text-[10px] text-red-400';
             }
-        }).catch(err => {
-            console.error('剪贴板读取错误:', err);
+        })
+        .catch(err => {
+            console.error("剪贴板读取错误:", err);
             status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置（iOS设备需在设置中允许剪贴板读取）';
             status.className = 'mt-2 text-[10px] text-red-400';
         });
@@ -247,12 +259,11 @@
             })
             .catch(err => {
                 console.error("加载 3D 卡片失败，使用兜底节点:", err);
+                // 如果文件加载失败，用旧方法回退
                 window.addBotNode(name);
             });
     };
-    </script>
 
-    <script>
     function toggleFullScreen() {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen();
         else if (document.exitFullscreen) document.exitFullscreen();
@@ -263,9 +274,7 @@
         if (isHidden) { panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden'); btnContainer.classList.remove('hidden'); }
         else { const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`; panel.dataset.hidden = 'true'; handle.classList.remove('hidden'); btnContainer.classList.add('hidden'); }
     }
-    </script>
 
-    <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
         window.toggleAgentPanel = function() {
