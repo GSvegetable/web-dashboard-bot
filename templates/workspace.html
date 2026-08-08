@@ -13,12 +13,13 @@
             overflow: hidden; 
         }
         
-        /* ✅ 修改：面板改为半透明毛玻璃 */
+        /* ✅ 优化：左侧面板真正的高透毛玻璃 */
         .glass-panel {
-            background: rgba(15, 15, 16, 0.15);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            background: rgba(20, 20, 22, 0.12);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
         }
         
         /* 画布上的节点 */
@@ -67,16 +68,24 @@
     </style>
 </head>
 <body>
-    <!-- ✅ 修改：按钮从左上角移到了右上角，样式保持不变 -->
-    <button onclick="window.location.href='/'" class="fixed top-4 right-4 z-50 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
-        返回主页
-    </button>
+    
+    <!-- ✅ 修改：右上角按钮合并成一组，并排对齐 -->
+    <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <!-- 右上角 Agent 按钮（联动全局 Agent 面板） -->
+        <button onclick="toggleAgentPanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+            Agent
+        </button>
+        <!-- 返回主页按钮 -->
+        <button onclick="window.location.href='/'" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+            返回主页
+        </button>
+    </div>
 
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 修改：左侧面板做成悬浮毛玻璃卡片，拉宽、上下留白、整体往右移 -->
-        <div class="w-[420px] h-[calc(100vh-40px)] my-5 ml-5 rounded-2xl glass-panel border border-white/5 flex flex-col p-6 overflow-y-auto z-10 shrink-0">
+        <!-- ✅ 修改：面板拉宽至 480px，加入 margin 与上下左右脱离，圆角更大，质感更透明 -->
+        <div class="w-[480px] h-[calc(100vh-48px)] my-6 ml-6 rounded-3xl glass-panel border border-white/5 flex flex-col p-6 overflow-y-auto z-10 shrink-0">
             <div class="mb-6">
                 <h2 class="text-white text-lg font-bold mb-2">机器人配置</h2>
                 <div class="flex items-center gap-2 bg-black/30 rounded-xl p-2 border border-white/10">
@@ -146,5 +155,9 @@
 
     <!-- 引入核心 JS -->
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+    
+    <!-- ✅ 引入 Agent 底部面板组件（确保右上角 Agent 按钮联动有效） -->
+    {% include 'components/agent_action_panel.html' %}
+
 </body>
 </html>
