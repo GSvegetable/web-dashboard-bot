@@ -55,7 +55,8 @@
                     <div><label class="text-gray-400 text-xs mb-1 block">Telegram ID</label><input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                     <div><label class="text-gray-400 text-xs mb-1 block">Bot名称</label><input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                 </div>
-                <div class="mt-4 mb-2"><button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">📋 自动填写</button></div>
+                <!-- ✅ 修改：去掉了 📋 表情，只有四个字 -->
+                <div class="mt-4 mb-2"><button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">自动填写</button></div>
                 <div class="mt-2"><button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
@@ -160,8 +161,6 @@
             if (data.ok) {
                 status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
                 status.className = 'mt-2 text-[10px] text-green-400';
-                
-                // ✅ 替换：不再生成方块节点，而是生成 3D 卡片
                 window.addBotCard(name);
             } else {
                 status.innerHTML = `❌ 绑定失败: ${data.msg}`;
@@ -174,6 +173,7 @@
         });
     };
 
+    // ✅ 自动填写逻辑
     window.autoFillBot = function() {
         const tokenInput = document.getElementById('botTokenInput');
         const idInput = document.getElementById('telegramIdInput');
@@ -216,19 +216,18 @@
                 status.className = 'mt-2 text-[10px] text-red-400';
             }
         }).catch(err => {
-            status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
+            console.error('剪贴板读取错误:', err);
+            status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置（iOS设备需在设置中允许剪贴板读取）';
             status.className = 'mt-2 text-[10px] text-red-400';
         });
     };
 
-    // ✅ 新增：在画布中生成 3D 卡片的函数
     window.addBotCard = function(name) {
         const container = document.getElementById('nodeContainer');
         const uniqueId = 'bot_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         const posX = 200 + Math.random() * 400;
         const posY = 200 + Math.random() * 400;
 
-        // 将卡片 HTML 模板中的变量替换为实际值，并注入到画布
         fetch('/static/templates/connected_bot_card.html')
             .then(response => response.text())
             .then(html => {
@@ -243,17 +242,14 @@
                 const cardElement = tempDiv.firstElementChild;
                 
                 if (cardElement) {
-                    // 添加到画布
                     container.appendChild(cardElement);
                 }
             })
             .catch(err => {
                 console.error("加载 3D 卡片失败，使用兜底节点:", err);
-                // 如果加载失败，回退到普通的方块节点
                 window.addBotNode(name);
             });
     };
-
     </script>
 
     <script>
