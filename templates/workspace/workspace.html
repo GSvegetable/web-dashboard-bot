@@ -13,7 +13,7 @@
             overflow: hidden; 
         }
         
-        /* ✅ 完美复刻截图的半透毛玻璃面板 */
+        /* 完美复刻截图的半透毛玻璃面板 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(24px);
@@ -23,7 +23,7 @@
             border-radius: 28px;
         }
         
-        /* 画布上的节点（保留画布功能） */
+        /* 画布上的节点 */
         .canvas-node {
             position: absolute;
             padding: 12px 16px;
@@ -69,7 +69,7 @@
 </head>
 <body>
     
-    <!-- ✅ 右上角三个均分按钮：Agent、全屏显示、返回主页（完美保留） -->
+    <!-- 右上角三个均分按钮：Agent、全屏显示、返回主页 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
         <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -85,7 +85,7 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 左侧面板：全面对齐截图样式，极致半透、上下彻底悬浮 -->
+        <!-- 左侧面板：极致半透、绝对悬浮、样式纯粹 -->
         <div class="fixed left-6 top-6 bottom-6 w-[360px] glass-panel flex flex-col p-8 z-20">
             <div class="mb-8">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
@@ -105,7 +105,8 @@
         <div class="flex-1 h-full relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
+            <!-- ✅ 修改：背景图引用路径去掉 js/，直接从 static 根目录读取 -->
+            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <div id="nodeContainer" class="relative w-full h-full">
                     <!-- 节点通过 JS 动态注入 -->
                 </div>
@@ -131,7 +132,7 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 修复开发作品页面的 Agent 卡片弹出定位（右下角悬浮） -->
+    <!-- 修复开发作品页面的 Agent 卡片弹出定位（右下角悬浮） -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
