@@ -3,12 +3,14 @@
 // ==========================================
 document.addEventListener("DOMContentLoaded", function() {
 
+    // --- 基础元素获取 ---
     const canvasArea = document.getElementById('canvasArea');
     const nodeContainer = document.getElementById('nodeContainer');
     const previewBox = document.getElementById('previewBox');
     const previewMessages = document.getElementById('previewMessages');
     const previewInput = document.getElementById('previewInput');
 
+    // --- 状态存储与历史记录 ---
     let nodes = [];
     let history = [];
     let historyIndex = -1;
@@ -116,13 +118,13 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // ✅ 终极修正：精确放在画布几何中心
+    // ✅ 核心修改：节点默认出现在正中央（X:500, Y:300）
     window.addBotNode = function(name) {
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
-        // 画布中心 0,0 正好是屏幕视角的中心
-        const baseX = 0; 
-        const baseY = 0 + (botCount * 140);
+        // 画布正中心坐标
+        const baseX = 500; 
+        const baseY = 300 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
@@ -136,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // --- 画布拖拽 ---
+    // --- 画布拖拽平移 ---
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
         isDraggingCanvas = true;
