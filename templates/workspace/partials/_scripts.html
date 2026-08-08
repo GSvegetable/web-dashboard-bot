@@ -1,4 +1,84 @@
 <script>
+// ==========================================
+// 1. 核心状态变量与DOM初始化
+// ==========================================
+let nodes = [];
+let history = [];
+let historyIndex = -1;
+let isDraggingCanvas = false;
+let isDraggingNode = false;
+let startX, startY, startLeft, startTop;
+let currentDragNode = null;
+let canvasOffsetX = 0, canvasOffsetY = 0;
+let lastMouseX = 0, lastMouseY = 0;
+
+const canvasArea = document.getElementById('canvasArea');
+const nodeContainer = document.getElementById('nodeContainer');
+const previewBox = document.getElementById('previewBox');
+const previewMessages = document.getElementById('previewMessages');
+const previewInput = document.getElementById('previewInput');
+
+// ==========================================
+// 2. 历史记录与撤销/重做
+// ==========================================
+function saveHistory() {
+    history = history.slice(0, historyIndex + 1);
+    history.push(JSON.parse(JSON.stringify(nodes)));
+    historyIndex++;
+    if (history.length > 50) {
+        history.shift();
+        historyIndex--;
+    }
+}
+
+window.undoAction = function() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+        renderNodes();
+    }
+};
+
+window.redoAction = function() {
+    if (historyIndex < history.length - 1) {
+        historyIndex++;
+        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+        renderNodes();
+    }
+};
+
+window.clearCanvas = function() {
+    if (nodes.length === 0) return;
+    nodes = [];
+    saveHistory();
+    renderNodes();
+};
+
+window.deleteNode = function(index) {
+    nodes.splice(index, 1);
+    saveHistory();
+    renderNodes();
+};
+
+window.addNode = function(type) {
+    const baseX = 200 + Math.random() * 300;
+    const baseY = 200 + Math.random() * 300;
+    const newNode = {
+        id: Date.now() + Math.random(),
+        type: type,
+        x: baseX,
+        y: baseY,
+        content: type === 'text' ? '输入你的回复...' : '按钮名称',
+        buttons: type === 'button' ? ['按钮1', '按钮2'] : []
+    };
+    nodes.push(newNode);
+    saveHistory();
+    renderNodes();
+};
+
+// ==========================================
+// 3. 右键菜单控制
+// ==========================================
 let hideTimeout = null;
 function hideContextMenu() {
     const menu = document.getElementById('ctxMenu');
@@ -24,7 +104,6 @@ function showContextMenu(e) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    const canvasArea = document.getElementById('canvasArea');
     const menu = document.getElementById('ctxMenu');
     const menuItems = document.querySelectorAll('#ctxMenu .value');
 
@@ -59,11 +138,13 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+// ==========================================
+// 4. 机器人绑定与自动填写
+// ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
-    
     const status = document.getElementById('botStatus');
     
     if (token.length < 10) {
@@ -153,9 +234,10 @@ window.autoFillBot = function() {
         status.className = 'mt-2 text-[10px] text-red-400';
     });
 };
-</script>
 
-<script>
+// ==========================================
+// 5. 界面功能（全屏、面板折叠）
+// ==========================================
 function toggleFullScreen() {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else if (document.exitFullscreen) document.exitFullscreen();
@@ -170,9 +252,7 @@ function togglePanel() {
         panel.dataset.hidden = 'true'; handle.classList.remove('hidden');
     }
 }
-</script>
 
-<script>
 document.addEventListener("DOMContentLoaded", function() {
     const originalToggle = window.toggleAgentPanel;
     window.toggleAgentPanel = function() {
@@ -189,6 +269,9 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 });
 
+// ==========================================
+// 6. 核心节点渲染器
+// ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
     nodes.forEach((node, index) => {
