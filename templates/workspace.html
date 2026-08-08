@@ -13,11 +13,11 @@
             overflow: hidden; 
         }
         
-        /* 毛玻璃侧边栏基础 */
+        /* ✅ 修改：面板改为半透明毛玻璃 */
         .glass-panel {
-            background: rgba(15, 15, 16, 0.65);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 15, 16, 0.15);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         
@@ -67,17 +67,17 @@
     </style>
 </head>
 <body>
-    <!-- ✅ 删除顶部黑条和导航页文字，换成悬浮的毛玻璃返回按钮 -->
-    <button onclick="window.location.href='/'" class="fixed top-4 left-4 z-50 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+    <!-- ✅ 修改：按钮从左上角移到了右上角，样式保持不变 -->
+    <button onclick="window.location.href='/'" class="fixed top-4 right-4 z-50 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
         返回主页
     </button>
 
     <!-- 主工作区 -->
-    <div class="flex w-screen h-screen pt-0">
+    <div class="flex w-screen h-screen">
         
-        <!-- 左侧：固定控制台 -->
-        <div class="w-[320px] h-full glass-panel border-r border-white/5 flex flex-col p-4 overflow-y-auto z-10 shrink-0">
-            <div class="mb-6 pt-4"> <!-- 加上一点顶部内边距，防止紧贴顶边 -->
+        <!-- ✅ 修改：左侧面板做成悬浮毛玻璃卡片，拉宽、上下留白、整体往右移 -->
+        <div class="w-[420px] h-[calc(100vh-40px)] my-5 ml-5 rounded-2xl glass-panel border border-white/5 flex flex-col p-6 overflow-y-auto z-10 shrink-0">
+            <div class="mb-6">
                 <h2 class="text-white text-lg font-bold mb-2">机器人配置</h2>
                 <div class="flex items-center gap-2 bg-black/30 rounded-xl p-2 border border-white/10">
                     <input id="botTokenInput" type="password" placeholder="输入 Bot Token" class="flex-1 bg-transparent border-none text-white placeholder-gray-500 text-xs focus:outline-none">
