@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let canvasOffsetX = 0, canvasOffsetY = 0;
     let lastMouseX = 0, lastMouseY = 0;
 
-    // 保存历史快照
     function saveHistory() {
         history = history.slice(0, historyIndex + 1);
         history.push(JSON.parse(JSON.stringify(nodes)));
@@ -69,7 +68,12 @@ document.addEventListener("DOMContentLoaded", function() {
             el.dataset.index = index;
 
             let bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
-            if (node.type === 'text') {
+            
+            // ✅ 针对“机器人节点”的特殊渲染
+            if (node.type === 'bot') {
+                bodyHtml += `<div class="node-title text-[#F5E6CF] flex items-center gap-2"><span>🤖</span> ${node.name}</div>`;
+                bodyHtml += `<div class="node-body text-[10px] text-gray-400 mt-1">已绑定，等待配置回复...</div>`;
+            } else if (node.type === 'text') {
                 bodyHtml += `<div class="node-title">自动回复</div>`;
                 bodyHtml += `<div class="node-body">${node.content || '点击输入文本...'}</div>`;
             } else if (node.type === 'button') {
@@ -77,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 bodyHtml += `<div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
                 if (node.buttons && node.buttons.length > 0) {
                     node.buttons.forEach(b => {
-                        bodyHtml += `<span class="node-button">${b}</span>`;
+                        bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
                     });
                 }
             }
@@ -106,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // 添加节点（从左侧面板触发）
+    // 添加普通节点
     window.addNode = function(type) {
         const baseX = 200 + Math.random() * 300;
         const baseY = 200 + Math.random() * 300;
@@ -117,6 +121,22 @@ document.addEventListener("DOMContentLoaded", function() {
             y: baseY,
             content: type === 'text' ? '输入你的回复...' : '按钮名称',
             buttons: type === 'button' ? ['按钮1', '按钮2'] : []
+        };
+        nodes.push(newNode);
+        saveHistory();
+        renderNodes();
+    };
+
+    // ✅ 新增：添加专属的机器人节点
+    window.addBotNode = function(name) {
+        const baseX = 200 + Math.random() * 300;
+        const baseY = 200 + Math.random() * 300;
+        const newNode = {
+            id: Date.now() + Math.random(),
+            type: 'bot',
+            name: name || '我的机器人',
+            x: baseX,
+            y: baseY
         };
         nodes.push(newNode);
         saveHistory();
@@ -170,7 +190,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // 触摸事件支持
+    // 触摸事件
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
             const touch = e.touches[0];
@@ -201,10 +221,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ✅ 删除：不再生成默认的节点 #1，保持页面绝对干净
-    // window.addNode('text');
-
-    // --- 预览交互逻辑 ---
+    // 预览交互逻辑
     window.togglePreview = function() {
         previewBox.classList.toggle('open');
         if (previewBox.classList.contains('open')) {
@@ -236,9 +253,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     btnContainer.style.marginTop = '8px';
                     btnNode.buttons.forEach(b => {
                         const btn = document.createElement('span');
-                        btn.className = 'node-button';
-                        btn.style.marginRight = '6px';
-                        btn.style.cursor = 'pointer';
+                        btn.className = 'inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1 cursor-pointer';
                         btn.innerText = b;
                         btnContainer.appendChild(btn);
                     });
@@ -252,16 +267,23 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 600);
     };
 
-    // 机器人连接模拟
+    // ✅ 核心更新：绑定机器人生成节点
     window.connectBot = function() {
         const token = document.getElementById('botTokenInput').value;
+        const name = document.getElementById('botNameInput').value;
         const status = document.getElementById('botStatus');
+        
         if (token.length > 10) {
-            status.innerHTML = '✅ 已连接，正在等待操作...';
-            status.className = 'mt-1 text-[10px] text-green-400';
+            // 使用用户输入的名字，未填写则用默认名
+            const botName = name.trim() || '我的机器人';
+            status.innerHTML = `✅ 已绑定机器人：${botName}`;
+            status.className = 'mt-2 text-[10px] text-green-400';
+            
+            // 调用专用的机器人节点生成
+            window.addBotNode(botName);
         } else {
-            status.innerHTML = '❌ Token 格式错误';
-            status.className = 'mt-1 text-[10px] text-red-400';
+            status.innerHTML = '❌ Token 格式错误，请输入有效的 Bot Token';
+            status.className = 'mt-2 text-[10px] text-red-400';
         }
     };
 });
