@@ -69,26 +69,25 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✨ 新增：真实绑定机器人的接口
+# ✨ 绑定机器人接口（默认名称改成宫水编辑器）
 # ==========================================
 @main_bp.route('/api/bind_bot', methods=['POST'])
 def bind_bot():
     data = request.get_json()
     token = data.get('token')
     chat_id = data.get('telegram_id')
-    bot_name = data.get('name', '我的机器人')
+    # ✅ 修改这里：默认值从 "我的机器人" 改成了 "宫水编辑器"
+    bot_name = data.get('name', '宫水编辑器')
 
     if not token or not chat_id:
         return jsonify({'ok': False, 'msg': '缺少 Token 或 Telegram ID'})
 
     try:
-        # 1. 验证这个 Token 是否有效
         test_url = f"https://api.telegram.org/bot{token}/getMe"
         test_resp = requests.get(test_url, timeout=10)
         if test_resp.status_code != 200:
             return jsonify({'ok': False, 'msg': 'Bot Token 无效或网络错误'})
 
-        # 2. 向指定的 Telegram ID 发送“绑定成功”消息
         msg = f"机器人已绑定{bot_name}"
         send_url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": msg}
@@ -97,7 +96,6 @@ def bind_bot():
         if send_resp.status_code == 200:
             return jsonify({'ok': True, 'msg': '绑定成功，已发送测试消息'})
         else:
-            # 如果 Token 正确，但发给这个 ID 失败（可能是 ID 填错了）
             return jsonify({'ok': False, 'msg': 'Token有效，但向该ID发送失败，请检查Telegram ID是否正确'})
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
