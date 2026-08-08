@@ -8,6 +8,143 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <!-- 引入提取出来的 CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
+    <style>
+        /* ==========================================
+           ✅ 修复：强制大卡片留出安全边距，防止全屏时贴顶
+        ========================================== */
+        #configPanel {
+            /* 确保在任何设备上，顶部都至少有 24px 的安全距离 */
+            top: max(24px, env(safe-area-inset-top)) !important;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+            position: relative;
+        }
+        
+        .canvas-node {
+            position: absolute;
+            padding: 12px 16px;
+            background: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #e5e7eb;
+            cursor: grab;
+            min-width: 120px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            user-select: none;
+            transition: box-shadow 0.2s;
+        }
+        .canvas-node:active { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.8); }
+        .canvas-node .node-handle { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 10px; color: rgba(255,255,255,0.4); }
+        .canvas-node .node-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
+        
+        .preview-box {
+            position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
+            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .preview-box.open { transform: translateY(0); opacity: 1; }
+        .preview-header { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between;}
+        .preview-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .preview-msg-bot { align-self: flex-start; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px 12px 12px 4px; font-size: 13px; color: #fff; max-width: 80%; }
+        .preview-msg-user { align-self: flex-end; background: #493F36; padding: 8px 12px; border-radius: 12px 12px 4px 12px; font-size: 13px; color: #fff; max-width: 80%; }
+        .preview-input-bar { padding: 12px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px; }
+        .preview-input-bar input { flex: 1; background: rgba(0,0,0,0.3); border: none; padding: 8px 12px; border-radius: 8px; color: #fff; outline: none; font-size: 13px; }
+        .preview-input-bar button { background: #493F36; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* 悬浮小卡片样式 */
+        #ctxMenu {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 6px 6px 6px 14px; 
+            position: fixed;
+            z-index: 9999;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.8);
+        }
+        #ctxMenu.open {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        #ctxMenu .value {
+            background-color: transparent;
+            border: none;
+            padding: 10px 10px 10px 12px;
+            color: #e5e7eb;
+            display: flex;
+            position: relative;
+            gap: 5px;
+            cursor: pointer;
+            border-radius: 8px;
+            align-items: center;
+            font-size: 12px;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        #ctxMenu .value:not(:active):hover,
+        #ctxMenu .value:focus {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+        #ctxMenu .value:focus,
+        #ctxMenu .value:active {
+            background-color: rgba(255, 255, 255, 0.10);
+            outline: none;
+        }
+
+        #ctxMenu .value::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: -14px;
+            width: 4px;
+            height: 60%;
+            background-color: #493F36;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        #ctxMenu .value:focus::before,
+        #ctxMenu .value:active::before,
+        #ctxMenu .value.active::before {
+            opacity: 1;
+        }
+
+        #ctxMenu .value svg { width: 16px; height: 16px; }
+        #ctxMenu .value path { fill: #8b949e; }
+        #ctxMenu .value:hover path { fill: #f0f6fc; }
+
+        #ctxMenu:hover > .value:not(.active):not(:hover) {
+            transition: all 0.15s ease;
+            filter: blur(1px);
+            transform: scale(0.95,0.95);
+        }
+    </style>
 </head>
 <body>
     
@@ -19,7 +156,8 @@
 
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
-        <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
+        <!-- 机器人配置大卡片（底部隐藏按钮无需动） -->
+        <div id="configPanel" class="fixed left-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
             <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
@@ -87,16 +225,11 @@
     function showContextMenu(e) {
         const menu = document.getElementById('ctxMenu');
         const menuItems = document.querySelectorAll('#ctxMenu .value');
-        
-        // 如果已经打开，直接关闭（实现点一次开，再点一次关）
         if (menu.classList.contains('open')) {
             hideContextMenu();
             return;
         }
-
-        // ✅ 核心：每次呼出卡片，强制所有选项清零（没有小竖线，没有高亮，没有记忆）
         menuItems.forEach(b => b.classList.remove('active'));
-
         let x = e.clientX, y = e.clientY;
         menu.style.display = 'block'; menu.classList.remove('open');
         let left = x + 12, top = y + 12;
@@ -107,39 +240,22 @@
         menu.style.left = left + 'px'; menu.style.top = top + 'px';
         setTimeout(() => { menu.classList.add('open'); }, 20);
     }
-
     document.addEventListener("DOMContentLoaded", function() {
         const canvasArea = document.getElementById('canvasArea');
         const menu = document.getElementById('ctxMenu');
         const menuItems = document.querySelectorAll('#ctxMenu .value');
-
         document.addEventListener('click', function(e) {
-            // 点击菜单内部，做别的处理
             if (menu.contains(e.target)) return;
-
-            // 点击右侧画布空白处
-            if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
-                showContextMenu(e);
-                return;
-            }
-
-            // 点击其他任何地方（比如左侧配置卡片），关闭菜单
+            if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) { showContextMenu(e); return; }
             hideContextMenu();
         });
-
-        // ✅ 核心：点击按钮 -> 切换选中状态 -> 绝对不关闭卡片
         menuItems.forEach(item => {
-            // 去掉 HTML 里的 onclick，这里完全接管
             item.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
-
-                // 移除所有选项的高亮，再把当前点击的这个设为高亮
                 menuItems.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-
-                // 注意：这里故意不执行 hideContextMenu()
-                // 卡片会保持展开状态，直到用户点击外部空白处
+                hideContextMenu();
             });
         });
     });
