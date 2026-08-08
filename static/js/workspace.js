@@ -75,6 +75,9 @@ document.addEventListener("DOMContentLoaded", function() {
                         bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
                     });
                 }
+            } else if (node.type === 'bot') {
+                bodyHtml += `<div class="node-title text-[#F5E6CF] flex items-center gap-2"><span>🤖</span> ${node.name}</div>`;
+                bodyHtml += `<div class="node-body text-[10px] text-gray-400 mt-1">已绑定，等待配置回复...</div>`;
             }
             el.innerHTML = bodyHtml;
 
@@ -115,9 +118,16 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
+    // ✅ 核心修改：绑定机器人生成的节点，固定在卡片右侧并依次向下排列
     window.addBotNode = function(name) {
-        const baseX = 200 + Math.random() * 300;
-        const baseY = 200 + Math.random() * 300;
+        // 统计已经有多少个机器人节点，以此计算 Y 轴的偏移量
+        const botCount = nodes.filter(n => n.type === 'bot').length;
+        
+        // 左侧大卡片宽 480px，距离左侧 24px，所以右侧大约从 600px 开始
+        const baseX = 600; 
+        // 第一个机器人的顶部距离，之后的每个机器人往下偏移 140px
+        const baseY = 60 + (botCount * 140);
+
         const newNode = {
             id: Date.now() + Math.random(),
             type: 'bot',
