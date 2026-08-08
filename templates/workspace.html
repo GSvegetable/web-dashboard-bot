@@ -67,18 +67,17 @@
     </style>
 </head>
 <body>
-    <!-- 顶部导航 -->
-    <div class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 py-4 bg-black/20 backdrop-blur-md border-b border-white/5">
-        <div class="text-white font-bold tracking-wider text-sm">导航页</div>
-        <button onclick="window.location.href='/'" class="px-4 py-1.5 bg-white/10 hover:bg-white/15 border border-white/10 rounded-lg text-white text-xs transition">返回主页</button>
-    </div>
+    <!-- ✅ 删除顶部黑条和导航页文字，换成悬浮的毛玻璃返回按钮 -->
+    <button onclick="window.location.href='/'" class="fixed top-4 left-4 z-50 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+        返回主页
+    </button>
 
     <!-- 主工作区 -->
-    <div class="flex w-screen h-screen pt-16">
+    <div class="flex w-screen h-screen pt-0">
         
         <!-- 左侧：固定控制台 -->
         <div class="w-[320px] h-full glass-panel border-r border-white/5 flex flex-col p-4 overflow-y-auto z-10 shrink-0">
-            <div class="mb-6">
+            <div class="mb-6 pt-4"> <!-- 加上一点顶部内边距，防止紧贴顶边 -->
                 <h2 class="text-white text-lg font-bold mb-2">机器人配置</h2>
                 <div class="flex items-center gap-2 bg-black/30 rounded-xl p-2 border border-white/10">
                     <input id="botTokenInput" type="password" placeholder="输入 Bot Token" class="flex-1 bg-transparent border-none text-white placeholder-gray-500 text-xs focus:outline-none">
@@ -119,14 +118,11 @@
             </div>
         </div>
 
-        <!-- ✅ 右侧：背景图绑定在巨大的画布上，并修复平板触摸 -->
+        <!-- 右侧：无限画布 -->
         <div class="flex-1 h-full relative overflow-hidden">
-            <!-- 背景网格（减弱透明度） -->
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- 画布容器：加入 touch-action: none 防止平板触摸时滚动网页 -->
             <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='js/IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
-                <!-- 节点将会通过 JS 动态添加到这里 -->
                 <div id="nodeContainer" class="relative w-full h-full">
                 </div>
             </div>
