@@ -55,11 +55,30 @@
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 <div class="flex flex-col gap-4">
-                    <div><label class="text-gray-400 text-xs mb-1 block">Bot Token</label><input id="botTokenInput" type="password" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
-                    <div><label class="text-gray-400 text-xs mb-1 block">Telegram ID</label><input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
-                    <div><label class="text-gray-400 text-xs mb-1 block">Bot名称</label><input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Bot Token</label>
+                        <input id="botTokenInput" type="password" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Telegram ID</label>
+                        <input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Bot名称</label>
+                        <input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
+                    </div>
                 </div>
-                <div class="mt-6"><button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
+                
+                <!-- ✅ 新增：自动填写按钮（放在绑定按钮上面） -->
+                <div class="mt-4 mb-2">
+                    <button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">
+                        📋 自动填写
+                    </button>
+                </div>
+
+                <div class="mt-2">
+                    <button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button>
+                </div>
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
             <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30"><button onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">隐藏</button></div>
@@ -133,11 +152,9 @@
         });
     });
 
-    // ✅ 核心绑定逻辑更新（改了一行默认值）
     window.connectBot = function() {
         const token = document.getElementById('botTokenInput').value;
         const chatId = document.getElementById('telegramIdInput').value;
-        // 🔥 这里改成了默认输出 宫水编辑器
         const name = document.getElementById('botNameInput').value.trim() || '宫水编辑器';
         const status = document.getElementById('botStatus');
         
@@ -173,6 +190,62 @@
         })
         .catch(() => {
             status.innerHTML = '❌ 网络请求失败，请稍后重试。';
+            status.className = 'mt-2 text-[10px] text-red-400';
+        });
+    };
+
+    // ✅ 新增：自动填写功能的完整逻辑
+    window.autoFillBot = function() {
+        const tokenInput = document.getElementById('botTokenInput');
+        const idInput = document.getElementById('telegramIdInput');
+        const status = document.getElementById('botStatus');
+
+        if (!navigator.clipboard) {
+            status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
+            status.className = 'mt-2 text-[10px] text-red-400';
+            return;
+        }
+
+        navigator.clipboard.readText().then(text => {
+            if (!text || text.trim() === '') {
+                status.innerHTML = '❌ 自动填写失败：剪贴板为空';
+                status.className = 'mt-2 text-[10px] text-red-400';
+                return;
+            }
+            
+            let foundToken = false;
+            let foundId = false;
+
+            // 按换行符分割剪贴板内容（处理用户同时复制两行的情况）
+            const lines = text.split(/\r?\n/);
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+
+                // 识别 Token：纯数字 + 冒号 + 混合字符
+                if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                    tokenInput.value = trimmed;
+                    foundToken = true;
+                } 
+                // 识别 ID：纯数字（5~15位长度）
+                else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
+                    idInput.value = trimmed;
+                    foundId = true;
+                }
+            });
+
+            if (foundToken || foundId) {
+                let msg = `✅ 自动识别成功！`;
+                if (foundToken) msg += ` Token 已填入`;
+                if (foundId) msg += ` ID 已填入`;
+                status.innerHTML = msg;
+                status.className = 'mt-2 text-[10px] text-green-400';
+            } else {
+                status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+                status.className = 'mt-2 text-[10px] text-red-400';
+            }
+        }).catch(err => {
+            status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
             status.className = 'mt-2 text-[10px] text-red-400';
         });
     };
