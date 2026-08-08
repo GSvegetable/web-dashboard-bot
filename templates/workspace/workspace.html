@@ -13,7 +13,6 @@
             overflow: hidden; 
         }
         
-        /* 完美复刻截图的半透毛玻璃面板 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.04);
             backdrop-filter: blur(24px);
@@ -23,7 +22,6 @@
             border-radius: 28px;
         }
         
-        /* 画布上的节点 */
         .canvas-node {
             position: absolute;
             padding: 12px 16px;
@@ -45,7 +43,6 @@
         .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
         .canvas-node .node-button { display: inline-block; background: #493F36; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-top: 4px; margin-right: 4px; }
         
-        /* 预览窗口 */
         .preview-box {
             position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
             background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
@@ -69,7 +66,6 @@
 </head>
 <body>
     
-    <!-- 右上角三个均分按钮：Agent、全屏显示、返回主页 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
         <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -85,12 +81,11 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- 左侧面板：极致半透、绝对悬浮、样式纯粹 -->
-        <div class="fixed left-6 top-6 bottom-6 w-[360px] glass-panel flex flex-col p-8 z-20">
+        <!-- ✅ 修改：面板宽度拉长到 480px -->
+        <div class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col p-8 z-20">
             <div class="mb-8">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 
-                <!-- 输入框与绑定按钮行 -->
                 <div class="flex items-center gap-3 w-full">
                     <input id="botTokenInput" type="password" placeholder="请输入 Bot Token" class="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
                     <button onclick="connectBot()" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95 whitespace-nowrap">
@@ -105,7 +100,6 @@
         <div class="flex-1 h-full relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <!-- ✅ 修改：背景图引用路径去掉 js/，直接从 static 根目录读取 -->
             <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <div id="nodeContainer" class="relative w-full h-full">
                     <!-- 节点通过 JS 动态注入 -->
@@ -132,7 +126,6 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- 修复开发作品页面的 Agent 卡片弹出定位（右下角悬浮） -->
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         const originalToggle = window.toggleAgentPanel;
