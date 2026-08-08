@@ -54,7 +54,7 @@
 </head>
 <body>
     
-    <!-- ✅ 右上角三个按钮：整体缩小，字体变细变短 -->
+    <!-- 右上角三个按钮 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-[260px]">
         <button onclick="toggleAgentPanel()" class="flex-1 text-center px-2 py-1.5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[12px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -101,8 +101,8 @@
         </div>
     </div>
 
-    <!-- 核心 JS 必须指向正确的路径 -->
-    <script src="{{ url_for('static', filename='workspace/workspace.js') }}"></script>
+    <!-- ✅ 核心修改：在路径后面加上 ?v=2，强破 iPad 缓存！ -->
+    <script src="{{ url_for('static', filename='workspace/workspace.js') }}?v=2"></script>
     {% include 'components/agent_action_panel.html' %}
 
     <script>
