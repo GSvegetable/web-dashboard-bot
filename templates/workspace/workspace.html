@@ -66,7 +66,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
 
         /* ==========================================
-           🖤 终极黑色玻璃质感悬浮小卡片（极速切换版）
+           🖤 终极黑色玻璃质感悬浮小卡片（瞬切版）
         ========================================== */
         #ctxMenu {
             display: flex;
@@ -77,12 +77,12 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 6px 6px 6px 14px; /* 左侧预留空间给外挂竖线 */
+            padding: 6px 6px 6px 14px; 
             position: fixed;
             z-index: 9999;
             opacity: 0;
             transform: scale(0.95);
-            transition: opacity 0.12s ease, transform 0.12s ease;
+            transition: opacity 0s, transform 0s;
             pointer-events: none;
             box-shadow: 0 12px 36px rgba(0,0,0,0.8);
         }
@@ -104,7 +104,8 @@
             border-radius: 8px;
             align-items: center;
             font-size: 12px;
-            transition: background 0.12s, color 0.12s;
+            /* ✅ 移除了过渡动画，实现瞬间切换 */
+            transition: none;
         }
 
         #ctxMenu .value:not(:active):hover,
@@ -117,18 +118,18 @@
             outline: none;
         }
         
-        /* ✅ 小竖线：真正移到了卡片的“外侧” */
+        /* ✅ 小竖线：改成 left: 6px; */
         #ctxMenu .value::before {
             content: "";
             position: absolute;
             top: 8px;
-            left: -6px; /* 完全悬在卡片外边缘，留一丝缝隙 */
+            left: 6px; 
             width: 4px;
             height: 60%;
             background-color: #493F36;
             border-radius: 2px;
             opacity: 0;
-            transition: opacity 0.12s ease; /* 切换速度极快 */
+            transition: none;
         }
         #ctxMenu .value:focus::before,
         #ctxMenu .value:active::before,
@@ -147,9 +148,9 @@
             fill: #f0f6fc;
         }
 
-        /* ✅ 虚化逻辑修复：速度提升至 120ms，切换瞬间响应 */
+        /* ✅ 虚化逻辑：取消了 120ms 过渡，变成 0s 瞬间生效 */
         #ctxMenu:hover > .value:not(.active):not(:hover) {
-            transition: 120ms;
+            transition: none;
             filter: blur(1px);
             transform: scale(0.95,0.95);
         }
@@ -228,7 +229,7 @@
         if (!menu.classList.contains('open')) return;
         if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
         menu.classList.remove('open');
-        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 120);
+        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 0);
     }
     function showContextMenu(e) {
         const menu = document.getElementById('ctxMenu');
@@ -242,7 +243,7 @@
         if (left + menuWidth > winWidth) { left = x - menuWidth - 12; }
         if (top + menuHeight > winHeight) { top = y - menuHeight - 12; }
         menu.style.left = left + 'px'; menu.style.top = top + 'px';
-        setTimeout(() => { menu.classList.add('open'); }, 20);
+        setTimeout(() => { menu.classList.add('open'); }, 0);
     }
     document.addEventListener("DOMContentLoaded", function() {
         const canvasArea = document.getElementById('canvasArea');
