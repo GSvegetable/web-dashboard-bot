@@ -25,19 +25,38 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     document.addEventListener('mouseup', () => { isDraggingCanvas = false; canvasArea.style.cursor = 'grab'; });
 
-    // 画布平移控制（触摸/平板）
+    // ✅ 核心修复：画布平移控制（触摸/平板），强制阻止默认滚动
     canvasArea.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) { isDraggingCanvas = true; lastMouseX = e.touches[0].clientX; lastMouseY = e.touches[0].clientY; }
-    });
-    document.addEventListener('touchmove', (e) => {
-        if (isDraggingCanvas && e.touches.length === 1) {
-            const dx = e.touches[0].clientX - lastMouseX, dy = e.touches[0].clientY - lastMouseY;
-            canvasOffsetX += dx; canvasOffsetY += dy;
-            canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-            lastMouseX = e.touches[0].clientX; lastMouseY = e.touches[0].clientY;
+        if (e.touches.length === 1) {
+            e.preventDefault(); // 阻止浏览器默认上下滚动
+            isDraggingCanvas = true;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+            console.log('✅ 手指触摸画布开始');
         }
     }, { passive: false });
-    document.addEventListener('touchend', () => { isDraggingCanvas = false; });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDraggingCanvas && e.touches.length === 1) {
+            e.preventDefault(); // 阻止浏览器默认上下滚动
+            const dx = e.touches[0].clientX - lastMouseX;
+            const dy = e.touches[0].clientY - lastMouseY;
+            canvasOffsetX += dx; canvasOffsetY += dy;
+            // 限制最大拖动距离，防止拖出边界
+            canvasOffsetX = Math.max(-window.innerWidth * 0.8, Math.min(window.innerWidth * 0.8, canvasOffsetX));
+            canvasOffsetY = Math.max(-window.innerHeight * 0.8, Math.min(window.innerHeight * 0.8, canvasOffsetY));
+            canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
+            lastMouseX = e.touches[0].clientX;
+            lastMouseY = e.touches[0].clientY;
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+        if (isDraggingCanvas) {
+            console.log('✅ 手指离开画布');
+            isDraggingCanvas = false;
+        }
+    });
 
     // 渲染节点
     function renderNode(node) {
