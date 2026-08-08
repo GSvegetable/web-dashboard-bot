@@ -69,7 +69,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 接口（智谱/豆包/Kimi） -------------------
+# ------------------- 核心 AI 接口 -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -82,13 +82,15 @@ def agent_chat():
 
     try:
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
+        
+        # ⚠️ 基础请求体（Kimi 不支持 enable_search，我们要在下方把它删掉）
         payload = {
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.3,
-            "enable_search": True
+            "enable_search": True 
         }
 
         if model_type == 'zhipu':
@@ -103,7 +105,6 @@ def agent_chat():
                 return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
             url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
-            # 👇 如果你的豆包没通，检查这里是不是你的 `ep-` 接入点
             payload["model"] = "ep-xxxxxxxxxxxx" 
 
         elif model_type == 'kimi':
@@ -111,6 +112,9 @@ def agent_chat():
                 return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
             url = "https://api.moonshot.cn/v1/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
+            # 🔥 核心修复：Kimi 不支持 enable_search，必须删除否则 404！
+            if 'enable_search' in payload:
+                del payload['enable_search']
             payload["model"] = "moonshot-v1-8k"
         
         else:
@@ -143,25 +147,31 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# ==========================================
-# ✨ 新增：接收 AstroBot 指令的接口
-# ==========================================
+# ------------------- 外部指令接管接口 -------------------
 @main_bp.route('/api/command', methods=['POST'])
 def handle_external_command():
     data = request.get_json()
-    # AstroBot 发来的消息通常放在 text 字段里
     user_text = data.get('text', '')
-    print(f"收到外部指令: {user_text}") # 方便你在 Railway 日志里查看是否收到
-
-    # 简单的指令映射（你可以随时在这里添加更多关键词）
+    print(f"收到外部指令: {user_text}")
     if '放首歌' in user_text or '打开音乐' in user_text or '听音乐' in user_text:
-        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_ON', 'reply': '已收到指令，正在为您打开音乐。'})
+        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_ON', 'reply': '已收到指令，正在调用 AI 大脑...'})
     elif '关闭音乐' in user_text:
-        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_OFF', 'reply': '已收到指令，正在为您关闭音乐。'})
-        
-    return jsonify({'status': 'ok', 'reply': '收到指令，但没有匹配到动作。'})
-# ==========================================
+        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_OFF', 'reply': '已收到指令，正在关闭...'})
+    try:
+        ai_resp = requests.post(
+            "https://gsbot.up.railway.app/api/agent/chat",
+            json={"message": user_text, "mode": "discussion", "model_type": "zhipu"},
+            timeout=15
+        )
+        if ai_resp.status_code == 200:
+            ai_reply = ai_resp.json().get('reply', '我有点卡住了。')
+            return jsonify({'status': 'ok', 'reply': ai_reply})
+        else:
+            return jsonify({'status': 'ok', 'reply': '暂时无法思考。'})
+    except:
+        return jsonify({'status': 'ok', 'reply': '网络有点延迟，稍等再聊。'})
 
+# 下方原有路由保持不变...
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
