@@ -6,48 +6,16 @@
     <title>开发工作台 - gsbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <!-- 引入提取出来的 CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     <style>
-        #configPanel {
-            top: max(24px, env(safe-area-inset-top)) !important;
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            border-radius: 28px;
-            position: relative;
-        }
-        .canvas-node {
-            position: absolute;
-            padding: 12px 16px;
-            background: rgba(30, 30, 30, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #e5e7eb;
-            cursor: grab;
-            min-width: 120px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            user-select: none;
-            transition: box-shadow 0.2s;
-        }
+        #configPanel { top: max(24px, env(safe-area-inset-top)) !important; }
+        .glass-panel { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); border-radius: 28px; position: relative; }
+        .canvas-node { position: absolute; padding: 12px 16px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #e5e7eb; cursor: grab; min-width: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); user-select: none; transition: box-shadow 0.2s; }
         .canvas-node:active { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.8); }
         .canvas-node .node-handle { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 10px; color: rgba(255,255,255,0.4); }
         .canvas-node .node-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
         .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
-        
-        .preview-box {
-            position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px;
-            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .preview-box { position: fixed; bottom: 24px; right: 24px; width: 320px; height: 480px; background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .preview-box.open { transform: translateY(0); opacity: 1; }
         .preview-header { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between;}
         .preview-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -56,49 +24,21 @@
         .preview-input-bar { padding: 12px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px; }
         .preview-input-bar input { flex: 1; background: rgba(0,0,0,0.3); border: none; padding: 8px 12px; border-radius: 8px; color: #fff; outline: none; font-size: 13px; }
         .preview-input-bar button { background: #493F36; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-        
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        #ctxMenu {
-            display: flex;
-            flex-direction: column;
-            width: 200px;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 6px 6px 6px 14px; 
-            position: fixed;
-            z-index: 9999;
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.15s ease, transform 0.15s ease;
-            pointer-events: none;
-            box-shadow: 0 12px 36px rgba(0,0,0,0.8);
-        }
+        #ctxMenu { display: flex; flex-direction: column; width: 200px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 6px 6px 6px 14px; position: fixed; z-index: 9999; opacity: 0; transform: scale(0.95); transition: opacity 0.15s ease, transform 0.15s ease; pointer-events: none; box-shadow: 0 12px 36px rgba(0,0,0,0.8); }
         #ctxMenu.open { opacity: 1; transform: scale(1); pointer-events: auto; }
-        #ctxMenu .value {
-            background-color: transparent; border: none; padding: 10px 10px 10px 12px;
-            color: #e5e7eb; display: flex; position: relative; gap: 5px;
-            cursor: pointer; border-radius: 8px; align-items: center; font-size: 12px;
-            transition: background 0.15s ease, color 0.15s ease;
-        }
+        #ctxMenu .value { background-color: transparent; border: none; padding: 10px 10px 10px 12px; color: #e5e7eb; display: flex; position: relative; gap: 5px; cursor: pointer; border-radius: 8px; align-items: center; font-size: 12px; transition: background 0.15s ease, color 0.15s ease; }
         #ctxMenu .value:not(:active):hover, #ctxMenu .value:focus { background-color: rgba(255, 255, 255, 0.06); }
         #ctxMenu .value:focus, #ctxMenu .value:active { background-color: rgba(255, 255, 255, 0.10); outline: none; }
-        #ctxMenu .value::before {
-            content: ""; position: absolute; top: 8px; left: -14px; width: 4px; height: 60%;
-            background-color: #493F36; border-radius: 2px; opacity: 0; transition: opacity 0.15s ease;
-        }
+        #ctxMenu .value::before { content: ""; position: absolute; top: 8px; left: -14px; width: 4px; height: 60%; background-color: #493F36; border-radius: 2px; opacity: 0; transition: opacity 0.15s ease; }
         #ctxMenu .value:focus::before, #ctxMenu .value:active::before, #ctxMenu .value.active::before { opacity: 1; }
         #ctxMenu .value svg { width: 16px; height: 16px; }
         #ctxMenu .value path { fill: #8b949e; }
         #ctxMenu .value:hover path { fill: #f0f6fc; }
-        #ctxMenu:hover > .value:not(.active):not(:hover) {
-            transition: all 0.15s ease; filter: blur(1px); transform: scale(0.95,0.95);
-        }
+        #ctxMenu:hover > .value:not(.active):not(:hover) { transition: all 0.15s ease; filter: blur(1px); transform: scale(0.95,0.95); }
     </style>
 </head>
 <body>
@@ -115,22 +55,11 @@
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 <div class="flex flex-col gap-4">
-                    <div>
-                        <label class="text-gray-400 text-xs mb-1 block">Bot Token</label>
-                        <input id="botTokenInput" type="password" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
-                    </div>
-                    <div>
-                        <label class="text-gray-400 text-xs mb-1 block">Telegram ID</label>
-                        <input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
-                    </div>
-                    <div>
-                        <label class="text-gray-400 text-xs mb-1 block">Bot名称</label>
-                        <input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all">
-                    </div>
+                    <div><label class="text-gray-400 text-xs mb-1 block">Bot Token</label><input id="botTokenInput" type="password" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
+                    <div><label class="text-gray-400 text-xs mb-1 block">Telegram ID</label><input id="telegramIdInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
+                    <div><label class="text-gray-400 text-xs mb-1 block">Bot名称</label><input id="botNameInput" type="text" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/40 transition-all"></div>
                 </div>
-                <div class="mt-6">
-                    <button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button>
-                </div>
+                <div class="mt-6"><button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button></div>
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
             <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30"><button onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">隐藏</button></div>
@@ -150,7 +79,6 @@
         </div>
     </div>
 
-    <!-- 悬浮小卡片 -->
     <div id="ctxMenu">
       <button class="value"> <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg> 添加文本回复 </button>
       <button class="value"> <svg id="Line" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#7D8590" id="XMLID_1646_" d="m17.074 30h-2.148c-1.038 0-1.914-.811-1.994-1.846l-.125-1.635c-.687-.208-1.351-.484-1.985-.824l-1.246 1.067c-.788.677-1.98.631-2.715-.104l-1.52-1.52c-.734-.734-.78-1.927-.104-2.715l1.067-1.246c-.34-.635-.616-1.299-.824-1.985l-1.634-.125c-1.035-.079-1.846-.955-1.846-1.993v-2.148c0-1.038.811-1.914 1.846-1.994l1.635-.125c.208-.687.484-1.351.824-1.985l-1.068-1.247c-.676-.788-.631-1.98.104-2.715l1.52-1.52c.734-.734 1.927-.779 2.715-.104l1.246 1.067c.635-.34 1.299-.616 1.985-.824l.125-1.634c.08-1.034.956-1.845 1.994-1.845h2.148c1.038 0 1.914.811 1.994 1.846l.125 1.635c.687.208 1.351.484 1.985.824l1.246-1.067c.787-.676 1.98-.631 2.715.104l1.52 1.52c.734.734.78 1.927.104 2.715l-1.067 1.246c.34.635.616 1.299.824 1.985l1.634.125c1.035.079 1.846.955 1.846 1.993v2.148c0 1.038-.811 1.914-1.846 1.994l-1.635.125c-.208.687-.484 1.351-.824 1.985l1.067 1.246c.677.788.631 1.98-.104 2.715l-1.52 1.52c-.734.734-1.928.78-2.715.104l-1.246-1.067c-.635.34-1.299.616-1.985.824l-.125 1.634c-.079 1.035-.955 1.846-1.993 1.846zm-5.835-6.373c.848.53 1.768.912 2.734 1.135.426.099.739.462.772.898l.18 2.341 2.149-.001.18-2.34c.033-.437.347-.8.772-.898.967-.223 1.887-.604 2.734-1.135.371-.232.849-.197 1.181.089l1.784 1.529 1.52-1.52-1.529-1.784c-.285-.332-.321-.811-.089-1.181.53-.848.912-1.768 1.135-2.734.099-.426.462-.739.898-.772l2.341-.18h-.001v-2.148l-2.34-.18c-.437-.033-.8-.347-.898-.772-.223-.967-.604-1.887-1.135-2.734-.232-.37-.196-.849.089-1.181l1.529-1.784-1.52-1.52-1.784 1.529c-.332.286-.81.321-1.181.089-.848-.53-1.768-.912-2.734-1.135-.426-.099-.739-.462-.772-.898l-.18-2.341-2.148.001-.18 2.34c-.033.437-.347.8-.772.898-.967.223-1.887.604-2.734 1.135-.37.232-.849.197-1.181-.089l-1.785-1.529-1.52 1.52 1.529 1.784c.285.332.321.811.089 1.181-.53.848-.912 1.768-1.135 2.734-.099.426-.462.739-.898.772l-2.341.18.002 2.148 2.34.18c.437.033.8.347.898.772.223.967.604 1.887 1.135 2.734.232.37.196.849-.089 1.181l-1.529 1.784 1.52 1.52 1.784-1.529c.332-.287.813-.32 1.18-.089z"></path><path id="XMLID_1645_" fill="#7D8590" d="m16 23c-3.859 0-7-3.141-7-7s3.141-7 7-7 7 3.141 7 7-3.141 7-7 7zm0-12c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z"></path></svg> 添加按钮菜单 </button>
@@ -162,7 +90,6 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✨ 核心更新：全新的 connectBot 逻辑 -->
     <script>
     let hideTimeout = null;
     function hideContextMenu() {
@@ -206,11 +133,12 @@
         });
     });
 
-    // ✅ 更新：真实绑定的核心 JS
+    // ✅ 核心绑定逻辑更新（改了一行默认值）
     window.connectBot = function() {
         const token = document.getElementById('botTokenInput').value;
         const chatId = document.getElementById('telegramIdInput').value;
-        const name = document.getElementById('botNameInput').value.trim() || '我的机器人';
+        // 🔥 这里改成了默认输出 宫水编辑器
+        const name = document.getElementById('botNameInput').value.trim() || '宫水编辑器';
         const status = document.getElementById('botStatus');
         
         if (token.length < 10) {
@@ -237,7 +165,7 @@
             if (data.ok) {
                 status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
                 status.className = 'mt-2 text-[10px] text-green-400';
-                window.addBotNode(name); // 在画布上生成节点
+                window.addBotNode(name);
             } else {
                 status.innerHTML = `❌ 绑定失败: ${data.msg}`;
                 status.className = 'mt-2 text-[10px] text-red-400';
