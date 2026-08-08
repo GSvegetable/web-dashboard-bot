@@ -20,7 +20,6 @@ from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, DIAGNOSTIC_PROMPT
 
-# ✅ 必须先定义 main_bp，否则下面的 @main_bp.route 全部会报错
 main_bp = Blueprint('main', __name__)
 
 # 读入三个模型的 API Key
@@ -48,43 +47,9 @@ def admin_dashboard():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/dashboard.html', users=users)
 
-# ✅ 新增：开发作品独立页面路由
 @main_bp.route('/workspace')
 def workspace():
     return render_template('workspace/workspace.html')
-
-# ✅ 新增：绑定 Telegram 机器人的后端 API 路由
-@main_bp.route('/api/bind_bot', methods=['POST'])
-def bind_bot():
-    data = request.get_json()
-    token = data.get('token')
-    if not token:
-        return jsonify({'success': False, 'error': '未提供 Token'})
-
-    try:
-        # 1. 获取机器人真实名字
-        me_url = f"https://api.telegram.org/bot{token}/getMe"
-        me_resp = requests.get(me_url, timeout=10)
-        if me_resp.status_code != 200:
-            return jsonify({'success': False, 'error': 'Token 无效'})
-        bot_info = me_resp.json()
-        if not bot_info.get('ok'):
-            return jsonify({'success': False, 'error': bot_info.get('description', 'Token 无效')})
-        
-        bot_name = bot_info['result'].get('first_name') or bot_info['result'].get('username') or '未命名机器人'
-
-        # 2. 给机器人发送接入成功消息
-        send_url = f"https://api.telegram.org/bot{token}/sendMessage"
-        send_payload = {
-            "chat_id": bot_info['result']['id'],
-            "text": "机器人已成功接入宫水编辑器"
-        }
-        requests.post(send_url, json=send_payload, timeout=10)
-
-        # 3. 返回机器人名字给前端
-        return jsonify({'success': True, 'name': bot_name})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
 
 def fetch_telegram_user_info(tg_id):
     try:
@@ -104,7 +69,7 @@ def fetch_telegram_user_info(tg_id):
         pass
     return None
 
-# ------------------- 核心 AI 接口（支持智谱/豆包/Kimi） -------------------
+# ------------------- 核心 AI 接口（智谱/豆包/Kimi） -------------------
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -126,7 +91,6 @@ def agent_chat():
             "enable_search": True
         }
 
-        # 模型 A：智谱 AI (GLM-4-Flash)
         if model_type == 'zhipu':
             if not ZHIPU_API_KEY:
                 return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
@@ -134,15 +98,14 @@ def agent_chat():
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
             payload["model"] = "glm-4-flash"
 
-        # 模型 B：豆包 / 火山引擎 (Doubao-Lite)
         elif model_type == 'doubao':
             if not DOUBAO_API_KEY:
                 return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
             url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
+            # 👇 如果你的豆包没通，检查这里是不是你的 `ep-` 接入点
             payload["model"] = "ep-xxxxxxxxxxxx" 
 
-        # 模型 C：Kimi (Moonshot AI)
         elif model_type == 'kimi':
             if not KIMI_API_KEY:
                 return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
@@ -180,7 +143,25 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# 以下路由保持不变（扫码、注册、登录、Webhook 等）
+# ==========================================
+# ✨ 新增：接收 AstroBot 指令的接口
+# ==========================================
+@main_bp.route('/api/command', methods=['POST'])
+def handle_external_command():
+    data = request.get_json()
+    # AstroBot 发来的消息通常放在 text 字段里
+    user_text = data.get('text', '')
+    print(f"收到外部指令: {user_text}") # 方便你在 Railway 日志里查看是否收到
+
+    # 简单的指令映射（你可以随时在这里添加更多关键词）
+    if '放首歌' in user_text or '打开音乐' in user_text or '听音乐' in user_text:
+        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_ON', 'reply': '已收到指令，正在为您打开音乐。'})
+    elif '关闭音乐' in user_text:
+        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_OFF', 'reply': '已收到指令，正在为您关闭音乐。'})
+        
+    return jsonify({'status': 'ok', 'reply': '收到指令，但没有匹配到动作。'})
+# ==========================================
+
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
