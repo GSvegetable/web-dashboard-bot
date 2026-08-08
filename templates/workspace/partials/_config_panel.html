@@ -13,15 +13,18 @@
             </div>
         </div>
         
+        <!-- ✨ 调换位置：绑定机器人移到上方，并修改颜色为 #6c76a2 -->
         <div class="mt-4 mb-2">
+            <button onclick="connectBot()" class="w-full bg-[#6c76a2] hover:bg-[#5b6390] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button>
+        </div>
+
+        <!-- 自动填写移到下方，保持原样 -->
+        <div class="mt-2">
             <button onclick="autoFillBot()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-5 py-3 text-white text-sm font-medium transition active:scale-95">
                 自动填写
             </button>
         </div>
 
-        <div class="mt-2">
-            <button onclick="connectBot()" class="w-full bg-[#493F36] hover:bg-[#3a322c] text-white rounded-xl px-5 py-3 text-sm font-medium transition active:scale-95">绑定机器人</button>
-        </div>
         <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
     </div>
 </div>
