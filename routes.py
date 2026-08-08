@@ -83,7 +83,7 @@ def agent_chat():
     try:
         system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
         
-        # ⚠️ 基础请求体（Kimi 不支持 enable_search，我们要在下方把它删掉）
+        # 基础请求体
         payload = {
             "messages": [
                 {"role": "system", "content": system_prompt},
@@ -112,10 +112,11 @@ def agent_chat():
                 return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
             url = "https://api.moonshot.cn/v1/chat/completions"
             headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
-            # 🔥 核心修复：Kimi 不支持 enable_search，必须删除否则 404！
+            # 🔥 核心修复 1：Kimi 不支持 enable_search，必须删除否则 404
             if 'enable_search' in payload:
                 del payload['enable_search']
-            payload["model"] = "moonshot-v1-8k"
+            # 🔥 核心修复 2：改用 Kimi 稳定且兼容的旧款模型名称
+            payload["model"] = "moonshot-v1-32k"
         
         else:
             return jsonify({'reply': '未选择有效的模型。'})
@@ -147,7 +148,7 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-# ------------------- 外部指令接管接口 -------------------
+# ------------------- 外部指令接管接口（AstroBot 入口） -------------------
 @main_bp.route('/api/command', methods=['POST'])
 def handle_external_command():
     data = request.get_json()
@@ -171,7 +172,7 @@ def handle_external_command():
     except:
         return jsonify({'status': 'ok', 'reply': '网络有点延迟，稍等再聊。'})
 
-# 下方原有路由保持不变...
+# ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
