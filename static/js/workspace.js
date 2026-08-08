@@ -123,8 +123,8 @@ document.addEventListener("DOMContentLoaded", function() {
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
         // 画布正中心坐标
-        const baseX = 500; 
-        const baseY = 300 + (botCount * 140);
+        const baseX = 1500; 
+        const baseY = 800 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
