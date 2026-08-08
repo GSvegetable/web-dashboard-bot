@@ -62,6 +62,84 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
+
+        /* ==========================================
+           Uiverse 自定义悬浮菜单样式适配
+        ========================================== */
+        .ctx-menu {
+            display: flex;
+            flex-direction: column;
+            width: 180px;
+            background-color: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            justify-content: center;
+            border-radius: 8px;
+            position: fixed;
+            z-index: 9999;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+        .ctx-menu.open {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        .ctx-item {
+            background-color: transparent;
+            border: none;
+            padding: 10px 14px;
+            color: #c9d1d9;
+            display: flex;
+            position: relative;
+            gap: 10px;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .ctx-item:not(:active):hover,
+        .ctx-item:focus {
+            background-color: rgba(33, 38, 44, 0.6);
+        }
+        .ctx-item:active {
+            background-color: rgba(26, 31, 36, 0.6);
+            outline: none;
+        }
+        .ctx-item svg {
+            width: 16px;
+            height: 16px;
+        }
+        .ctx-item path {
+            fill: #8b949e;
+        }
+        .ctx-item:hover path {
+            fill: #f0f6fc;
+        }
+        .ctx-item::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: -2px;
+            width: 3px;
+            height: 60%;
+            background-color: #2F81F7;
+            border-radius: 4px;
+            opacity: 0;
+        }
+        .ctx-item:focus::before,
+        .ctx-item:active::before {
+            opacity: 1;
+        }
+        .ctx-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 4px 12px;
+        }
     </style>
 </head>
 <body>
@@ -85,10 +163,9 @@
         <!-- 左侧大卡片 -->
         <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
             
-            <!-- ✅ 修改：隐藏时的顶部点击展开热区 (无任何文字提示，只有纯粹的点击区域) -->
+            <!-- 隐藏时的顶部点击展开热区 -->
             <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-            <!-- 展开时的内容区域 -->
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 
@@ -112,7 +189,7 @@
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
 
-            <!-- ✅ 左下角的隐藏按钮 (卡片展开时显示) -->
+            <!-- 左下角的隐藏按钮 -->
             <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30">
                 <button onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
                     隐藏
@@ -121,12 +198,11 @@
         </div>
 
         <!-- 右侧：无限画布 -->
-        <div class="flex-1 h-full relative overflow-hidden">
+        <div id="canvasArea" class="flex-1 h-full relative overflow-hidden cursor-default">
             <div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 40px 40px;"></div>
             
-            <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
-                <div id="nodeContainer" class="relative w-full h-full">
-                </div>
+            <div class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
+                <div id="nodeContainer" class="relative w-full h-full"></div>
             </div>
         </div>
 
@@ -146,10 +222,101 @@
         </div>
     </div>
 
+    <!-- ✅ 新增：悬浮菜单 HTML -->
+    <div id="ctxMenu" class="ctx-menu">
+        <button class="ctx-item" onclick="addNode('text'); hideContextMenu();">
+            <svg viewBox="0 0 16 16"><path fill="#8b949e" d="M8 2v12M2 8h12"/></svg>
+            添加文本回复
+        </button>
+        <button class="ctx-item" onclick="addNode('button'); hideContextMenu();">
+            <svg viewBox="0 0 16 16"><path fill="#8b949e" d="M1 4h14v8H1z"/><circle cx="8" cy="8" r="2"/></svg>
+            添加按钮菜单
+        </button>
+        <div class="ctx-divider"></div>
+        <button class="ctx-item" onclick="clearCanvas(); hideContextMenu();">
+            <svg viewBox="0 0 16 16"><path fill="#8b949e" d="M0 0h16v16H0z"/><path fill="#d32f2f" d="M4 4l8 8M12 4l-8 8"/></svg>
+            清空画布
+        </button>
+    </div>
+
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- 全屏显示函数 -->
+    <!-- ========================================== -->
+    <!-- 悬浮菜单交互逻辑（智能定位 + 弹出/关闭） -->
+    <!-- ========================================== -->
+    <script>
+    function hideContextMenu() {
+        const menu = document.getElementById('ctxMenu');
+        menu.classList.remove('open');
+        setTimeout(() => { menu.style.display = 'none'; }, 150);
+    }
+
+    function showContextMenu(e) {
+        e.preventDefault();
+        const menu = document.getElementById('ctxMenu');
+        
+        // 如果菜单已经打开，先关闭它
+        if (menu.classList.contains('open')) {
+            hideContextMenu();
+            return;
+        }
+
+        // 获取鼠标点击位置
+        let x = e.clientX;
+        let y = e.clientY;
+
+        // 先隐藏计算尺寸
+        menu.style.display = 'block';
+        menu.classList.remove('open');
+
+        // 智能定位：默认右下角（偏移 +12px）
+        let left = x + 12;
+        let top = y + 12;
+
+        // 获取屏幕宽高和菜单宽高
+        const menuWidth = menu.offsetWidth;
+        const menuHeight = menu.offsetHeight;
+        const winWidth = window.innerWidth;
+        const winHeight = window.innerHeight;
+
+        // 如果超出了右边界，往左弹
+        if (left + menuWidth > winWidth) {
+            left = x - menuWidth - 12;
+        }
+        // 如果超出了下边界，往上弹
+        if (top + menuHeight > winHeight) {
+            top = y - menuHeight - 12;
+        }
+
+        // 重新定位并弹出
+        menu.style.left = left + 'px';
+        menu.style.top = top + 'px';
+        setTimeout(() => { menu.classList.add('open'); }, 20);
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const canvasArea = document.getElementById('canvasArea');
+        const menu = document.getElementById('ctxMenu');
+
+        // 监听画布空白处的左键点击
+        canvasArea.addEventListener('click', function(e) {
+            // 只有点击的是画布本身，或者是画布背景层才触发
+            if (e.target === canvasArea || e.target.closest('#canvasArea') === canvasArea && !e.target.closest('.canvas-node')) {
+                showContextMenu(e);
+            }
+        });
+
+        // 点击页面的其他任何地方（只要不是菜单本身），就关闭菜单
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target) && e.target !== canvasArea) {
+                hideContextMenu();
+            }
+        });
+    });
+    </script>
+
+    <!-- 其他基础逻辑 -->
     <script>
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
@@ -158,10 +325,7 @@
             document.exitFullscreen();
         }
     }
-    </script>
 
-    <!-- 隐藏/展开逻辑 -->
-    <script>
     function togglePanel() {
         const panel = document.getElementById('configPanel');
         const handle = document.getElementById('panelHandle');
@@ -169,15 +333,13 @@
         const isHidden = panel.dataset.hidden === 'true';
 
         if (isHidden) {
-            // 展开：恢复原位
             panel.style.transform = 'translateY(0)';
             panel.dataset.hidden = 'false';
             handle.classList.add('hidden');
             btnContainer.classList.remove('hidden');
         } else {
-            // 隐藏：向下平移，让顶部60px露在屏幕最底端
             const vh = window.innerHeight;
-            const translateY = vh - 84; // 24(原距顶部) + 60(露出的高度) = 84
+            const translateY = vh - 84;
             panel.style.transform = `translateY(${translateY}px)`;
             panel.dataset.hidden = 'true';
             handle.classList.remove('hidden');
