@@ -206,9 +206,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // ==========================================
-
-    // 初始化一个默认节点
-    window.addNode('text');
+    // ✨ 删掉了这里的“初始化一个默认节点”，现在它完全干净了！
 
     // --- 预览交互逻辑 ---
     window.togglePreview = function() {
