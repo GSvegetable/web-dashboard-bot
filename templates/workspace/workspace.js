@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let canvasOffsetX = 0, canvasOffsetY = 0;
     let lastMouseX = 0, lastMouseY = 0;
 
-    // 画布平移控制（鼠标/触摸）修复
+    // 画布平移控制（鼠标）
     canvasArea.addEventListener('mousedown', (e) => {
         if (e.target !== canvasArea && e.target.id !== 'canvasArea') return;
         isDraggingCanvas = true;
@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     document.addEventListener('mouseup', () => { isDraggingCanvas = false; canvasArea.style.cursor = 'grab'; });
-    // 触摸事件（支持平板）
+
+    // 画布平移控制（触摸/平板）
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) { isDraggingCanvas = true; lastMouseX = e.touches[0].clientX; lastMouseY = e.touches[0].clientY; }
     });
@@ -47,8 +48,7 @@ document.addEventListener("DOMContentLoaded", function() {
         el.innerHTML = `<div class="node-title">🤖 ${node.name}</div><div class="text-[10px] text-gray-400 mt-1">已接入宫水编辑器</div>`;
         nodeContainer.appendChild(el);
 
-        // 节点拖拽逻辑
-        let isDraggingNode = false, startX, startY, startLeft, startTop;
+        let isDraggingNode = false, startX, startY;
         el.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             isDraggingNode = true;
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 暴露绑定函数
+    // 绑定 Token
     window.bindBotToken = function() {
         const tokenInput = document.getElementById('botTokenInput');
         const token = tokenInput.value.trim();
@@ -80,7 +80,6 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // 生成节点位置：在卡片右侧 x=560, y=150 处
                 const newNode = { x: 560, y: 150, name: data.name };
                 nodes.push(newNode);
                 renderNode(newNode);
@@ -88,12 +87,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log('✅ 绑定成功，节点已生成:', data.name);
             } else {
                 alert('绑定失败：' + (data.error || 'Token 无效或网络错误'));
-                console.error('❌ 绑定失败:', data.error);
             }
         })
-        .catch(err => {
-            alert('网络请求失败，请检查后端服务');
-            console.error('❌ 请求异常:', err);
-        });
+        .catch(() => alert('网络请求失败，请检查后端服务'));
     };
 });
