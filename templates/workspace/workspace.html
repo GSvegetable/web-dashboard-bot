@@ -66,26 +66,23 @@
         ::-webkit-scrollbar-track { background: transparent; }
 
         /* ==========================================
-           🖤 终极黑色玻璃质感悬浮小卡片
+           🖤 终极黑色玻璃质感悬浮小卡片（极速切换版）
         ========================================== */
         #ctxMenu {
             display: flex;
             flex-direction: column;
             width: 200px;
-            /* ✅ 纯黑玻璃质感 */
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            /* ✅ 边缘更加圆润 */
             border-radius: 16px;
-            /* ✅ 左侧留出空隙，给小竖条腾位置 */
-            padding: 6px 6px 6px 14px;
+            padding: 6px 6px 6px 14px; /* 左侧预留空间给外挂竖线 */
             position: fixed;
             z-index: 9999;
             opacity: 0;
             transform: scale(0.95);
-            transition: opacity 0.15s ease, transform 0.15s ease;
+            transition: opacity 0.12s ease, transform 0.12s ease;
             pointer-events: none;
             box-shadow: 0 12px 36px rgba(0,0,0,0.8);
         }
@@ -98,7 +95,7 @@
         #ctxMenu .value {
             background-color: transparent;
             border: none;
-            padding: 10px 10px 10px 12px; /* 左侧让出一点位置给外面小竖条 */
+            padding: 10px 10px 10px 12px;
             color: #e5e7eb;
             display: flex;
             position: relative;
@@ -107,10 +104,9 @@
             border-radius: 8px;
             align-items: center;
             font-size: 12px;
-            transition: background 0.2s, color 0.2s;
+            transition: background 0.12s, color 0.12s;
         }
 
-        /* 悬浮和聚焦时的状态 */
         #ctxMenu .value:not(:active):hover,
         #ctxMenu .value:focus {
             background-color: rgba(255, 255, 255, 0.06);
@@ -121,19 +117,18 @@
             outline: none;
         }
         
-        /* ✅ 小竖条：颜色改为了 #493F36，并且移到了卡片外面，仅保留一条缝隙 */
+        /* ✅ 小竖线：真正移到了卡片的“外侧” */
         #ctxMenu .value::before {
             content: "";
             position: absolute;
             top: 8px;
-            /* ✅ 放置在卡片外部边缘 */
-            left: -12px;
+            left: -6px; /* 完全悬在卡片外边缘，留一丝缝隙 */
             width: 4px;
             height: 60%;
             background-color: #493F36;
             border-radius: 2px;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.12s ease; /* 切换速度极快 */
         }
         #ctxMenu .value:focus::before,
         #ctxMenu .value:active::before,
@@ -152,10 +147,9 @@
             fill: #f0f6fc;
         }
 
-        /* ✅ 修复 Bug：选中后，再点自身变虚化的问题 */
-        /* 只有当该选项没有被选中，也没有被鼠标悬停时，才应用模糊效果 */
+        /* ✅ 虚化逻辑修复：速度提升至 120ms，切换瞬间响应 */
         #ctxMenu:hover > .value:not(.active):not(:hover) {
-            transition: 300ms;
+            transition: 120ms;
             filter: blur(1px);
             transform: scale(0.95,0.95);
         }
@@ -199,7 +193,7 @@
         </div>
     </div>
 
-    <!-- ✅ 悬浮小卡片 HTML（纯黑玻璃质感，结构未改） -->
+    <!-- ✅ 悬浮小卡片 HTML（纯黑玻璃质感，点击即选中） -->
     <div id="ctxMenu">
       <button class="value" onclick="void(0)">
         <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" data-name="Layer 2"><path fill="#7D8590" d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z"></path></svg>
@@ -234,7 +228,7 @@
         if (!menu.classList.contains('open')) return;
         if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
         menu.classList.remove('open');
-        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 150);
+        hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 120);
     }
     function showContextMenu(e) {
         const menu = document.getElementById('ctxMenu');
@@ -259,7 +253,7 @@
             hideContextMenu();
         });
 
-        // 点击菜单项，保持激活高亮，且不产生任何执行动作
+        // ✅ 点击菜单项：极速切换选中状态，无任何其他副作用
         const menuItems = document.querySelectorAll('#ctxMenu .value');
         menuItems.forEach(item => {
             item.addEventListener('click', function(e) {
