@@ -66,6 +66,7 @@
 </head>
 <body>
     
+    <!-- 右上角三个均分按钮 -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
         <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
             Agent
@@ -81,12 +82,17 @@
     <!-- 主工作区 -->
     <div class="flex w-screen h-screen">
         
-        <!-- ✅ 大卡片容器 (添加 ID 和过渡动画) -->
+        <!-- 左侧大卡片 -->
         <div id="configPanel" class="fixed left-6 top-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
             
-            <!-- ✅ 新增：展开触发区域（隐藏时露出的 60px 顶部） -->
-            <div id="panelClickArea" onclick="togglePanel()" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 hidden rounded-t-[28px]"></div>
+            <!-- ✅ 隐藏时的顶部展开热区 (默认隐藏，隐藏卡片后显示) -->
+            <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden flex items-center justify-center" onclick="togglePanel()">
+                <div class="px-4 py-1.5 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] backdrop-blur-[6px] rounded-full text-white/70 text-sm font-medium transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+                    <span id="handleText">点击展开</span>
+                </div>
+            </div>
 
+            <!-- 展开时的内容区域 -->
             <div class="flex-1 flex flex-col p-8 relative">
                 <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
                 
@@ -110,10 +116,12 @@
                 <div id="botStatus" class="mt-3 text-[10px] text-gray-400">未连接</div>
             </div>
 
-            <!-- ✅ 隐藏按钮移到了左上角内部，确保能点到 -->
-            <button id="hideBtn" onclick="togglePanel()" class="absolute top-8 left-8 z-30 bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
-                隐藏
-            </button>
+            <!-- ✅ 左下角的隐藏按钮 (卡片展开时显示) -->
+            <div id="hideBtnContainer" class="absolute bottom-6 left-6 z-30">
+                <button onclick="togglePanel()" class="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] px-3 py-2 transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+                    隐藏
+                </button>
+            </div>
         </div>
 
         <!-- 右侧：无限画布 -->
@@ -122,7 +130,6 @@
             
             <div id="canvasArea" class="absolute inset-0 w-[200vw] h-[200vh] left-[-50vw] top-[-50vh] cursor-grab active:cursor-grabbing" style="background-image: url('{{ url_for('static', filename='IMG_20260808_170606.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat; touch-action: none;">
                 <div id="nodeContainer" class="relative w-full h-full">
-                    <!-- 节点通过 JS 动态注入 -->
                 </div>
             </div>
         </div>
@@ -146,7 +153,7 @@
     <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✅ 修复：全屏显示功能 -->
+    <!-- ✅ 核心修复：全屏显示函数 -->
     <script>
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
@@ -157,29 +164,29 @@
     }
     </script>
 
-    <!-- ✅ 终极修复：隐藏/展开面板逻辑（绝不会掉到底部看不见） -->
+    <!-- ✅ 核心修复：完美隐藏/展开逻辑 -->
     <script>
     function togglePanel() {
         const panel = document.getElementById('configPanel');
-        const btn = document.getElementById('hideBtn');
-        const area = document.getElementById('panelClickArea');
+        const handle = document.getElementById('panelHandle');
+        const btnContainer = document.getElementById('hideBtnContainer');
         const isHidden = panel.dataset.hidden === 'true';
-        
+
         if (isHidden) {
-            // 展开：取消平移
+            // 展开：恢复原位
             panel.style.transform = 'translateY(0)';
             panel.dataset.hidden = 'false';
-            btn.innerText = '隐藏';
-            area.classList.add('hidden'); // 隐藏展开热区
+            handle.classList.add('hidden');
+            btnContainer.classList.remove('hidden');
         } else {
-            // 隐藏：向下平移，刚好让顶部 60px 露在屏幕最下方
-            // 当前面板顶部是 24px(距离顶部)，我们要让顶部刚好在屏幕底部往上 60px 的地方
+            // 隐藏：向下平移，让顶部60px露在屏幕最底端
             const vh = window.innerHeight;
-            const diff = vh - 84; // 24(原来距顶部) + 60(想露出的高度) = 84
-            panel.style.transform = `translateY(${diff}px)`;
+            // 24(卡片距离屏幕顶部的距离) + 60(想要露出的高度) = 84
+            const translateY = vh - 84;
+            panel.style.transform = `translateY(${translateY}px)`;
             panel.dataset.hidden = 'true';
-            btn.innerText = '展开';
-            area.classList.remove('hidden'); // 显示展开热区
+            handle.classList.remove('hidden');
+            btnContainer.classList.add('hidden');
         }
     }
     </script>
@@ -192,9 +199,7 @@
             const wrapper = document.getElementById('agentPanelWrapper');
             const panel = document.getElementById('agentPanel');
             if (!wrapper || !panel) return;
-
             const isWorkspace = !document.getElementById('cardStackContainer');
-
             if (isWorkspace) {
                 if (wrapper.style.display === 'block') {
                     panel.classList.add('translate-y-full');
@@ -205,7 +210,6 @@
                     wrapper.style.left = 'auto';
                     wrapper.style.right = '24px';
                     wrapper.style.transform = 'none';
-                    
                     setTimeout(() => {
                         panel.classList.remove('translate-y-full');
                         const input = document.getElementById('agentInput');
