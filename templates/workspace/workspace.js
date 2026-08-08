@@ -118,13 +118,13 @@ document.addEventListener("DOMContentLoaded", function() {
         renderNodes();
     };
 
-    // ✅ 核心修改：位置大幅往右下角偏移
+    // ✅ 核心修改：节点默认出现在正中央（X:500, Y:300）
     window.addBotNode = function(name) {
         const botCount = nodes.filter(n => n.type === 'bot').length;
         
-        // 大幅增加 X 和 Y 的偏移量，让它靠近右下角空旷区域
-        const baseX = 555000; 
-        const baseY = 531000 + (botCount * 140);
+        // 画布正中心坐标
+        const baseX = 500; 
+        const baseY = 300 + (botCount * 140);
 
         const newNode = {
             id: Date.now() + Math.random(),
