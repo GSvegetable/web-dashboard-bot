@@ -1,41 +1,5 @@
 <script>
 // ==========================================
-// 0. 调试弹窗工具
-// ==========================================
-const debugEl = document.createElement('div');
-debugEl.style.position = 'fixed';
-debugEl.style.bottom = '160px';
-debugEl.style.left = '50%';
-debugEl.style.transform = 'translateX(-50%)';
-debugEl.style.background = 'rgba(0, 0, 0, 0.8)';
-debugEl.style.color = '#fff';
-debugEl.style.padding = '12px 24px';
-debugEl.style.borderRadius = '12px';
-debugEl.style.zIndex = '99999';
-debugEl.style.fontSize = '15px';
-debugEl.style.fontWeight = '600';
-debugEl.style.backdropFilter = 'blur(10px)';
-debugEl.style.border = '1px solid rgba(255,255,255,0.1)';
-debugEl.style.transition = 'opacity 0.3s, transform 0.3s';
-debugEl.style.transform = 'translateX(-50%) translateY(20px)';
-debugEl.style.opacity = '0';
-document.body.appendChild(debugEl);
-
-function showDebug(msg, type = 'info') {
-    debugEl.textContent = msg;
-    debugEl.style.opacity = '1';
-    debugEl.style.transform = 'translateX(-50%) translateY(0)';
-    if (type === 'node') debugEl.style.borderLeft = '6px solid #22c55e'; 
-    else if (type === 'bg') debugEl.style.borderLeft = '6px solid #3b82f6'; 
-    else debugEl.style.borderLeft = '6px solid #8b5cf6'; 
-    clearTimeout(debugEl._timer);
-    debugEl._timer = setTimeout(() => {
-        debugEl.style.opacity = '0';
-        debugEl.style.transform = 'translateX(-50%) translateY(20px)';
-    }, 2500);
-}
-
-// ==========================================
 // 1. 核心状态变量与DOM初始化
 // ==========================================
 let nodes = [];
@@ -198,12 +162,10 @@ document.addEventListener("DOMContentLoaded", function() {
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
-            showDebug('🟢 识别：长按【节点卡片】', 'node');
             return;
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
-            showDebug('🔵 识别：长按【背景】', 'bg');
             const touch = e.touches[0];
             lastMouseX = touch.clientX;
             lastMouseY = touch.clientY;
@@ -249,7 +211,6 @@ function renderNodes() {
 
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation(); e.preventDefault(); if (e.touches.length !== 1) return;
-            showDebug('🟢 验证：节点长按生效，画布已被彻底锁死！', 'node');
             const touch = e.touches[0];
             startTouchX = touch.clientX; startTouchY = touch.clientY;
             const idx = parseInt(el.dataset.index); if (isNaN(idx)) return;
@@ -307,12 +268,11 @@ document.addEventListener('mouseup', (e) => {
 });
 document.addEventListener('touchend', (e) => {
     if (isDraggingNode && currentDragNode) {
-        showDebug('🟢 节点拖拽结束', 'node');
         const index = parseInt(currentDragNode.dataset.index);
         if (!isNaN(index)) { nodes[index].x = parseFloat(currentDragNode.style.left); nodes[index].y = parseFloat(currentDragNode.style.top); saveHistory(); }
         currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
-    if (isDraggingCanvas) { showDebug('🔵 背景拖拽结束', 'bg'); isDraggingCanvas = false; }
+    if (isDraggingCanvas) { isDraggingCanvas = false; }
 });
 
 window.addBotNode = function(name, avatar) {
