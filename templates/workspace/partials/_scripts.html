@@ -97,77 +97,76 @@ window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
-    const status = document.getElementById('botStatus');
-
-    // 定义你的动态加载图标 HTML
-    const loaderHTML = `
-    <span id="customLoader">
-        <svg class="gegga">
-            <defs>
-                <filter id="gegga">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"></feGaussianBlur>
-                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -10" result="inreGegga"></feColorMatrix>
-                    <feComposite in="SourceGraphic" in2="inreGegga" operator="atop"></feComposite>
-                </filter>
-            </defs>
-        </svg>
-        <svg class="snurra" viewBox="0 0 200 200">
-            <defs>
-                <linearGradient id="linjärGradient">
-                    <stop class="stopp1" offset="0"></stop>
-                    <stop class="stopp2" offset="1"></stop>
-                </linearGradient>
-                <linearGradient y2="160" x2="160" y1="40" x1="40" gradientUnits="userSpaceOnUse" id="gradient" xlink:href="#linjärGradient"></linearGradient>
-            </defs>
-            <path class="halvan" d="m 164,100 c 0,-35.346224 -28.65378,-64 -64,-64 -35.346224,0 -64,28.653776 -64,64 0,35.34622 28.653776,64 64,64 35.34622,0 64,-26.21502 64,-64 0,-37.784981 -26.92058,-64 -64,-64 -37.079421,0 -65.267479,26.922736 -64,64 1.267479,37.07726 26.703171,65.05317 64,64 37.29683,-1.05317 64,-64 64,-64"></path>
-            <circle class="strecken" cx="100" cy="100" r="64"></circle>
-        </svg>
-        <svg class="skugga" viewBox="0 0 200 200">
-            <path class="halvan" d="m 164,100 c 0,-35.346224 -28.65378,-64 -64,-64 -35.346224,0 -64,28.653776 -64,64 0,35.34622 28.653776,64 64,64 35.34622,0 64,-26.21502 64,-64 0,-37.784981 -26.92058,-64 -64,-64 -37.079421,0 -65.267479,26.922736 -64,64 1.267479,37.07726 26.703171,65.05317 64,64 37.29683,-1.05317 64,-64 64,-64"></path>
-            <circle class="strecken" cx="100" cy="100" r="64"></circle>
-        </svg>
-    </span>
-    `;
     
-    if (token.length < 10) {
-        status.innerHTML = 'Token 格式错误'; // 去掉 ❌
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
+    const statusContainer = document.getElementById('botStatusContainer');
+    const statusLoader = document.getElementById('statusLoader');
+    const statusText = document.getElementById('statusText');
+
+    if (token.length < 10) { 
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none'; // 强制隐藏
+        statusText.innerText = 'Token 格式错误';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        return; 
     }
-    if (!chatId || chatId.length < 1) {
-        status.innerHTML = '请输入绑定的 Telegram ID'; // 去掉 ❌
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
+    if (!chatId || chatId.length < 1) { 
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none'; // 强制隐藏
+        statusText.innerText = '请输入绑定的 Telegram ID';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        return; 
     }
 
-    // ✅ 这里替换掉漏斗图标，用 flex 对齐 + 加载动效
-    status.innerHTML = loaderHTML + '正在验证并发送绑定消息...';
-    status.className = 'mt-2 text-[10px] text-gray-400 flex items-center gap-2';
+    // 开始验证：显示光圈（移除 display: none 和 hidden 类）
+    statusLoader.style.display = '';
+    statusLoader.classList.remove('hidden');
+    statusText.innerText = '正在验证并发送绑定消息...';
+    statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-gray-400';
 
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
-    .then(res => res.json())
     .then(data => {
-        if (data.ok) {
-            status.innerHTML = `绑定成功！已向 ${chatId} 发送确认消息。`; // 去掉 ✅
-            status.className = 'mt-2 text-[10px] text-green-400';
+        // 无论成功还是失败，拿到结果的第一时间就彻底隐藏光圈
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none';
+        if (data.ok) { 
+            statusText.innerText = `绑定成功！已向 ${chatId} 发送确认消息。`;
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
             window.addBotNode(data.bot_name || name, data.bot_avatar_url);
-        } else {
-            status.innerHTML = `绑定失败: ${data.msg}`; // 去掉 ❌
-            status.className = 'mt-2 text-[10px] text-red-400';
+        } else { 
+            statusText.innerText = `绑定失败: ${data.msg}`;
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
         }
     })
-    .catch(() => {
-        status.innerHTML = '网络请求失败，请稍后重试。'; // 去掉 ❌
-        status.className = 'mt-2 text-[10px] text-red-400';
+    .catch(() => { 
+        // 网络异常也强制隐藏光圈
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none';
+        statusText.innerText = '网络请求失败，请稍后重试。';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
     });
 };
 
 window.autoFillBot = function() {
     const tokenInput = document.getElementById('botTokenInput'), idInput = document.getElementById('telegramIdInput');
-    const status = document.getElementById('botStatus');
-    if (!navigator.clipboard) { status.innerHTML = '你的浏览器不支持读取剪贴板'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+    const statusContainer = document.getElementById('botStatusContainer');
+    const statusLoader = document.getElementById('statusLoader');
+    const statusText = document.getElementById('statusText');
+
+    if (!navigator.clipboard) { 
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none';
+        statusText.innerText = '你的浏览器不支持读取剪贴板'; 
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+        return; 
+    }
     navigator.clipboard.readText().then(text => {
-        if (!text || text.trim() === '') { status.innerHTML = '自动填写失败：剪贴板为空'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        if (!text || text.trim() === '') { 
+            statusLoader.classList.add('hidden');
+            statusLoader.style.display = 'none';
+            statusText.innerText = '自动填写失败：剪贴板为空'; 
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+            return; 
+        }
         let foundToken = false, foundId = false;
         const lines = text.split(/\r?\n/);
         lines.forEach(line => {
@@ -177,15 +176,25 @@ window.autoFillBot = function() {
             else if (/^\d{5,15}$/.test(trimmed) && !foundId) { idInput.value = trimmed; foundId = true; }
         });
         if (foundToken || foundId) {
-            let msg = `自动识别成功！`;
-            if (foundToken) msg += ` Token 已填入`;
-            if (foundId) msg += ` ID 已填入`;
-            status.innerHTML = msg; status.className = 'mt-2 text-[10px] text-green-400';
+            let msg = '自动识别成功！';
+            if (foundToken) msg += ' Token 已填入';
+            if (foundId) msg += ' ID 已填入';
+            statusLoader.classList.add('hidden');
+            statusLoader.style.display = 'none';
+            statusText.innerText = msg; 
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
         } else {
-            status.innerHTML = '自动填写失败：剪贴板内容不符合 ID 或 Token 的格式'; // 去掉 ❌
-            status.className = 'mt-2 text-[10px] text-red-400';
+            statusLoader.classList.add('hidden');
+            statusLoader.style.display = 'none';
+            statusText.innerText = '自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
         }
-    }).catch(err => { status.innerHTML = '读取剪贴板失败，请检查网页权限设置'; status.className = 'mt-2 text-[10px] text-red-400'; });
+    }).catch(err => { 
+        statusLoader.classList.add('hidden');
+        statusLoader.style.display = 'none';
+        statusText.innerText = '读取剪贴板失败，请检查网页权限设置';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+    });
 };
 
 // ==========================================
@@ -333,4 +342,4 @@ window.addBotNode = function(name, avatar) {
     const newNode = { id: Date.now() + Math.random(), type: 'bot', name: name || '我的机器人', avatar: avatar || null, x: baseX, y: baseY };
     nodes.push(newNode); saveHistory(); renderNodes();
 };
-                                        </script>
+</script>
