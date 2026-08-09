@@ -1,5 +1,43 @@
 <script>
 // ==========================================
+// 0. 调试弹窗工具 (用于验证长按识别)
+// ==========================================
+const debugEl = document.createElement('div');
+debugEl.style.position = 'fixed';
+debugEl.style.bottom = '160px';
+debugEl.style.left = '50%';
+debugEl.style.transform = 'translateX(-50%)';
+debugEl.style.background = 'rgba(0, 0, 0, 0.75)';
+debugEl.style.color = '#fff';
+debugEl.style.padding = '12px 24px';
+debugEl.style.borderRadius = '12px';
+debugEl.style.zIndex = '99999';
+debugEl.style.fontSize = '15px';
+debugEl.style.fontWeight = '600';
+debugEl.style.backdropFilter = 'blur(10px)';
+debugEl.style.border = '1px solid rgba(255,255,255,0.1)';
+debugEl.style.transition = 'opacity 0.3s, transform 0.3s';
+debugEl.style.transform = 'translateX(-50%) translateY(20px)';
+debugEl.style.opacity = '0';
+document.body.appendChild(debugEl);
+
+function showDebug(msg, type = 'info') {
+    debugEl.textContent = msg;
+    debugEl.style.opacity = '1';
+    debugEl.style.transform = 'translateX(-50%) translateY(0)';
+    
+    if (type === 'node') debugEl.style.borderLeft = '6px solid #22c55e'; // 绿色
+    else if (type === 'bg') debugEl.style.borderLeft = '6px solid #3b82f6'; // 蓝色
+    else debugEl.style.borderLeft = '6px solid #8b5cf6'; // 紫色
+
+    clearTimeout(debugEl._timer);
+    debugEl._timer = setTimeout(() => {
+        debugEl.style.opacity = '0';
+        debugEl.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2500);
+}
+
+// ==========================================
 // 1. 核心状态变量与DOM初始化
 // ==========================================
 let nodes = [];
@@ -268,15 +306,16 @@ document.addEventListener("DOMContentLoaded", function() {
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // ✨ 重构：背景触摸监听器。检查是否点在节点上，如果是，立刻退出并关闭背景拖动状态
+    // ✨ 背景触摸监听器。严格判断是否点在节点上
     canvasArea.addEventListener('touchstart', (e) => {
-        // 判断手指触摸的是不是节点卡片！
         if (e.target.closest('.canvas-node')) {
-            isDraggingCanvas = false; // 警告：此时什么都不做，绝不拖动背景
+            isDraggingCanvas = false; 
+            showDebug('🟢 识别结果：长按的是“节点卡片” (准备拖节点)', 'node');
             return;
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
+            showDebug('🔵 识别结果：长按的是“背景” (准备拖画布)', 'bg');
             const touch = e.touches[0];
             lastMouseX = touch.clientX;
             lastMouseY = touch.clientY;
@@ -285,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心节点渲染器（✨ 终极触碰防误触逻辑）
+// 6. 核心节点渲染器（✨ 节点上的识别反馈）
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
@@ -344,15 +383,15 @@ function renderNodes() {
             el.style.zIndex = 100;
         });
 
-        // ✨ 2. 手机触屏拖拽（强制切断背景控制权）
+        // 2. 手机触屏长按拖拽识别
         el.addEventListener('touchstart', (e) => {
-            // 首要任务：阻止事件冒泡到 canvasArea，防止背景拖拽被触发
             e.stopPropagation(); 
-            e.preventDefault();  // 防止手机浏览器默认弹出长按菜单
+            e.preventDefault();  
             if (e.touches.length !== 1) return;
             
+            showDebug('🟢 验证：长按节点已生效，开始拖动节点！', 'node');
             isDraggingNode = true;
-            isDraggingCanvas = false; // ✅ 强行把背景拖拽状态关掉
+            isDraggingCanvas = false; 
             currentDragNode = el;
             const rect = el.getBoundingClientRect();
             const touch = e.touches[0];
@@ -365,7 +404,7 @@ function renderNodes() {
     });
 }
 
-// ✨ 3. 全局鼠标/触屏移动监听（绝对分离节点和背景的逻辑）
+// ✨ 3. 全局移动监听（带着状态反馈）
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -376,17 +415,15 @@ document.addEventListener('mousemove', (e) => {
 });
 
 document.addEventListener('touchmove', (e) => {
-    // ✅ 优先拦截：如果是拖动节点，直接移动并切断后续逻辑，保证绝不动背景！
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         const touch = e.touches[0];
         const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
         const top = touch.clientY - startY - canvasArea.getBoundingClientRect().top;
         currentDragNode.style.left = left + 'px';
         currentDragNode.style.top = top + 'px';
-        e.preventDefault(); // 阻止页面跟随手指滑动
-        return; // ⚠️ 核心：直接返回，绝不让执行下面的背景判断逻辑
+        e.preventDefault(); 
+        return; // ⚠️ 核心：绝对不执行下面的背景判断
     } 
-    // 其次处理：如果真的是在拖背景
     else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX;
@@ -402,7 +439,7 @@ document.addEventListener('touchmove', (e) => {
     }
 }, { passive: false });
 
-// ✨ 4. 鼠标/触屏释放监听
+// ✨ 4. 释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
@@ -419,6 +456,7 @@ document.addEventListener('mouseup', (e) => {
 
 document.addEventListener('touchend', (e) => {
     if (isDraggingNode && currentDragNode) {
+        showDebug('🟢 节点拖拽结束', 'node');
         const index = parseInt(currentDragNode.dataset.index);
         if (!isNaN(index)) {
             nodes[index].x = parseFloat(currentDragNode.style.left);
@@ -430,6 +468,7 @@ document.addEventListener('touchend', (e) => {
         currentDragNode = null;
     }
     if (isDraggingCanvas) {
+        showDebug('🔵 背景拖拽结束', 'bg');
         isDraggingCanvas = false;
     }
 });
