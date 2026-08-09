@@ -1,12 +1,24 @@
-<div id="configPanel" class="panel-fullscreen fixed inset-0 w-screen h-screen glass-panel flex flex-col z-20 transition-all duration-500 ease-out shadow-2xl rounded-none">
+<div id="configPanel" class="panel-fullscreen fixed inset-0 glass-panel flex flex-col z-20 transition-all duration-500 ease-out shadow-2xl">
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
     
-    <!-- 引入两个视图 -->
     {% include 'workspace/partials/_config_home.html' %}
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 缩小状态：回到左下方 */
+        /* 全面铺满屏幕的状态（无边框、无缝隙） */
+        .panel-fullscreen {
+            position: fixed !important;
+            inset: 0px !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0px !important;
+            z-index: 30 !important;
+            margin: 0px !important;
+            border: none !important;
+            top: 0px !important;
+            left: 0px !important;
+        }
+        /* 缩小回左下角的状态（保持不变） */
         .panel-collapsed {
             position: fixed !important;
             inset: auto !important;
@@ -18,11 +30,14 @@
             z-index: 20 !important;
             max-height: calc(100vh - 48px) !important;
         }
+
+        /* 保证初始加载时就是全屏 */
+        .panel-fullscreen #configHome { display: flex !important; }
+        .panel-fullscreen #configForm { display: none !important; }
     </style>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // 强制一进来就是全屏状态（图1）
             const panel = document.getElementById('configPanel');
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
@@ -32,28 +47,20 @@
             const panel = document.getElementById('configPanel');
             const home = document.getElementById('configHome');
             const form = document.getElementById('configForm');
-            
-            // 1. 先缩小动画
             panel.classList.remove('panel-fullscreen');
             panel.classList.add('panel-collapsed');
-            
-            // 2. 过一小会儿再切换内容（避免图2的重叠现象）
             setTimeout(() => {
                 home.classList.add('hidden');
                 form.classList.remove('hidden');
-            }, 50); // 50ms 足以让容器缩小后再显示表单，完美过渡
+            }, 50);
         };
 
         window.switchToHome = function() {
             const panel = document.getElementById('configPanel');
             const home = document.getElementById('configHome');
             const form = document.getElementById('configForm');
-            
-            // 1. 隐藏表单
             form.classList.add('hidden');
             home.classList.remove('hidden');
-            
-            // 2. 再展开全屏动画
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
         };
