@@ -1,6 +1,6 @@
 <script>
 // ==========================================
-// 0. 调试弹窗工具（刚才的测试弹窗保留）
+// 0. 调试弹窗工具
 // ==========================================
 const debugEl = document.createElement('div');
 debugEl.style.position = 'fixed';
@@ -43,10 +43,8 @@ let history = [];
 let historyIndex = -1;
 let isDraggingCanvas = false;
 let isDraggingNode = false;
-let isPinching = false; // 新增：标记是否正在双指缩放
 let currentDragNode = null;
 let canvasOffsetX = 0, canvasOffsetY = 0;
-let canvasScale = 1.0; // 新增：初始缩放倍数
 let lastMouseX = 0, lastMouseY = 0;
 let startTouchX = 0, startTouchY = 0; 
 let startNodeX = 0, startNodeY = 0; 
@@ -175,7 +173,7 @@ window.autoFillBot = function() {
 };
 
 // ==========================================
-// 5. 界面功能 & 画布更新核心函数
+// 5. 界面功能
 // ==========================================
 function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
 function togglePanel() {
@@ -183,14 +181,6 @@ function togglePanel() {
     const isHidden = panel.dataset.hidden === 'true';
     if (isHidden) { panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden'); }
     else { const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`; panel.dataset.hidden = 'true'; handle.classList.remove('hidden'); }
-}
-
-// ✨ 核心修改：更新画布变换（平移+缩放）
-function updateCanvasTransform() {
-    // 限制边界，放大太大或缩小太小都不行
-    canvasScale = Math.min(Math.max(canvasScale, 0.5), 5.0);
-    // 应用变换
-    canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px) scale(${canvasScale})`;
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -206,18 +196,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     canvasArea.addEventListener('touchstart', (e) => {
-        // ✨ 双指触摸：准备缩放
-        if (e.touches.length === 2) {
-            isPinching = true;
-            isDraggingCanvas = false; isDraggingNode = false; // 缩放期间取消拖拽
-            const t1 = e.touches[0], t2 = e.touches[1];
-            // 记录双指中心点
-            startTouchX = (t1.clientX + t2.clientX) / 2;
-            startTouchY = (t1.clientY + t2.clientY) / 2;
-            showDebug('🟣 识别：双指【缩放操作】', 'info');
-            return;
-        }
-
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
             showDebug('🟢 识别：长按【节点卡片】', 'node');
@@ -271,7 +249,7 @@ function renderNodes() {
 
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation(); e.preventDefault(); if (e.touches.length !== 1) return;
-            showDebug('🟢 验证：节点长按生效，背景被锁死！', 'node');
+            showDebug('🟢 验证：节点长按生效，画布已被彻底锁死！', 'node');
             const touch = e.touches[0];
             startTouchX = touch.clientX; startTouchY = touch.clientY;
             const idx = parseInt(el.dataset.index); if (isNaN(idx)) return;
@@ -286,53 +264,19 @@ function renderNodes() {
 // 电脑鼠标移动
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
-        // 鼠标拖拽节点时，偏移量需要除以当前缩放比例，才能跟上手指/鼠标的比例
-        const left = (e.clientX - startX - canvasArea.getBoundingClientRect().left) / canvasScale;
-        const top = (e.clientY - startY - canvasArea.getBoundingClientRect().top) / canvasScale;
+        const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
+        const top = e.clientY - startY - canvasArea.getBoundingClientRect().top;
         currentDragNode.style.left = left + 'px'; currentDragNode.style.top = top + 'px';
     }
 });
 
-// ✨ 手机触屏移动 (合并处理：单指拖拽 + 双指缩放)
+// 手机触屏移动检测
 document.addEventListener('touchmove', (e) => {
-    // 1. 🛡️ 优先处理双指缩放
-    if (isPinching && e.touches.length === 2) {
-        e.stopPropagation(); e.preventDefault();
-        const t1 = e.touches[0], t2 = e.touches[1];
-        const newCenterX = (t1.clientX + t2.clientX) / 2;
-        const newCenterY = (t1.clientY + t2.clientY) / 2;
-        const oldDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-        
-        // 计算上一次的双指距离（通过上一次的触摸位置计算）
-        // 这里简化处理，利用 startTouch 和 oldDist 的差值比较，并校正
-        if (!lastPinchDist) lastPinchDist = oldDist;
-        const scaleDiff = oldDist / lastPinchDist;
-        
-        // 获取缩放中心点在当前画布坐标系中的 X、Y 坐标
-        const x0 = (newCenterX - canvasOffsetX) / canvasScale;
-        const y0 = (newCenterY - canvasOffsetY) / canvasScale;
-        
-        // 应用缩放倍率
-        canvasScale *= scaleDiff;
-        // 限制缩放边界 (0.5倍 ~ 5倍)
-        canvasScale = Math.min(Math.max(canvasScale, 0.5), 5.0);
-        
-        // 更新偏移量，使双指中心点对应的画面保持不动（以中心缩放的核心算法）
-        canvasOffsetX = newCenterX - x0 * canvasScale;
-        canvasOffsetY = newCenterY - y0 * canvasScale;
-        
-        // 更新 DOM 渲染
-        updateCanvasTransform();
-        lastPinchDist = oldDist; // 更新距离变量
-        return;
-    }
-
-    // 2. 单指拖拽节点
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         e.stopPropagation(); e.preventDefault();
         const touch = e.touches[0];
-        const dx = (touch.clientX - startTouchX) / canvasScale;
-        const dy = (touch.clientY - startTouchY) / canvasScale;
+        const dx = touch.clientX - startTouchX;
+        const dy = touch.clientY - startTouchY;
         const index = parseInt(currentDragNode.dataset.index);
         if (!isNaN(index)) {
             const newX = startNodeX + dx;
@@ -342,29 +286,17 @@ document.addEventListener('touchmove', (e) => {
             currentDragNode.style.top = newY + 'px';
         }
         return; 
-    } 
-    // 3. 单指拖动画布 (背景)
-    else if (isDraggingCanvas && e.touches.length === 1) {
-        e.stopPropagation(); e.preventDefault();
+    } else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
-        const dx = touch.clientX - lastMouseX; 
-        const dy = touch.clientY - lastMouseY;
+        const dx = touch.clientX - lastMouseX; const dy = touch.clientY - lastMouseY;
         canvasOffsetX += dx; canvasOffsetY += dy;
-        updateCanvasTransform();
+        canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
+        canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
+        canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
         lastMouseX = touch.clientX; lastMouseY = touch.clientY;
+        e.preventDefault();
     }
 }, { passive: false });
-
-// 整理缩放变量
-let lastPinchDist = null;
-
-// 重置缩放逻辑
-document.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-        const t1 = e.touches[0], t2 = e.touches[1];
-        lastPinchDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-    }
-}, { passive: true });
 
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
@@ -381,7 +313,6 @@ document.addEventListener('touchend', (e) => {
         currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
     if (isDraggingCanvas) { showDebug('🔵 背景拖拽结束', 'bg'); isDraggingCanvas = false; }
-    if (isPinching) { isPinching = false; lastPinchDist = null; }
 });
 
 window.addBotNode = function(name, avatar) {
