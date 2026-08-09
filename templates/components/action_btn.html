@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（双按钮均分，字体加粗，整体缩短） -->
+<!-- 极光炫彩渐变按钮组件（互换位置，间距加 2px） -->
 <style>
   .action-flex {
     display: flex;
@@ -58,10 +58,17 @@
   }
 </style>
 
-<!-- 外层容器 max-w 240px，两个按钮 flex-1 均分 -->
-<div class="flex flex-row items-center gap-3 w-full max-w-[240px]">
+<!-- 外层容器：间距从 gap-3 改为 gap-[14px]（增加 2 像素） -->
+<div class="flex flex-row items-center gap-[14px] w-full max-w-[240px]">
   
-  <!-- 按钮 1：Agent（保留正常功能） -->
+  <!-- 按钮 1：开发作品（移到左边） -->
+  <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
+    <span class="action-flex font-bold">
+      <span>开发作品</span>
+    </span>
+  </div>
+
+  <!-- 按钮 2：Agent（移到右边） -->
   <div class="outer-cont flex-1" onclick="toggleAgentPanel()">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
@@ -71,13 +78,6 @@
         </g>
       </svg>
       <span>Agent</span>
-    </span>
-  </div>
-
-  <!-- ✅ 按钮 2：开发作品（点击跳转至工作台） -->
-  <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
-    <span class="action-flex font-bold">
-      <span>开发作品</span>
     </span>
   </div>
 
