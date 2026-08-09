@@ -20,7 +20,7 @@
 
     {% include 'workspace/partials/_ctx_menu.html' %}
 
-    <script src="{{ url_for('static', filename='js/workspace.js') }}"></script>
+    <!-- ✨ 核心修改：这行已经被删除了，现在只走 partials/_scripts.html -->
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
 </body>
