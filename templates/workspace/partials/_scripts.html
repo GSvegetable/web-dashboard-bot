@@ -106,14 +106,14 @@ window.connectBot = function() {
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = 'Token 格式错误';
-        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
         return; 
     }
     if (!chatId || chatId.length < 1) { 
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = '请输入绑定的 Telegram ID';
-        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
         return; 
     }
 
@@ -121,7 +121,7 @@ window.connectBot = function() {
     statusLoader.style.display = '';
     statusLoader.classList.remove('hidden');
     statusText.innerText = '正在验证并发送绑定消息...';
-    statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-gray-400';
+    statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-gray-400';
 
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(data => {
@@ -129,18 +129,18 @@ window.connectBot = function() {
         statusLoader.style.display = 'none';
         if (data.ok) { 
             statusText.innerText = `绑定成功！已向 ${chatId} 发送确认消息。`;
-            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
+            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-green-400';
             window.addBotNode(data.bot_name || name, data.bot_avatar_url);
         } else { 
             statusText.innerText = `绑定失败: ${data.msg}`;
-            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
         }
     })
     .catch(() => { 
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = '网络请求失败，请稍后重试。';
-        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
     });
 };
 
@@ -154,7 +154,7 @@ window.autoFillBot = function() {
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = '你的浏览器不支持读取剪贴板'; 
-        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400'; 
         return; 
     }
     navigator.clipboard.readText().then(text => {
@@ -162,7 +162,7 @@ window.autoFillBot = function() {
             statusLoader.classList.add('hidden');
             statusLoader.style.display = 'none';
             statusText.innerText = '自动填写失败：剪贴板为空'; 
-            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400'; 
             return; 
         }
         let foundToken = false, foundId = false;
@@ -180,18 +180,18 @@ window.autoFillBot = function() {
             statusLoader.classList.add('hidden');
             statusLoader.style.display = 'none';
             statusText.innerText = msg; 
-            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
+            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-green-400';
         } else {
             statusLoader.classList.add('hidden');
             statusLoader.style.display = 'none';
             statusText.innerText = '自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
-            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
         }
     }).catch(err => { 
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = '读取剪贴板失败，请检查网页权限设置';
-        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
     });
 };
 
@@ -340,4 +340,4 @@ window.addBotNode = function(name, avatar) {
     const newNode = { id: Date.now() + Math.random(), type: 'bot', name: name || '我的机器人', avatar: avatar || null, x: baseX, y: baseY };
     nodes.push(newNode); saveHistory(); renderNodes();
 };
-</script>
+    </script>
