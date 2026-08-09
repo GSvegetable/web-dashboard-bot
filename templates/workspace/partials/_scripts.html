@@ -1,6 +1,6 @@
 <script>
 // ==========================================
-// 0. 调试弹窗工具 (用于验证长按识别)
+// 0. 调试弹窗工具 (看你长按识别是否准确)
 // ==========================================
 const debugEl = document.createElement('div');
 debugEl.style.position = 'fixed';
@@ -45,10 +45,13 @@ let history = [];
 let historyIndex = -1;
 let isDraggingCanvas = false;
 let isDraggingNode = false;
-let startX, startY, startLeft, startTop;
 let currentDragNode = null;
 let canvasOffsetX = 0, canvasOffsetY = 0;
 let lastMouseX = 0, lastMouseY = 0;
+
+// ✨ 新增：记录触屏开始时的绝对坐标
+let startTouchX = 0, startTouchY = 0; 
+let startNodeX = 0, startNodeY = 0; 
 
 const canvasArea = document.getElementById('canvasArea');
 const nodeContainer = document.getElementById('nodeContainer');
@@ -306,16 +309,16 @@ document.addEventListener("DOMContentLoaded", function() {
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // ✨ 背景触摸监听器。严格判断是否点在节点上
+    // ✨ 画布背景触摸监听器。
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
-            showDebug('🟢 识别结果：长按的是“节点卡片” (准备拖节点)', 'node');
+            showDebug('🟢 识别：长按【节点卡片】 (开始拖拽节点)', 'node');
             return;
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
-            showDebug('🔵 识别结果：长按的是“背景” (准备拖画布)', 'bg');
+            showDebug('🔵 识别：长按【背景】 (开始拖拽画布)', 'bg');
             const touch = e.touches[0];
             lastMouseX = touch.clientX;
             lastMouseY = touch.clientY;
@@ -324,7 +327,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心节点渲染器（✨ 节点上的识别反馈）
+// 6. 核心节点渲染器（✨ 重写了手机拖拽坐标计算）
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
@@ -383,20 +386,32 @@ function renderNodes() {
             el.style.zIndex = 100;
         });
 
-        // 2. 手机触屏长按拖拽识别
+        // 2. ✨ 手机触屏长按拖拽（使用绝对差值法，绝对不依赖画布偏移量）
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation(); 
             e.preventDefault();  
             if (e.touches.length !== 1) return;
             
-            showDebug('🟢 验证：长按节点已生效，开始拖动节点！', 'node');
+            showDebug('🟢 验证：节点长按已生效，手指滑动节点会跟着走', 'node');
+            
+            // 记录触摸点初始绝对坐标
+            const touch = e.touches[0];
+            startTouchX = touch.clientX;
+            startTouchY = touch.clientY;
+
+            // 记录该节点数据的初始坐标
+            const idx = parseInt(el.dataset.index);
+            if (isNaN(idx)) return;
+            startNodeX = nodes[idx].x;
+            startNodeY = nodes[idx].y;
+            
+            // 保存到 DOM 属性备用
+            el.dataset.startX = startNodeX;
+            el.dataset.startY = startNodeY;
+
             isDraggingNode = true;
             isDraggingCanvas = false; 
             currentDragNode = el;
-            const rect = el.getBoundingClientRect();
-            const touch = e.touches[0];
-            startX = touch.clientX - rect.left;
-            startY = touch.clientY - rect.top;
             el.style.zIndex = 100;
         }, { passive: false });
 
@@ -404,7 +419,7 @@ function renderNodes() {
     });
 }
 
-// ✨ 3. 全局移动监听（带着状态反馈）
+// ✨ 3. 全局鼠标移动（电脑端）
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -414,16 +429,31 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
+// ✨ 4. 全局触屏移动（手机端重写，核心阻断逻辑）
 document.addEventListener('touchmove', (e) => {
+    // 🛡️ 只要处于节点拖拽状态，立刻拦截，绝对不让画布逻辑走通！
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         const touch = e.touches[0];
-        const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
-        const top = touch.clientY - startY - canvasArea.getBoundingClientRect().top;
-        currentDragNode.style.left = left + 'px';
-        currentDragNode.style.top = top + 'px';
+        // 计算手指滑动的物理距离
+        const dx = touch.clientX - startTouchX;
+        const dy = touch.clientY - startTouchY;
+        
+        const index = parseInt(currentDragNode.dataset.index);
+        if (!isNaN(index)) {
+            // 基于存储的最初数据坐标进行绝对加减，100% 跟随手指
+            const newX = startNodeX + dx;
+            const newY = startNodeY + dy;
+            
+            // 实时更新内存数据和页面元素
+            nodes[index].x = newX;
+            nodes[index].y = newY;
+            currentDragNode.style.left = newX + 'px';
+            currentDragNode.style.top = newY + 'px';
+        }
         e.preventDefault(); 
-        return; // ⚠️ 核心：绝对不执行下面的背景判断
+        return; // ⚠️ 核心核心：走到这里直接中断，背景代码绝不执行！
     } 
+    // 如果没触发节点逻辑，才检查是不是在拖背景
     else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX;
@@ -439,7 +469,7 @@ document.addEventListener('touchmove', (e) => {
     }
 }, { passive: false });
 
-// ✨ 4. 释放监听
+// ✨ 5. 鼠标/触屏释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
