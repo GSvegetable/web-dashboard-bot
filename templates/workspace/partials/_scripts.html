@@ -12,11 +12,10 @@ let currentDragNode = null;
 let canvasOffsetX = 0, canvasOffsetY = 0;
 let lastMouseX = 0, lastMouseY = 0;
 
-// ✨ 缩放与触摸手势状态
+// ✨ 缩放状态
 let currentScale = 1.0;
 let lastPinchDist = 0;
 let isPinching = false;
-let initialPinchScale = 1;
 
 const canvasArea = document.getElementById('canvasArea');
 const canvasAreaWrapper = document.getElementById('canvasAreaWrapper');
@@ -25,66 +24,67 @@ const previewBox = document.getElementById('previewBox');
 const previewMessages = document.getElementById('previewMessages');
 const previewInput = document.getElementById('previewInput');
 
-// ✨ 核心修改：统一应用平移和缩放（带有动态边界限制）
+// ✨ 核心修复：动态边界运算 + 缩放平移应用
 function applyCanvasTransform() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     
-    // 核心修复：基于当前缩放比例，动态计算最大可平移距离，彻底解决黑屏/卡边界问题
-    // 因为 canvasArea 是 200vw * 200vh，最大边界是 100vw/2
-    const limitX = Math.abs((vw / 2) * (1 - 1 / currentScale));
-    const limitY = Math.abs((vh / 2) * (1 - 1 / currentScale));
-    
-    // 如果 scale > 1，limitX = 0（无法整体平移），但手指点击节点还是可以拖动的
-    // 如果 scale < 1，允许平移，但严格限制在画布边缘内
-    canvasOffsetX = Math.max(-limitX, Math.min(limitX, canvasOffsetX));
-    canvasOffsetY = Math.max(-limitY, Math.min(limitY, canvasOffsetY));
+    // 因为你的 canvasArea 是 200vw * 200vh，左边是 -50vw
+    // 计算最大允许左/右偏移限制，彻底杜绝黑屏
+    const limitXMin = vw - 1.5 * vw * currentScale; // 右侧拉到边界
+    const limitXMax = 0.5 * vw * currentScale;      // 左侧拉到边界
+    const limitYMin = vh - 1.5 * vh * currentScale;
+    const limitYMax = 0.5 * vh * currentScale;
 
+    let cX = canvasOffsetX, cY = canvasOffsetY;
+
+    // 极窄缩放防越界修正（如果拖到极端，强制居中）
+    if (limitXMin > limitXMax) {
+        cX = (limitXMin + limitXMax) / 2;
+    } else {
+        cX = Math.min(limitXMax, Math.max(limitXMin, cX));
+    }
+    if (limitYMin > limitYMax) {
+        cY = (limitYMin + limitYMax) / 2;
+    } else {
+        cY = Math.min(limitYMax, Math.max(limitYMin, cY));
+    }
+
+    canvasOffsetX = cX;
+    canvasOffsetY = cY;
     canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px) scale(${currentScale})`;
 }
 
+// ✨ 新增：一键还原视图（默认缩放，居中）
+window.resetCanvasView = function() {
+    canvasOffsetX = 0;
+    canvasOffsetY = 0;
+    currentScale = 1.0;
+    applyCanvasTransform();
+};
+
 // ==========================================
-// 2. 历史记录与撤销/重做
+// 2. 历史记录与撤销/重做等常规逻辑...
 // ==========================================
 function saveHistory() {
     history = history.slice(0, historyIndex + 1);
     history.push(JSON.parse(JSON.stringify(nodes)));
     historyIndex++;
-    if (history.length > 50) {
-        history.shift();
-        historyIndex--;
-    }
+    if (history.length > 50) { history.shift(); historyIndex--; }
 }
-
 window.undoAction = function() {
-    if (historyIndex > 0) {
-        historyIndex--;
-        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
-        renderNodes();
-    }
+    if (historyIndex > 0) { historyIndex--; nodes = JSON.parse(JSON.stringify(history[historyIndex])); renderNodes(); }
 };
-
 window.redoAction = function() {
-    if (historyIndex < history.length - 1) {
-        historyIndex++;
-        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
-        renderNodes();
-    }
+    if (historyIndex < history.length - 1) { historyIndex++; nodes = JSON.parse(JSON.stringify(history[historyIndex])); renderNodes(); }
 };
-
 window.clearCanvas = function() {
     if (nodes.length === 0) return;
-    nodes = [];
-    saveHistory();
-    renderNodes();
+    nodes = []; saveHistory(); renderNodes();
 };
-
 window.deleteNode = function(index) {
-    nodes.splice(index, 1);
-    saveHistory();
-    renderNodes();
+    nodes.splice(index, 1); saveHistory(); renderNodes();
 };
-
 window.addNode = function(type) {
     const baseX = 200 + Math.random() * 300;
     const baseY = 200 + Math.random() * 300;
@@ -96,13 +96,11 @@ window.addNode = function(type) {
         content: type === 'text' ? '输入你的回复...' : '按钮名称',
         buttons: type === 'button' ? ['按钮1', '按钮2'] : []
     };
-    nodes.push(newNode);
-    saveHistory();
-    renderNodes();
+    nodes.push(newNode); saveHistory(); renderNodes();
 };
 
 // ==========================================
-// 3. 右键菜单控制
+// 3. 右键菜单控制（不变）
 // ==========================================
 let hideTimeout = null;
 function hideContextMenu() {
@@ -127,86 +125,63 @@ function showContextMenu(e) {
     menu.style.left = left + 'px'; menu.style.top = top + 'px';
     setTimeout(() => { menu.classList.add('open'); }, 20);
 }
-
 document.addEventListener("DOMContentLoaded", function() {
     const menu = document.getElementById('ctxMenu');
     const menuItems = document.querySelectorAll('#ctxMenu .value');
-
     document.addEventListener('click', function(e) {
         if (menu.contains(e.target)) {
             const item = e.target.closest('.value');
             if (item) {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); e.preventDefault();
                 menuItems.forEach(b => b.classList.remove('active'));
                 item.classList.add('active');
-
                 if (item.dataset.action === 'toggle_panel') {
                     const btnText = item.querySelector('.btn-text');
                     togglePanel();
                     const isHidden = document.getElementById('configPanel').dataset.hidden === 'true';
                     btnText.textContent = isHidden ? '展开面板' : '隐藏面板';
                     hideContextMenu();
-                } else {
-                    hideContextMenu();
-                }
+                } else { hideContextMenu(); }
             }
             return;
         }
-
         if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
-            showContextMenu(e);
-            return;
+            showContextMenu(e); return;
         }
-
         hideContextMenu();
     });
-
-    // 鼠标滚轮缩放（兼容PC）
+    // PC 滚轮缩放
     canvasAreaWrapper.addEventListener('wheel', function(e) {
         e.preventDefault();
         const rect = canvasAreaWrapper.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-
         const delta = -e.deltaY * 0.001;
         const newScale = Math.min(Math.max(0.1, currentScale + delta), 3.0);
-        
-        // 计算缩放中心点对应的坐标
         const canvasCoordX = (mouseX - canvasOffsetX) / currentScale;
         const canvasCoordY = (mouseY - canvasOffsetY) / currentScale;
-
         currentScale = newScale;
         canvasOffsetX = mouseX - canvasCoordX * currentScale;
         canvasOffsetY = mouseY - canvasCoordY * currentScale;
-
         applyCanvasTransform();
     }, { passive: false });
 });
 
 // ==========================================
-// 4. 机器人绑定与自动填写
+// 4. 绑定与机器人相关（不变）
 // ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
     const status = document.getElementById('botStatus');
-    
     if (token.length < 10) {
-        status.innerHTML = '❌ Token 格式错误';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
+        status.innerHTML = '❌ Token 格式错误'; status.className = 'mt-2 text-[10px] text-red-400'; return;
     }
     if (!chatId || chatId.length < 1) {
-        status.innerHTML = '❌ 请输入绑定的 Telegram ID';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
+        status.innerHTML = '❌ 请输入绑定的 Telegram ID'; status.className = 'mt-2 text-[10px] text-red-400'; return;
     }
-
-    status.innerHTML = '⏳ 正在验证并发送绑定消息...';
-    status.className = 'mt-2 text-[10px] text-gray-400';
-
+    status.innerHTML = '⏳ 正在验证并发送绑定消息...'; status.className = 'mt-2 text-[10px] text-gray-400';
     fetch('/api/bind_bot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,65 +199,48 @@ window.connectBot = function() {
         }
     })
     .catch(() => {
-        status.innerHTML = '❌ 网络请求失败，请稍后重试。';
-        status.className = 'mt-2 text-[10px] text-red-400';
+        status.innerHTML = '❌ 网络请求失败，请稍后重试。'; status.className = 'mt-2 text-[10px] text-red-400';
     });
 };
-
 window.autoFillBot = function() {
     const tokenInput = document.getElementById('botTokenInput');
     const idInput = document.getElementById('telegramIdInput');
     const status = document.getElementById('botStatus');
-
     if (!navigator.clipboard) {
-        status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
+        status.innerHTML = '❌ 你的浏览器不支持读取剪贴板'; status.className = 'mt-2 text-[10px] text-red-400'; return;
     }
-
     navigator.clipboard.readText().then(text => {
         if (!text || text.trim() === '') {
-            status.innerHTML = '❌ 自动填写失败：剪贴板为空';
-            status.className = 'mt-2 text-[10px] text-red-400';
-            return;
+            status.innerHTML = '❌ 自动填写失败：剪贴板为空'; status.className = 'mt-2 text-[10px] text-red-400'; return;
         }
-        
-        let foundToken = false;
-        let foundId = false;
-
+        let foundToken = false, foundId = false;
         const lines = text.split(/\r?\n/);
         lines.forEach(line => {
             const trimmed = line.trim();
             if (!trimmed) return;
-
             if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-                tokenInput.value = trimmed;
-                foundToken = true;
+                tokenInput.value = trimmed; foundToken = true;
             } 
-            else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
-                idInput.value = trimmed;
-                foundId = true;
+            else if (/^\d{5,15}$/.test(trimmed) && !foundId) {
+                idInput.value = trimmed; foundId = true;
             }
         });
-
         if (foundToken || foundId) {
             let msg = `✅ 自动识别成功！`;
             if (foundToken) msg += ` Token 已填入`;
             if (foundId) msg += ` ID 已填入`;
-            status.innerHTML = msg;
-            status.className = 'mt-2 text-[10px] text-green-400';
+            status.innerHTML = msg; status.className = 'mt-2 text-[10px] text-green-400';
         } else {
             status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
             status.className = 'mt-2 text-[10px] text-red-400';
         }
     }).catch(err => {
-        status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
-        status.className = 'mt-2 text-[10px] text-red-400';
+        status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置'; status.className = 'mt-2 text-[10px] text-red-400';
     });
 };
 
 // ==========================================
-// 5. 界面功能（全屏、面板折叠）
+// 5. 其他界面功能
 // ==========================================
 function toggleFullScreen() {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -298,7 +256,6 @@ function togglePanel() {
         panel.dataset.hidden = 'true'; handle.classList.remove('hidden');
     }
 }
-
 document.addEventListener("DOMContentLoaded", function() {
     const originalToggle = window.toggleAgentPanel;
     window.toggleAgentPanel = function() {
@@ -316,36 +273,26 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 画布与节点拖拽控制（修复黑屏边界与双指焦点）
+// 6. 核心画布拖拽与双指缩放（精确跟随手指）
 // ==========================================
-// --- PC 鼠标事件 ---
 canvasArea.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
-    isDraggingCanvas = true;
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
+    isDraggingCanvas = true; lastMouseX = e.clientX; lastMouseY = e.clientY;
     canvasArea.style.cursor = 'grabbing';
 });
-
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
         const top = e.clientY - startY - canvasArea.getBoundingClientRect().top;
-        currentDragNode.style.left = left + 'px';
-        currentDragNode.style.top = top + 'px';
+        currentDragNode.style.left = left + 'px'; currentDragNode.style.top = top + 'px';
     }
     if (isDraggingCanvas) {
-        const dx = e.clientX - lastMouseX;
-        const dy = e.clientY - lastMouseY;
-        canvasOffsetX += dx;
-        canvasOffsetY += dy;
-        // 移除旧的固定限制，交给 applyCanvasTransform 统一处理
-        applyCanvasTransform(); 
-        lastMouseX = e.clientX;
-        lastMouseY = e.clientY;
+        const dx = e.clientX - lastMouseX; const dy = e.clientY - lastMouseY;
+        canvasOffsetX += dx; canvasOffsetY += dy;
+        applyCanvasTransform();
+        lastMouseX = e.clientX; lastMouseY = e.clientY;
     }
 });
-
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
@@ -354,98 +301,62 @@ document.addEventListener('mouseup', (e) => {
             nodes[index].y = parseFloat(currentDragNode.style.top);
             saveHistory();
         }
-        currentDragNode.style.zIndex = 1;
-        isDraggingNode = false;
-        currentDragNode = null;
+        currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
     if (isDraggingCanvas) {
-        isDraggingCanvas = false;
-        canvasArea.style.cursor = 'grab';
+        isDraggingCanvas = false; canvasArea.style.cursor = 'grab';
     }
 });
-
-// --- 移动端/触控板 触摸事件 ---
+// 移动端触摸事件
 canvasArea.addEventListener('touchstart', (e) => {
-    // 如果点击的是节点，不触发画布拖拽
     if (e.target.closest('.canvas-node')) return; 
-
     if (e.touches.length === 1) {
         const touch = e.touches[0];
-        isDraggingCanvas = true;
-        lastMouseX = touch.clientX;
-        lastMouseY = touch.clientY;
+        isDraggingCanvas = true; lastMouseX = touch.clientX; lastMouseY = touch.clientY;
     } else if (e.touches.length === 2) {
-        // 双指触控开始检测
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
+        const touch1 = e.touches[0]; const touch2 = e.touches[1];
         lastPinchDist = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-        initialPinchScale = currentScale;
         isPinching = true;
     }
 });
-
 document.addEventListener('touchmove', (e) => {
-    // 1. 处理节点拖拽
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         const touch = e.touches[0];
         const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
         const top = touch.clientY - startY - canvasArea.getBoundingClientRect().top;
-        currentDragNode.style.left = left + 'px';
-        currentDragNode.style.top = top + 'px';
-        e.preventDefault();
-        return;
+        currentDragNode.style.left = left + 'px'; currentDragNode.style.top = top + 'px';
+        e.preventDefault(); return;
     }
-
-    // 2. 处理画布拖拽
     if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
-        const dx = touch.clientX - lastMouseX;
-        const dy = touch.clientY - lastMouseY;
-        canvasOffsetX += dx;
-        canvasOffsetY += dy;
+        const dx = touch.clientX - lastMouseX; const dy = touch.clientY - lastMouseY;
+        canvasOffsetX += dx; canvasOffsetY += dy;
         applyCanvasTransform();
-        lastMouseX = touch.clientX;
-        lastMouseY = touch.clientY;
-        e.preventDefault();
-        return;
+        lastMouseX = touch.clientX; lastMouseY = touch.clientY;
+        e.preventDefault(); return;
     }
-
-    // 3. 核心修复：处理双指缩放（保证手指在哪个位置，哪里就放大）
+    // ✨ 核心修复：双指缩放（精准跟随手指重心）
     if (isPinching && e.touches.length === 2) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
+        const touch1 = e.touches[0]; const touch2 = e.touches[1];
         const currentDist = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
-        
-        // 计算双指中心点
         const midX = (touch1.clientX + touch2.clientX) / 2;
         const midY = (touch1.clientY + touch2.clientY) / 2;
-        
-        // 获取相对画布区域的精确坐标
         const rect = canvasAreaWrapper.getBoundingClientRect();
-        const mouseX = midX - rect.left;
-        const mouseY = midY - rect.top;
+        const mouseX = midX - rect.left; const mouseY = midY - rect.top;
         
-        // 计算在当前画布坐标下的映射位置
         const canvasCoordX = (mouseX - canvasOffsetX) / currentScale;
         const canvasCoordY = (mouseY - canvasOffsetY) / currentScale;
-        
-        // 计算缩放比例
         const scaleFactor = currentDist / lastPinchDist;
         const newScale = Math.min(Math.max(0.1, currentScale * scaleFactor), 3.0);
         
-        // 应用缩放并重算偏移，确保中心点不变
         currentScale = newScale;
         canvasOffsetX = mouseX - canvasCoordX * currentScale;
         canvasOffsetY = mouseY - canvasCoordY * currentScale;
-        
-        // 应用动态边界
         applyCanvasTransform();
-        
         lastPinchDist = currentDist;
         e.preventDefault();
     }
 }, { passive: false });
-
 document.addEventListener('touchend', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
@@ -454,17 +365,12 @@ document.addEventListener('touchend', (e) => {
             nodes[index].y = parseFloat(currentDragNode.style.top);
             saveHistory();
         }
-        currentDragNode.style.zIndex = 1;
-        isDraggingNode = false;
-        currentDragNode = null;
+        currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
     if (isDraggingCanvas) {
-        isDraggingCanvas = false;
-        canvasArea.style.cursor = 'grab';
+        isDraggingCanvas = false; canvasArea.style.cursor = 'grab';
     }
-    if (isPinching) {
-        isPinching = false;
-    }
+    if (isPinching) { isPinching = false; }
 });
 
 // ==========================================
@@ -475,15 +381,9 @@ function renderNodes() {
     nodes.forEach((node, index) => {
         const el = document.createElement('div');
         el.className = 'canvas-node';
-        
-        if (node.type === 'bot') {
-            el.classList.add('bot-node');
-        }
-        
-        el.style.left = node.x + 'px';
-        el.style.top = node.y + 'px';
+        if (node.type === 'bot') { el.classList.add('bot-node'); }
+        el.style.left = node.x + 'px'; el.style.top = node.y + 'px';
         el.dataset.index = index;
-
         let bodyHtml = ``;
         if (node.type === 'text') {
             bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
@@ -514,40 +414,26 @@ function renderNodes() {
             `;
         }
         el.innerHTML = bodyHtml;
-
-        // 鼠标拖拽节点（PC）
         el.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            if (e.button !== 0) return;
-            isDraggingNode = true;
-            currentDragNode = el;
+            e.stopPropagation(); if (e.button !== 0) return;
+            isDraggingNode = true; currentDragNode = el;
             const rect = el.getBoundingClientRect();
-            startX = e.clientX - rect.left;
-            startY = e.clientY - rect.top;
+            startX = e.clientX - rect.left; startY = e.clientY - rect.top;
             el.style.zIndex = 100;
         });
-
-        // 触控板/手机 拖拽节点
         el.addEventListener('touchstart', (e) => {
-            e.stopPropagation();
-            if (e.touches.length !== 1) return;
-            isDraggingNode = true;
-            currentDragNode = el;
+            e.stopPropagation(); if (e.touches.length !== 1) return;
+            isDraggingNode = true; currentDragNode = el;
             const rect = el.getBoundingClientRect();
-            startX = e.touches[0].clientX - rect.left;
-            startY = e.touches[0].clientY - rect.top;
+            startX = e.touches[0].clientX - rect.left; startY = e.touches[0].clientY - rect.top;
             el.style.zIndex = 100;
         });
-
         nodeContainer.appendChild(el);
     });
 }
-
 window.addBotNode = function(name, avatar) {
     const botCount = nodes.filter(n => n.type === 'bot').length;
-    const baseX = 1500; 
-    const baseY = 750 + (botCount * 160);
-
+    const baseX = 1500; const baseY = 750 + (botCount * 160);
     const newNode = {
         id: Date.now() + Math.random(),
         type: 'bot',
@@ -556,8 +442,6 @@ window.addBotNode = function(name, avatar) {
         x: baseX,
         y: baseY
     };
-    nodes.push(newNode);
-    saveHistory();
-    renderNodes();
+    nodes.push(newNode); saveHistory(); renderNodes();
 };
 </script>
