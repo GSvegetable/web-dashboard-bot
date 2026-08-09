@@ -1,13 +1,13 @@
 <script>
 // ==========================================
-// 0. 调试弹窗工具 (看你长按识别是否准确)
+// 0. 调试弹窗工具
 // ==========================================
 const debugEl = document.createElement('div');
 debugEl.style.position = 'fixed';
 debugEl.style.bottom = '160px';
 debugEl.style.left = '50%';
 debugEl.style.transform = 'translateX(-50%)';
-debugEl.style.background = 'rgba(0, 0, 0, 0.75)';
+debugEl.style.background = 'rgba(0, 0, 0, 0.8)';
 debugEl.style.color = '#fff';
 debugEl.style.padding = '12px 24px';
 debugEl.style.borderRadius = '12px';
@@ -25,11 +25,9 @@ function showDebug(msg, type = 'info') {
     debugEl.textContent = msg;
     debugEl.style.opacity = '1';
     debugEl.style.transform = 'translateX(-50%) translateY(0)';
-    
-    if (type === 'node') debugEl.style.borderLeft = '6px solid #22c55e'; // 绿色
-    else if (type === 'bg') debugEl.style.borderLeft = '6px solid #3b82f6'; // 蓝色
-    else debugEl.style.borderLeft = '6px solid #8b5cf6'; // 紫色
-
+    if (type === 'node') debugEl.style.borderLeft = '6px solid #22c55e'; 
+    else if (type === 'bg') debugEl.style.borderLeft = '6px solid #3b82f6'; 
+    else debugEl.style.borderLeft = '6px solid #8b5cf6'; 
     clearTimeout(debugEl._timer);
     debugEl._timer = setTimeout(() => {
         debugEl.style.opacity = '0';
@@ -48,8 +46,6 @@ let isDraggingNode = false;
 let currentDragNode = null;
 let canvasOffsetX = 0, canvasOffsetY = 0;
 let lastMouseX = 0, lastMouseY = 0;
-
-// ✨ 新增：记录触屏开始时的绝对坐标
 let startTouchX = 0, startTouchY = 0; 
 let startNodeX = 0, startNodeY = 0; 
 
@@ -66,55 +62,16 @@ function saveHistory() {
     history = history.slice(0, historyIndex + 1);
     history.push(JSON.parse(JSON.stringify(nodes)));
     historyIndex++;
-    if (history.length > 50) {
-        history.shift();
-        historyIndex--;
-    }
+    if (history.length > 50) { history.shift(); historyIndex--; }
 }
-
-window.undoAction = function() {
-    if (historyIndex > 0) {
-        historyIndex--;
-        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
-        renderNodes();
-    }
-};
-
-window.redoAction = function() {
-    if (historyIndex < history.length - 1) {
-        historyIndex++;
-        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
-        renderNodes();
-    }
-};
-
-window.clearCanvas = function() {
-    if (nodes.length === 0) return;
-    nodes = [];
-    saveHistory();
-    renderNodes();
-};
-
-window.deleteNode = function(index) {
-    nodes.splice(index, 1);
-    saveHistory();
-    renderNodes();
-};
-
+window.undoAction = function() { if (historyIndex > 0) { historyIndex--; nodes = JSON.parse(JSON.stringify(history[historyIndex])); renderNodes(); } };
+window.redoAction = function() { if (historyIndex < history.length - 1) { historyIndex++; nodes = JSON.parse(JSON.stringify(history[historyIndex])); renderNodes(); } };
+window.clearCanvas = function() { if (nodes.length === 0) return; nodes = []; saveHistory(); renderNodes(); };
+window.deleteNode = function(index) { nodes.splice(index, 1); saveHistory(); renderNodes(); };
 window.addNode = function(type) {
-    const baseX = 200 + Math.random() * 300;
-    const baseY = 200 + Math.random() * 300;
-    const newNode = {
-        id: Date.now() + Math.random(),
-        type: type,
-        x: baseX,
-        y: baseY,
-        content: type === 'text' ? '输入你的回复...' : '按钮名称',
-        buttons: type === 'button' ? ['按钮1', '按钮2'] : []
-    };
-    nodes.push(newNode);
-    saveHistory();
-    renderNodes();
+    const baseX = 200 + Math.random() * 300, baseY = 200 + Math.random() * 300;
+    const newNode = { id: Date.now() + Math.random(), type: type, x: baseX, y: baseY, content: type === 'text' ? '输入你的回复...' : '按钮名称', buttons: type === 'button' ? ['按钮1', '按钮2'] : [] };
+    nodes.push(newNode); saveHistory(); renderNodes();
 };
 
 // ==========================================
@@ -147,34 +104,24 @@ function showContextMenu(e) {
 document.addEventListener("DOMContentLoaded", function() {
     const menu = document.getElementById('ctxMenu');
     const menuItems = document.querySelectorAll('#ctxMenu .value');
-
     document.addEventListener('click', function(e) {
         if (menu.contains(e.target)) {
             const item = e.target.closest('.value');
             if (item) {
-                e.stopPropagation();
-                e.preventDefault();
+                e.stopPropagation(); e.preventDefault();
                 menuItems.forEach(b => b.classList.remove('active'));
                 item.classList.add('active');
-
                 if (item.dataset.action === 'toggle_panel') {
                     const btnText = item.querySelector('.btn-text');
                     togglePanel();
                     const isHidden = document.getElementById('configPanel').dataset.hidden === 'true';
                     btnText.textContent = isHidden ? '展开面板' : '隐藏面板';
                     hideContextMenu();
-                } else {
-                    hideContextMenu();
-                }
+                } else { hideContextMenu(); }
             }
             return;
         }
-
-        if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
-            showContextMenu(e);
-            return;
-        }
-
+        if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) { showContextMenu(e); return; }
         hideContextMenu();
     });
 });
@@ -187,111 +134,53 @@ window.connectBot = function() {
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
     const status = document.getElementById('botStatus');
-    
-    if (token.length < 10) {
-        status.innerHTML = '❌ Token 格式错误';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
-    }
-    if (!chatId || chatId.length < 1) {
-        status.innerHTML = '❌ 请输入绑定的 Telegram ID';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
-    }
-
-    status.innerHTML = '⏳ 正在验证并发送绑定消息...';
-    status.className = 'mt-2 text-[10px] text-gray-400';
-
-    fetch('/api/bind_bot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token, telegram_id: chatId, name: name })
-    })
+    if (token.length < 10) { status.innerHTML = '❌ Token 格式错误'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+    if (!chatId || chatId.length < 1) { status.innerHTML = '❌ 请输入绑定的 Telegram ID'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+    status.innerHTML = '⏳ 正在验证并发送绑定消息...'; status.className = 'mt-2 text-[10px] text-gray-400';
+    fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(res => res.json())
     .then(data => {
-        if (data.ok) {
-            status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
-            status.className = 'mt-2 text-[10px] text-green-400';
-            window.addBotNode(data.bot_name || name, data.bot_avatar_url);
-        } else {
-            status.innerHTML = `❌ 绑定失败: ${data.msg}`;
-            status.className = 'mt-2 text-[10px] text-red-400';
-        }
+        if (data.ok) { status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`; status.className = 'mt-2 text-[10px] text-green-400'; window.addBotNode(data.bot_name || name, data.bot_avatar_url); }
+        else { status.innerHTML = `❌ 绑定失败: ${data.msg}`; status.className = 'mt-2 text-[10px] text-red-400'; }
     })
-    .catch(() => {
-        status.innerHTML = '❌ 网络请求失败，请稍后重试。';
-        status.className = 'mt-2 text-[10px] text-red-400';
-    });
+    .catch(() => { status.innerHTML = '❌ 网络请求失败，请稍后重试。'; status.className = 'mt-2 text-[10px] text-red-400'; });
 };
 
 window.autoFillBot = function() {
-    const tokenInput = document.getElementById('botTokenInput');
-    const idInput = document.getElementById('telegramIdInput');
+    const tokenInput = document.getElementById('botTokenInput'), idInput = document.getElementById('telegramIdInput');
     const status = document.getElementById('botStatus');
-
-    if (!navigator.clipboard) {
-        status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
-        status.className = 'mt-2 text-[10px] text-red-400';
-        return;
-    }
-
+    if (!navigator.clipboard) { status.innerHTML = '❌ 你的浏览器不支持读取剪贴板'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
     navigator.clipboard.readText().then(text => {
-        if (!text || text.trim() === '') {
-            status.innerHTML = '❌ 自动填写失败：剪贴板为空';
-            status.className = 'mt-2 text-[10px] text-red-400';
-            return;
-        }
-        
-        let foundToken = false;
-        let foundId = false;
-
+        if (!text || text.trim() === '') { status.innerHTML = '❌ 自动填写失败：剪贴板为空'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        let foundToken = false, foundId = false;
         const lines = text.split(/\r?\n/);
         lines.forEach(line => {
             const trimmed = line.trim();
             if (!trimmed) return;
-
-            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-                tokenInput.value = trimmed;
-                foundToken = true;
-            } 
-            else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
-                idInput.value = trimmed;
-                foundId = true;
-            }
+            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) { tokenInput.value = trimmed; foundToken = true; } 
+            else if (/^\d{5,15}$/.test(trimmed) && !foundId) { idInput.value = trimmed; foundId = true; }
         });
-
         if (foundToken || foundId) {
             let msg = `✅ 自动识别成功！`;
             if (foundToken) msg += ` Token 已填入`;
             if (foundId) msg += ` ID 已填入`;
-            status.innerHTML = msg;
-            status.className = 'mt-2 text-[10px] text-green-400';
+            status.innerHTML = msg; status.className = 'mt-2 text-[10px] text-green-400';
         } else {
             status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
             status.className = 'mt-2 text-[10px] text-red-400';
         }
-    }).catch(err => {
-        status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
-        status.className = 'mt-2 text-[10px] text-red-400';
-    });
+    }).catch(err => { status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置'; status.className = 'mt-2 text-[10px] text-red-400'; });
 };
 
 // ==========================================
 // 5. 界面功能（全屏、面板折叠）
 // ==========================================
-function toggleFullScreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else if (document.exitFullscreen) document.exitFullscreen();
-}
+function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
 function togglePanel() {
     const panel = document.getElementById('configPanel'), handle = document.getElementById('panelHandle');
     const isHidden = panel.dataset.hidden === 'true';
-    if (isHidden) {
-        panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden');
-    } else {
-        const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`;
-        panel.dataset.hidden = 'true'; handle.classList.remove('hidden');
-    }
+    if (isHidden) { panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden'); }
+    else { const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`; panel.dataset.hidden = 'true'; handle.classList.remove('hidden'); }
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -302,23 +191,20 @@ document.addEventListener("DOMContentLoaded", function() {
         const isWorkspace = !document.getElementById('cardStackContainer');
         if (isWorkspace) {
             if (wrapper.style.display === 'block') { panel.classList.add('translate-y-full'); setTimeout(() => { wrapper.style.display = 'none'; }, 300); }
-            else {
-                wrapper.style.display = 'block'; wrapper.style.width = '360px'; wrapper.style.left = 'auto'; wrapper.style.right = '24px'; wrapper.style.transform = 'none';
-                setTimeout(() => { panel.classList.remove('translate-y-full'); const input = document.getElementById('agentInput'); if (input) setTimeout(() => input.focus(), 400); }, 10);
-            }
+            else { wrapper.style.display = 'block'; wrapper.style.width = '360px'; wrapper.style.left = 'auto'; wrapper.style.right = '24px'; wrapper.style.transform = 'none'; setTimeout(() => { panel.classList.remove('translate-y-full'); const input = document.getElementById('agentInput'); if (input) setTimeout(() => input.focus(), 400); }, 10); }
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // ✨ 画布背景触摸监听器。
+    // ✨ 标记画布背景：只有手指明确没有放在节点上，才允许激活背景拖拽
     canvasArea.addEventListener('touchstart', (e) => {
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
-            showDebug('🟢 识别：长按【节点卡片】 (开始拖拽节点)', 'node');
+            showDebug('🟢 识别：长按【节点卡片】', 'node');
             return;
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
-            showDebug('🔵 识别：长按【背景】 (开始拖拽画布)', 'bg');
+            showDebug('🔵 识别：长按【背景】', 'bg');
             const touch = e.touches[0];
             lastMouseX = touch.clientX;
             lastMouseY = touch.clientY;
@@ -327,36 +213,23 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心节点渲染器（✨ 重写了手机拖拽坐标计算）
+// 6. 核心节点渲染器（✨ 触屏采用彻底阻断冒泡法）
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
     nodes.forEach((node, index) => {
         const el = document.createElement('div');
         el.className = 'canvas-node';
-        
-        if (node.type === 'bot') {
-            el.classList.add('bot-node');
-        }
-        
-        el.style.left = node.x + 'px';
-        el.style.top = node.y + 'px';
-        el.dataset.index = index;
-
+        if (node.type === 'bot') { el.classList.add('bot-node'); }
+        el.style.left = node.x + 'px'; el.style.top = node.y + 'px'; el.dataset.index = index;
         let bodyHtml = ``;
         if (node.type === 'text') {
             bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
-            bodyHtml += `<div class="node-title">自动回复</div>`;
-            bodyHtml += `<div class="node-body">${node.content || '点击输入文本...'}</div>`;
+            bodyHtml += `<div class="node-title">自动回复</div><div class="node-body">${node.content || '点击输入文本...'}</div>`;
         } else if (node.type === 'button') {
             bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
-            bodyHtml += `<div class="node-title">按钮菜单</div>`;
-            bodyHtml += `<div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
-            if (node.buttons && node.buttons.length > 0) {
-                node.buttons.forEach(b => {
-                    bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
-                });
-            }
+            bodyHtml += `<div class="node-title">按钮菜单</div><div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
+            if (node.buttons && node.buttons.length > 0) { node.buttons.forEach(b => { bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`; }); }
         } else if (node.type === 'bot') {
             const avatarUrl = node.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(node.name)}&background=493F36&color=fff&size=128`;
             bodyHtml = `
@@ -374,150 +247,87 @@ function renderNodes() {
         }
         el.innerHTML = bodyHtml;
 
-        // 1. 电脑鼠标拖拽
-        el.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            if (e.button !== 0) return;
-            isDraggingNode = true;
-            currentDragNode = el;
-            const rect = el.getBoundingClientRect();
-            startX = e.clientX - rect.left;
-            startY = e.clientY - rect.top;
-            el.style.zIndex = 100;
-        });
+        // 电脑鼠标拖拽
+        el.addEventListener('mousedown', (e) => { e.stopPropagation(); if (e.button !== 0) return; isDraggingNode = true; currentDragNode = el; const rect = el.getBoundingClientRect(); startX = e.clientX - rect.left; startY = e.clientY - rect.top; el.style.zIndex = 100; });
 
-        // 2. ✨ 手机触屏长按拖拽（使用绝对差值法，绝对不依赖画布偏移量）
+        // ✨ 手机触屏长按：记录绝对基准位
         el.addEventListener('touchstart', (e) => {
-            e.stopPropagation(); 
-            e.preventDefault();  
-            if (e.touches.length !== 1) return;
-            
-            showDebug('🟢 验证：节点长按已生效，手指滑动节点会跟着走', 'node');
-            
-            // 记录触摸点初始绝对坐标
+            e.stopPropagation(); e.preventDefault(); if (e.touches.length !== 1) return;
+            showDebug('🟢 验证：节点长按生效，画布被锁死！', 'node');
             const touch = e.touches[0];
-            startTouchX = touch.clientX;
-            startTouchY = touch.clientY;
-
-            // 记录该节点数据的初始坐标
-            const idx = parseInt(el.dataset.index);
-            if (isNaN(idx)) return;
-            startNodeX = nodes[idx].x;
-            startNodeY = nodes[idx].y;
-            
-            // 保存到 DOM 属性备用
-            el.dataset.startX = startNodeX;
-            el.dataset.startY = startNodeY;
-
-            isDraggingNode = true;
-            isDraggingCanvas = false; 
-            currentDragNode = el;
-            el.style.zIndex = 100;
+            startTouchX = touch.clientX; startTouchY = touch.clientY;
+            const idx = parseInt(el.dataset.index); if (isNaN(idx)) return;
+            startNodeX = nodes[idx].x; startNodeY = nodes[idx].y;
+            isDraggingNode = true; isDraggingCanvas = false; currentDragNode = el; el.style.zIndex = 100;
         }, { passive: false });
 
         nodeContainer.appendChild(el);
     });
 }
 
-// ✨ 3. 全局鼠标移动（电脑端）
+// ✨ 3. 桌面端鼠标移动
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
         const top = e.clientY - startY - canvasArea.getBoundingClientRect().top;
-        currentDragNode.style.left = left + 'px';
-        currentDragNode.style.top = top + 'px';
+        currentDragNode.style.left = left + 'px'; currentDragNode.style.top = top + 'px';
     }
 });
 
-// ✨ 4. 全局触屏移动（手机端重写，核心阻断逻辑）
+// ✨ 4. 手机端触屏移动（极其严格的阻断逻辑）
 document.addEventListener('touchmove', (e) => {
-    // 🛡️ 只要处于节点拖拽状态，立刻拦截，绝对不让画布逻辑走通！
+    // 只要识别为拖拽节点，立刻阻断事件传给画布，并处理节点移动
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
+        e.stopPropagation(); // 🛡️ 核心护卫！绝对阻断冒泡，画布根本收不到事件！
+        e.preventDefault();  // 🛡️ 阻止页面滚动
         const touch = e.touches[0];
-        // 计算手指滑动的物理距离
         const dx = touch.clientX - startTouchX;
         const dy = touch.clientY - startTouchY;
-        
         const index = parseInt(currentDragNode.dataset.index);
         if (!isNaN(index)) {
-            // 基于存储的最初数据坐标进行绝对加减，100% 跟随手指
             const newX = startNodeX + dx;
             const newY = startNodeY + dy;
-            
-            // 实时更新内存数据和页面元素
-            nodes[index].x = newX;
-            nodes[index].y = newY;
+            nodes[index].x = newX; nodes[index].y = newY;
             currentDragNode.style.left = newX + 'px';
             currentDragNode.style.top = newY + 'px';
         }
-        e.preventDefault(); 
-        return; // ⚠️ 核心核心：走到这里直接中断，背景代码绝不执行！
+        return; // ⚠️ 执行完毕直接退出，绝不执行下方的画布逻辑！
     } 
-    // 如果没触发节点逻辑，才检查是不是在拖背景
+    // 只有在确定没有拖拽节点时，才允许处理画布平移
     else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
-        const dx = touch.clientX - lastMouseX;
-        const dy = touch.clientY - lastMouseY;
-        canvasOffsetX += dx;
-        canvasOffsetY += dy;
+        const dx = touch.clientX - lastMouseX; const dy = touch.clientY - lastMouseY;
+        canvasOffsetX += dx; canvasOffsetY += dy;
         canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
         canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
         canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px)`;
-        lastMouseX = touch.clientX;
-        lastMouseY = touch.clientY;
+        lastMouseX = touch.clientX; lastMouseY = touch.clientY;
         e.preventDefault();
     }
 }, { passive: false });
 
-// ✨ 5. 鼠标/触屏释放监听
+// ✨ 5. 释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
-        if (!isNaN(index)) {
-            nodes[index].x = parseFloat(currentDragNode.style.left);
-            nodes[index].y = parseFloat(currentDragNode.style.top);
-            saveHistory();
-        }
-        currentDragNode.style.zIndex = 1;
-        isDraggingNode = false;
-        currentDragNode = null;
+        if (!isNaN(index)) { nodes[index].x = parseFloat(currentDragNode.style.left); nodes[index].y = parseFloat(currentDragNode.style.top); saveHistory(); }
+        currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
 });
-
 document.addEventListener('touchend', (e) => {
     if (isDraggingNode && currentDragNode) {
         showDebug('🟢 节点拖拽结束', 'node');
         const index = parseInt(currentDragNode.dataset.index);
-        if (!isNaN(index)) {
-            nodes[index].x = parseFloat(currentDragNode.style.left);
-            nodes[index].y = parseFloat(currentDragNode.style.top);
-            saveHistory();
-        }
-        currentDragNode.style.zIndex = 1;
-        isDraggingNode = false;
-        currentDragNode = null;
+        if (!isNaN(index)) { nodes[index].x = parseFloat(currentDragNode.style.left); nodes[index].y = parseFloat(currentDragNode.style.top); saveHistory(); }
+        currentDragNode.style.zIndex = 1; isDraggingNode = false; currentDragNode = null;
     }
-    if (isDraggingCanvas) {
-        showDebug('🔵 背景拖拽结束', 'bg');
-        isDraggingCanvas = false;
-    }
+    if (isDraggingCanvas) { showDebug('🔵 背景拖拽结束', 'bg'); isDraggingCanvas = false; }
 });
 
 window.addBotNode = function(name, avatar) {
     const botCount = nodes.filter(n => n.type === 'bot').length;
-    const baseX = 1500; 
-    const baseY = 750 + (botCount * 160);
-
-    const newNode = {
-        id: Date.now() + Math.random(),
-        type: 'bot',
-        name: name || '我的机器人',
-        avatar: avatar || null,
-        x: baseX,
-        y: baseY
-    };
-    nodes.push(newNode);
-    saveHistory();
-    renderNodes();
+    const baseX = 1500; const baseY = 750 + (botCount * 160);
+    const newNode = { id: Date.now() + Math.random(), type: 'bot', name: name || '我的机器人', avatar: avatar || null, x: baseX, y: baseY };
+    nodes.push(newNode); saveHistory(); renderNodes();
 };
 </script>
