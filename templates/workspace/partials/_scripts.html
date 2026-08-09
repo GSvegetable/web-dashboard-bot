@@ -173,7 +173,7 @@ window.autoFillBot = function() {
 };
 
 // ==========================================
-// 5. 界面功能（全屏、面板折叠）
+// 5. 界面功能
 // ==========================================
 function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
 function togglePanel() {
@@ -195,12 +195,13 @@ document.addEventListener("DOMContentLoaded", function() {
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // ✨ 标记画布背景：只有手指明确没有放在节点上，才允许激活背景拖拽
+    // 🟢 核心修改 1：只有明确没碰到节点时，才允许画布开启“背景拖拽”
     canvasArea.addEventListener('touchstart', (e) => {
+        // 碰到节点，立刻取消画布拖拽资格
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
             showDebug('🟢 识别：长按【节点卡片】', 'node');
-            return;
+            return; // 直接退出，绝不记录背景的坐标
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
@@ -213,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心节点渲染器（✨ 触屏采用彻底阻断冒泡法）
+// 6. 核心节点渲染器
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
@@ -246,14 +247,12 @@ function renderNodes() {
             `;
         }
         el.innerHTML = bodyHtml;
-
-        // 电脑鼠标拖拽
         el.addEventListener('mousedown', (e) => { e.stopPropagation(); if (e.button !== 0) return; isDraggingNode = true; currentDragNode = el; const rect = el.getBoundingClientRect(); startX = e.clientX - rect.left; startY = e.clientY - rect.top; el.style.zIndex = 100; });
 
-        // ✨ 手机触屏长按：记录绝对基准位
+        // 🟢 手机触屏长按：记录基准位置
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation(); e.preventDefault(); if (e.touches.length !== 1) return;
-            showDebug('🟢 验证：节点长按生效，画布被锁死！', 'node');
+            showDebug('🟢 验证：节点长按生效，画布已被彻底锁死！', 'node');
             const touch = e.touches[0];
             startTouchX = touch.clientX; startTouchY = touch.clientY;
             const idx = parseInt(el.dataset.index); if (isNaN(idx)) return;
@@ -265,7 +264,7 @@ function renderNodes() {
     });
 }
 
-// ✨ 3. 桌面端鼠标移动
+// 电脑鼠标移动
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -274,12 +273,12 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// ✨ 4. 手机端触屏移动（极其严格的阻断逻辑）
+// 🟢 核心修改 2：绝对防御型触屏移动判定
 document.addEventListener('touchmove', (e) => {
-    // 只要识别为拖拽节点，立刻阻断事件传给画布，并处理节点移动
+    // ⛔ 只要在拖节点，立刻阻断，永绝后患
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
-        e.stopPropagation(); // 🛡️ 核心护卫！绝对阻断冒泡，画布根本收不到事件！
-        e.preventDefault();  // 🛡️ 阻止页面滚动
+        e.stopPropagation(); // 事件到这就结束了，画布根本不知道手指在动！
+        e.preventDefault();  // 防止页面滚动
         const touch = e.touches[0];
         const dx = touch.clientX - startTouchX;
         const dy = touch.clientY - startTouchY;
@@ -291,9 +290,10 @@ document.addEventListener('touchmove', (e) => {
             currentDragNode.style.left = newX + 'px';
             currentDragNode.style.top = newY + 'px';
         }
-        return; // ⚠️ 执行完毕直接退出，绝不执行下方的画布逻辑！
+        return; // 走到这里直接结束，画布逻辑一秒都不会执行！
     } 
-    // 只有在确定没有拖拽节点时，才允许处理画布平移
+    
+    // ⛔ 如果没有拖节点，且拖画布标志为真，才去移动画布
     else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX; const dy = touch.clientY - lastMouseY;
@@ -306,7 +306,7 @@ document.addEventListener('touchmove', (e) => {
     }
 }, { passive: false });
 
-// ✨ 5. 释放监听
+// 释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
