@@ -5,7 +5,7 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 🔥 核心形状改动：用 clip-path 的 path() 走直角绕行，且内角圆润 */
+        /* 🔥 形状大改：清晰可见的直角绕行 + 内角圆润 + 6个角 */
         .panel-fullscreen {
             position: fixed !important;
             top: 20px !important;
@@ -22,24 +22,18 @@
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
 
-            /* ✨ 黄金关键：实际切割的 SVG 路径！
-               1. 上方贴边向左走，直到屏幕宽度的 80%（也就是右上角按钮组下方）。
-               2. 垂直往下 54px（深度）。
-               3. 用 A 12px 画一道向内凹的优美圆弧（形成圆润的直角）。
-               4. 向右继续贴边走到 100%。
-               5. 走完剩下的三边。
-            */
+            /* ✨ 核心切割路径：离右侧 160px 处直角下潜 140px，内角带 16px 圆弧，6个角清晰可见 */
             clip-path: path('M 0 0 
-                             L calc(100% - 380px) 0 
-                             L calc(100% - 380px) 54px 
-                             A 12px 12px 0 0 1 calc(100% - 368px) 66px 
-                             L 100% 66px 
+                             L calc(100% - 160px) 0 
+                             L calc(100% - 160px) 140px 
+                             A 16 16 0 0 1 calc(100% - 144px) 156px 
+                             L 100% 156px 
                              L 100% 100% 
                              L 0 100% Z') !important;
-            /* 完美 6 个角：左上、上直线尽头、垂直下降的角、内圆弧的两端角、右下、左下 */
+            /* 6个角解析：左上角、顶部直线末端、垂直切角点、圆弧两端的角、右下角、左下角 */
         }
 
-        /* 缩小回左下角的状态（恢复完整的矩形） */
+        /* 缩小回左下角的配置页面（恢复标准矩形） */
         .panel-collapsed {
             position: fixed !important;
             inset: auto !important;
@@ -54,7 +48,7 @@
             backdrop-filter: blur(24px) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
 
-            /* 缩小状态下恢复成完整矩形 */
+            /* 恢复矩形 */
             clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
         }
 
