@@ -1,0 +1,14 @@
+<div id="panelHome" class="flex-1 flex flex-col p-8 relative">
+    <h2 class="text-white text-2xl font-bold mb-6">我的机器人</h2>
+    
+    <!-- 这里未来可以放已绑定的机器人列表 -->
+    <div class="flex-1 flex flex-col items-center justify-center gap-4 text-center text-gray-400">
+        <p>你还没有绑定任何机器人。</p>
+        <p class="text-[11px] text-gray-500">点击下方按钮开始配置你的第一个机器人</p>
+        
+        <!-- 👉 核心入口按钮：点击后切换到配置子页面 -->
+        <button onclick="showConfigView()" class="bg-[#3c4779] hover:bg-[#2e385e] text-white rounded-xl px-6 py-3 text-sm font-medium transition active:scale-95">
+            添加 / 绑定机器人
+        </button>
+    </div>
+</div>
