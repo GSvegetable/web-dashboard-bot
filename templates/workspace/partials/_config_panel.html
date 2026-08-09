@@ -5,13 +5,13 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 🔥 核心形状改动：用 clip-path 切出右上角的“绕行缺口” */
+        /* 🔥 核心形状改动：用 clip-path 的 path() 走直角绕行，且内角圆润 */
         .panel-fullscreen {
             position: fixed !important;
-            top: 20px !important;          /* 顶部缝隙调小到 20px，避免跟按钮抢高度 */
-            left: 32px !important;         /* 左右加大到 32px */
-            right: 32px !important;        /* 左右加大到 32px */
-            bottom: 32px !important;       /* 底部加大到 32px */
+            top: 20px !important;
+            left: 32px !important;
+            right: 32px !important;
+            bottom: 32px !important;
             width: auto !important;
             height: auto !important;
             border-radius: 28px !important; 
@@ -22,23 +22,24 @@
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
 
-            /* ✨ 关键：右上角裁剪出缺口绕过按钮 */
-            clip-path: polygon(
-                0 0, 
-                60% 0, 
-                70% 52px, 
-                100% 52px, 
-                100% 100%, 
-                0 100%
-            ) !important;
-            /* 参数解释：
-               0 0, 60% 0          -> 左边贴着顶边走，走到屏幕宽度60%的位置。
-               70% 52px, 100% 52px -> 往下走52px，然后贴右边走完剩下的路。(这样就切出了一个缺口)
-               100% 100%, 0 100%   -> 底边和左边正常闭合。
+            /* ✨ 黄金关键：实际切割的 SVG 路径！
+               1. 上方贴边向左走，直到屏幕宽度的 80%（也就是右上角按钮组下方）。
+               2. 垂直往下 54px（深度）。
+               3. 用 A 12px 画一道向内凹的优美圆弧（形成圆润的直角）。
+               4. 向右继续贴边走到 100%。
+               5. 走完剩下的三边。
             */
+            clip-path: path('M 0 0 
+                             L calc(100% - 380px) 0 
+                             L calc(100% - 380px) 54px 
+                             A 12px 12px 0 0 1 calc(100% - 368px) 66px 
+                             L 100% 66px 
+                             L 100% 100% 
+                             L 0 100% Z') !important;
+            /* 完美 6 个角：左上、上直线尽头、垂直下降的角、内圆弧的两端角、右下、左下 */
         }
 
-        /* 缩小回左下角的状态（裁剪路径恢复为默认） */
+        /* 缩小回左下角的状态（恢复完整的矩形） */
         .panel-collapsed {
             position: fixed !important;
             inset: auto !important;
