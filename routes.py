@@ -69,14 +69,15 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✨ 修改后的绑定机器人接口（真实名字 + 真实头像）
+# ✨ 修复后的绑定机器人接口（发送固定默认名）
 # ==========================================
 @main_bp.route('/api/bind_bot', methods=['POST'])
 def bind_bot():
     data = request.get_json()
     token = data.get('token')
     chat_id = data.get('telegram_id')
-    bot_name = data.get('name', '宫水编辑器') # 默认名称
+    # 获取前端传来的默认名 "宫水编辑器"
+    bot_name = data.get('name', '宫水编辑器')
 
     if not token or not chat_id:
         return jsonify({'ok': False, 'msg': '缺少 Token 或 Telegram ID'})
@@ -85,7 +86,7 @@ def bind_bot():
     bot_avatar_url = None
 
     try:
-        # 1. 验证 Token 并获取机器人真实信息
+        # 1. 验证 Token 并获取机器人真实信息（为了画布节点显示真实名字用）
         test_url = f"https://api.telegram.org/bot{token}/getMe"
         test_resp = requests.get(test_url, timeout=10)
         if test_resp.status_code != 200:
@@ -94,41 +95,37 @@ def bind_bot():
         getme_data = test_resp.json()
         if getme_data.get('ok'):
             result = getme_data.get('result', {})
-            # 优先使用 first_name，没有则用 username，再没有则用前端传过来的默认名
+            # 优先使用 first_name，没有则用 username，用于画布节点显示
             real_bot_name = result.get('first_name') or result.get('username') or bot_name
             bot_id = result.get('id')
             
             # 2. 如果获取到了 Bot ID，则尝试拉取头像
             if bot_id:
                 try:
-                    # 获取头像列表 (只取第一张)
                     photos_url = f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1"
                     photos_resp = requests.get(photos_url, timeout=10)
                     if photos_resp.status_code == 200:
                         photos_data = photos_resp.json()
                         if photos_data.get('ok') and photos_data.get('result', {}).get('total_count', 0) > 0:
                             file_id = photos_data['result']['photos'][0][-1]['file_id']
-                            
-                            # 3. 根据 File ID 获取下载链接
                             file_url = f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}"
                             file_resp = requests.get(file_url, timeout=10)
                             if file_resp.status_code == 200:
                                 file_data = file_resp.json()
                                 if file_data.get('ok'):
                                     file_path = file_data['result']['file_path']
-                                    # 组合真实头像链接
                                     bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
                 except Exception as e:
                     print(f"获取机器人头像异常: {e}")
 
-        # 4. 发送绑定确认消息
-        msg = f"机器人已绑定 {real_bot_name}"
+        # 3. 发送绑定确认消息（核心修改！固定使用 bot_name "宫水编辑器" 来发消息）
+        msg = f"机器人已绑定{bot_name}"
         send_url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": msg}
         send_resp = requests.post(send_url, json=payload, timeout=10)
         
         if send_resp.status_code == 200:
-            # ✅ 核心修改：将真实的名称和头像链接一并返回给前端
+            # 返回给前端画布节点的名字，依然使用真实抓取到的 real_bot_name
             return jsonify({
                 'ok': True, 
                 'msg': '绑定成功，已发送测试消息',
@@ -357,3 +354,8 @@ def setup_webhook():
         return jsonify(resp.json())
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)})
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(host='0.0.0.0', port=8080)
