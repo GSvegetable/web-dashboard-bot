@@ -24,38 +24,43 @@ const previewBox = document.getElementById('previewBox');
 const previewMessages = document.getElementById('previewMessages');
 const previewInput = document.getElementById('previewInput');
 
-// ✨ 核心修复：动态边界运算 + 缩放平移应用
+// ✨ 核心修复：完美的边界限制（完全杜绝黑屏）
 function applyCanvasTransform() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    
-    // 因为你的 canvasArea 是 200vw * 200vh，左边是 -50vw
-    // 计算最大允许左/右偏移限制，彻底杜绝黑屏
-    const limitXMin = vw - 1.5 * vw * currentScale; // 右侧拉到边界
-    const limitXMax = 0.5 * vw * currentScale;      // 左侧拉到边界
-    const limitYMin = vh - 1.5 * vh * currentScale;
-    const limitYMax = 0.5 * vh * currentScale;
 
-    let cX = canvasOffsetX, cY = canvasOffsetY;
+    // 画布原点必须在 [-50vw, -50vh]；缩放后：
+    // 左侧边缘：dx - 50% * scale * vw
+    // 右侧边缘：dx + 150% * scale * vw
+    // 要使左右不露出黑屏：
+    // 1. 左侧不允许小于0 => dx >= 50% * scale * vw
+    // 2. 右侧不允许超过视口 => dx <= 100% - 150% * scale * vw
+    const limitXMin = vw * 0.5 * currentScale;          // 绝对左边界（防止左侧黑屏）
+    const limitXMax = vw * (1 - 1.5 * currentScale);     // 绝对右边界（防止右侧黑屏）
+    const limitYMin = vh * 0.5 * currentScale;
+    const limitYMax = vh * (1 - 1.5 * currentScale);
 
-    // 极窄缩放防越界修正（如果拖到极端，强制居中）
+    let cX = canvasOffsetX;
+    let cY = canvasOffsetY;
+
+    // 🎯 判断画面是否已经小到可以完全显示
     if (limitXMin > limitXMax) {
-        cX = (limitXMin + limitXMax) / 2;
+        // 如果完全能显示，强制居中 (中心点保持在 50% 位置)
+        cX = vw * 0.5 * (1 - currentScale);
+        cY = vh * 0.5 * (1 - currentScale);
     } else {
+        // 如果画面比视口大，严格限制拖拽边界，绝不露出黑屏
+        // 极限向右推时，限制在 limitXMax；极限向左推时，限制在 limitXMin
         cX = Math.min(limitXMax, Math.max(limitXMin, cX));
-    }
-    if (limitYMin > limitYMax) {
-        cY = (limitYMin + limitYMax) / 2;
-    } else {
         cY = Math.min(limitYMax, Math.max(limitYMin, cY));
     }
 
     canvasOffsetX = cX;
     canvasOffsetY = cY;
-    canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px) scale(${currentScale})`;
+    canvasArea.style.transform = `translate(${cX}px, ${cY}px) scale(${currentScale})`;
 }
 
-// ✨ 新增：一键还原视图（默认缩放，居中）
+// ✨ 新增：一键还原视图（当你在画布上迷失方向时，马上点它回到正中央）
 window.resetCanvasView = function() {
     canvasOffsetX = 0;
     canvasOffsetY = 0;
@@ -100,7 +105,7 @@ window.addNode = function(type) {
 };
 
 // ==========================================
-// 3. 右键菜单控制（不变）
+// 3. 右键菜单与滚轮缩放控制
 // ==========================================
 let hideTimeout = null;
 function hideContextMenu() {
@@ -150,7 +155,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         hideContextMenu();
     });
-    // PC 滚轮缩放
+
+    // PC 滚轮缩放（带中心计算）
     canvasAreaWrapper.addEventListener('wheel', function(e) {
         e.preventDefault();
         const rect = canvasAreaWrapper.getBoundingClientRect();
@@ -168,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 4. 绑定与机器人相关（不变）
+// 4. 绑定与机器人相关（保持不变）
 // ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
@@ -240,7 +246,7 @@ window.autoFillBot = function() {
 };
 
 // ==========================================
-// 5. 其他界面功能
+// 5. 界面基础功能（全屏、面板折叠）
 // ==========================================
 function toggleFullScreen() {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -273,7 +279,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心画布拖拽与双指缩放（精确跟随手指）
+// 6. 画布拖拽与双指缩放（彻底修复黑屏bug）
 // ==========================================
 canvasArea.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || e.target !== canvasArea && e.target.id === 'canvasArea') return;
@@ -307,7 +313,6 @@ document.addEventListener('mouseup', (e) => {
         isDraggingCanvas = false; canvasArea.style.cursor = 'grab';
     }
 });
-// 移动端触摸事件
 canvasArea.addEventListener('touchstart', (e) => {
     if (e.target.closest('.canvas-node')) return; 
     if (e.touches.length === 1) {
@@ -335,7 +340,6 @@ document.addEventListener('touchmove', (e) => {
         lastMouseX = touch.clientX; lastMouseY = touch.clientY;
         e.preventDefault(); return;
     }
-    // ✨ 核心修复：双指缩放（精准跟随手指重心）
     if (isPinching && e.touches.length === 2) {
         const touch1 = e.touches[0]; const touch2 = e.touches[1];
         const currentDist = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
@@ -374,7 +378,7 @@ document.addEventListener('touchend', (e) => {
 });
 
 // ==========================================
-// 7. 核心节点渲染器
+// 7. 节点渲染逻辑
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
