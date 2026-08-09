@@ -1,17 +1,33 @@
-<div id="configPanel" class="fixed left-6 bottom-6 w-[480px] glass-panel flex flex-col z-20 transition-all duration-500 ease-out">
+<div id="configPanel" class="panel-collapsed fixed left-6 bottom-6 w-[480px] glass-panel rounded-[28px] flex flex-col z-20 transition-all duration-500 ease-out shadow-2xl">
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
     
     <!-- 引入两个视图组件 -->
     {% include 'workspace/partials/_config_home.html' %}
     {% include 'workspace/partials/_config_form.html' %}
 
-    <!-- 控制面板切换的 JS 逻辑 -->
+    <style>
+        .panel-fullscreen {
+            position: fixed !important; inset: 0 !important;
+            width: 100vw !important; height: 100vh !important;
+            border-radius: 0 !important; z-index: 30 !important;
+        }
+        .panel-fullscreen #panelHandle { display: none !important; }
+        .panel-collapsed #configHome { display: flex !important; }
+        .panel-fullscreen #configHome { display: flex !important; }
+    </style>
+
     <script>
         window.switchToConfig = function() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.remove('panel-fullscreen');
+            panel.classList.add('panel-collapsed');
             document.getElementById('configHome').classList.add('hidden');
             document.getElementById('configForm').classList.remove('hidden');
         };
         window.switchToHome = function() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
             document.getElementById('configForm').classList.add('hidden');
             document.getElementById('configHome').classList.remove('hidden');
         };
