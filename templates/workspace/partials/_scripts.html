@@ -268,9 +268,13 @@ document.addEventListener("DOMContentLoaded", function() {
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // ✨ 修复：给画布的触屏加一层“点击到节点就不触发”的判断
+    // ✨ 重构：背景触摸监听器。检查是否点在节点上，如果是，立刻退出并关闭背景拖动状态
     canvasArea.addEventListener('touchstart', (e) => {
-        if (e.target.closest('.canvas-node')) return;
+        // 判断手指触摸的是不是节点卡片！
+        if (e.target.closest('.canvas-node')) {
+            isDraggingCanvas = false; // 警告：此时什么都不做，绝不拖动背景
+            return;
+        }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
             const touch = e.touches[0];
@@ -281,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 核心节点渲染器（✨ 修复了长按拖拽时误触背景）
+// 6. 核心节点渲染器（✨ 终极触碰防误触逻辑）
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
@@ -340,14 +344,15 @@ function renderNodes() {
             el.style.zIndex = 100;
         });
 
-        // ✨ 2. 手机长按触屏修复：阻止冒泡，并清除画布拖拽状态
+        // ✨ 2. 手机触屏拖拽（强制切断背景控制权）
         el.addEventListener('touchstart', (e) => {
-            e.stopPropagation(); // ⚠️ 阻止触屏事件冒泡到背景画布
-            e.preventDefault();  // 防止弹出长按菜单
+            // 首要任务：阻止事件冒泡到 canvasArea，防止背景拖拽被触发
+            e.stopPropagation(); 
+            e.preventDefault();  // 防止手机浏览器默认弹出长按菜单
             if (e.touches.length !== 1) return;
             
             isDraggingNode = true;
-            isDraggingCanvas = false; // ✅ 明确告诉系统“现在是拖节点，不是拖背景”
+            isDraggingCanvas = false; // ✅ 强行把背景拖拽状态关掉
             currentDragNode = el;
             const rect = el.getBoundingClientRect();
             const touch = e.touches[0];
@@ -360,7 +365,7 @@ function renderNodes() {
     });
 }
 
-// ✨ 3. 全局鼠标移动监听
+// ✨ 3. 全局鼠标/触屏移动监听（绝对分离节点和背景的逻辑）
 document.addEventListener('mousemove', (e) => {
     if (isDraggingNode && currentDragNode) {
         const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -370,8 +375,8 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// ✨ 4. 全局触屏移动监听（彻底分离节点和画布的逻辑）
 document.addEventListener('touchmove', (e) => {
+    // ✅ 优先拦截：如果是拖动节点，直接移动并切断后续逻辑，保证绝不动背景！
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         const touch = e.touches[0];
         const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -379,7 +384,10 @@ document.addEventListener('touchmove', (e) => {
         currentDragNode.style.left = left + 'px';
         currentDragNode.style.top = top + 'px';
         e.preventDefault(); // 阻止页面跟随手指滑动
-    } else if (isDraggingCanvas && e.touches.length === 1) {
+        return; // ⚠️ 核心：直接返回，绝不让执行下面的背景判断逻辑
+    } 
+    // 其次处理：如果真的是在拖背景
+    else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX;
         const dy = touch.clientY - lastMouseY;
@@ -394,7 +402,7 @@ document.addEventListener('touchmove', (e) => {
     }
 }, { passive: false });
 
-// ✨ 5. 鼠标/触屏释放监听
+// ✨ 4. 鼠标/触屏释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
