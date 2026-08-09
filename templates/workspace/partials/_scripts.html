@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 4. 机器人绑定与自动填写
+// 4. 机器人绑定与自动填写（🧹 已彻底去掉光圈控制逻辑）
 // ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
@@ -99,70 +99,53 @@ window.connectBot = function() {
     const name = '宫水编辑器';
     
     const statusContainer = document.getElementById('botStatusContainer');
-    const statusLoader = document.getElementById('statusLoader');
     const statusText = document.getElementById('statusText');
 
     if (token.length < 10) { 
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         statusText.innerText = 'Token 格式错误';
-        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
         return; 
     }
     if (!chatId || chatId.length < 1) { 
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         statusText.innerText = '请输入绑定的 Telegram ID';
-        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
         return; 
     }
 
-    // 开始验证：显示光圈
-    statusLoader.style.display = '';
-    statusLoader.classList.remove('hidden');
     statusText.innerText = '正在验证并发送绑定消息...';
-    statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-gray-400';
+    statusContainer.className = 'mt-3 h-4 text-[10px] text-gray-400';
 
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(data => {
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         if (data.ok) { 
             statusText.innerText = `绑定成功！已向 ${chatId} 发送确认消息。`;
-            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-green-400';
+            statusContainer.className = 'mt-3 h-4 text-[10px] text-green-400';
             window.addBotNode(data.bot_name || name, data.bot_avatar_url);
         } else { 
             statusText.innerText = `绑定失败: ${data.msg}`;
-            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+            statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
         }
     })
     .catch(() => { 
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         statusText.innerText = '网络请求失败，请稍后重试。';
-        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
     });
 };
 
 window.autoFillBot = function() {
     const tokenInput = document.getElementById('botTokenInput'), idInput = document.getElementById('telegramIdInput');
     const statusContainer = document.getElementById('botStatusContainer');
-    const statusLoader = document.getElementById('statusLoader');
     const statusText = document.getElementById('statusText');
 
     if (!navigator.clipboard) { 
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         statusText.innerText = '你的浏览器不支持读取剪贴板'; 
-        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400'; 
+        statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400'; 
         return; 
     }
     navigator.clipboard.readText().then(text => {
         if (!text || text.trim() === '') { 
-            statusLoader.classList.add('hidden');
-            statusLoader.style.display = 'none';
             statusText.innerText = '自动填写失败：剪贴板为空'; 
-            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400'; 
+            statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400'; 
             return; 
         }
         let foundToken = false, foundId = false;
@@ -177,21 +160,15 @@ window.autoFillBot = function() {
             let msg = '自动识别成功！';
             if (foundToken) msg += ' Token 已填入';
             if (foundId) msg += ' ID 已填入';
-            statusLoader.classList.add('hidden');
-            statusLoader.style.display = 'none';
             statusText.innerText = msg; 
-            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-green-400';
+            statusContainer.className = 'mt-3 h-4 text-[10px] text-green-400';
         } else {
-            statusLoader.classList.add('hidden');
-            statusLoader.style.display = 'none';
             statusText.innerText = '自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
-            statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+            statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
         }
     }).catch(err => { 
-        statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none';
         statusText.innerText = '读取剪贴板失败，请检查网页权限设置';
-        statusContainer.className = 'mt-3 flex items-center h-4 text-[10px] text-red-400';
+        statusContainer.className = 'mt-3 h-4 text-[10px] text-red-400';
     });
 };
 
@@ -340,4 +317,4 @@ window.addBotNode = function(name, avatar) {
     const newNode = { id: Date.now() + Math.random(), type: 'bot', name: name || '我的机器人', avatar: avatar || null, x: baseX, y: baseY };
     nodes.push(newNode); saveHistory(); renderNodes();
 };
-    </script>
+</script>
