@@ -5,12 +5,19 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
+        /* 🔥 核心修复：强制移除所有边距和缝隙 */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+        }
+
         /* 全面铺满屏幕的状态（无边框、无缝隙） */
         .panel-fullscreen {
             position: fixed !important;
             inset: 0px !important;
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100dvh !important; /* 适配移动端导航栏 */
             border-radius: 0px !important;
             z-index: 30 !important;
             margin: 0px !important;
@@ -39,6 +46,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const panel = document.getElementById('configPanel');
+            // 强制初始化全屏
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
         });
