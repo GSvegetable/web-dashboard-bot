@@ -1,4 +1,3 @@
-<!-- 单层 DOM 结构，彻底解决遮挡问题 -->
 <div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     {% include 'workspace/partials/_config_home.html' %}
     {% include 'workspace/partials/_config_form.html' %}
@@ -6,39 +5,40 @@
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
-        /* ================== 全屏模式（机器人仓库） ================== */
+        /* ================== 全屏模式 ================== */
         .panel-fullscreen {
-            top: 20px !important;        /* 顶部微调避开刘海 */
-            left: 32px !important;       /* ✅ 保证左右缝隙 */
-            right: 32px !important;      /* ✅ 保证左右缝隙 */
-            bottom: 32px !important;     /* ✅ 保证底部缝隙 */
+            position: fixed !important;
+            top: 20px !important;        /* 抵消刘海屏 */
+            left: 32px !important;       /* 四边保留 32px 缝隙 */
+            right: 32px !important;
+            bottom: 32px !important;
             width: auto !important;
             height: auto !important;
             
-            /* 外部大角圆润 */
+            /* 外部 3 个大角依然保持圆润 */
             border-radius: 28px !important;
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
 
-            /* ✨ 标准的直角缺口（没有 overflow: hidden 阻挡，绝不会消失！） */
-            clip-path: polygon(
-                0% 0%, 
-                calc(100% - 220px) 0%, 
-                calc(100% - 220px) 45px, 
-                100% 45px, 
-                100% 100%, 
-                0% 100%
-            ) !important;
-
-            /* 🎯 给这个直角转角磨个 16px 的圆（坚决不扎手） */
-            mask-image: radial-gradient(circle at calc(100% - 220px) 45px, transparent 16px, black 18px) !important;
-            -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 45px, transparent 16px, black 18px) !important;
+            /* 
+               ✨ 核心降龙十八掌：直接利用 CSS path 绘制出直角台阶，
+               并精确用 A (Arc) 指令在内部拐角画一个 16px 的绝对 1/4 圆弧！
+               再也不用担心被任意遮挡！
+            */
+            clip-path: path('M 0 0 
+                             L calc(100% - 220px) 0 
+                             L calc(100% - 220px) 30px 
+                             A 16 16 0 0 1 calc(100% - 204px) 46px 
+                             L 100% 46px 
+                             L 100% 100% 
+                             L 0 100% Z') !important;
         }
 
 
-        /* ================== 缩回模式（机器人配置） ================== */
+        /* ================== 缩回模式 ================== */
         .panel-collapsed {
+            position: fixed !important;
             top: auto !important;
             left: 24px !important;
             bottom: 24px !important;
@@ -52,10 +52,8 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
             
-            /* 缩小时完全恢复正常矩形，去掉所有裁切和遮罩 */
+            /* 恢复普通矩形 */
             clip-path: none !important;
-            mask-image: none !important;
-            -webkit-mask-image: none !important;
         }
 
         .panel-fullscreen #configHome { display: flex !important; }
