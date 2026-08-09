@@ -4,14 +4,14 @@
         <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
         
         <style>
-            /* 状态栏发光 SVG 样式（只保留底部转圈所需的） */
+            /* 状态栏发光 SVG 样式 */
             .gegga { width: 0; }
             .snurra { filter: url(#gegga); width: 200px; height: 200px; }
             .stopp1 { stop-color: #f700a8; }
             .stopp2 { stop-color: #ff8000; }
             .halvan { animation: Snurra1 10s infinite linear; stroke-dasharray: 180 800; fill: none; stroke: url(#gradient); stroke-width: 23; stroke-linecap: round; }
             .strecken { animation: Snurra1 3s infinite linear; stroke-dasharray: 26 54; fill: none; stroke: url(#gradient); stroke-width: 23; stroke-linecap: round; }
-            .skugga { filter: blur(5px); opacity: 0.15; position: absolute; transform: translate(3px, 3px); }
+            .skugga { filter: blur(5px); opacity: 0.3; /* ✨ 调高一点点阴影透明度，不再那么淡 */ position: absolute; transform: translate(3px, 3px); }
             @keyframes Snurra1 { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -403px; } }
 
             /* 状态栏加载动画容器 */
@@ -24,7 +24,7 @@
                 overflow: visible;
             }
             .status-loader-wrap svg {
-                transform: scale(0.08);
+                transform: scale(0.15); /* ✨ 稍微放大一点，让光圈更亮更清晰 */
                 transform-origin: center;
             }
         </style>
