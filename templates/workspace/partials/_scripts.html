@@ -91,14 +91,13 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 4. 机器人绑定与自动填写 (✨ 这里是修改的核心)
+// 4. 机器人绑定与自动填写
 // ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
     
-    // 使用全新的 DOM 节点操控
     const statusContainer = document.getElementById('botStatusContainer');
     const statusLoader = document.getElementById('statusLoader');
     const statusText = document.getElementById('statusText');
@@ -116,7 +115,7 @@ window.connectBot = function() {
         return; 
     }
 
-    // 正在验证 -> 出现 SVG 动画，无 emoji
+    // 正在验证 -> 出现 SVG 转圈
     statusLoader.classList.remove('hidden');
     statusText.innerText = '正在验证并发送绑定消息...';
     statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-gray-400';
@@ -124,7 +123,7 @@ window.connectBot = function() {
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(res => res.json())
     .then(data => {
-        // 验证结束，隐藏 SVG 动画
+        // 验证结束，隐藏 SVG
         statusLoader.classList.add('hidden');
         if (data.ok) { 
             statusText.innerText = `绑定成功！已向 ${chatId} 发送确认消息。`;
@@ -223,40 +222,6 @@ document.addEventListener("DOMContentLoaded", function() {
             lastMouseY = touch.clientY;
         }
     }, { passive: true });
-
-    // ==========================================
-    // 输入框实时验证逻辑 (保持不变)
-    // ==========================================
-    const tokenInput = document.getElementById('botTokenInput');
-    const tokenValidator = document.getElementById('tokenValidator');
-    const idInput = document.getElementById('telegramIdInput');
-    const idValidator = document.getElementById('idValidator');
-
-    function validateInput(input, validator, regex) {
-        const val = input.value.trim();
-        if (val.length === 0) {
-            validator.classList.remove('active');
-            input.classList.remove('input-valid', 'input-invalid');
-            input.style.borderColor = 'rgba(255,255,255,0.1)';
-            return false;
-        }
-        validator.classList.add('active');
-        const isValid = regex.test(val);
-        if (isValid) {
-            validator.classList.remove('active');
-            input.classList.remove('input-invalid');
-            input.classList.add('input-valid');
-            input.style.borderColor = '#22c55e';
-            return true;
-        } else {
-            input.classList.remove('input-valid');
-            input.classList.add('input-invalid');
-            input.style.borderColor = '#ef4444';
-            return false;
-        }
-    }
-    tokenInput.addEventListener('input', () => validateInput(tokenInput, tokenValidator, /^\d+:[A-Za-z0-9_-]+$/));
-    idInput.addEventListener('input', () => validateInput(idInput, idValidator, /^\d{5,15}$/));
 });
 
 // ==========================================
