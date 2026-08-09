@@ -1,0 +1,18 @@
+<div id="configHome" class="flex flex-col justify-between h-full p-8">
+    <div>
+        <h2 class="text-white text-2xl font-bold mb-2">机器人中枢</h2>
+        <p class="text-gray-400 text-sm mb-6">管理你的 Telegram Bot 配置、状态与绑定。</p>
+        
+        <!-- 这里可以放未来你机器人绑定后的状态信息卡片，先留白 -->
+        <div class="bg-black/20 rounded-xl p-4 border border-white/5 mb-6">
+            <div class="text-gray-500 text-xs">当前状态</div>
+            <div class="text-white text-sm mt-1">未绑定机器人</div>
+        </div>
+    </div>
+
+    <!-- 你要求的“进入配置”按钮 -->
+    <button onclick="switchToConfig()" 
+            class="w-full bg-[#3c4779] hover:bg-[#2e385e] text-white rounded-xl px-5 py-4 text-base font-medium transition active:scale-95 shadow-lg shadow-[#3c4779]/20">
+        ⚙️ 进入机器人配置
+    </button>
+</div>
