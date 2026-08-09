@@ -5,25 +5,40 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 🔥 核心改动：四边独立控制间距 */
+        /* 🔥 核心形状改动：用 clip-path 切出右上角的“绕行缺口” */
         .panel-fullscreen {
             position: fixed !important;
-            top: 16px !important;          /* ⚠️ 如果顶部缝隙还是明显更大，请把 16px 改成 12px 甚至 8px */
-            left: 28px !important;         /* 左侧缝隙加大到 28px */
-            right: 28px !important;        /* 右侧缝隙加大到 28px */
-            bottom: 28px !important;       /* 底部缝隙加大到 28px */
+            top: 20px !important;          /* 顶部缝隙调小到 20px，避免跟按钮抢高度 */
+            left: 32px !important;         /* 左右加大到 32px */
+            right: 32px !important;        /* 左右加大到 32px */
+            bottom: 32px !important;       /* 底部加大到 32px */
             width: auto !important;
             height: auto !important;
-            border-radius: 32px !important; 
+            border-radius: 28px !important; 
             z-index: 30 !important;
             margin: 0px !important;
             border: none !important;
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+
+            /* ✨ 关键：右上角裁剪出缺口绕过按钮 */
+            clip-path: polygon(
+                0 0, 
+                60% 0, 
+                70% 52px, 
+                100% 52px, 
+                100% 100%, 
+                0 100%
+            ) !important;
+            /* 参数解释：
+               0 0, 60% 0          -> 左边贴着顶边走，走到屏幕宽度60%的位置。
+               70% 52px, 100% 52px -> 往下走52px，然后贴右边走完剩下的路。(这样就切出了一个缺口)
+               100% 100%, 0 100%   -> 底边和左边正常闭合。
+            */
         }
 
-        /* 缩小回左下角的状态（保持不变） */
+        /* 缩小回左下角的状态（裁剪路径恢复为默认） */
         .panel-collapsed {
             position: fixed !important;
             inset: auto !important;
@@ -37,6 +52,9 @@
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+            /* 缩小状态下恢复成完整矩形 */
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
         }
 
         .panel-fullscreen #configHome { display: flex !important; }
