@@ -5,7 +5,7 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 🔥 改为绝对可靠的 polygon 多边形裁切，消除盲区 */
+        /* 🔥 形状微调：切入更早 + 深度更浅 */
         .panel-fullscreen {
             position: fixed !important;
             top: 20px !important;
@@ -22,12 +22,15 @@
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
 
-            /* ✨ polygon 可靠裁切：距离右侧 160px 处，往下切 160px 的深度，形成直角缺角 */
+            /* ✨ polygon 可靠裁切：
+               1. 离右边缘 220px 处开始往下拐（比之前提早了 60px）
+               2. 往下走的深度减到 80px（不再是 160px，不会太深了）
+            */
             clip-path: polygon(
                 0% 0%, 
-                calc(100% - 160px) 0%, 
-                calc(100% - 160px) 160px, 
-                100% 160px, 
+                calc(100% - 220px) 0%, 
+                calc(100% - 220px) 80px, 
+                100% 80px, 
                 100% 100%, 
                 0% 100%
             ) !important;
