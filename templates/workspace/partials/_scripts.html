@@ -171,6 +171,50 @@ document.addEventListener("DOMContentLoaded", function() {
             lastMouseY = touch.clientY;
         }
     }, { passive: true });
+
+    // ==========================================
+    // ✨ 新增：实时输入验证逻辑 (格式检测)
+    // ==========================================
+    const tokenInput = document.getElementById('botTokenInput');
+    const tokenValidator = document.getElementById('tokenValidator');
+    const idInput = document.getElementById('telegramIdInput');
+    const idValidator = document.getElementById('idValidator');
+
+    // 检测函数
+    function validateInput(input, validator, regex) {
+        const val = input.value.trim();
+        // 为空时取消任何状态
+        if (val.length === 0) {
+            validator.classList.remove('active');
+            input.classList.remove('input-valid', 'input-invalid');
+            input.style.borderColor = 'rgba(255,255,255,0.1)'; // 恢复默认边框
+            return false;
+        }
+        
+        // 开始输入 -> 播放动画
+        validator.classList.add('active');
+        
+        // 正则匹配
+        const isValid = regex.test(val);
+        if (isValid) {
+            // 格式完全正确：动画消失，变绿线
+            validator.classList.remove('active');
+            input.classList.remove('input-invalid');
+            input.classList.add('input-valid');
+            input.style.borderColor = '#22c55e';
+            return true;
+        } else {
+            // 格式不对：动画继续转动，显示红线提示
+            input.classList.remove('input-valid');
+            input.classList.add('input-invalid');
+            input.style.borderColor = '#ef4444';
+            return false;
+        }
+    }
+
+    // 监听输入事件（实时校验）
+    tokenInput.addEventListener('input', () => validateInput(tokenInput, tokenValidator, /^\d+:[A-Za-z0-9_-]+$/));
+    idInput.addEventListener('input', () => validateInput(idInput, idValidator, /^\d{5,15}$/));
 });
 
 // ==========================================
