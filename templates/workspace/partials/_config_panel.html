@@ -5,7 +5,7 @@
     {% include 'workspace/partials/_config_form.html' %}
 
     <style>
-        /* 🔥 形状大改：清晰可见的直角绕行 + 内角圆润 + 6个角 */
+        /* 🔥 改为绝对可靠的 polygon 多边形裁切，消除盲区 */
         .panel-fullscreen {
             position: fixed !important;
             top: 20px !important;
@@ -22,18 +22,18 @@
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
 
-            /* ✨ 核心切割路径：离右侧 160px 处直角下潜 140px，内角带 16px 圆弧，6个角清晰可见 */
-            clip-path: path('M 0 0 
-                             L calc(100% - 160px) 0 
-                             L calc(100% - 160px) 140px 
-                             A 16 16 0 0 1 calc(100% - 144px) 156px 
-                             L 100% 156px 
-                             L 100% 100% 
-                             L 0 100% Z') !important;
-            /* 6个角解析：左上角、顶部直线末端、垂直切角点、圆弧两端的角、右下角、左下角 */
+            /* ✨ polygon 可靠裁切：距离右侧 160px 处，往下切 160px 的深度，形成直角缺角 */
+            clip-path: polygon(
+                0% 0%, 
+                calc(100% - 160px) 0%, 
+                calc(100% - 160px) 160px, 
+                100% 160px, 
+                100% 100%, 
+                0% 100%
+            ) !important;
         }
 
-        /* 缩小回左下角的配置页面（恢复标准矩形） */
+        /* 缩小回左下角的配置页面 */
         .panel-collapsed {
             position: fixed !important;
             inset: auto !important;
@@ -47,9 +47,9 @@
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
-
-            /* 恢复矩形 */
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%) !important;
+            
+            /* 恢复完整矩形 */
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
         }
 
         .panel-fullscreen #configHome { display: flex !important; }
