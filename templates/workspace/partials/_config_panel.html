@@ -4,7 +4,7 @@
         <h2 class="text-white text-2xl font-bold mb-6">机器人配置</h2>
         
         <style>
-            /* 状态栏发光 SVG 样式（精简版，去除模糊阴影层） */
+            /* 状态栏发光 SVG 样式（去掉阴影层，纯发光线条） */
             .gegga { width: 0; }
             .snurra { filter: url(#gegga); width: 200px; height: 200px; }
             .stopp1 { stop-color: #f700a8; }
@@ -13,7 +13,7 @@
             .strecken { animation: Snurra1 3s infinite linear; stroke-dasharray: 26 54; fill: none; stroke: url(#gradient); stroke-width: 23; stroke-linecap: round; }
             @keyframes Snurra1 { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -403px; } }
 
-            /* 状态栏加载动画容器（缩小) */
+            /* 状态栏加载动画容器（放大到0.25，确保清晰） */
             .status-loader-wrap {
                 display: inline-flex;
                 align-items: center;
@@ -23,13 +23,13 @@
                 overflow: visible;
             }
             .status-loader-wrap svg {
-                transform: scale(0.12); /* ✨ 缩小到 0.12，清晰锐利 */
+                transform: scale(0.25); /* ✨ 放大到 0.25，实心线条绝对能看见 */
                 transform-origin: center;
             }
 
             /* 给文字留出空位 */
             #statusText {
-                margin-left: 12px; /* ✨ 这里的 12px 让文字和光圈之间空了段距离 */
+                margin-left: 14px; /* ✨ 文字再往右挪一点 */
             }
         </style>
 
