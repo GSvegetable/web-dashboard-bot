@@ -91,31 +91,76 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 4. 机器人绑定与自动填写
+// 4. 机器人绑定与自动填写 (✨ 这里是修改的核心)
 // ==========================================
 window.connectBot = function() {
     const token = document.getElementById('botTokenInput').value;
     const chatId = document.getElementById('telegramIdInput').value;
     const name = '宫水编辑器';
-    const status = document.getElementById('botStatus');
-    if (token.length < 10) { status.innerHTML = '❌ Token 格式错误'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
-    if (!chatId || chatId.length < 1) { status.innerHTML = '❌ 请输入绑定的 Telegram ID'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
-    status.innerHTML = '⏳ 正在验证并发送绑定消息...'; status.className = 'mt-2 text-[10px] text-gray-400';
+    
+    // 使用全新的 DOM 节点操控
+    const statusContainer = document.getElementById('botStatusContainer');
+    const statusLoader = document.getElementById('statusLoader');
+    const statusText = document.getElementById('statusText');
+
+    if (token.length < 10) { 
+        statusLoader.classList.add('hidden');
+        statusText.innerText = 'Token 格式错误';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        return; 
+    }
+    if (!chatId || chatId.length < 1) { 
+        statusLoader.classList.add('hidden');
+        statusText.innerText = '请输入绑定的 Telegram ID';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        return; 
+    }
+
+    // 正在验证 -> 出现 SVG 动画，无 emoji
+    statusLoader.classList.remove('hidden');
+    statusText.innerText = '正在验证并发送绑定消息...';
+    statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-gray-400';
+
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(res => res.json())
     .then(data => {
-        if (data.ok) { status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`; status.className = 'mt-2 text-[10px] text-green-400'; window.addBotNode(data.bot_name || name, data.bot_avatar_url); }
-        else { status.innerHTML = `❌ 绑定失败: ${data.msg}`; status.className = 'mt-2 text-[10px] text-red-400'; }
+        // 验证结束，隐藏 SVG 动画
+        statusLoader.classList.add('hidden');
+        if (data.ok) { 
+            statusText.innerText = `绑定成功！已向 ${chatId} 发送确认消息。`;
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
+            window.addBotNode(data.bot_name || name, data.bot_avatar_url);
+        } else { 
+            statusText.innerText = `绑定失败: ${data.msg}`;
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+        }
     })
-    .catch(() => { status.innerHTML = '❌ 网络请求失败，请稍后重试。'; status.className = 'mt-2 text-[10px] text-red-400'; });
+    .catch(() => { 
+        statusLoader.classList.add('hidden');
+        statusText.innerText = '网络请求失败，请稍后重试。';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+    });
 };
 
 window.autoFillBot = function() {
     const tokenInput = document.getElementById('botTokenInput'), idInput = document.getElementById('telegramIdInput');
-    const status = document.getElementById('botStatus');
-    if (!navigator.clipboard) { status.innerHTML = '❌ 你的浏览器不支持读取剪贴板'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+    const statusContainer = document.getElementById('botStatusContainer');
+    const statusLoader = document.getElementById('statusLoader');
+    const statusText = document.getElementById('statusText');
+
+    if (!navigator.clipboard) { 
+        statusLoader.classList.add('hidden');
+        statusText.innerText = '你的浏览器不支持读取剪贴板'; 
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+        return; 
+    }
     navigator.clipboard.readText().then(text => {
-        if (!text || text.trim() === '') { status.innerHTML = '❌ 自动填写失败：剪贴板为空'; status.className = 'mt-2 text-[10px] text-red-400'; return; }
+        if (!text || text.trim() === '') { 
+            statusLoader.classList.add('hidden');
+            statusText.innerText = '自动填写失败：剪贴板为空'; 
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400'; 
+            return; 
+        }
         let foundToken = false, foundId = false;
         const lines = text.split(/\r?\n/);
         lines.forEach(line => {
@@ -125,15 +170,22 @@ window.autoFillBot = function() {
             else if (/^\d{5,15}$/.test(trimmed) && !foundId) { idInput.value = trimmed; foundId = true; }
         });
         if (foundToken || foundId) {
-            let msg = `✅ 自动识别成功！`;
-            if (foundToken) msg += ` Token 已填入`;
-            if (foundId) msg += ` ID 已填入`;
-            status.innerHTML = msg; status.className = 'mt-2 text-[10px] text-green-400';
+            let msg = '自动识别成功！';
+            if (foundToken) msg += ' Token 已填入';
+            if (foundId) msg += ' ID 已填入';
+            statusLoader.classList.add('hidden');
+            statusText.innerText = msg; 
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-green-400';
         } else {
-            status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
-            status.className = 'mt-2 text-[10px] text-red-400';
+            statusLoader.classList.add('hidden');
+            statusText.innerText = '自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+            statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
         }
-    }).catch(err => { status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置'; status.className = 'mt-2 text-[10px] text-red-400'; });
+    }).catch(err => { 
+        statusLoader.classList.add('hidden');
+        statusText.innerText = '读取剪贴板失败，请检查网页权限设置';
+        statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
+    });
 };
 
 // ==========================================
@@ -173,46 +225,36 @@ document.addEventListener("DOMContentLoaded", function() {
     }, { passive: true });
 
     // ==========================================
-    // ✨ 新增：实时输入验证逻辑 (格式检测)
+    // 输入框实时验证逻辑 (保持不变)
     // ==========================================
     const tokenInput = document.getElementById('botTokenInput');
     const tokenValidator = document.getElementById('tokenValidator');
     const idInput = document.getElementById('telegramIdInput');
     const idValidator = document.getElementById('idValidator');
 
-    // 检测函数
     function validateInput(input, validator, regex) {
         const val = input.value.trim();
-        // 为空时取消任何状态
         if (val.length === 0) {
             validator.classList.remove('active');
             input.classList.remove('input-valid', 'input-invalid');
-            input.style.borderColor = 'rgba(255,255,255,0.1)'; // 恢复默认边框
+            input.style.borderColor = 'rgba(255,255,255,0.1)';
             return false;
         }
-        
-        // 开始输入 -> 播放动画
         validator.classList.add('active');
-        
-        // 正则匹配
         const isValid = regex.test(val);
         if (isValid) {
-            // 格式完全正确：动画消失，变绿线
             validator.classList.remove('active');
             input.classList.remove('input-invalid');
             input.classList.add('input-valid');
             input.style.borderColor = '#22c55e';
             return true;
         } else {
-            // 格式不对：动画继续转动，显示红线提示
             input.classList.remove('input-valid');
             input.classList.add('input-invalid');
             input.style.borderColor = '#ef4444';
             return false;
         }
     }
-
-    // 监听输入事件（实时校验）
     tokenInput.addEventListener('input', () => validateInput(tokenInput, tokenValidator, /^\d+:[A-Za-z0-9_-]+$/));
     idInput.addEventListener('input', () => validateInput(idInput, idValidator, /^\d{5,15}$/));
 });
