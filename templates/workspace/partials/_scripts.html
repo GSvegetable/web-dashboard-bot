@@ -195,13 +195,11 @@ document.addEventListener("DOMContentLoaded", function() {
         } else { if (typeof originalToggle === 'function') originalToggle(); }
     };
 
-    // 🟢 核心修改 1：只有明确没碰到节点时，才允许画布开启“背景拖拽”
     canvasArea.addEventListener('touchstart', (e) => {
-        // 碰到节点，立刻取消画布拖拽资格
         if (e.target.closest('.canvas-node')) {
             isDraggingCanvas = false; 
             showDebug('🟢 识别：长按【节点卡片】', 'node');
-            return; // 直接退出，绝不记录背景的坐标
+            return;
         }
         if (e.touches.length === 1) {
             isDraggingCanvas = true;
@@ -249,7 +247,6 @@ function renderNodes() {
         el.innerHTML = bodyHtml;
         el.addEventListener('mousedown', (e) => { e.stopPropagation(); if (e.button !== 0) return; isDraggingNode = true; currentDragNode = el; const rect = el.getBoundingClientRect(); startX = e.clientX - rect.left; startY = e.clientY - rect.top; el.style.zIndex = 100; });
 
-        // 🟢 手机触屏长按：记录基准位置
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation(); e.preventDefault(); if (e.touches.length !== 1) return;
             showDebug('🟢 验证：节点长按生效，画布已被彻底锁死！', 'node');
@@ -273,12 +270,10 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 
-// 🟢 核心修改 2：绝对防御型触屏移动判定
+// 手机触屏移动检测
 document.addEventListener('touchmove', (e) => {
-    // ⛔ 只要在拖节点，立刻阻断，永绝后患
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
-        e.stopPropagation(); // 事件到这就结束了，画布根本不知道手指在动！
-        e.preventDefault();  // 防止页面滚动
+        e.stopPropagation(); e.preventDefault();
         const touch = e.touches[0];
         const dx = touch.clientX - startTouchX;
         const dy = touch.clientY - startTouchY;
@@ -290,11 +285,8 @@ document.addEventListener('touchmove', (e) => {
             currentDragNode.style.left = newX + 'px';
             currentDragNode.style.top = newY + 'px';
         }
-        return; // 走到这里直接结束，画布逻辑一秒都不会执行！
-    } 
-    
-    // ⛔ 如果没有拖节点，且拖画布标志为真，才去移动画布
-    else if (isDraggingCanvas && e.touches.length === 1) {
+        return; 
+    } else if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX; const dy = touch.clientY - lastMouseY;
         canvasOffsetX += dx; canvasOffsetY += dy;
@@ -306,7 +298,6 @@ document.addEventListener('touchmove', (e) => {
     }
 }, { passive: false });
 
-// 释放监听
 document.addEventListener('mouseup', (e) => {
     if (isDraggingNode && currentDragNode) {
         const index = parseInt(currentDragNode.dataset.index);
