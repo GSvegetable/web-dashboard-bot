@@ -104,20 +104,20 @@ window.connectBot = function() {
 
     if (token.length < 10) { 
         statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none'; // 强制隐藏
+        statusLoader.style.display = 'none';
         statusText.innerText = 'Token 格式错误';
         statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
         return; 
     }
     if (!chatId || chatId.length < 1) { 
         statusLoader.classList.add('hidden');
-        statusLoader.style.display = 'none'; // 强制隐藏
+        statusLoader.style.display = 'none';
         statusText.innerText = '请输入绑定的 Telegram ID';
         statusContainer.className = 'mt-3 flex items-center gap-2 h-4 text-[10px] text-red-400';
         return; 
     }
 
-    // 开始验证：显示光圈（移除 display: none 和 hidden 类）
+    // 开始验证：显示光圈
     statusLoader.style.display = '';
     statusLoader.classList.remove('hidden');
     statusText.innerText = '正在验证并发送绑定消息...';
@@ -125,7 +125,6 @@ window.connectBot = function() {
 
     fetch('/api/bind_bot', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, telegram_id: chatId, name: name }) })
     .then(data => {
-        // 无论成功还是失败，拿到结果的第一时间就彻底隐藏光圈
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         if (data.ok) { 
@@ -138,7 +137,6 @@ window.connectBot = function() {
         }
     })
     .catch(() => { 
-        // 网络异常也强制隐藏光圈
         statusLoader.classList.add('hidden');
         statusLoader.style.display = 'none';
         statusText.innerText = '网络请求失败，请稍后重试。';
