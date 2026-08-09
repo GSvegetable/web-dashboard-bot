@@ -25,8 +25,21 @@ const previewBox = document.getElementById('previewBox');
 const previewMessages = document.getElementById('previewMessages');
 const previewInput = document.getElementById('previewInput');
 
-// ✨ 统一应用平移和缩放的方法
+// ✨ 核心修改：统一应用平移和缩放（带有动态边界限制）
 function applyCanvasTransform() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    
+    // 核心修复：基于当前缩放比例，动态计算最大可平移距离，彻底解决黑屏/卡边界问题
+    // 因为 canvasArea 是 200vw * 200vh，最大边界是 100vw/2
+    const limitX = Math.abs((vw / 2) * (1 - 1 / currentScale));
+    const limitY = Math.abs((vh / 2) * (1 - 1 / currentScale));
+    
+    // 如果 scale > 1，limitX = 0（无法整体平移），但手指点击节点还是可以拖动的
+    // 如果 scale < 1，允许平移，但严格限制在画布边缘内
+    canvasOffsetX = Math.max(-limitX, Math.min(limitX, canvasOffsetX));
+    canvasOffsetY = Math.max(-limitY, Math.min(limitY, canvasOffsetY));
+
     canvasArea.style.transform = `translate(${canvasOffsetX}px, ${canvasOffsetY}px) scale(${currentScale})`;
 }
 
@@ -159,6 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const delta = -e.deltaY * 0.001;
         const newScale = Math.min(Math.max(0.1, currentScale + delta), 3.0);
         
+        // 计算缩放中心点对应的坐标
         const canvasCoordX = (mouseX - canvasOffsetX) / currentScale;
         const canvasCoordY = (mouseY - canvasOffsetY) / currentScale;
 
@@ -302,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // ==========================================
-// 6. 画布与节点拖拽控制（适配PC和移动端）
+// 6. 画布与节点拖拽控制（修复黑屏边界与双指焦点）
 // ==========================================
 // --- PC 鼠标事件 ---
 canvasArea.addEventListener('mousedown', (e) => {
@@ -325,9 +339,8 @@ document.addEventListener('mousemove', (e) => {
         const dy = e.clientY - lastMouseY;
         canvasOffsetX += dx;
         canvasOffsetY += dy;
-        canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
-        canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
-        applyCanvasTransform();
+        // 移除旧的固定限制，交给 applyCanvasTransform 统一处理
+        applyCanvasTransform(); 
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
     }
@@ -353,7 +366,7 @@ document.addEventListener('mouseup', (e) => {
 
 // --- 移动端/触控板 触摸事件 ---
 canvasArea.addEventListener('touchstart', (e) => {
-    // ✨ 修复：如果点击的是节点，不触发画布拖拽
+    // 如果点击的是节点，不触发画布拖拽
     if (e.target.closest('.canvas-node')) return; 
 
     if (e.touches.length === 1) {
@@ -362,7 +375,7 @@ canvasArea.addEventListener('touchstart', (e) => {
         lastMouseX = touch.clientX;
         lastMouseY = touch.clientY;
     } else if (e.touches.length === 2) {
-        // ✨ 新增：双指触控开始检测
+        // 双指触控开始检测
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
         lastPinchDist = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
@@ -372,7 +385,7 @@ canvasArea.addEventListener('touchstart', (e) => {
 });
 
 document.addEventListener('touchmove', (e) => {
-    // 处理节点拖拽
+    // 1. 处理节点拖拽
     if (isDraggingNode && currentDragNode && e.touches.length === 1) {
         const touch = e.touches[0];
         const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
@@ -383,15 +396,13 @@ document.addEventListener('touchmove', (e) => {
         return;
     }
 
-    // 处理画布拖拽
+    // 2. 处理画布拖拽
     if (isDraggingCanvas && e.touches.length === 1) {
         const touch = e.touches[0];
         const dx = touch.clientX - lastMouseX;
         const dy = touch.clientY - lastMouseY;
         canvasOffsetX += dx;
         canvasOffsetY += dy;
-        canvasOffsetX = Math.max(-window.innerWidth * 0.5, Math.min(window.innerWidth * 0.5, canvasOffsetX));
-        canvasOffsetY = Math.max(-window.innerHeight * 0.5, Math.min(window.innerHeight * 0.5, canvasOffsetY));
         applyCanvasTransform();
         lastMouseX = touch.clientX;
         lastMouseY = touch.clientY;
@@ -399,28 +410,35 @@ document.addEventListener('touchmove', (e) => {
         return;
     }
 
-    // ✨ 新增：处理双指缩放
+    // 3. 核心修复：处理双指缩放（保证手指在哪个位置，哪里就放大）
     if (isPinching && e.touches.length === 2) {
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
         const currentDist = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
         
-        // 计算缩放中心点（手指中心位置）
+        // 计算双指中心点
         const midX = (touch1.clientX + touch2.clientX) / 2;
         const midY = (touch1.clientY + touch2.clientY) / 2;
+        
+        // 获取相对画布区域的精确坐标
         const rect = canvasAreaWrapper.getBoundingClientRect();
         const mouseX = midX - rect.left;
         const mouseY = midY - rect.top;
         
+        // 计算在当前画布坐标下的映射位置
         const canvasCoordX = (mouseX - canvasOffsetX) / currentScale;
         const canvasCoordY = (mouseY - canvasOffsetY) / currentScale;
         
+        // 计算缩放比例
         const scaleFactor = currentDist / lastPinchDist;
         const newScale = Math.min(Math.max(0.1, currentScale * scaleFactor), 3.0);
         
+        // 应用缩放并重算偏移，确保中心点不变
         currentScale = newScale;
         canvasOffsetX = mouseX - canvasCoordX * currentScale;
         canvasOffsetY = mouseY - canvasCoordY * currentScale;
+        
+        // 应用动态边界
         applyCanvasTransform();
         
         lastPinchDist = currentDist;
@@ -450,7 +468,7 @@ document.addEventListener('touchend', (e) => {
 });
 
 // ==========================================
-// 7. 核心节点渲染器（带移动端触摸支持）
+// 7. 核心节点渲染器
 // ==========================================
 function renderNodes() {
     nodeContainer.innerHTML = '';
@@ -509,7 +527,7 @@ function renderNodes() {
             el.style.zIndex = 100;
         });
 
-        // ✨ 新增：触控板/手机 拖拽节点
+        // 触控板/手机 拖拽节点
         el.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             if (e.touches.length !== 1) return;
