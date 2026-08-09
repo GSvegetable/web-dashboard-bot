@@ -1,51 +1,69 @@
-<!-- 🟢 外层：专门负责 3 个大圆角，并隐藏内层超出的边角 -->
-<div id="configPanel" class="panel-fullscreen fixed inset-0 z-20 transition-all duration-500 ease-out" style="border-radius: 28px; overflow: hidden; background: transparent; box-shadow: none;">
+<!-- 外层：负责控制边距、三个外角圆润，以及裁切隐藏 -->
+<div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
-    <!-- 🔵 内层：真正承载毛玻璃背景、切角和圆弧光晕 -->
-    <div class="clip-inner" style="width: 100%; height: 100%; background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(24px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); border-radius: 28px;">
-        
-        <!-- 正常引入你的两个主视图 -->
+    <!-- 内层：专门承载毛玻璃背景、台阶、以及内角圆润 -->
+    <div class="clip-inner">
         {% include 'workspace/partials/_config_home.html' %}
         {% include 'workspace/partials/_config_form.html' %}
-
     </div>
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
-        /* 🔥 全屏模式：用裁剪切出缺口，用圆遮罩磨平内角 */
+        /* ================== 全屏模式（机器人仓库） ================== */
+        .panel-fullscreen {
+            top: 20px !important;        /* 顶部离边 20px（为了绕过刘海，稍微收窄一点） */
+            left: 32px !important;       /* ✅ 左右离边 32px */
+            right: 32px !important;      /* ✅ 左右离边 32px */
+            bottom: 32px !important;     /* ✅ 底部离边 32px */
+            width: auto !important;
+            height: auto !important;
+            border-radius: 28px !important;
+            overflow: hidden !important; /* 关键：保证外层圆角把超出的边角隐藏掉 */
+            box-shadow: none !important;
+        }
+
         .panel-fullscreen .clip-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 28px !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+
+            /* ✨ 完美的直角转角 + 16px 圆润内角 */
             clip-path: polygon(
                 0% 0%, 
-                calc(100% - 220px) 0%,  /* 切入位置：离右侧 220px */
-                calc(100% - 220px) 45px, /* 深度：往下 45px (比之前浅一半) */
+                calc(100% - 220px) 0%, 
+                calc(100% - 220px) 45px, 
                 100% 45px, 
                 100% 100%, 
                 0% 100%
             ) !important;
 
-            /* 🎯 用径向渐变磨圆那个直角内角 */
+            /* 🎯 用蒙版给内角磨圆 */
             mask-image: radial-gradient(circle at calc(100% - 220px) 45px, transparent 16px, black 18px) !important;
             -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 45px, transparent 16px, black 18px) !important;
         }
 
-        /* 🧹 缩回到左下角配置模式时：彻底清除切角和遮罩，恢复标准外形 */
+
+        /* ================== 缩回模式（机器人配置） ================== */
         .panel-collapsed {
-            position: fixed !important;
-            inset: auto !important;
+            top: auto !important;
             left: 24px !important;
             bottom: 24px !important;
+            right: auto !important;
             width: 480px !important;
             height: auto !important;
-            border-radius: 28px !important;
-            z-index: 20 !important;
             max-height: calc(100vh - 48px) !important;
+            border-radius: 28px !important;
+            overflow: visible !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
-            overflow: visible !important;
         }
+        
         .panel-collapsed .clip-inner {
             clip-path: none !important;
             mask-image: none !important;
