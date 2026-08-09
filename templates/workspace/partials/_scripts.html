@@ -1,29 +1,419 @@
-// ✨ 核心修复：只卡黑边边界，绝不强制居中打断用户手势
-function applyCanvasTransform() {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+<script>
+// ==========================================
+// 1. 核心状态变量与DOM初始化
+// ==========================================
+let nodes = [];
+let history = [];
+let historyIndex = -1;
+let isDraggingCanvas = false;
+let isDraggingNode = false;
+let startX, startY, startLeft, startTop;
+let currentDragNode = null;
+let canvasOffsetX = 0, canvasOffsetY = 0;
+let lastMouseX = 0, lastMouseY = 0;
 
-    // 画布原点在 [-50vw, -50vh]
-    const limitXMin = vw * 0.5 * currentScale;          // 防止左侧漏黑边
-    const limitXMax = vw * (1 - 1.5 * currentScale);    // 防止右侧漏黑边
-    const limitYMin = vh * 0.5 * currentScale;
-    const limitYMax = vh * (1 - 1.5 * currentScale);
+const canvasArea = document.getElementById('canvasArea');
+const nodeContainer = document.getElementById('nodeContainer');
+const previewBox = document.getElementById('previewBox');
+const previewMessages = document.getElementById('previewMessages');
+const previewInput = document.getElementById('previewInput');
 
-    let cX = canvasOffsetX;
-    let cY = canvasOffsetY;
+// ==========================================
+// 2. 历史记录与撤销/重做
+// ==========================================
+function saveHistory() {
+    history = history.slice(0, historyIndex + 1);
+    history.push(JSON.parse(JSON.stringify(nodes)));
+    historyIndex++;
+    if (history.length > 50) {
+        history.shift();
+        historyIndex--;
+    }
+}
 
-    // 如果画面比屏幕还小，直接卡死偏移量，绝对不重置中心
-    if (limitXMin > limitXMax) {
-        // 仅限制在当前合理范围，不强制居中，把控制权还给用户手指
-        cX = Math.min(limitXMin, Math.max(limitXMax, cX)); 
-        cY = Math.min(limitYMin, Math.max(limitYMax, cY));
-    } else {
-        // 如果画面比屏幕大，严格限制拖拽边界
-        cX = Math.min(limitXMax, Math.max(limitXMin, cX));
-        cY = Math.min(limitYMax, Math.max(limitYMin, cY));
+window.undoAction = function() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+        renderNodes();
+    }
+};
+
+window.redoAction = function() {
+    if (historyIndex < history.length - 1) {
+        historyIndex++;
+        nodes = JSON.parse(JSON.stringify(history[historyIndex]));
+        renderNodes();
+    }
+};
+
+window.clearCanvas = function() {
+    if (nodes.length === 0) return;
+    nodes = [];
+    saveHistory();
+    renderNodes();
+};
+
+window.deleteNode = function(index) {
+    nodes.splice(index, 1);
+    saveHistory();
+    renderNodes();
+};
+
+window.addNode = function(type) {
+    const baseX = 200 + Math.random() * 300;
+    const baseY = 200 + Math.random() * 300;
+    const newNode = {
+        id: Date.now() + Math.random(),
+        type: type,
+        x: baseX,
+        y: baseY,
+        content: type === 'text' ? '输入你的回复...' : '按钮名称',
+        buttons: type === 'button' ? ['按钮1', '按钮2'] : []
+    };
+    nodes.push(newNode);
+    saveHistory();
+    renderNodes();
+};
+
+// ==========================================
+// 3. 右键菜单控制
+// ==========================================
+let hideTimeout = null;
+function hideContextMenu() {
+    const menu = document.getElementById('ctxMenu');
+    if (!menu.classList.contains('open')) return;
+    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+    menu.classList.remove('open');
+    hideTimeout = setTimeout(() => { menu.style.display = 'none'; hideTimeout = null; }, 150);
+}
+function showContextMenu(e) {
+    const menu = document.getElementById('ctxMenu');
+    const menuItems = document.querySelectorAll('#ctxMenu .value');
+    if (menu.classList.contains('open')) { hideContextMenu(); return; }
+    menuItems.forEach(b => b.classList.remove('active'));
+    let x = e.clientX, y = e.clientY;
+    menu.style.display = 'block'; menu.classList.remove('open');
+    let left = x + 12, top = y + 12;
+    const menuWidth = menu.offsetWidth, menuHeight = menu.offsetHeight;
+    const winWidth = window.innerWidth, winHeight = window.innerHeight;
+    if (left + menuWidth > winWidth) { left = x - menuWidth - 12; }
+    if (top + menuHeight > winHeight) { top = y - menuHeight - 12; }
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+    setTimeout(() => { menu.classList.add('open'); }, 20);
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const menu = document.getElementById('ctxMenu');
+    const menuItems = document.querySelectorAll('#ctxMenu .value');
+
+    document.addEventListener('click', function(e) {
+        if (menu.contains(e.target)) {
+            const item = e.target.closest('.value');
+            if (item) {
+                e.stopPropagation();
+                e.preventDefault();
+                menuItems.forEach(b => b.classList.remove('active'));
+                item.classList.add('active');
+
+                if (item.dataset.action === 'toggle_panel') {
+                    const btnText = item.querySelector('.btn-text');
+                    togglePanel();
+                    const isHidden = document.getElementById('configPanel').dataset.hidden === 'true';
+                    btnText.textContent = isHidden ? '展开面板' : '隐藏面板';
+                    hideContextMenu();
+                } else {
+                    hideContextMenu();
+                }
+            }
+            return;
+        }
+
+        if (canvasArea.contains(e.target) && !e.target.closest('.canvas-node')) {
+            showContextMenu(e);
+            return;
+        }
+
+        hideContextMenu();
+    });
+});
+
+// ==========================================
+// 4. 机器人绑定与自动填写
+// ==========================================
+window.connectBot = function() {
+    const token = document.getElementById('botTokenInput').value;
+    const chatId = document.getElementById('telegramIdInput').value;
+    const name = '宫水编辑器';
+    const status = document.getElementById('botStatus');
+    
+    if (token.length < 10) {
+        status.innerHTML = '❌ Token 格式错误';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
+    }
+    if (!chatId || chatId.length < 1) {
+        status.innerHTML = '❌ 请输入绑定的 Telegram ID';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
     }
 
-    canvasOffsetX = cX;
-    canvasOffsetY = cY;
-    canvasArea.style.transform = `translate(${cX}px, ${cY}px) scale(${currentScale})`;
+    status.innerHTML = '⏳ 正在验证并发送绑定消息...';
+    status.className = 'mt-2 text-[10px] text-gray-400';
+
+    fetch('/api/bind_bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token, telegram_id: chatId, name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.ok) {
+            status.innerHTML = `✅ 绑定成功！已向 ${chatId} 发送确认消息。`;
+            status.className = 'mt-2 text-[10px] text-green-400';
+            window.addBotNode(data.bot_name || name, data.bot_avatar_url);
+        } else {
+            status.innerHTML = `❌ 绑定失败: ${data.msg}`;
+            status.className = 'mt-2 text-[10px] text-red-400';
+        }
+    })
+    .catch(() => {
+        status.innerHTML = '❌ 网络请求失败，请稍后重试。';
+        status.className = 'mt-2 text-[10px] text-red-400';
+    });
+};
+
+window.autoFillBot = function() {
+    const tokenInput = document.getElementById('botTokenInput');
+    const idInput = document.getElementById('telegramIdInput');
+    const status = document.getElementById('botStatus');
+
+    if (!navigator.clipboard) {
+        status.innerHTML = '❌ 你的浏览器不支持读取剪贴板';
+        status.className = 'mt-2 text-[10px] text-red-400';
+        return;
+    }
+
+    navigator.clipboard.readText().then(text => {
+        if (!text || text.trim() === '') {
+            status.innerHTML = '❌ 自动填写失败：剪贴板为空';
+            status.className = 'mt-2 text-[10px] text-red-400';
+            return;
+        }
+        
+        let foundToken = false;
+        let foundId = false;
+
+        const lines = text.split(/\r?\n/);
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+
+            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                tokenInput.value = trimmed;
+                foundToken = true;
+            } 
+            else if (/^\d{5,15}$/.test(trimmed) && !foundId) { 
+                idInput.value = trimmed;
+                foundId = true;
+            }
+        });
+
+        if (foundToken || foundId) {
+            let msg = `✅ 自动识别成功！`;
+            if (foundToken) msg += ` Token 已填入`;
+            if (foundId) msg += ` ID 已填入`;
+            status.innerHTML = msg;
+            status.className = 'mt-2 text-[10px] text-green-400';
+        } else {
+            status.innerHTML = '❌ 自动填写失败：剪贴板内容不符合 ID 或 Token 的格式';
+            status.className = 'mt-2 text-[10px] text-red-400';
+        }
+    }).catch(err => {
+        status.innerHTML = '❌ 读取剪贴板失败，请检查网页权限设置';
+        status.className = 'mt-2 text-[10px] text-red-400';
+    });
+};
+
+// ==========================================
+// 5. 界面功能（全屏、面板折叠）
+// ==========================================
+function toggleFullScreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else if (document.exitFullscreen) document.exitFullscreen();
 }
+function togglePanel() {
+    const panel = document.getElementById('configPanel'), handle = document.getElementById('panelHandle');
+    const isHidden = panel.dataset.hidden === 'true';
+    if (isHidden) {
+        panel.style.transform = 'translateY(0)'; panel.dataset.hidden = 'false'; handle.classList.add('hidden');
+    } else {
+        const translateY = window.innerHeight - 84; panel.style.transform = `translateY(${translateY}px)`;
+        panel.dataset.hidden = 'true'; handle.classList.remove('hidden');
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const originalToggle = window.toggleAgentPanel;
+    window.toggleAgentPanel = function() {
+        const wrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel');
+        if (!wrapper || !panel) return;
+        const isWorkspace = !document.getElementById('cardStackContainer');
+        if (isWorkspace) {
+            if (wrapper.style.display === 'block') { panel.classList.add('translate-y-full'); setTimeout(() => { wrapper.style.display = 'none'; }, 300); }
+            else {
+                wrapper.style.display = 'block'; wrapper.style.width = '360px'; wrapper.style.left = 'auto'; wrapper.style.right = '24px'; wrapper.style.transform = 'none';
+                setTimeout(() => { panel.classList.remove('translate-y-full'); const input = document.getElementById('agentInput'); if (input) setTimeout(() => input.focus(), 400); }, 10);
+            }
+        } else { if (typeof originalToggle === 'function') originalToggle(); }
+    };
+});
+
+// ==========================================
+// 6. 核心节点渲染器（✨ 升级了触屏手机长按拖拽）
+// ==========================================
+function renderNodes() {
+    nodeContainer.innerHTML = '';
+    nodes.forEach((node, index) => {
+        const el = document.createElement('div');
+        el.className = 'canvas-node';
+        
+        if (node.type === 'bot') {
+            el.classList.add('bot-node');
+        }
+        
+        el.style.left = node.x + 'px';
+        el.style.top = node.y + 'px';
+        el.dataset.index = index;
+
+        let bodyHtml = ``;
+        if (node.type === 'text') {
+            bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
+            bodyHtml += `<div class="node-title">自动回复</div>`;
+            bodyHtml += `<div class="node-body">${node.content || '点击输入文本...'}</div>`;
+        } else if (node.type === 'button') {
+            bodyHtml = `<div class="node-handle"><span>节点 #${index+1}</span><span onclick="deleteNode(${index})" class="cursor-pointer hover:text-red-400">✕</span></div>`;
+            bodyHtml += `<div class="node-title">按钮菜单</div>`;
+            bodyHtml += `<div class="node-body">${node.content || '点击编辑按钮...'}</div>`;
+            if (node.buttons && node.buttons.length > 0) {
+                node.buttons.forEach(b => {
+                    bodyHtml += `<span class="inline-block bg-[#493F36] text-white px-2 py-1 rounded text-[10px] mt-1 mr-1">${b}</span>`;
+                });
+            }
+        } else if (node.type === 'bot') {
+            const avatarUrl = node.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(node.name)}&background=493F36&color=fff&size=128`;
+            bodyHtml = `
+                <div class="relative">
+                    <div class="absolute -top-3 -right-3 z-10 cursor-pointer w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-[11px] text-gray-400 hover:text-red-400 transition border border-white/10" onclick="deleteNode(${index})">✕</div>
+                    <div class="flex flex-col items-center justify-center gap-2 pt-2">
+                        <div class="w-[80px] h-[80px] rounded-full overflow-hidden border-2 border-[#F5E6CF]/30 shadow-lg bg-[#333] flex items-center justify-center flex-shrink-0">
+                            <img src="${avatarUrl}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Bot&background=493F36&color=fff&size=128'">
+                        </div>
+                        <div class="text-[#F5E6CF] font-bold text-[15px] truncate max-w-[140px] text-center mt-1">${node.name}</div>
+                        <div class="text-[10px] text-gray-400/80 mt-1">已绑定</div>
+                    </div>
+                </div>
+            `;
+        }
+        el.innerHTML = bodyHtml;
+
+        // ✨ 1. 电脑鼠标拖拽
+        el.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            if (e.button !== 0) return;
+            isDraggingNode = true;
+            currentDragNode = el;
+            const rect = el.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            el.style.zIndex = 100;
+        });
+
+        // ✨ 2. 手机/平板长按触屏拖拽 (新增支持)
+        el.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            if (e.touches.length !== 1) return;
+            const touch = e.touches[0];
+            isDraggingNode = true;
+            currentDragNode = el;
+            const rect = el.getBoundingClientRect();
+            startX = touch.clientX - rect.left;
+            startY = touch.clientY - rect.top;
+            el.style.zIndex = 100;
+            // 阻止默认行为，防止长按弹出菜单或滑动页面
+            e.preventDefault(); 
+        }, { passive: false });
+
+        nodeContainer.appendChild(el);
+    });
+}
+
+// ✨ 3. 全局鼠标移动监听（电脑）
+document.addEventListener('mousemove', (e) => {
+    if (isDraggingNode && currentDragNode) {
+        const left = e.clientX - startX - canvasArea.getBoundingClientRect().left;
+        const top = e.clientY - startY - canvasArea.getBoundingClientRect().top;
+        currentDragNode.style.left = left + 'px';
+        currentDragNode.style.top = top + 'px';
+    }
+});
+
+// ✨ 4. 全局触屏移动监听（手机/平板）
+document.addEventListener('touchmove', (e) => {
+    if (isDraggingNode && currentDragNode && e.touches.length === 1) {
+        const touch = e.touches[0];
+        const left = touch.clientX - startX - canvasArea.getBoundingClientRect().left;
+        const top = touch.clientY - startY - canvasArea.getBoundingClientRect().top;
+        currentDragNode.style.left = left + 'px';
+        currentDragNode.style.top = top + 'px';
+        e.preventDefault(); // 阻止页面跟随手指滑动
+    }
+}, { passive: false });
+
+// ✨ 5. 全局鼠标/触屏释放监听
+document.addEventListener('mouseup', (e) => {
+    if (isDraggingNode && currentDragNode) {
+        const index = parseInt(currentDragNode.dataset.index);
+        if (!isNaN(index)) {
+            nodes[index].x = parseFloat(currentDragNode.style.left);
+            nodes[index].y = parseFloat(currentDragNode.style.top);
+            saveHistory();
+        }
+        currentDragNode.style.zIndex = 1;
+        isDraggingNode = false;
+        currentDragNode = null;
+    }
+});
+
+document.addEventListener('touchend', (e) => {
+    if (isDraggingNode && currentDragNode) {
+        const index = parseInt(currentDragNode.dataset.index);
+        if (!isNaN(index)) {
+            nodes[index].x = parseFloat(currentDragNode.style.left);
+            nodes[index].y = parseFloat(currentDragNode.style.top);
+            saveHistory();
+        }
+        currentDragNode.style.zIndex = 1;
+        isDraggingNode = false;
+        currentDragNode = null;
+    }
+});
+
+window.addBotNode = function(name, avatar) {
+    const botCount = nodes.filter(n => n.type === 'bot').length;
+    const baseX = 1500; 
+    const baseY = 750 + (botCount * 160);
+
+    const newNode = {
+        id: Date.now() + Math.random(),
+        type: 'bot',
+        name: name || '我的机器人',
+        avatar: avatar || null,
+        x: baseX,
+        y: baseY
+    };
+    nodes.push(newNode);
+    saveHistory();
+    renderNodes();
+};
+</script>
