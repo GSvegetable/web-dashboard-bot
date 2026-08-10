@@ -1,16 +1,13 @@
 <!-- 纯粹毛玻璃折叠卡片（星光 / 极光 / 极光pro） -->
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
-        <!-- 无 overflow-hidden，解除隐形边界 -->
         <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
-            
-            <!-- 卡片交互主容器 -->
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
                 <!-- 卡片 1：星光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
-                     data-plan-name="星光" data-index="0"> <!-- ✨ 新增 data-index -->
+                     data-plan-name="星光" data-index="0">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
                     <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -18,7 +15,7 @@
                 <!-- 卡片 2：极光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
-                     data-plan-name="极光" data-index="1"> <!-- ✨ 新增 data-index -->
+                     data-plan-name="极光" data-index="1">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
                     <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -26,13 +23,12 @@
                 <!-- 卡片 3：极光pro -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(25deg) translateX(15px); z-index: 0;"
-                     data-plan-name="极光pro" data-index="2"> <!-- ✨ 新增 data-index -->
+                     data-plan-name="极光pro" data-index="2">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
                     <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
             </div>
-
         </div>
     </div>
 </div>
@@ -43,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
 
-    // ---------- 1. 展开并排 ----------
+    // ---------- 展开并排 ----------
     function expandCards() {
         cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
         cardItems[0].style.marginRight = '0px';
@@ -58,35 +54,37 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.zIndex = 2;
     }
 
-    // ---------- 2. 聚焦高亮动画（被选中的放大，未被选中的缩小并微调位移） ----------
+    // ---------- 聚焦高亮动画 ----------
     function focusCard(selectedIndex) {
-        const targetOffsets = [-10, 0, 10]; // 左中右各自向中心靠拢后的偏移量
-
+        const targetOffsets = [-10, 0, 10];
         cardItems.forEach((card, idx) => {
             if (idx === selectedIndex) {
-                // 被选中的卡片：放大1.15倍，稍微往中心靠拢
                 card.style.transform = `rotate(0deg) translateX(${targetOffsets[idx]}px) scale(1.15)`;
-                card.style.zIndex = 10; // 保证它在最上层
+                card.style.zIndex = 10;
             } else {
-                // 其他卡片：缩小到0.85倍
                 const baseX = (idx === 0) ? -24 : (idx === 2) ? 24 : 0;
                 card.style.transform = `rotate(0deg) translateX(${baseX}px) scale(0.85)`;
-                card.style.zIndex = 1; // 放到下层
+                card.style.zIndex = 1;
             }
         });
     }
 
-    // ---------- 3. 恢复并排平铺状态 ----------
+    // ---------- 恢复并排平铺 ----------
     function unfocusCards() {
         cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
+        cardItems[0].style.marginRight = '0px';
         cardItems[0].style.zIndex = 2;
+        
         cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1)';
+        cardItems[1].style.marginRight = '0px';
         cardItems[1].style.zIndex = 2;
+        
         cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1)';
+        cardItems[2].style.marginRight = '0px';
         cardItems[2].style.zIndex = 2;
     }
 
-    // ---------- 4. 折叠重叠 ----------
+    // ---------- 折叠重叠 ----------
     function collapseCards() {
         cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px) scale(1)';
         cardItems[0].style.marginRight = '-45px';
@@ -101,44 +99,46 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.zIndex = 0;
     }
 
-    // ---------- 5. 核心点击逻辑 ----------
+    // ✨ 暴露全局方法，供菜单关闭时调用
+    window.collapseCardStack = collapseCards;
+    window.unfocusCardStack = unfocusCards;
+
+    // ---------- 核心点击逻辑 ----------
     cardItems.forEach((card) => {
         card.addEventListener('click', function(e) {
             e.stopPropagation(); 
 
             const planName = this.getAttribute('data-plan-name');
             const index = parseInt(this.getAttribute('data-index'));
+            
+            const modal = document.getElementById('planDetailModal');
+            const isMenuOpen = !modal.classList.contains('hidden');
 
-            // 1. 先展开并排（重置聚焦）
-            expandCards();
+            // 1. 只有菜单没开时才需要展开动画（菜单开着时说明已经展开了）
+            if (!isMenuOpen) {
+                expandCards();
+            }
 
-            // 2. 触发聚焦动画
+            // 2. 执行当前的聚焦动画切换
             setTimeout(() => {
                 focusCard(index);
-            }, 10); // 加一点微小的延迟，确保展开动画已经激活
+            }, 10);
 
-            // 3. 调用菜单文件里的函数
+            // 3. 调用菜单文件里的函数（如果菜单开着，会自动刷新内容）
             if (typeof window.openPlanModal === 'function') {
                 window.openPlanModal(planName);
             }
         });
     });
 
-    // ---------- 6. 点击背景透明处关闭 ----------
+    // ---------- 点击背景透明处关闭 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                // 先取消聚焦动画，恢复成并排
-                unfocusCards();
-                
-                // 再折叠回堆叠状态
-                collapseCards();
-
-                // 关闭菜单（如果菜单开着）
+                // 如果菜单开着，先调用菜单关闭
                 if (typeof window.closePlanModal === 'function') {
                     window.closePlanModal();
                 }
-                // 关闭主弹窗
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
                 }
