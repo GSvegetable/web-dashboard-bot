@@ -2,7 +2,6 @@
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
         <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
-            <!-- 🛡️ 核心容器：通过这里控制整体偏移 -->
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
                 <!-- 卡片 1：星光 -->
@@ -46,9 +45,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const cardWrapper = document.getElementById('becomeFanCardWrapper');
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
-
-    // 🛡️ 核心计数器：记录被打开次数
-    let openCounter = 0;
 
     // ---------- 展开并排 ----------
     function expandCards() {
@@ -113,14 +109,12 @@ document.addEventListener("DOMContentLoaded", function() {
     window.collapseCardStack = collapseCards;
     window.unfocusCardStack = unfocusCards;
 
-    // ---------- 核心点击逻辑 ----------
+    // ---------- 卡片点击 ----------
     cardItems.forEach((card) => {
         card.addEventListener('click', function(e) {
             e.stopPropagation(); 
-
             const planName = this.getAttribute('data-plan-name');
             const index = parseInt(this.getAttribute('data-index'));
-            
             const modal = document.getElementById('planDetailModal');
             const isMenuOpen = !modal.classList.contains('hidden');
 
@@ -138,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // ---------- 点击背景透明处关闭 ----------
+    // ---------- 关闭 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
@@ -153,26 +147,31 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================================
-    // 🎯 终极修正：替换原生打开逻辑，强制锁定水平位置！
-    // 第一次：0偏移（完美居中）。
-    // 第二次及以后所有点击：整体强制左移 12px，不再累加！
+    // 🚀 核心破局：直接重新定义全局打开函数！不走依赖，强制接管！
     // ==========================================================
-    const originalOpen = window.openBecomeFanModal;
     window.openBecomeFanModal = function() {
-        // 执行原生打开动画（让卡片出现）
-        if (typeof originalOpen === 'function') {
-            originalOpen();
-        }
-
-        openCounter++;
+        const modal = document.getElementById('becomeFanModal');
+        if (!modal) return;
         
-        // 锁定关键点：只要不是第一次，全都设为一个固定左移值！
-        if (openCounter > 1) {
-            // ✨ 用 margin-left 直接在 DOM 层面对整个卡片堆叠做固定偏移，彻底阻断位移 Bug
-            cardWrapper.style.marginLeft = '-12px'; 
-        } else {
-            // 第一次完全正常
-            cardWrapper.style.marginLeft = '0px';
+        // 1. 按原生逻辑弹出面板
+        modal.classList.add('active');
+
+        // 2. 计数器逻辑（完全独立，确保绝对被执行）
+        if (typeof window._openCount === 'undefined') {
+            window._openCount = 0;
+        }
+        window._openCount++;
+
+        const wrapper = document.getElementById('becomeFanCardWrapper');
+        if (wrapper) {
+            // 如果这是第1次打开：保持 0 偏移（完美无瑕）
+            if (window._openCount === 1) {
+                wrapper.style.marginLeft = '0px';
+            } 
+            // 如果是第 2 次及以后：强制整体往左偏移 12px！
+            else {
+                wrapper.style.marginLeft = '-12px';
+            }
         }
     };
 });
