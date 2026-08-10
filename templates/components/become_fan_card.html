@@ -2,6 +2,7 @@
 <div class="modal-overlay" id="becomeFanModal">
     <div class="modal-box">
         <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
+            <!-- 🛡️ 核心容器：通过这里控制整体偏移 -->
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
                 <!-- 卡片 1：星光 -->
@@ -46,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
 
-    // ✨ 核心计数器：记录开发者按钮被点击开/关了多少次
+    // 🛡️ 核心计数器：记录被打开次数
     let openCounter = 0;
 
     // ---------- 展开并排 ----------
@@ -152,26 +153,26 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================================
-    // ✨ 新增：魔改“第一次偏移”规则
-    // 在每次点击开发者按钮触发时，拦截并往左加一点偏移
+    // 🎯 终极修正：替换原生打开逻辑，强制锁定水平位置！
+    // 第一次：0偏移（完美居中）。
+    // 第二次及以后所有点击：整体强制左移 12px，不再累加！
     // ==========================================================
     const originalOpen = window.openBecomeFanModal;
     window.openBecomeFanModal = function() {
-        // 先执行原生的打开动画
+        // 执行原生打开动画（让卡片出现）
         if (typeof originalOpen === 'function') {
             originalOpen();
         }
 
-        // 计数器累加
         openCounter++;
         
-        // 从第二次开始（以及之后），每次都往左移一点点（每次6px）
+        // 锁定关键点：只要不是第一次，全都设为一个固定左移值！
         if (openCounter > 1) {
-            const shiftAmount = (openCounter - 1) * 6;
-            cardWrapper.style.transform = `translateX(-${shiftAmount}px)`;
+            // ✨ 用 margin-left 直接在 DOM 层面对整个卡片堆叠做固定偏移，彻底阻断位移 Bug
+            cardWrapper.style.marginLeft = '-12px'; 
         } else {
-            // 第一次保持绝对的 0 偏移
-            cardWrapper.style.transform = 'translateX(0px)';
+            // 第一次完全正常
+            cardWrapper.style.marginLeft = '0px';
         }
     };
 });
