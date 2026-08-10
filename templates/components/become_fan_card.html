@@ -60,19 +60,43 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.zIndex = 2;
     }
 
-    // ---------- 聚焦高亮动画 ----------
+    // ==========================================================
+    // 🔥 核心修改：重写聚焦逻辑，实现强烈的“挤压重叠”效果
+    // ==========================================================
     function focusCard(selectedIndex) {
-        const targetOffsets = [-12, 0, 12];
-        cardItems.forEach((card, idx) => {
-            if (idx === selectedIndex) {
-                card.style.transform = `rotate(0deg) translateX(${targetOffsets[idx]}px) scale(1.15)`;
-                card.style.zIndex = 10;
-            } else {
-                const baseX = (idx === 0) ? -24 : (idx === 2) ? 24 : 0;
-                card.style.transform = `rotate(0deg) translateX(${baseX}px) scale(0.85)`;
-                card.style.zIndex = 1;
-            }
-        });
+        if (selectedIndex === 0) {
+            // 【点击左边 星光】：左边放大。中间和右边向右挤压，给左边让出位置
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1.15)';
+            cardItems[0].style.zIndex = 10;
+            
+            cardItems[1].style.transform = 'rotate(0deg) translateX(16px) scale(0.85)';
+            cardItems[1].style.zIndex = 1;
+            
+            cardItems[2].style.transform = 'rotate(0deg) translateX(28px) scale(0.85)';
+            cardItems[2].style.zIndex = 1;
+
+        } else if (selectedIndex === 1) {
+            // 【点击中间 极光】：中间放大。左右两边的卡片同时向中间靠拢
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-14px) scale(0.85)';
+            cardItems[0].style.zIndex = 1;
+            
+            cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1.15)';
+            cardItems[1].style.zIndex = 10;
+            
+            cardItems[2].style.transform = 'rotate(0deg) translateX(14px) scale(0.85)';
+            cardItems[2].style.zIndex = 1;
+
+        } else if (selectedIndex === 2) {
+            // 【点击右边 极光pro】：右边放大。中间和左边向左挤压，给右边让出位置
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-28px) scale(0.85)';
+            cardItems[0].style.zIndex = 1;
+            
+            cardItems[1].style.transform = 'rotate(0deg) translateX(-16px) scale(0.85)';
+            cardItems[1].style.zIndex = 1;
+            
+            cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1.15)';
+            cardItems[2].style.zIndex = 10;
+        }
     }
 
     // ---------- 恢复并排平铺 ----------
