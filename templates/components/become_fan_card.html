@@ -1,3 +1,42 @@
+<!-- 纯粹毛玻璃折叠卡片（星光 / 极光 / 极光pro） -->
+<div class="modal-overlay" id="becomeFanModal">
+    <div class="modal-box">
+        <!-- 无 overflow-hidden，解除隐形边界 -->
+        <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
+            
+            <!-- 卡片交互主容器 -->
+            <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
+
+                <!-- 卡片 1：星光 -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
+                     data-plan-name="星光"> <!-- ✨ 加上了清晰的名字标识 -->
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
+                    <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+                <!-- 卡片 2：极光 -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
+                     data-plan-name="极光">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
+                    <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+                <!-- 卡片 3：极光pro -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                     style="transform: rotate(25deg) translateX(15px); z-index: 0;"
+                     data-plan-name="极光pro">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
+                    <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const modalOverlay = document.getElementById('becomeFanModal');
@@ -32,8 +71,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 isExpanded = true;
                 expandCards();
             } else {
-                // 获取卡片名称
-                const planName = this.getAttribute('data-plan-name') || this.innerText.trim().split('/')[0];
+                // 直接读取卡片上的 data-plan-name 属性，万无一失
+                const planName = this.getAttribute('data-plan-name');
                 
                 // 调用新菜单文件里的函数！
                 if (typeof window.openPlanModal === 'function') {
