@@ -10,7 +10,7 @@
                 <!-- 卡片 1：星光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
-                     data-plan-name="星光">
+                     data-plan-name="星光" data-index="0"> <!-- ✨ 新增 data-index -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
                     <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -18,7 +18,7 @@
                 <!-- 卡片 2：极光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
-                     data-plan-name="极光">
+                     data-plan-name="极光" data-index="1"> <!-- ✨ 新增 data-index -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
                     <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -26,7 +26,7 @@
                 <!-- 卡片 3：极光pro -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
                      style="transform: rotate(25deg) translateX(15px); z-index: 0;"
-                     data-plan-name="极光pro">
+                     data-plan-name="极光pro" data-index="2"> <!-- ✨ 新增 data-index -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
                     <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -43,47 +43,98 @@ document.addEventListener("DOMContentLoaded", function() {
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
 
-    // ---------- 展开动画函数 ----------
+    // ---------- 1. 展开并排 ----------
     function expandCards() {
-        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px)';
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
         cardItems[0].style.marginRight = '0px';
-        cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
+        cardItems[0].style.zIndex = 2;
+        
+        cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1)';
         cardItems[1].style.marginRight = '0px';
-        cardItems[2].style.transform = 'rotate(0deg) translateX(24px)';
+        cardItems[1].style.zIndex = 2;
+        
+        cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1)';
+        cardItems[2].style.marginRight = '0px';
+        cardItems[2].style.zIndex = 2;
     }
 
-    // ---------- 合并动画函数（点了外部空白处收起时触发） ----------
+    // ---------- 2. 聚焦高亮动画（被选中的放大，未被选中的缩小并微调位移） ----------
+    function focusCard(selectedIndex) {
+        const targetOffsets = [-10, 0, 10]; // 左中右各自向中心靠拢后的偏移量
+
+        cardItems.forEach((card, idx) => {
+            if (idx === selectedIndex) {
+                // 被选中的卡片：放大1.15倍，稍微往中心靠拢
+                card.style.transform = `rotate(0deg) translateX(${targetOffsets[idx]}px) scale(1.15)`;
+                card.style.zIndex = 10; // 保证它在最上层
+            } else {
+                // 其他卡片：缩小到0.85倍
+                const baseX = (idx === 0) ? -24 : (idx === 2) ? 24 : 0;
+                card.style.transform = `rotate(0deg) translateX(${baseX}px) scale(0.85)`;
+                card.style.zIndex = 1; // 放到下层
+            }
+        });
+    }
+
+    // ---------- 3. 恢复并排平铺状态 ----------
+    function unfocusCards() {
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
+        cardItems[0].style.zIndex = 2;
+        cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1)';
+        cardItems[1].style.zIndex = 2;
+        cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1)';
+        cardItems[2].style.zIndex = 2;
+    }
+
+    // ---------- 4. 折叠重叠 ----------
     function collapseCards() {
-        cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px)';
+        cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px) scale(1)';
         cardItems[0].style.marginRight = '-45px';
-        cardItems[1].style.transform = 'rotate(0deg)';
+        cardItems[0].style.zIndex = 1;
+        
+        cardItems[1].style.transform = 'rotate(0deg) scale(1)';
         cardItems[1].style.marginRight = '-45px';
-        cardItems[2].style.transform = 'rotate(25deg) translateX(15px)';
+        cardItems[1].style.zIndex = 2;
+        
+        cardItems[2].style.transform = 'rotate(25deg) translateX(15px) scale(1)';
+        cardItems[2].style.marginRight = '-45px';
+        cardItems[2].style.zIndex = 0;
     }
 
-    // ---------- 核心修改：点击直接触发展开 + 弹窗 ----------
+    // ---------- 5. 核心点击逻辑 ----------
     cardItems.forEach((card) => {
         card.addEventListener('click', function(e) {
             e.stopPropagation(); 
 
-            // 1. 立刻触发展开动画
+            const planName = this.getAttribute('data-plan-name');
+            const index = parseInt(this.getAttribute('data-index'));
+
+            // 1. 先展开并排（重置聚焦）
             expandCards();
 
-            // 2. 立即弹窗
-            const planName = this.getAttribute('data-plan-name');
+            // 2. 触发聚焦动画
+            setTimeout(() => {
+                focusCard(index);
+            }, 10); // 加一点微小的延迟，确保展开动画已经激活
+
+            // 3. 调用菜单文件里的函数
             if (typeof window.openPlanModal === 'function') {
                 window.openPlanModal(planName);
             }
         });
     });
 
-    // ---------- 点击背景透明处关闭（同时收起卡片） ----------
+    // ---------- 6. 点击背景透明处关闭 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                // 收起卡片
+                // 先取消聚焦动画，恢复成并排
+                unfocusCards();
+                
+                // 再折叠回堆叠状态
                 collapseCards();
-                // 关闭弹窗（如果菜单开着）
+
+                // 关闭菜单（如果菜单开着）
                 if (typeof window.closePlanModal === 'function') {
                     window.closePlanModal();
                 }
