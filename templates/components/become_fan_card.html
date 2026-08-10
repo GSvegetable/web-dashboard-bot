@@ -5,7 +5,7 @@
             <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
 
                 <!-- 卡片 1：星光 -->
-                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
                      style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
                      data-plan-name="星光" data-index="0">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
@@ -13,7 +13,7 @@
                 </div>
 
                 <!-- 卡片 2：极光 -->
-                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
                      style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
                      data-plan-name="极光" data-index="1">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
@@ -21,7 +21,7 @@
                 </div>
 
                 <!-- 卡片 3：极光pro -->
-                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
                      style="transform: rotate(25deg) translateX(15px); z-index: 0;"
                      data-plan-name="极光pro" data-index="2">
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
@@ -32,6 +32,13 @@
         </div>
     </div>
 </div>
+
+<!-- ✨ 关键修复：去掉了 transition: all，精准锁定 transform 和 margin -->
+<style>
+    .card-item {
+        transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), margin-right 0.5s cubic-bezier(0.34,1.56,0.64,1), z-index 0s !important;
+    }
+</style>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -54,9 +61,10 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.zIndex = 2;
     }
 
-    // ---------- 聚焦高亮动画 ----------
+    // ---------- 聚焦高亮动画（✨ 放大往中间靠拢效果翻倍） ----------
     function focusCard(selectedIndex) {
-        const targetOffsets = [-10, 0, 10];
+        // 左边的卡片往右靠 20px，右边的卡片往左靠 20px（之前是 10px）
+        const targetOffsets = [-20, 0, 20];
         cardItems.forEach((card, idx) => {
             if (idx === selectedIndex) {
                 card.style.transform = `rotate(0deg) translateX(${targetOffsets[idx]}px) scale(1.15)`;
@@ -99,7 +107,6 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.zIndex = 0;
     }
 
-    // ✨ 暴露全局方法，供菜单关闭时调用
     window.collapseCardStack = collapseCards;
     window.unfocusCardStack = unfocusCards;
 
@@ -114,17 +121,14 @@ document.addEventListener("DOMContentLoaded", function() {
             const modal = document.getElementById('planDetailModal');
             const isMenuOpen = !modal.classList.contains('hidden');
 
-            // 1. 只有菜单没开时才需要展开动画（菜单开着时说明已经展开了）
             if (!isMenuOpen) {
                 expandCards();
             }
 
-            // 2. 执行当前的聚焦动画切换
             setTimeout(() => {
                 focusCard(index);
             }, 10);
 
-            // 3. 调用菜单文件里的函数（如果菜单开着，会自动刷新内容）
             if (typeof window.openPlanModal === 'function') {
                 window.openPlanModal(planName);
             }
@@ -135,7 +139,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                // 如果菜单开着，先调用菜单关闭
                 if (typeof window.closePlanModal === 'function') {
                     window.closePlanModal();
                 }
