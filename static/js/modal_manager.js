@@ -20,8 +20,9 @@ document.addEventListener("DOMContentLoaded", function() {
     window.closeBecomeFanModal = function() {
         const el = document.getElementById('becomeFanModal');
         if (el) {
-            // 关掉时，把添加的平移动画也取消掉
-            el.style.transform = 'translateX(0px)';
+            // 关闭时重置卡片位置
+            const modalBox = el.querySelector('.modal-box');
+            if (modalBox) modalBox.style.transform = 'translateX(0px)';
             el.classList.remove('active');
         }
     };
@@ -58,26 +59,25 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // ==========================================================
-    // ✅ 核心妥协方案：不要纠结 Bug，直接利用它！
-    // 第一次：正常位置
-    // 第 N 次（N>=2）：强制固定偏左 12px
+    // ✅ 核心最终版：二次点击固定左移 16px，且不漏虚化缝！
     // ==========================================================
     window.openBecomeFanModal = function() {
         window.closeAllModals();
         const el = document.getElementById('becomeFanModal');
         if (el) {
-            // 计数器判断
             if (typeof window._becomeOpenCount === 'undefined') {
                 window._becomeOpenCount = 0;
             }
             window._becomeOpenCount++;
 
-            // 🔥 核心修正：第二次及以后，强制给它加一个固定的左偏移！
-            if (window._becomeOpenCount === 1) {
-                el.style.transform = 'translateX(0px)';
-            } else {
-                // 永远固定在这里，不会再变化了
-                el.style.transform = 'translateX(-12px)'; 
+            // ✨ 核心改动：取得内部的 modal-box，把位移加在它身上，绝不动虚化层！
+            const modalBox = el.querySelector('.modal-box');
+            if (modalBox) {
+                if (window._becomeOpenCount === 1) {
+                    modalBox.style.transform = 'translateX(0px)'; // 第一次：完美原位置
+                } else {
+                    modalBox.style.transform = 'translateX(-16px)'; // 后续所有：固定左移 16px
+                }
             }
 
             el.classList.add('active');
