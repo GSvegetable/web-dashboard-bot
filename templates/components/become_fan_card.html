@@ -61,40 +61,40 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================================
-    // 🔥 核心修改：重写聚焦逻辑，实现强烈的“挤压重叠”效果
+    // 🔥 核心修改：重写聚焦逻辑，实现“向点击侧聚拢重叠”
     // ==========================================================
     function focusCard(selectedIndex) {
         if (selectedIndex === 0) {
-            // 【点击左边 星光】：左边放大。中间和右边向右挤压，给左边让出位置
-            cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1.15)';
+            // 【点击左边 星光】：极光、极光pro 整体向左侧（星光处）聚拢挤压
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-16px) scale(1.15)';
             cardItems[0].style.zIndex = 10;
             
-            cardItems[1].style.transform = 'rotate(0deg) translateX(16px) scale(0.85)';
+            cardItems[1].style.transform = 'rotate(0deg) translateX(-8px) scale(0.85)';
             cardItems[1].style.zIndex = 1;
             
-            cardItems[2].style.transform = 'rotate(0deg) translateX(28px) scale(0.85)';
+            cardItems[2].style.transform = 'rotate(0deg) translateX(4px) scale(0.85)';
             cardItems[2].style.zIndex = 1;
 
         } else if (selectedIndex === 1) {
-            // 【点击中间 极光】：中间放大。左右两边的卡片同时向中间靠拢
-            cardItems[0].style.transform = 'rotate(0deg) translateX(-14px) scale(0.85)';
+            // 【点击中间 极光】：左右两边同时向中间靠拢
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-12px) scale(0.85)';
             cardItems[0].style.zIndex = 1;
             
             cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1.15)';
             cardItems[1].style.zIndex = 10;
             
-            cardItems[2].style.transform = 'rotate(0deg) translateX(14px) scale(0.85)';
+            cardItems[2].style.transform = 'rotate(0deg) translateX(12px) scale(0.85)';
             cardItems[2].style.zIndex = 1;
 
         } else if (selectedIndex === 2) {
-            // 【点击右边 极光pro】：右边放大。中间和左边向左挤压，给右边让出位置
-            cardItems[0].style.transform = 'rotate(0deg) translateX(-28px) scale(0.85)';
+            // 【点击右边 极光pro】：星光、极光 整体向右侧（极光pro处）聚拢挤压
+            cardItems[0].style.transform = 'rotate(0deg) translateX(-4px) scale(0.85)';
             cardItems[0].style.zIndex = 1;
             
-            cardItems[1].style.transform = 'rotate(0deg) translateX(-16px) scale(0.85)';
+            cardItems[1].style.transform = 'rotate(0deg) translateX(8px) scale(0.85)';
             cardItems[1].style.zIndex = 1;
             
-            cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1.15)';
+            cardItems[2].style.transform = 'rotate(0deg) translateX(16px) scale(1.15)';
             cardItems[2].style.zIndex = 10;
         }
     }
