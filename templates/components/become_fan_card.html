@@ -118,17 +118,14 @@ document.addEventListener("DOMContentLoaded", function() {
             const modal = document.getElementById('planDetailModal');
             const isMenuOpen = !modal.classList.contains('hidden');
 
-            // 没开菜单时先展开，开了菜单就直接切换高亮
             if (!isMenuOpen) {
                 expandCards();
             }
 
-            // 高亮选中的卡片
             setTimeout(() => {
                 focusCard(index);
             }, 15);
 
-            // 打开价格菜单
             if (typeof window.openPlanModal === 'function') {
                 window.openPlanModal(planName);
             }
@@ -139,16 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
-                // 取消聚焦
                 unfocusCards();
-                // 折叠回堆叠
                 collapseCards();
 
-                // 关闭菜单
                 if (typeof window.closePlanModal === 'function') {
                     window.closePlanModal();
                 }
-                // 关闭主弹窗
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
                 }
