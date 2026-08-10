@@ -42,7 +42,6 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const modalOverlay = document.getElementById('becomeFanModal');
-    const cardWrapper = document.getElementById('becomeFanCardWrapper');
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
 
@@ -147,32 +146,32 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================================
-    // 🚀 核心破局：直接重新定义全局打开函数！不走依赖，强制接管！
+    // 🚀 彻底釜底抽薪：直接改变父容器对齐方向！
+    // 第一次：完全按你原版向右靠 (flex-end)
+    // 第二到N次：强制整个卡片劈到最最左边 (flex-start)
     // ==========================================================
     window.openBecomeFanModal = function() {
         const modal = document.getElementById('becomeFanModal');
         if (!modal) return;
         
-        // 1. 按原生逻辑弹出面板
         modal.classList.add('active');
 
-        // 2. 计数器逻辑（完全独立，确保绝对被执行）
         if (typeof window._openCount === 'undefined') {
             window._openCount = 0;
         }
         window._openCount++;
 
-        const wrapper = document.getElementById('becomeFanCardWrapper');
-        if (wrapper) {
-            // 如果这是第1次打开：保持 0 偏移（完美无瑕）
-            if (window._openCount === 1) {
-                wrapper.style.marginLeft = '0px';
-            } 
-            // 如果是第 2 次及以后：强制整体往左偏移 12px！
-            else {
-                wrapper.style.marginLeft = '-12px';
-            }
+        if (window._openCount === 1) {
+            // 第一次：完美原版靠右
+            modal.style.justifyContent = 'flex-end';
+            modal.style.paddingLeft = '0px';
+            modal.style.paddingRight = '24px';
+        } else {
+            // 第二次及以后所有点击：直接劈到最左边（测试生效）
+            modal.style.justifyContent = 'flex-start';
+            modal.style.paddingLeft = '24px'; // 靠最左边，但留 24px 缝
+            modal.style.paddingRight = '0px';
         }
     };
 });
-</script>
+                    </script>
