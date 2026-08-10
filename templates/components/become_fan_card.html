@@ -1,85 +1,159 @@
-// 卡片互锁逻辑（彻底重写，直接操作DOM，绝对稳定）
+<!-- 纯粹毛玻璃折叠卡片（星光 / 极光 / 极光pro） -->
+<div class="modal-overlay" id="becomeFanModal">
+    <div class="modal-box">
+        <div id="becomeFanCardWrapper" class="relative w-full max-w-[600px] pr-6 pt-0">
+            <div id="cardStackContainer" class="relative flex justify-start items-center min-h-[160px] cursor-pointer select-none pl-3 -mt-6">
+
+                <!-- 卡片 1：星光 -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
+                     style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
+                     data-plan-name="星光" data-index="0">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
+                    <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+                <!-- 卡片 2：极光 -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
+                     style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
+                     data-plan-name="极光" data-index="1">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
+                    <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+                <!-- 卡片 3：极光pro -->
+                <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center"
+                     style="transform: rotate(25deg) translateX(15px); z-index: 0;"
+                     data-plan-name="极光pro" data-index="2">
+                    <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
+                    <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-item {
+        transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), margin-right 0.5s cubic-bezier(0.34,1.56,0.64,1), z-index 0s !important;
+    }
+</style>
+
+<script>
 document.addEventListener("DOMContentLoaded", function() {
-    // 定义所有卡片关闭函数
-    window.closeLoginModal = function() {
-        const el = document.getElementById('loginModal');
-        if (el) el.classList.remove('active');
-    };
-    window.closeMusicModal = function() {
-        const el = document.getElementById('musicModal');
-        if (el) el.classList.remove('active');
-    };
-    window.closeContactModal = function() {
-        const el = document.getElementById('contactModal');
-        if (el) el.classList.remove('active');
-    };
-    window.closeUpdateLogModal = function() {
-        const el = document.getElementById('updateLogModal');
-        if (el) el.classList.remove('active');
-    };
-    window.closeBecomeFanModal = function() {
-        const el = document.getElementById('becomeFanModal');
-        if (el) el.classList.remove('active');
-    };
+    const modalOverlay = document.getElementById('becomeFanModal');
+    const cardContainer = document.getElementById('cardStackContainer');
+    const cardItems = cardContainer.querySelectorAll('.card-item');
 
-    // 一键关闭所有卡片的辅助函数
-    window.closeAllModals = function() {
-        const ids = ['loginModal', 'musicModal', 'contactModal', 'updateLogModal', 'becomeFanModal'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('active');
-        });
-    };
+    // ---------- 展开并排 ----------
+    function expandCards() {
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
+        cardItems[0].style.marginRight = '0px';
+        cardItems[0].style.zIndex = 2;
+        
+        cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1)';
+        cardItems[1].style.marginRight = '0px';
+        cardItems[1].style.zIndex = 2;
+        
+        cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1)';
+        cardItems[2].style.marginRight = '0px';
+        cardItems[2].style.zIndex = 2;
+    }
 
-    // 定义所有卡片打开函数
-    window.openLoginModal = function() {
-        window.closeAllModals();
-        const el = document.getElementById('loginModal');
-        if (el) el.classList.add('active');
-    };
-    window.openMusicModal = function() {
-        window.closeAllModals();
-        const el = document.getElementById('musicModal');
-        if (el) el.classList.add('active');
-    };
-    window.openContactModal = function() {
-        window.closeAllModals();
-        const el = document.getElementById('contactModal');
-        if (el) el.classList.add('active');
-    };
-    window.openUpdateLogModal = function() {
-        window.closeAllModals();
-        const el = document.getElementById('updateLogModal');
-        if (el) el.classList.add('active');
-    };
-
-    // ==========================================================
-    // ✅ 终极微移修正：第一次原位，第二次固定左移一丁点！
-    // ==========================================================
-    window.openBecomeFanModal = function() {
-        window.closeAllModals();
-        const el = document.getElementById('becomeFanModal');
-        if (el) {
-            // 1. 记录打开次数
-            if (typeof window._becomeOpenCount === 'undefined') {
-                window._becomeOpenCount = 0;
-            }
-            window._becomeOpenCount++;
-
-            // 2. 强制左对齐保持靠在右边（防止原生偏移 Bug）
-            el.style.justifyContent = 'flex-end';
-            el.style.paddingLeft = '0px';
-
-            // 3. 微调右侧距离：第一次是 24px，第二次及以后固定多出 12px
-            if (window._becomeOpenCount === 1) {
-                el.style.paddingRight = '24px';   // 第1次：完美位置
+    // ---------- 聚焦高亮动画 ----------
+    function focusCard(selectedIndex) {
+        const targetOffsets = [-12, 0, 12];
+        cardItems.forEach((card, idx) => {
+            if (idx === selectedIndex) {
+                card.style.transform = `rotate(0deg) translateX(${targetOffsets[idx]}px) scale(1.15)`;
+                card.style.zIndex = 10;
             } else {
-                el.style.paddingRight = '36px';   // 第2次及以后：比第一次多12px，整体往左移一丁点
-                // 👆 如果觉得 12px 移得太多，把 36px 改成 32px（差8px）；移太少就改成 40px。
+                const baseX = (idx === 0) ? -24 : (idx === 2) ? 24 : 0;
+                card.style.transform = `rotate(0deg) translateX(${baseX}px) scale(0.85)`;
+                card.style.zIndex = 1;
+            }
+        });
+    }
+
+    // ---------- 恢复并排平铺 ----------
+    function unfocusCards() {
+        cardItems[0].style.transform = 'rotate(0deg) translateX(-24px) scale(1)';
+        cardItems[0].style.marginRight = '0px';
+        cardItems[0].style.zIndex = 2;
+        
+        cardItems[1].style.transform = 'rotate(0deg) translateX(0px) scale(1)';
+        cardItems[1].style.marginRight = '0px';
+        cardItems[1].style.zIndex = 2;
+        
+        cardItems[2].style.transform = 'rotate(0deg) translateX(24px) scale(1)';
+        cardItems[2].style.marginRight = '0px';
+        cardItems[2].style.zIndex = 2;
+    }
+
+    // ---------- 折叠重叠 ----------
+    function collapseCards() {
+        cardItems[0].style.transform = 'rotate(-25deg) translateX(-15px) scale(1)';
+        cardItems[0].style.marginRight = '-45px';
+        cardItems[0].style.zIndex = 1;
+        
+        cardItems[1].style.transform = 'rotate(0deg) scale(1)';
+        cardItems[1].style.marginRight = '-45px';
+        cardItems[1].style.zIndex = 2;
+        
+        cardItems[2].style.transform = 'rotate(25deg) translateX(15px) scale(1)';
+        cardItems[2].style.marginRight = '-45px';
+        cardItems[2].style.zIndex = 0;
+    }
+
+    window.collapseCardStack = collapseCards;
+    window.unfocusCardStack = unfocusCards;
+
+    // ---------- 卡片点击事件 ----------
+    cardItems.forEach((card) => {
+        card.addEventListener('click', function(e) {
+            e.stopPropagation(); 
+            const planName = this.getAttribute('data-plan-name');
+            const index = parseInt(this.getAttribute('data-index'));
+            
+            const modal = document.getElementById('planDetailModal');
+            const isMenuOpen = !modal.classList.contains('hidden');
+
+            // 没开菜单时先展开，开了菜单就直接切换高亮
+            if (!isMenuOpen) {
+                expandCards();
             }
 
-            // 4. 弹出卡片
-            el.classList.add('active');
-        }
-    };
+            // 高亮选中的卡片
+            setTimeout(() => {
+                focusCard(index);
+            }, 15);
+
+            // 打开价格菜单
+            if (typeof window.openPlanModal === 'function') {
+                window.openPlanModal(planName);
+            }
+        });
+    });
+
+    // ---------- 点击背景透明处关闭 ----------
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', function(e) {
+            if (e.target === modalOverlay) {
+                // 取消聚焦
+                unfocusCards();
+                // 折叠回堆叠
+                collapseCards();
+
+                // 关闭菜单
+                if (typeof window.closePlanModal === 'function') {
+                    window.closePlanModal();
+                }
+                // 关闭主弹窗
+                if (typeof window.closeBecomeFanModal === 'function') {
+                    window.closeBecomeFanModal(e);
+                }
+            }
+        });
+    }
 });
+</script>
