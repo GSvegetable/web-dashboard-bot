@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // ==========================================================
-    // ✅ 核心最终版：二次点击固定左移 16px，且不漏虚化缝！
+    // ✅ 核心最终版：二次点击固定左移 28px！
     // ==========================================================
     window.openBecomeFanModal = function() {
         window.closeAllModals();
@@ -70,13 +70,12 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             window._becomeOpenCount++;
 
-            // ✨ 核心改动：取得内部的 modal-box，把位移加在它身上，绝不动虚化层！
             const modalBox = el.querySelector('.modal-box');
             if (modalBox) {
                 if (window._becomeOpenCount === 1) {
                     modalBox.style.transform = 'translateX(0px)'; // 第一次：完美原位置
                 } else {
-                    modalBox.style.transform = 'translateX(-16px)'; // 后续所有：固定左移 16px
+                    modalBox.style.transform = 'translateX(-28px)'; // ✨ 后续所有：固定左移 28px
                 }
             }
 
