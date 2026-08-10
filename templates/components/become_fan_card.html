@@ -9,21 +9,24 @@
 
                 <!-- 卡片 1：星光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
-                     style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;">
+                     style="transform: rotate(-25deg) translateX(-15px); margin-right: -45px; z-index: 1;"
+                     data-plan="star" data-index="0"> <!-- ✨ 新增 data 属性用于精准识别 -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">星光</span>
                     <span class="text-xl font-bold text-white tracking-tight">15<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
                 <!-- 卡片 2：极光 -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
-                     style="transform: rotate(0deg); margin-right: -45px; z-index: 2;">
+                     style="transform: rotate(0deg); margin-right: -45px; z-index: 2;"
+                     data-plan="aurora" data-index="1"> <!-- ✨ 新增 data 属性用于精准识别 -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光</span>
                     <span class="text-xl font-bold text-white tracking-tight">40<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
 
                 <!-- 卡片 3：极光pro -->
                 <div class="card-item w-[100px] h-[125px] bg-[rgba(255,255,255,0.05)] border border-white/20 shadow-[0_15px_25px_rgba(0,0,0,0.25)] backdrop-blur-md rounded-xl flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative"
-                     style="transform: rotate(25deg) translateX(15px); z-index: 0;">
+                     style="transform: rotate(25deg) translateX(15px); z-index: 0;"
+                     data-plan="aurora-pro" data-index="2"> <!-- ✨ 新增 data 属性用于精准识别 -->
                     <span class="text-white/60 text-[10px] font-light tracking-wider mb-1">极光pro</span>
                     <span class="text-xl font-bold text-white tracking-tight">310<span class="text-xs font-normal text-gray-400 ml-0.5">/月</span></span>
                 </div>
@@ -40,12 +43,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const cardContainer = document.getElementById('cardStackContainer');
     const cardItems = cardContainer.querySelectorAll('.card-item');
     
-    // 展开/合并状态的共享变量
     let isExpanded = false;
 
-    // ---------- 封装展开与合并动作 ----------
+    // ---------- 封装展开与合并动作 (保持原样不动) ----------
     function expandCards() {
-        // ✅ 修改：展开时的距离缩小一个像素（-25变为-24，25变为24）
         cardItems[0].style.transform = 'rotate(0deg) translateX(-24px)';
         cardItems[0].style.marginRight = '0px';
         cardItems[1].style.transform = 'rotate(0deg) translateX(0px)';
@@ -61,24 +62,42 @@ document.addEventListener("DOMContentLoaded", function() {
         cardItems[2].style.transform = 'rotate(25deg) translateX(15px)';
     }
 
-    // ---------- 1. 点击卡片本身：触发展开/合并 ----------
-    cardContainer.addEventListener('click', function() {
-        isExpanded = !isExpanded;
-        if (isExpanded) {
-            expandCards();
-        } else {
-            collapseCards();
-        }
+    // ---------- ✨ 核心修改：给每张卡片绑定独立的点击事件 ----------
+    cardItems.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+            e.stopPropagation(); // 阻止冒泡，防止误触容器
+
+            if (!isExpanded) {
+                // 1. 如果卡片是合拢状态：触发展开动画
+                isExpanded = true;
+                expandCards();
+            } else {
+                // 2. 如果卡片已经是展开状态：
+                // 精准获取点击的是哪张卡片
+                const planName = this.getAttribute('data-plan');
+                console.log(`✅ 精准识别：用户点击了【${planName}】卡片 (数据索引: ${index})`);
+
+                // 🎯 为你预留的“画面中间弹出一个菜单”入口！
+                // 等你之后把这个菜单设计好之后，直接在这里调用它即可。
+                // 例如: window.openMyNewMenu(planName);
+                // 为了方便你后续接入，我写了一个占位钩子：
+                if (typeof window.handleCardSelect === 'function') {
+                    window.handleCardSelect(planName, index);
+                }
+            }
+        });
     });
 
-    // ---------- 2. 点击背景空白：智能开关逻辑 ----------
+    // ---------- ✨ 新增：点击背景透明处时的智能开关 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
                 if (isExpanded) {
+                    // 如果卡片是展开的，点击空白处先合并
                     isExpanded = false;
                     collapseCards();
                 } else {
+                    // 如果卡片是合拢的，点击空白处关闭整个弹窗
                     if (typeof window.closeBecomeFanModal === 'function') {
                         window.closeBecomeFanModal(e);
                     }
