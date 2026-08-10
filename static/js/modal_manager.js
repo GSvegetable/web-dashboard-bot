@@ -31,11 +31,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     };
 
-    // 定义所有卡片打开函数（自带“先关闭其他”的逻辑）
+    // 定义所有卡片打开函数
     window.openLoginModal = function() {
-        window.closeAllModals(); // 先关掉其它所有卡片
+        window.closeAllModals();
         const el = document.getElementById('loginModal');
-        if (el) el.classList.add('active'); // 然后打开当前卡片
+        if (el) el.classList.add('active');
     };
     window.openMusicModal = function() {
         window.closeAllModals();
@@ -54,14 +54,19 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // ==========================================================
-    // ✅ 最终定型：每一次点击开发者，位置都完全一致
-    // （不再区分第一次或第N次，完全由 splash.html 里的 CSS 控制位置）
+    // ✅ 彻底抹除偏移 Bug：强制每一次都在最右侧！
     // ==========================================================
     window.openBecomeFanModal = function() {
         window.closeAllModals();
         const el = document.getElementById('becomeFanModal');
         if (el) {
-            // 不强行修改 flex 对齐和 padding 了，让原生 CSS 控制它
+            // 🛡️ 每一回打开，都强制把容器对齐到右侧
+            // 防止任何缓存的前端代码把它往左拽
+            el.style.justifyContent = 'flex-end';
+            el.style.paddingLeft = '0px';
+            el.style.paddingRight = '24px';
+            
+            // 打开卡片
             el.classList.add('active');
         }
     };
