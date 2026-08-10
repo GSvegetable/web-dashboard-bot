@@ -108,70 +108,52 @@ document.addEventListener("DOMContentLoaded", function() {
     window.collapseCardStack = collapseCards;
     window.unfocusCardStack = unfocusCards;
 
-    // ---------- 卡片点击 ----------
+    // ---------- 卡片点击事件 ----------
     cardItems.forEach((card) => {
         card.addEventListener('click', function(e) {
             e.stopPropagation(); 
             const planName = this.getAttribute('data-plan-name');
             const index = parseInt(this.getAttribute('data-index'));
+            
             const modal = document.getElementById('planDetailModal');
             const isMenuOpen = !modal.classList.contains('hidden');
 
+            // 没开菜单时先展开，开了菜单就直接切换高亮
             if (!isMenuOpen) {
                 expandCards();
             }
 
+            // 高亮选中的卡片
             setTimeout(() => {
                 focusCard(index);
             }, 15);
 
+            // 打开价格菜单
             if (typeof window.openPlanModal === 'function') {
                 window.openPlanModal(planName);
             }
         });
     });
 
-    // ---------- 关闭 ----------
+    // ---------- 点击背景透明处关闭 ----------
     if (modalOverlay) {
         modalOverlay.addEventListener('click', function(e) {
             if (e.target === modalOverlay) {
+                // 先取消聚焦动画，恢复成并排
+                unfocusCards();
+                // 折叠回堆叠
+                collapseCards();
+
+                // 关闭菜单（如果菜单开着）
                 if (typeof window.closePlanModal === 'function') {
                     window.closePlanModal();
                 }
+                // 关闭主弹窗（由总开关 modal_manager.js 控制）
                 if (typeof window.closeBecomeFanModal === 'function') {
                     window.closeBecomeFanModal(e);
                 }
             }
         });
     }
-
-    // ==========================================================
-    // 🚀 彻底釜底抽薪：直接改变父容器对齐方向！
-    // 第一次：完全按你原版向右靠 (flex-end)
-    // 第二到N次：强制整个卡片劈到最最左边 (flex-start)
-    // ==========================================================
-    window.openBecomeFanModal = function() {
-        const modal = document.getElementById('becomeFanModal');
-        if (!modal) return;
-        
-        modal.classList.add('active');
-
-        if (typeof window._openCount === 'undefined') {
-            window._openCount = 0;
-        }
-        window._openCount++;
-
-        if (window._openCount === 1) {
-            // 第一次：完美原版靠右
-            modal.style.justifyContent = 'flex-end';
-            modal.style.paddingLeft = '0px';
-            modal.style.paddingRight = '24px';
-        } else {
-            // 第二次及以后所有点击：直接劈到最左边（测试生效）
-            modal.style.justifyContent = 'flex-start';
-            modal.style.paddingLeft = '24px'; // 靠最左边，但留 24px 缝
-            modal.style.paddingRight = '0px';
-        }
-    };
 });
-                    </script>
+</script>
