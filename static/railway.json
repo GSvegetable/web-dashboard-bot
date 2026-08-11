@@ -1,0 +1,15 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "deploy": {
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "volumeMounts": [
+      {
+        "volumeName": "skyvern-data",
+        "mountPath": "/app/data"
+      }
+    ]
+  }
+}
