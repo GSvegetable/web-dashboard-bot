@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（流式输出 + 强制思考开启） -->
+<!-- Agent 玻璃质感底部面板组件（兼容流式输出 + 思考锁定） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -25,7 +25,6 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   
-  /* ✨ 拒绝关闭的摇头晃脑动画 */
   @keyframes shakeToggle {
     0% { transform: translateX(0); }
     20% { transform: translateX(-6px); }
@@ -34,9 +33,7 @@
     80% { transform: translateX(4px); }
     100% { transform: translateX(0); }
   }
-  .shake-toggle {
-    animation: shakeToggle 0.4s ease-in-out 2;
-  }
+  .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
@@ -151,7 +148,6 @@ document.addEventListener("DOMContentLoaded", function() {
         window.currentAgentConfig = saved ? JSON.parse(saved) : getDefaultConfig();
     }
 
-    // 修改流式发送逻辑
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -163,12 +159,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
-        
-        // 🚨 彻底移除了“思考中...”的 loadingMsg
-
-        // 创建思考气泡和正文气泡的占位（为了流式追加）
-        let thoughtBubble = null;
-        let replyBubble = null;
 
         fetch('/api/agent/chat', { 
             method: 'POST', 
@@ -183,6 +173,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let thoughtBubble = null;
+            let replyBubble = null;
 
             function readStream() {
                 return reader.read().then(({done, value}) => {
@@ -227,7 +219,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                 } else if (type === 'error') {
                                     if (!replyBubble) {
                                         replyBubble = document.createElement('div');
-                                        replyBubble.className = 'ai-text-msg';
+                                        replyBubble.className = 'ai-text-msg text-red-400/80';
                                         targetList.appendChild(replyBubble);
                                     }
                                     replyBubble.textContent = content;
