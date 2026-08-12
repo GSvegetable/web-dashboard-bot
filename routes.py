@@ -156,7 +156,10 @@ def agent_chat():
     
     ai_message = ai_resp['choices'][0]['message']
     chat_history.append({"role": "assistant", "content": ai_message['content'], "tool_calls": ai_message.get('tool_calls')})
+    
+    # 准备向前端发送的数据
     final_reply = ai_message['content']
+    reasoning_content = ai_message.get('reasoning_content') # ✨ 提取思考过程
     action_payload = None
 
     # 🔧 处理工具调用（Agent 执行环节）
@@ -168,7 +171,6 @@ def agent_chat():
             if func_name == 'bind_bot':
                 result_content = execute_bind_bot(args['token'], args['telegram_id'], args.get('name'))
             elif func_name == 'add_bot_node':
-                # 给前端发信号让它画节点，我们这里只需告诉AI“成功”即可
                 result_content = {"status": "success", "action": "add_bot_node", "params": args}
                 action_payload = {"action": "add_bot_node", "params": args}
             
@@ -180,10 +182,14 @@ def agent_chat():
         
         # 再调一次大模型，把执行结果包装成自然语言回复
         second_resp, err = call_deepseek(chat_history, model)
-        if second_resp: final_reply = second_resp['choices'][0]['message']['content']
+        if second_resp:
+            final_reply = second_resp['choices'][0]['message']['content']
+            # 如果是第二次调用，通常 reasoning_content 为空，这里只取 content
 
     session['chat_history'] = chat_history
     response_data = {'reply': final_reply}
+    if reasoning_content:
+        response_data['reasoning'] = reasoning_content # ✨ 把思考过程传给前端
     if action_payload: response_data.update(action_payload)
     return jsonify(response_data)
 
