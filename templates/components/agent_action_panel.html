@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件 -->
+<!-- Agent 玻璃质感底部面板组件（仅保留UI和动画） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -13,12 +13,6 @@
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
   
-  .model-tabs-wrapper { display: flex; position: relative; gap: 6px; align-items: center; }
-  .model-tabs-wrapper .model-tab { font-size: 0.7rem; color: rgba(255, 255, 255, 0.4); cursor: pointer; padding: 2px 8px; border-radius: 10px; transition: 0.2s; border: 1px solid transparent; user-select: none; }
-  .model-tabs-wrapper .model-tab.active { color: #ffffff; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
-  .model-tabs-wrapper .model-tab:active { transform: scale(0.95); }
-  .model-separator { color: rgba(255, 255, 255, 0.2); font-size: 0.7rem; }
-
   #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
   #agentMessageArea::-webkit-scrollbar { display: none; }
   
@@ -48,19 +42,11 @@
         </div>
 
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
+        
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <div class="flex items-center gap-2 w-full pl-1">
-                <div class="model-tabs-wrapper">
-                    <span class="model-tab active" data-model="zhipu" onclick="switchModel('zhipu')">智谱</span>
-                    <span class="model-separator">|</span>
-                    <span class="model-tab" data-model="doubao" onclick="switchModel('doubao')">豆包</span>
-                    <span class="model-separator">|</span>
-                    <span class="model-tab" data-model="kimi" onclick="switchModel('kimi')">Kimi</span>
-                </div>
-            </div>
-
+            <!-- ✅ 模型选择按钮已经彻底删掉了 -->
             <div class="flex items-end gap-2 w-full">
-                <textarea id="agentInput" rows="1" placeholder="输入任何问题" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+                <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
                 <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
             </div>
         </div>
@@ -69,25 +55,32 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const panelWrapper = document.getElementById('agentPanelWrapper'), panel = document.getElementById('agentPanel'), agentInput = document.getElementById('agentInput'), agentSendBtn = document.getElementById('agentSendBtn'), agentMessageArea = document.getElementById('agentMessageArea'), discussionList = document.getElementById('discussionList'), agentList = document.getElementById('agentList'), radio1 = document.getElementById('radio-1'), radio2 = document.getElementById('radio-2');
-    let discussionHistory = [], agentHistory = [], currentMode = 'discussion', isPanelOpen = false;
-    let isProcessing = false;
-    let currentModel = 'zhipu';
+    const panelWrapper = document.getElementById('agentPanelWrapper');
+    const panel = document.getElementById('agentPanel');
+    const agentInput = document.getElementById('agentInput');
+    const agentSendBtn = document.getElementById('agentSendBtn');
+    const agentMessageArea = document.getElementById('agentMessageArea');
+    const discussionList = document.getElementById('discussionList');
+    const agentList = document.getElementById('agentList');
+    const radio1 = document.getElementById('radio-1');
+    const radio2 = document.getElementById('radio-2');
+    
+    let currentMode = 'discussion';
+    let isPanelOpen = false;
 
-    const savedModel = localStorage.getItem('gsbot_model_preference');
-    if (savedModel === 'zhipu' || savedModel === 'doubao' || savedModel === 'kimi') {
-        currentModel = savedModel;
-        switchModelUI(currentModel);
-    }
-
+    // ---------- 动画控制 ----------
     function switchMode(mode) {
         if (mode === currentMode) return;
-        const currentList = currentMode === 'discussion' ? discussionList : agentList, targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
+        const currentList = currentMode === 'discussion' ? discussionList : agentList;
+        const targetList = mode === 'discussion' ? discussionList : agentList;
+        currentList.classList.add('hidden');
+        targetList.classList.remove('hidden');
+        currentMode = mode;
     }
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
+    // ---------- 窗口控制 ----------
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
@@ -113,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 panelWrapper.style.transform = 'translateX(-50%)';
             }
             panelWrapper.style.display = 'block';
-
             setTimeout(() => { 
                 panel.classList.remove('translate-y-full'); 
                 setTimeout(() => { agentInput.focus(); }, 300);
@@ -125,141 +117,39 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    window.suggestSwitchToAgent = function(originalMessage) {
-        if (currentMode === 'discussion') {
-            radio2.checked = true; switchMode('agent');
-            const checkSwitchDone = setInterval(() => {
-                if (currentMode === 'agent') { clearInterval(checkSwitchDone); agentInput.value = originalMessage; sendMessageInternal(); }
-            }, 200);
-        } else if (currentMode === 'agent') {
-            agentInput.value = originalMessage; sendMessageInternal();
-        }
-    };
-
-    window.switchModel = function(model) {
-        if (model === currentModel) return;
-        currentModel = model;
-        localStorage.setItem('gsbot_model_preference', model);
-        switchModelUI(model);
-    };
-
-    function switchModelUI(model) {
-        const tabs = document.querySelectorAll('.model-tab');
-        tabs.forEach(tab => {
-            if (tab.dataset.model === model) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
-    }
-
-    // ✅ 核心执行引擎：加入致命错误检查！
-    async function executeMacroSequence(actions) {
-        // ⚠️ 第一步就检查手脚有没有接上
-        if (typeof window.AgentMacros === 'undefined' || window.AgentMacros === null) {
-            const errMsg = document.createElement('div');
-            errMsg.className = 'ai-text-msg text-red-400/80';
-            errMsg.textContent = '❌ 执行系统故障：未找到 agent_macros.js 脚本文件！请确保已正确引入该脚本。';
-            const targetList = currentMode === 'agent' ? agentList : discussionList;
-            targetList.appendChild(errMsg);
-            targetList.scrollTop = targetList.scrollHeight;
-            return; // 直接终止执行
-        }
-
-        for (let i = 0; i < actions.length; i++) {
-            const item = actions[i];
-            const macroName = item.action;
-            
-            if (window.AgentMacros && typeof window.AgentMacros[macroName] === 'function') {
-                try {
-                    await window.AgentMacros[macroName]();
-                } catch (e) {
-                    console.error(`宏 ${macroName} 执行出错:`, e);
-                }
-            } else {
-                console.warn(`未找到宏命令: ${macroName}`);
-            }
-
-            const waitTime = item.delay || 0;
-            if (waitTime > 0) { await new Promise(r => setTimeout(r, waitTime)); }
-        }
-    }
-
-    function sendMessageInternal() {
-        if (isProcessing) return;
+    // ---------- 发送消息（仅作为UI动画，不再调用AI接口） ----------
+    agentSendBtn.addEventListener('click', function() {
         const text = agentInput.value.trim();
         if (!text) return;
-        isProcessing = true;
-
-        const isAgent = currentMode === 'agent';
-        const targetList = isAgent ? agentList : discussionList;
-        const history = isAgent ? agentHistory : discussionHistory;
         
-        const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
-        targetList.appendChild(userBubble); targetList.scrollTop = targetList.scrollHeight;
-        history.push({ type: 'user', text: text });
-        agentInput.value = ''; agentInput.rows = 1; agentInput.style.height = 'auto';
+        const targetList = currentMode === 'discussion' ? discussionList : agentList;
         
-        let loadingMsg = null;
-        if (isAgent) {
-            loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = 'Thinking...'; loadingMsg.id = 'loading-bubble';
-            targetList.appendChild(loadingMsg); targetList.scrollTop = targetList.scrollHeight;
-        }
+        // 1. 用户气泡
+        const userBubble = document.createElement('div');
+        userBubble.className = 'chat-bubble user';
+        userBubble.textContent = text;
+        targetList.appendChild(userBubble);
+        targetList.scrollTop = targetList.scrollHeight;
+        agentInput.value = '';
+        agentInput.style.height = 'auto';
 
-        let payload = { message: text, mode: currentMode, model_type: currentModel };
-
-        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-        .then(res => {
-            if (!res.ok) { throw new Error(`API 请求失败，状态码: ${res.status}`); }
-            return res.json();
-        })
-        .then(data => {
-            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            
-            if (data.action === 'suggest_agent' || data.action === 'ASK_CONFIRM') {
-                isProcessing = false; return;
-            }
-
-            let actualReply = data.reply || '抱歉，无法回答。';
-            let actions = data.actions || [];
-
-            if (actualReply.startsWith('{') && actualReply.includes('"reply":')) {
-                try {
-                    const parsed = JSON.parse(actualReply);
-                    if (parsed.reply) actualReply = parsed.reply;
-                } catch (e) {}
-            }
-
+        // 2. 模拟机器人的UI回复（仅展示，不调用接口）
+        setTimeout(() => {
             const botMsg = document.createElement('div');
-            botMsg.className = 'ai-text-msg';
-            botMsg.textContent = actualReply;
+            botMsg.className = 'ai-text-msg text-gray-300';
+            botMsg.textContent = '暂时未接入AI引擎，仅作为UI预览。';
             targetList.appendChild(botMsg);
             targetList.scrollTop = targetList.scrollHeight;
-            history.push({ type: 'ai', text: actualReply });
+        }, 400);
+    });
 
-            // ✅ 识别到宏命令，执行“手脚”
-            if (isAgent && actions && actions.length > 0) {
-                isProcessing = false; 
-                setTimeout(() => {
-                    executeMacroSequence(actions);
-                }, 100);
-                return; 
-            }
-
-            isProcessing = false;
-        })
-        .catch(() => {
-            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80'; errMsg.textContent = '网络异常，请稍后再试。';
-            targetList.appendChild(errMsg); targetList.scrollTop = targetList.scrollHeight;
-            history.push({ type: 'ai', text: '网络异常，请稍后再试。' });
-            isProcessing = false;
-        });
-    }
-
-    agentSendBtn.addEventListener('click', sendMessageInternal);
-    agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
-    agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessageInternal(); } });
+    agentInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+        if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; }
+    });
+    agentInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); }
+    });
 });
 </script>
