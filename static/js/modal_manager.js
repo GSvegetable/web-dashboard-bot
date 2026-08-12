@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // ==========================================================
-    // ✅ 核心最终版：二次点击固定左移 28px！
+    // ✅ 核心偏移控制：第一次 0px，后续固定左移 32px！
     // ==========================================================
     window.openBecomeFanModal = function() {
         window.closeAllModals();
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (window._becomeOpenCount === 1) {
                     modalBox.style.transform = 'translateX(0px)'; // 第一次：完美原位置
                 } else {
-                    modalBox.style.transform = 'translateX(-28px)'; // ✨ 后续所有：固定左移 28px
+                    modalBox.style.transform = 'translateX(-32px)'; // ✨ 后续所有：固定左移 32px
                 }
             }
 
