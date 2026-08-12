@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（彻底修复流式解析，完美支持联网搜索）
+# DeepSeek AI 接口（接入最新 `responses` API，支持联网）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -132,24 +132,22 @@ def agent_chat():
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-
     try:
         if mode == 'agent':
-            # 🔴 代理人模式：Pro 模型（原生不支持联网搜索）
+            # 🔴 代理人模式：Pro 模型（原生不支持联网，退回到 Chat Completions API）
             api_url = "https://api.deepseek.com/chat/completions"
             model_name = "deepseek-v4-pro"
             raw_strength = mode_config.get('strength', 'high')
             reasoning_effort = 'high' if raw_strength == 'low' else raw_strength
-            think_enabled = True # 强制开启
+            think_enabled = True
 
+            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
             payload = {"model": model_name, "messages": messages, "temperature": 0.3, "stream": True}
             payload['extra_body'] = {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
 
             resp = requests.post(api_url, headers=headers, json=payload, stream=True)
             
             if resp.status_code == 200:
-                # 代理模式流式处理
                 def generate_pro():
                     try:
                         for line in resp.iter_lines():
@@ -179,11 +177,11 @@ def agent_chat():
                 return Response(stream_with_context(generate_pro()), mimetype='text/event-stream')
 
         else:
-            # 🟢 讨论模式：Flash 模型 + Responses API（原生支持联网搜索）
+            # 🟢 讨论模式：Flash 模型 + Responses API（完美原生支持联网搜索）
             api_url = "https://api.deepseek.com/responses"
             model_name = "deepseek-v4-flash"
             reasoning_effort = mode_config.get('strength', 'low')
-            think_enabled = True # 强制开启
+            think_enabled = True
             search_enabled = mode_config.get('search', False)
 
             payload = {
@@ -198,11 +196,19 @@ def agent_chat():
 
             if search_enabled:
                 payload["tools"] = [{"type": "web_search"}]
+                payload["tool_choice"] = "auto"  # 🎯 必须加上这个，联网搜索才能真正启动！
+
+            # ✨ 最核心修复：加入 Accept: text/event-stream 请求头
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                "Accept": "text/event-stream"
+            }
 
             resp = requests.post(api_url, headers=headers, json=payload, stream=True)
             
             if resp.status_code == 200:
-                # 🎯 核心修复：正确解析新版 responses 流式数据格式
+                # 🎯 正确解析新版 responses 流式数据格式
                 def generate_resp():
                     try:
                         for line in resp.iter_lines():
@@ -232,7 +238,6 @@ def agent_chat():
                     yield "data: [DONE]\n\n"
                 return Response(stream_with_context(generate_resp()), mimetype='text/event-stream')
 
-        # 非 200 错误兜底
         return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
 
     except Exception as e:
