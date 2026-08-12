@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（首次打开默认全选好状态） -->
+<!-- Agent 独立配置面板（完美修复默认选中映射） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -112,7 +112,7 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
     
-    /* 低：银色（不变） */
+    /* 低：银色 */
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
     /* 高：蓝色 */
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
@@ -177,88 +177,99 @@
     }
 </style>
 
-<!-- 🎯 核心修正逻辑：让配置与单选框无缝双向绑定 -->
+<!-- 🎯 100% 强制定位默认选中的 JS 逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const configKey = 'gsbot_agent_config';
 
-    // 1. 默认配置（最省钱+全关闭+低强度）
+    // 1. 默认配置（最省钱、全关闭、低强度）
     const defaultConfig = {
         discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
         agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' }
     };
 
-    // 2. 读取/初始化配置
+    // 2. 读取配置，如果无配置则写入默认
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
         config = defaultConfig;
         localStorage.setItem(configKey, JSON.stringify(config));
     }
 
-    // 3. 渲染配置到 UI
+    // 3. 核心修复：映射模式 ID 并强制高亮
     function renderUI() {
-        // 更新文字并同步选中状态
+        // 更新左侧面板文字
         document.querySelectorAll('.model-selector').forEach(el => {
-            const mode = el.dataset.mode;
-            el.querySelector('.model-label').innerText = config[mode].model;
+            const modeKey = el.dataset.mode;
+            el.querySelector('.model-label').innerText = config[modeKey].model;
             
-            // 如果是 Pro，强制关闭搜索按钮、切换强度并禁用 low
-            if (config[mode].model === 'deepseek-v4-pro') {
+            // Pro 模型特殊处理
+            if (config[modeKey].model === 'deepseek-v4-pro') {
                 const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
-                config[mode].search = false;
+                config[modeKey].search = false;
                 searchBtn.querySelector('.search-label').innerText = '不支持';
                 searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
-                if (config[mode].strength === 'low') {
-                    config[mode].strength = 'high';
+                if (config[modeKey].strength === 'low') {
+                    config[modeKey].strength = 'high';
                 }
                 const strengthLabel = el.closest('.bg-black/20').querySelector('.strength-label');
-                strengthLabel.innerText = `强度 ${config[mode].strength}`;
+                strengthLabel.innerText = `强度 ${config[modeKey].strength}`;
             } else {
                 const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
-                searchBtn.querySelector('.search-label').innerText = config[mode].search ? '开启' : '关闭';
+                searchBtn.querySelector('.search-label').innerText = config[modeKey].search ? '开启' : '关闭';
                 searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         });
 
-        // 将配置真实对应到 Input 的 checked 状态
+        // ✨ 强制选中对应的 HTML input 元素
+        const getSuffix = (mode) => mode === 'discussion' ? 'flash' : 'pro';
+
         document.querySelectorAll('.think-toggle').forEach(btn => {
-            const mode = btn.dataset.mode;
-            const isOn = config[mode].think;
+            const modeKey = btn.dataset.mode;
+            const isOn = config[modeKey].think;
+            const idSuffix = getSuffix(modeKey);
             btn.querySelector('.think-label').innerText = isOn ? '开启' : '关闭';
-            document.getElementById(`think-${mode}-${isOn ? 'on' : 'off'}`).checked = true;
+            document.getElementById(`think-${idSuffix}-${isOn ? 'on' : 'off'}`).checked = true;
         });
 
         document.querySelectorAll('.search-toggle').forEach(btn => {
-            const mode = btn.dataset.mode;
-            const isOn = config[mode].search;
-            if (config[mode].model !== 'deepseek-v4-pro') {
+            const modeKey = btn.dataset.mode;
+            const isOn = config[modeKey].search;
+            const idSuffix = getSuffix(modeKey);
+            if (config[modeKey].model !== 'deepseek-v4-pro') {
                 btn.querySelector('.search-label').innerText = isOn ? '开启' : '关闭';
-                document.getElementById(`search-${mode}-${isOn ? 'on' : 'off'}`).checked = true;
+                document.getElementById(`search-${idSuffix}-${isOn ? 'on' : 'off'}`).checked = true;
             }
         });
 
         document.querySelectorAll('.strength-selector').forEach(sel => {
-            const mode = sel.dataset.mode;
-            const strength = config[mode].strength;
-            sel.querySelector('.strength-label').innerText = `强度 ${strength}`;
+            const modeKey = sel.dataset.mode;
+            let strength = config[modeKey].strength;
+            const idSuffix = getSuffix(modeKey);
             
-            // 修正 Pro 模式下存在 `low` 的兜底
-            let targetId = `strength-${mode}-${strength}`;
-            if (mode === 'flash' && strength === 'high') targetId = `strength-flash-mid`;
-            if (mode === 'pro' && strength === 'low') targetId = `strength-pro-high`;
+            // Pro 模型兜底
+            if (modeKey === 'agent' && strength === 'low') strength = 'high';
+            if (modeKey === 'discussion' && strength === 'high') strength = 'mid'; // 映射 flash 的 高
+            if (modeKey === 'agent' && strength === 'high') strength = 'high';
+            if (strength === 'max') strength = 'max';
+
+            sel.querySelector('.strength-label').innerText = `强度 ${strength === 'mid' ? '高' : strength === 'max' ? '最高' : strength}`;
             
-            const inputEl = document.getElementById(targetId);
+            let inputId = `strength-${idSuffix}-${strength}`;
+            if (modeKey === 'discussion' && strength === 'high') inputId = `strength-flash-mid`;
+            if (modeKey === 'agent' && strength === 'high') inputId = `strength-pro-high`;
+            
+            const inputEl = document.getElementById(inputId);
             if (inputEl) inputEl.checked = true;
         });
 
         localStorage.setItem(configKey, JSON.stringify(config));
     }
     
-    renderUI(); // 初始化时先强制调用一次，确保 UI 全部亮起
+    renderUI(); // 首次打开强力执行
 
-    // 4. 下拉菜单触发
+    // 4. 下拉菜单触发和保存逻辑
     document.querySelectorAll('.model-trigger, .strength-trigger').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -275,12 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 5. 选项点击更新配置
     document.querySelectorAll('.model-option').forEach(opt => {
         opt.addEventListener('click', function() {
-            const mode = this.closest('.model-selector').dataset.mode;
-            const model = this.dataset.model;
-            config[mode].model = model;
+            const modeKey = this.closest('.model-selector').dataset.mode;
+            config[modeKey].model = this.dataset.model;
             renderUI();
             document.querySelectorAll('.model-menu').forEach(m => m.classList.add('hidden'));
             updateBackendConfig();
@@ -289,20 +298,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.strength-option').forEach(opt => {
         opt.addEventListener('click', function() {
-            const mode = this.closest('.strength-selector').dataset.mode;
-            const strength = this.dataset.strength;
-            config[mode].strength = strength;
+            const modeKey = this.closest('.strength-selector').dataset.mode;
+            config[modeKey].strength = this.dataset.strength;
             renderUI();
             document.querySelectorAll('.strength-menu').forEach(m => m.classList.add('hidden'));
             updateBackendConfig();
         });
     });
 
-    // 6. 开关切换
     document.querySelectorAll('.think-toggle').forEach(btn => {
         btn.addEventListener('click', function() {
-            const mode = this.dataset.mode;
-            config[mode].think = !config[mode].think;
+            const modeKey = this.dataset.mode;
+            config[modeKey].think = !config[modeKey].think;
             renderUI();
             updateBackendConfig();
         });
@@ -310,9 +317,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.search-toggle').forEach(btn => {
         btn.addEventListener('click', function() {
-            const mode = this.dataset.mode;
-            if (config[mode].model === 'deepseek-v4-pro') return;
-            config[mode].search = !config[mode].search;
+            const modeKey = this.dataset.mode;
+            if (config[modeKey].model === 'deepseek-v4-pro') return;
+            config[modeKey].search = !config[modeKey].search;
             renderUI();
             updateBackendConfig();
         });
@@ -324,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateBackendConfig();
 
+    // 5. 弹窗动画
     window.openAgentSettings = function() {
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
