@@ -1,25 +1,25 @@
-<!-- Agent 独立配置面板（丝滑动画、缩小标题、去掉叉号） -->
-<div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none">
-    <!-- 遮罩层：点击外部即可关闭 -->
+<!-- Agent 独立配置面板（纯直降动画、居中、去叉号） -->
+<div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
+    <!-- 遮罩层：透明背景，点击任何外部区域直接关闭 -->
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
-    <!-- 主体弹窗：增加 will-change 使动画绝对丝滑 -->
-    <div class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 mx-auto mt-auto mb-0 translate-y-full transition-transform duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform" id="settingsModalContent">
+    <!-- 主体弹窗：从顶部正上方飞速滑落至正中间 -->
+    <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <!-- 左上角：配置中心（已去掉右上角的叉号） -->
+        <!-- 左上角：配置中心 -->
         <div class="flex justify-between items-start">
             <h1 class="text-white text-xl font-bold tracking-wide">配置中心</h1>
-            <!-- 叉号已经被彻底移除了，现在只能点外部关闭 -->
+            <!-- 去掉了叉号，只能点击外部关闭 -->
         </div>
 
         <!-- 两大分类大标题 -->
         <div class="flex flex-col gap-8 mt-2">
 
-            <!-- 分类一：省钱模型（缩小字号，强制不换行） -->
+            <!-- 分类一：省钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-flash</div>
                 
-                <!-- 子标题预留位 -->
+                <!-- 子标题 -->
                 <div class="flex flex-col gap-4 pl-2 border-l-2 border-white/10">
                     <div class="text-base font-medium text-white/80">深度思考</div>
                     <div class="text-base font-medium text-white/80">联网搜索</div>
@@ -27,11 +27,11 @@
                 </div>
             </div>
 
-            <!-- 分类二：烧钱模型（缩小字号，强制不换行） -->
+            <!-- 分类二：烧钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-pro</div>
                 
-                <!-- 子标题预留位 -->
+                <!-- 子标题 -->
                 <div class="flex flex-col gap-4 pl-2 border-l-2 border-white/10">
                     <div class="text-base font-medium text-white/80">深度思考</div>
                     <div class="text-base font-medium text-white/80">联网搜索</div>
@@ -43,27 +43,29 @@
     </div>
 </div>
 
-<!-- 简单的 JS 控制逻辑（优化了动画触发，更顺滑） -->
+<!-- 丝滑动画 JS 逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const content = document.getElementById('settingsModalContent');
 
-    // 打开面板
+    // 打开面板：从上落到正中
     window.openAgentSettings = function() {
         panel.classList.remove('hidden');
-        // 利用 requestAnimationFrame 确保 DOM 更新后再触发动画
+        // 使用 requestAnimationFrame 强制浏览器在渲染前准备，绝不卡顿
         requestAnimationFrame(() => {
-            content.classList.remove('translate-y-full');
+            content.classList.remove('opacity-0', '-translate-y-[120%]');
+            content.classList.add('opacity-100', 'translate-y-0');
         });
     };
 
-    // 关闭面板
+    // 关闭面板：收回顶部
     window.closeAgentSettings = function() {
-        content.classList.add('translate-y-full');
+        content.classList.remove('opacity-100', 'translate-y-0');
+        content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => {
             panel.classList.add('hidden');
-        }, 500); // 等 500ms 确保下坠动画播完再隐藏元素
+        }, 500); // 等待 500ms，等整个下落动画彻底播完再隐藏
     };
 });
 </script>
