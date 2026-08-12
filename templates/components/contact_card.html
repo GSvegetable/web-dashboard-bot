@@ -6,22 +6,15 @@
             <div class="flex flex-col gap-3 w-full items-center">
                 <a href="https://t.me/gsyxyc" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">Telegram</a>
                 
-                <!-- ✅ 优化 QQ 唤起逻辑（兜底方案） -->
-                <div onclick="
-                    // 优先尝试唤起 QQ App
-                    window.location.href='tencent://message/?uin=3301296046&Site=gsbot&Menu=yes';
-                    // 1.5 秒后，如果没跳走（没弹出 QQ），则跳转到安全网页页。
-                    setTimeout(function(){
-                        // 如果页面还在（没有变成空白/跳转），说明 QQ 没唤起来，降级到网页版
-                        if(document.visibilityState === 'visible'){
-                            window.location.href='https://wpa.qq.com/msgrd?v=3&uin=3301296046&site=qq&menu=yes';
-                        }
-                    }, 1500);
-                " class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95" style="cursor: pointer;">
+                <!-- ✅ 纯粹调用 App，失败则留在原界面，绝不跳企点商通 -->
+                <div onclick="window.location.href='tencent://message/?uin=3301296046&Site=gsbot&Menu=yes';" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95" style="cursor: pointer;">
                     QQ
                 </div>
 
                 <a href="https://wa.me/8615861980264" target="_blank" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">WhatsApp</a>
+
+                <!-- ✅ 新增邮箱兜底选项，绝对可用 -->
+                <a href="mailto:3301296046@qq.com" class="block w-[160px] p-2.5 text-center bg-black/30 border border-white/30 text-white text-sm rounded-lg transition hover:bg-white/10 active:scale-95">📧 发送邮件</a>
             </div>
         </div>
     </div>
