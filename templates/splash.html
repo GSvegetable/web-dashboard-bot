@@ -47,6 +47,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         
+        /* 核心修复：取消 block，允许 JS 接管平移 */
         .modal-box { 
             opacity: 0; 
             transform: none;
@@ -121,8 +122,6 @@
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
-        <!-- ✨ 新增：点击即显示 Agent 旁边卡片的按钮 -->
-        <button class="top-btn" onclick="toggleCustomCard()">自定义</button>
     </div>
 
     {% include 'components/toast.html' %}
@@ -409,19 +408,7 @@
             }
         });
     </script>
-    
-    <!-- 引入其他卡片 -->
+    <!-- 菜单卡片引入 -->
     {% include 'components/plan_detail_modal.html' %}
-    {% include 'components/center_card.html' %}
-
-    <script>
-        // ✨ 新增：控制右上角自定义卡片显示/隐藏
-        window.toggleCustomCard = function() {
-            const card = document.getElementById('customCard');
-            if (card) {
-                card.classList.toggle('hidden');
-            }
-        };
-    </script>
 </body>
 </html>
