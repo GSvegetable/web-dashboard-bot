@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（修复了 Responses API 的 payload 错误）
+# DeepSeek AI 接口（统一走稳定版 Chat Completions API）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -108,7 +108,7 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 记忆压缩逻辑（15句）
+    # 1. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -129,81 +129,49 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
+    # 2. 核心配置参数
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
+    # 锁定模型映射
+    model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
+    
+    # 锁定额度和处理 Pro 不支持 Low 的防错逻辑
+    raw_strength = mode_config.get('strength', 'low')
+    reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
+    think_enabled = mode_config.get('think', False)
+
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    reasoning_content = None
-    ai_reply = ""
+    payload = {
+        "model": model_name,
+        "messages": messages,
+        "temperature": 0.3,
+        "stream": False
+    }
+
+    # 3. 🎯 完美控制深度思考开关
+    if think_enabled:
+        payload['extra_body'] = {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
+    else:
+        payload['extra_body'] = {"thinking": {"type": "disabled"}}
 
     try:
-        if mode == 'agent':
-            # 🔴 代理人模式：走 Chat Completions API (Pro 模型)
-            api_url = "https://api.deepseek.com/chat/completions"
-            model_name = "deepseek-v4-pro"
-            raw_strength = mode_config.get('strength', 'high')
-            reasoning_effort = 'high' if raw_strength == 'low' else raw_strength
-            think_enabled = mode_config.get('think', False)
+        api_url = "https://api.deepseek.com/chat/completions"
+        resp = requests.post(api_url, headers=headers, json=payload, timeout=30)
 
-            payload = {"model": model_name, "messages": messages, "temperature": 0.3, "stream": False}
-            
-            if think_enabled:
-                payload['extra_body'] = {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
-            else:
-                payload['extra_body'] = {"thinking": {"type": "disabled"}}
-
-            resp = requests.post(api_url, headers=headers, json=payload, timeout=30)
-            
-            if resp.status_code == 200:
-                result = resp.json()
-                ai_reply = result['choices'][0]['message']['content']
-                reasoning_content = result['choices'][0]['message'].get('reasoning_content')
-
-        else:
-            # 🟢 讨论模式：走 Responses API (Flash 模型，支持联网搜索)
-            api_url = "https://api.deepseek.com/responses"
-            model_name = "deepseek-v4-flash"
-            reasoning_effort = mode_config.get('strength', 'low')
-            think_enabled = mode_config.get('think', False)
-            search_enabled = mode_config.get('search', False)
-
-            payload = {
-                "model": model_name,
-                "input": messages,
-                "temperature": 0.3,
-                "stream": False
-            }
-
-            # 🎯 关键修复：如果关闭思考，绝对不能传 `reasoning: {"type": "disabled"}`，而是直接省略这个字段！
-            if think_enabled:
-                payload["reasoning"] = {"type": "enabled", "effort": reasoning_effort}
-
-            # ✅ 联网搜索：如果开启了，就加上 tools 字段
-            if search_enabled:
-                payload["tools"] = [{"type": "web_search"}]
-
-            resp = requests.post(api_url, headers=headers, json=payload, timeout=45)
-            
-            if resp.status_code == 200:
-                result = resp.json()
-                # Responses API 返回结构不同，提取 output
-                ai_reply = result['output'][0]['content']
-                reasoning_obj = result['output'][0].get('reasoning')
-                if reasoning_obj and reasoning_obj.get('summary'):
-                    reasoning_content = reasoning_obj['summary']
-
-        # 统一处理 200 成功返回
         if resp.status_code == 200:
+            result = resp.json()
+            ai_reply = result['choices'][0]['message']['content']
+            reasoning_content = result['choices'][0]['message'].get('reasoning_content')
+
             chat_history.append({"role": "user", "content": user_message})
             chat_history.append({"role": "assistant", "content": ai_reply})
             session['chat_history'] = chat_history
 
             response_data = {'reply': ai_reply}
-            if reasoning_content:
-                response_data['reasoning'] = reasoning_content
+            if reasoning_content: response_data['reasoning'] = reasoning_content
             return jsonify(response_data)
         else:
-            # 如果是 400 或其它错误，清晰返回给前端
             return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
     except Exception as e:
         print(f"Agent Error: {e}")
