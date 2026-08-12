@@ -1,101 +1,116 @@
-<!-- Agent 独立配置面板（从底部弹起、不虚化） -->
-<div id="agentSettingsPanel" class="fixed bottom-0 left-0 w-full z-[9999] pointer-events-none transition-transform duration-500 translate-y-full">
-    <div class="relative w-full bg-white/10 backdrop-blur-md border-t border-white/20 rounded-t-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.6)] p-6 pb-10 pointer-events-auto max-h-[90vh] overflow-y-auto">
+<!-- Agent 独立配置面板（居中、拉长、无表情、独占一行） -->
+<div id="agentSettingsPanel" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none transition-transform duration-500 translate-y-full w-full flex justify-center">
+    <!-- 宽度限制，与聊天面板宽度对齐，高度大幅拉长 -->
+    <div class="w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border-t border-white/20 rounded-t-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.6)] px-6 pt-12 pb-16 pointer-events-auto max-h-[85vh] overflow-y-auto min-h-[400px]">
         
-        <!-- 左上角关闭按钮 -->
+        <!-- 左上角关闭按钮（无表情符号） -->
         <button onclick="closeAgentSettings()" class="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/30 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition border border-white/5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
-        <div class="mt-8 mb-4 text-center">
-            <h2 class="text-white text-xl font-bold tracking-wide">⚙️ Agent 配置</h2>
+        <div class="mt-8 mb-10 text-center">
+            <h1 class="text-white text-3xl font-bold tracking-wide">配置中心</h1>
         </div>
 
-        <!-- 两个大标题分类 -->
-        <div class="flex flex-col gap-6 mt-6">
+        <!-- 两个巨幅大标题上下排列 -->
+        <div class="flex flex-col gap-2 mb-10">
+            <div class="text-5xl font-extrabold text-white tracking-tight drop-shadow-md">讨论模式</div>
+            <div class="text-5xl font-extrabold text-white tracking-tight drop-shadow-md">代理人模式</div>
+        </div>
 
-            <!-- 分类一：讨论模式（省钱模型设置） -->
-            <div class="bg-black/20 rounded-2xl p-4 border border-white/5">
-                <div class="text-white font-medium text-sm mb-3 flex items-center gap-2">
-                    <span class="text-[#F5E6CF]">💬</span> 讨论模式
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- 1. 模型切换 -->
-                    <div class="relative inline-block model-selector" data-mode="discussion">
-                        <button class="model-trigger flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95 whitespace-nowrap">
-                            <span class="model-label">deepseek-v4-flash</span>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
-                        <div class="model-menu hidden absolute bottom-full left-0 mb-1 bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-1 min-w-[150px] z-50 shadow-xl">
-                            <div class="model-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-model="deepseek-v4-flash">🟢 省钱版</div>
-                            <div class="model-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-model="deepseek-v4-pro">🔴 烧钱版</div>
-                        </div>
+        <!-- 两个大标题分类（每个选项独占一行） -->
+        <div class="flex flex-col gap-8 mt-4">
+
+            <!-- 分类一：讨论模式设置 -->
+            <div class="bg-black/20 rounded-2xl p-6 border border-white/5 flex flex-col gap-4 w-full">
+                
+                <!-- 选项 1：模型切换（独占一行，下拉选项） -->
+                <div class="relative block model-selector w-full" data-mode="discussion">
+                    <button class="model-trigger flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95">
+                        <span>模型选择</span>
+                        <span class="model-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10 flex items-center gap-1">
+                            deepseek-v4-flash
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </button>
+                    <div class="model-menu hidden absolute top-full left-0 mt-2 w-full bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-2 z-50 shadow-xl">
+                        <div class="model-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-model="deepseek-v4-flash">省钱版</div>
+                        <div class="model-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-model="deepseek-v4-pro">烧钱版</div>
                     </div>
+                </div>
 
-                    <!-- 2. 深度思考 (开关) -->
-                    <button class="think-toggle flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95" data-mode="discussion">
-                        <span class="think-icon">🧠</span> <span class="think-label">关闭</span>
+                <!-- 选项 2：深度思考（独占一行，拨动开关） -->
+                <button class="think-toggle flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95" data-mode="discussion">
+                    <span>深度思考</span>
+                    <span class="think-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10">关闭</span>
+                </button>
+
+                <!-- 选项 3：联网搜索（独占一行，拨动开关） -->
+                <button class="search-toggle flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95" data-mode="discussion">
+                    <span>联网搜索</span>
+                    <span class="search-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10">关闭</span>
+                </button>
+
+                <!-- 选项 4：思考强度（独占一行，下拉选项） -->
+                <div class="relative block strength-selector w-full" data-mode="discussion">
+                    <button class="strength-trigger flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95">
+                        <span>思考强度</span>
+                        <span class="strength-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10 flex items-center gap-1">
+                            low
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
                     </button>
-
-                    <!-- 3. 联网搜索 (开关) -->
-                    <button class="search-toggle flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95" data-mode="discussion">
-                        <span class="search-icon">🌐</span> <span class="search-label">关闭</span>
-                    </button>
-
-                    <!-- 4. 思考强度 -->
-                    <div class="relative inline-block strength-selector" data-mode="discussion">
-                        <button class="strength-trigger flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95 whitespace-nowrap">
-                            <span class="strength-label">强度 low</span>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
-                        <div class="strength-menu hidden absolute bottom-full left-0 mb-1 bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-1 min-w-[100px] z-50 shadow-xl">
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="low">低 (low)</div>
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="high">高 (high)</div>
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="max">极 (max)</div>
-                        </div>
+                    <div class="strength-menu hidden absolute top-full left-0 mt-2 w-full bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-2 z-50 shadow-xl">
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="low">低 (low)</div>
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="high">高 (high)</div>
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="max">极 (max)</div>
                     </div>
                 </div>
             </div>
 
-            <!-- 分类二：代理人模式（烧钱模型设置） -->
-            <div class="bg-black/20 rounded-2xl p-4 border border-white/5">
-                <div class="text-white font-medium text-sm mb-3 flex items-center gap-2">
-                    <span class="text-[#F5E6CF]">🤖</span> 代理人模式
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <!-- 1. 模型切换 -->
-                    <div class="relative inline-block model-selector" data-mode="agent">
-                        <button class="model-trigger flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95 whitespace-nowrap">
-                            <span class="model-label">deepseek-v4-flash</span>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
-                        <div class="model-menu hidden absolute bottom-full left-0 mb-1 bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-1 min-w-[150px] z-50 shadow-xl">
-                            <div class="model-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-model="deepseek-v4-flash">🟢 省钱版</div>
-                            <div class="model-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-model="deepseek-v4-pro">🔴 烧钱版</div>
-                        </div>
+            <!-- 分类二：代理人模式设置（结构完全相同） -->
+            <div class="bg-black/20 rounded-2xl p-6 border border-white/5 flex flex-col gap-4 w-full">
+                
+                <!-- 选项 1：模型切换 -->
+                <div class="relative block model-selector w-full" data-mode="agent">
+                    <button class="model-trigger flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95">
+                        <span>模型选择</span>
+                        <span class="model-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10 flex items-center gap-1">
+                            deepseek-v4-flash
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
+                    </button>
+                    <div class="model-menu hidden absolute top-full left-0 mt-2 w-full bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-2 z-50 shadow-xl">
+                        <div class="model-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-model="deepseek-v4-flash">省钱版</div>
+                        <div class="model-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-model="deepseek-v4-pro">烧钱版</div>
                     </div>
+                </div>
 
-                    <!-- 2. 深度思考 (开关) -->
-                    <button class="think-toggle flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95" data-mode="agent">
-                        <span class="think-icon">🧠</span> <span class="think-label">关闭</span>
+                <!-- 选项 2：深度思考 -->
+                <button class="think-toggle flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95" data-mode="agent">
+                    <span>深度思考</span>
+                    <span class="think-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10">关闭</span>
+                </button>
+
+                <!-- 选项 3：联网搜索 -->
+                <button class="search-toggle flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95" data-mode="agent">
+                    <span>联网搜索</span>
+                    <span class="search-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10">关闭</span>
+                </button>
+
+                <!-- 选项 4：思考强度 -->
+                <div class="relative block strength-selector w-full" data-mode="agent">
+                    <button class="strength-trigger flex items-center justify-between w-full py-3 px-4 text-sm bg-[rgba(255,255,255,0.05)] border border-white/5 text-white/80 hover:bg-[rgba(255,255,255,0.1)] rounded-xl transition active:scale-95">
+                        <span>思考强度</span>
+                        <span class="strength-label text-[11px] px-3 py-1 bg-black/40 rounded-full border border-white/10 flex items-center gap-1">
+                            low
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                        </span>
                     </button>
-
-                    <!-- 3. 联网搜索 (开关) -->
-                    <button class="search-toggle flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95" data-mode="agent">
-                        <span class="search-icon">🌐</span> <span class="search-label">关闭</span>
-                    </button>
-
-                    <!-- 4. 思考强度 -->
-                    <div class="relative inline-block strength-selector" data-mode="agent">
-                        <button class="strength-trigger flex items-center gap-1 px-3 py-1.5 text-[11px] bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/80 hover:bg-[rgba(255,255,255,0.15)] rounded-full transition active:scale-95 whitespace-nowrap">
-                            <span class="strength-label">强度 low</span>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
-                        <div class="strength-menu hidden absolute bottom-full left-0 mb-1 bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-1 min-w-[100px] z-50 shadow-xl">
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="low">低 (low)</div>
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="high">高 (high)</div>
-                            <div class="strength-option text-[11px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 cursor-pointer transition" data-strength="max">极 (max)</div>
-                        </div>
+                    <div class="strength-menu hidden absolute top-full left-0 mt-2 w-full bg-black/80 backdrop-blur-md border border-white/10 rounded-xl p-2 z-50 shadow-xl">
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="low">低 (low)</div>
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="high">高 (high)</div>
+                        <div class="strength-option text-[13px] text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-4 py-2 cursor-pointer transition" data-strength="max">极 (max)</div>
                     </div>
                 </div>
             </div>
@@ -104,7 +119,7 @@
     </div>
 </div>
 
-<!-- 控制面板的 JS 逻辑 -->
+<!-- 控制面板的 JS 逻辑（已适配新 UI 结构） -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
@@ -142,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // 更新强度显示
                 const strengthLabel = el.closest('.bg-black/20').querySelector('.strength-label');
-                strengthLabel.innerText = `强度 ${config[mode].strength}`;
+                strengthLabel.innerText = config[mode].strength;
             } else {
                 // 如果是 Flash 模型，恢复搜索按钮
                 const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
@@ -230,7 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 7. 通知后端配置已变
     function updateBackendConfig() {
-        // 这里我们只是把最新配置挂载到 window 上，或者触发事件，供主面板读取
         window.currentAgentConfig = config;
         console.log("Agent 配置已更新:", config);
     }
@@ -246,4 +260,4 @@ window.closeAgentSettings = function() {
     const panel = document.getElementById('agentSettingsPanel');
     panel.classList.add('translate-y-full');
 };
-  </script>
+</script>
