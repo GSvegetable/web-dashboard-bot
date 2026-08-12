@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（加入思考过程展示） -->
+<!-- Agent 玻璃质感底部面板组件（去除思考过程表情） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -131,11 +131,11 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // ✨ 处理思考过程（如果不为空则显示）
+            // ✨ 处理思考过程（去掉了前面的 🤔 表情）
             if (data.reasoning) {
                 const thoughtBubble = document.createElement('div');
                 thoughtBubble.className = 'ai-thought-msg';
-                thoughtBubble.textContent = '🤔 ' + data.reasoning;
+                thoughtBubble.textContent = data.reasoning; // 纯文本展示，不带表情
                 targetList.appendChild(thoughtBubble);
                 agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             }
