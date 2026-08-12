@@ -18,7 +18,6 @@ from PIL import Image, ImageDraw, ImageFont
 from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
-# ✨ 导入新加的提示词
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 
 main_bp = Blueprint('main', __name__)
@@ -54,10 +53,7 @@ def fetch_telegram_user_info(tg_id):
         resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
         if resp.status_code == 200 and resp.json().get('ok'):
             chat = resp.json().get('result', {})
-            return {
-                'first_name': chat.get('first_name', ''), 'last_name': chat.get('last_name', ''),
-                'username': chat.get('username', ''), 'avatar_url': None
-            }
+            return { 'first_name': chat.get('first_name', ''), 'last_name': chat.get('last_name', ''), 'username': chat.get('username', ''), 'avatar_url': None }
     except: pass
     return None
 
@@ -86,7 +82,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
                     if photos_resp.status_code == 200 and photos_resp.json().get('result', {}).get('total_count', 0) > 0:
                         file_id = photos_resp.json()['result']['photos'][0][-1]['file_id']
                         file_resp = requests.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}", timeout=10)
-                        if file_resp.status_code == 200:
+                        if file_resp.status_code == 200: 
                             file_path = file_resp.json()['result']['file_path']
                             bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
                 except: pass
@@ -96,7 +92,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 稳定版接口（新增动态提示词切换）
+# DeepSeek 稳定版接口（精准判断沙盒开关）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -109,9 +105,10 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 🛡️ 核心逻辑：根据越狱开关选择对应的提示词
+    # 🛡️ 核心逻辑：精准读取沙盒开关并切换提示词
     if mode == 'discussion':
-        if mode_config.get('jailbreak', False):
+        # 如果找到了 jailbreak 并且是 true，用沙盒，否则清空提示词
+        if mode_config.get('jailbreak') is True:
             system_prompt = SANDBOX_PROMPT
         else:
             system_prompt = DEFAULT_PROMPT
