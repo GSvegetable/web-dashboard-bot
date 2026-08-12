@@ -19,6 +19,8 @@ from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
+# ✨ 导入我们刚才在 agent_tools 里写的工具函数
+from agent_tools import TOOLS, read_webpage
 
 main_bp = Blueprint('main', __name__)
 
@@ -92,7 +94,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 稳定版接口（精准判断沙盒开关）
+# DeepSeek AI 接口
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -105,9 +107,8 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 🛡️ 核心逻辑：精准读取沙盒开关并切换提示词
+    # 提示词选择
     if mode == 'discussion':
-        # 如果找到了 jailbreak 并且是 true，用沙盒，否则清空提示词
         if mode_config.get('jailbreak') is True:
             system_prompt = SANDBOX_PROMPT
         else:
