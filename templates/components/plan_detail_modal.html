@@ -1,8 +1,8 @@
-<!-- 高端白色透明毛玻璃质感卡片（边缘发光、大尺寸） -->
+<!-- 白色高级玻璃质感（边缘高光纯白修复版） -->
 <div id="planDetailModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
     
-    <!-- 主体卡片：大尺寸高透玻璃，边缘自带高光内发光 -->
-    <div class="relative w-[92%] max-w-[480px] bg-white/10 backdrop-blur-2xl border-[1.5px] border-white/50 shadow-[0_30px_80px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,1)] rounded-[36px] p-8 pb-16 pt-10 min-h-[320px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
+    <!-- 主体卡片：修复高光发黑问题 -->
+    <div class="relative w-[92%] max-w-[480px] bg-white/10 backdrop-blur-2xl border-[1px] border-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_40px_100px_rgba(0,0,0,0.12)] rounded-[36px] p-8 pb-16 pt-10 min-h-[320px] transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
         
         <!-- 顶部 Flex 布局：左侧超巨大价格，右侧叉号与名称 -->
         <div class="flex flex-row justify-between items-start w-full">
@@ -22,20 +22,17 @@
             </div>
 
         </div>
-
-        <!-- 👇 底部按钮已经删掉，给你留出大片的透气空间，面积很大，等你后续放内容 -->
         
     </div>
 </div>
 
 <script>
-    // 打开菜单逻辑（联动动态名称和动态价格）
+    // 价格联动逻辑保持不变
     window.openPlanModal = function(planName) {
         const modal = document.getElementById('planDetailModal');
         const nameEl = document.getElementById('modalPlanName');
         const priceEl = document.getElementById('modalPlanPrice');
         
-        // 价格映射表
         const priceMap = {
             '星光': '15',
             '极光': '40',
@@ -43,7 +40,7 @@
         };
 
         nameEl.innerText = planName;
-        priceEl.innerText = priceMap[planName] || '15'; // 匹配不到时默认15
+        priceEl.innerText = priceMap[planName] || '15';
 
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -53,14 +50,11 @@
         }, 10);
     };
 
-    // 关闭菜单逻辑
     window.closePlanModal = function() {
         const modal = document.getElementById('planDetailModal');
         const content = document.getElementById('modalContent');
-        
         content.classList.remove('translate-y-0', 'scale-100', 'opacity-100');
         content.classList.add('translate-y-8', 'scale-95', 'opacity-0');
-        
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 500); 
