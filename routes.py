@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（流式输出，完美对接联网搜索）
+# DeepSeek AI 接口（彻底修复流式解析，完美支持联网搜索）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -133,12 +133,10 @@ def agent_chat():
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    reasoning_content = None
-    ai_reply = ""
 
     try:
         if mode == 'agent':
-            # 🔴 代理人模式：Pro 模型只能用 Chat Completions（原生不支持联网搜索）
+            # 🔴 代理人模式：Pro 模型（原生不支持联网搜索）
             api_url = "https://api.deepseek.com/chat/completions"
             model_name = "deepseek-v4-pro"
             raw_strength = mode_config.get('strength', 'high')
@@ -151,7 +149,7 @@ def agent_chat():
             resp = requests.post(api_url, headers=headers, json=payload, stream=True)
             
             if resp.status_code == 200:
-                # 代理模式流式直接用生成器处理
+                # 代理模式流式处理
                 def generate_pro():
                     try:
                         for line in resp.iter_lines():
@@ -181,7 +179,7 @@ def agent_chat():
                 return Response(stream_with_context(generate_pro()), mimetype='text/event-stream')
 
         else:
-            # 🟢 讨论模式：Flash 模型 + Responses API（完美启用联网搜索）
+            # 🟢 讨论模式：Flash 模型 + Responses API（原生支持联网搜索）
             api_url = "https://api.deepseek.com/responses"
             model_name = "deepseek-v4-flash"
             reasoning_effort = mode_config.get('strength', 'low')
@@ -195,18 +193,16 @@ def agent_chat():
                 "stream": True
             }
 
-            # ✅ 关键修复：新版 Responses API 如果关闭思考，直接省去 reasoning 字段，绝不传 disabled！
             if think_enabled:
                 payload["reasoning"] = {"type": "enabled", "effort": reasoning_effort}
 
-            # ✅ 激活联网搜索
             if search_enabled:
                 payload["tools"] = [{"type": "web_search"}]
 
             resp = requests.post(api_url, headers=headers, json=payload, stream=True)
             
             if resp.status_code == 200:
-                # 讨论模式流式处理
+                # 🎯 核心修复：正确解析新版 responses 流式数据格式
                 def generate_resp():
                     try:
                         for line in resp.iter_lines():
@@ -217,27 +213,27 @@ def agent_chat():
                                     if data_str == '[DONE]': break
                                     try:
                                         chunk = json.loads(data_str)
-                                        delta = chunk.get('output', [{}])[0] if chunk.get('output') else {}
-                                        finish_reason = chunk.get('finish_reason')
+                                        msg_type = chunk.get('type')
+                                        data_obj = chunk.get('data', {})
 
-                                        # Responses 格式不同，分别提取思考过程和正文
-                                        reasoning = delta.get('reasoning', {}).get('summary')
-                                        content = delta.get('content')
-
-                                        if reasoning:
-                                            yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
-                                        if content:
-                                            yield f"data: {json.dumps({'type': 'content', 'content': content})}\n\n"
-                                        if finish_reason:
+                                        if msg_type == 'response.reasoning_summary.delta':
+                                            reasoning = data_obj.get('delta')
+                                            if reasoning:
+                                                yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
+                                        elif msg_type == 'response.output_text.delta':
+                                            content = data_obj.get('delta')
+                                            if content:
+                                                yield f"data: {json.dumps({'type': 'content', 'content': content})}\n\n"
+                                        elif msg_type == 'response.done':
                                             yield f"data: {json.dumps({'type': 'done'})}\n\n"
                                     except: pass
                     except:
-                        yield f"data: {json.dumps({'type': 'error', 'content': '联网请求异常'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'error', 'content': '联网搜索请求异常'})}\n\n"
                     yield "data: [DONE]\n\n"
                 return Response(stream_with_context(generate_resp()), mimetype='text/event-stream')
 
-        # 如果初始请求不是 200
-        return jsonify({'reply': f'接口错误 (状态码: {resp.status_code})'})
+        # 非 200 错误兜底
+        return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
 
     except Exception as e:
         print(f"Agent Error: {e}")
