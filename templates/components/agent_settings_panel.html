@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（加固了缓存读取的降级保护） -->
+<!-- Agent 独立配置面板（移除Pro版的联网搜索） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -62,16 +62,7 @@
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="search-pro" id="search-pro-off" />
-                            <label for="search-pro-off">关闭</label>
-                            <input type="radio" name="search-pro" id="search-pro-on" />
-                            <label for="search-pro-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
+                    <!-- 联网搜索已经被彻底移除，只保留两行 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
@@ -137,25 +128,23 @@
     }
     
     #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
-    #think-pro-off:checked ~ .glass-glider-2, #search-pro-off:checked ~ .glass-glider-2 {
+    #think-pro-off:checked ~ .glass-glider-2 {
         transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
     #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2, #search-pro-on:checked ~ .glass-glider-2 {
+    #think-pro-on:checked ~ .glass-glider-2 {
         transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
-<!-- 🎯 强校验恢复面板逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const content = document.getElementById('settingsModalContent');
     const configKey = 'gsbot_agent_config';
 
-    // 1. 获取或初始化配置，加强健壮性
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
         config = {
@@ -164,16 +153,13 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         localStorage.setItem(configKey, JSON.stringify(config));
     } else {
-        // 🛡️ 兜底保护：如果旧的缓存缺少某些字段，强制设定为 false
         if (!config.discussion) config.discussion = {};
         if (!config.agent) config.agent = {};
         if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
-        if (typeof config.agent.search !== 'boolean') config.agent.search = false;
     }
 
-    // 2. 渲染函数：根据 config 勾选对应的输入框
     function applyStoredConfig() {
-        // --- gs-v2.5-flash (discussion) ---
+        // Flash 部分
         document.getElementById('think-flash-off').checked = !config.discussion.think;
         document.getElementById('think-flash-on').checked = config.discussion.think;
         document.getElementById('search-flash-off').checked = !config.discussion.search;
@@ -182,16 +168,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
 
-        // --- gs-v2-pro (agent) ---
+        // Pro 部分
         document.getElementById('think-pro-off').checked = !config.agent.think;
         document.getElementById('think-pro-on').checked = config.agent.think;
-        document.getElementById('search-pro-off').checked = !config.agent.search;
-        document.getElementById('search-pro-on').checked = config.agent.search;
         document.getElementById('strength-pro-high').checked = config.agent.strength === 'high';
         document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
     }
 
-    // 3. 绑定点击事件与保存逻辑
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
             input.addEventListener('change', function() {
@@ -224,13 +207,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.openAgentSettings = function() {
-        // 在弹出之前强制重新加载最新的存储配置
         config = JSON.parse(localStorage.getItem(configKey));
-        if (config) {
-            // 再次确保 search 字段存在
-            if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
-            if (typeof config.agent.search !== 'boolean') config.agent.search = false;
-        }
+        if (!config) config = { discussion: { think: false, search: false, strength: 'low' }, agent: { think: false, strength: 'high' } };
         applyStoredConfig();
 
         panel.classList.remove('hidden');
