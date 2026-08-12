@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（整体放大 18px） -->
+<!-- Agent 独立配置面板（修正模型标题，修正Pro思考强度档位） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -12,9 +12,9 @@
         <!-- 两大分类 -->
         <div class="flex flex-col gap-10 mt-1">
 
-            <!-- 分类一：省钱模型 -->
+            <!-- 分类一：省钱模型（已改为 gs-v2.5-flash） -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-flash</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
                 <div class="flex flex-col gap-4">
                     
                     <div class="flex flex-row items-center justify-between w-full">
@@ -39,6 +39,7 @@
                         </div>
                     </div>
 
+                    <!-- 思考强度：Flash 支持 3 档 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
@@ -55,9 +56,9 @@
                 </div>
             </div>
 
-            <!-- 分类二：烧钱模型 -->
+            <!-- 分类二：烧钱模型（已改为 gs-v2-pro） -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-pro</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
                 <div class="flex flex-col gap-4">
                     
                     <div class="flex flex-row items-center justify-between w-full">
@@ -82,16 +83,15 @@
                         </div>
                     </div>
 
+                    <!-- ⚠️ 修正：Pro 只支持 2 档（高/最大），去掉了“低” -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
-                            <input type="radio" name="strength-pro" id="strength-pro-low" checked />
-                            <label for="strength-pro-low">低</label>
-                            <input type="radio" name="strength-pro" id="strength-pro-mid" />
-                            <label for="strength-pro-mid">高</label>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <input type="radio" name="strength-pro" id="strength-pro-high" checked />
+                            <label for="strength-pro-high">高</label>
                             <input type="radio" name="strength-pro" id="strength-pro-max" />
                             <label for="strength-pro-max">最大</label>
-                            <div class="glass-glider-3"></div>
+                            <div class="glass-glider-2"></div>
                         </div>
                     </div>
 
@@ -102,8 +102,9 @@
     </div>
 </div>
 
-<!-- ⚡ 按钮组 CSS（宽度已改为 138px 和 198px） -->
+<!-- ⚡ 按钮组 CSS（与原版逻辑完全一致） -->
 <style>
+    /* 3选项 CSS */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06);
         --text: #e5e5e5;
@@ -131,10 +132,11 @@
         border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
-    #strength-flash-low:checked ~ .glass-glider-3, #strength-pro-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
-    #strength-flash-mid:checked ~ .glass-glider-3, #strength-pro-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
-    #strength-flash-max:checked ~ .glass-glider-3, #strength-pro-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
+    #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
 
+    /* 2选项 CSS */
     .glass-radio-group-2 {
         --bg: rgba(255, 255, 255, 0.06);
         --text: #e5e5e5;
@@ -162,11 +164,14 @@
         border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
-    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #search-pro-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
-    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2, #search-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #search-pro-off:checked ~ .glass-glider-2,
+    #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    
+    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2, #search-pro-on:checked ~ .glass-glider-2,
+    #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
-<!-- 🎯 纯滑落动画与关闭逻辑 -->
+<!-- 🎯 弹出动画与关闭逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
