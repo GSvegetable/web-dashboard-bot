@@ -18,13 +18,8 @@ from PIL import Image, ImageDraw, ImageFont
 from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
-from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, DIAGNOSTIC_PROMPT
 
 main_bp = Blueprint('main', __name__)
-
-ZHIPU_API_KEY = os.getenv('ZHIPU_API_KEY')
-DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY')
-KIMI_API_KEY = os.getenv('KIMI_API_KEY')
 
 @main_bp.route('/')
 def splash():
@@ -69,14 +64,13 @@ def fetch_telegram_user_info(tg_id):
     return None
 
 # ==========================================
-# ✨ 修复后的绑定机器人接口（发送固定默认名）
+# 绑定机器人接口
 # ==========================================
 @main_bp.route('/api/bind_bot', methods=['POST'])
 def bind_bot():
     data = request.get_json()
     token = data.get('token')
     chat_id = data.get('telegram_id')
-    # 获取前端传来的默认名 "宫水编辑器"
     bot_name = data.get('name', '宫水编辑器')
 
     if not token or not chat_id:
@@ -86,7 +80,6 @@ def bind_bot():
     bot_avatar_url = None
 
     try:
-        # 1. 验证 Token 并获取机器人真实信息（为了画布节点显示真实名字用）
         test_url = f"https://api.telegram.org/bot{token}/getMe"
         test_resp = requests.get(test_url, timeout=10)
         if test_resp.status_code != 200:
@@ -95,11 +88,9 @@ def bind_bot():
         getme_data = test_resp.json()
         if getme_data.get('ok'):
             result = getme_data.get('result', {})
-            # 优先使用 first_name，没有则用 username，用于画布节点显示
             real_bot_name = result.get('first_name') or result.get('username') or bot_name
             bot_id = result.get('id')
             
-            # 2. 如果获取到了 Bot ID，则尝试拉取头像
             if bot_id:
                 try:
                     photos_url = f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1"
@@ -118,14 +109,12 @@ def bind_bot():
                 except Exception as e:
                     print(f"获取机器人头像异常: {e}")
 
-        # 3. 发送绑定确认消息（核心修改！固定使用 bot_name "宫水编辑器" 来发消息）
         msg = f"机器人已绑定{bot_name}"
         send_url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = {"chat_id": chat_id, "text": msg}
         send_resp = requests.post(send_url, json=payload, timeout=10)
         
         if send_resp.status_code == 200:
-            # 返回给前端画布节点的名字，依然使用真实抓取到的 real_bot_name
             return jsonify({
                 'ok': True, 
                 'msg': '绑定成功，已发送测试消息',
@@ -137,97 +126,6 @@ def bind_bot():
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
 # ==========================================
-
-# ------------------- 核心 AI 接口 -------------------
-@main_bp.route('/api/agent/chat', methods=['POST'])
-def agent_chat():
-    data = request.get_json()
-    user_message = data.get('message', '')
-    mode = data.get('mode', 'discussion')
-    model_type = data.get('model_type', 'zhipu')
-    
-    if not user_message:
-        return jsonify({'reply': '请先输入消息。'})
-
-    try:
-        system_prompt = AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT
-        payload = {
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            "temperature": 0.3,
-            "enable_search": True 
-        }
-
-        if model_type == 'zhipu':
-            if not ZHIPU_API_KEY: return jsonify({'reply': '系统错误：未配置智谱 API Key。'})
-            url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {ZHIPU_API_KEY}"}
-            payload["model"] = "glm-4-flash"
-
-        elif model_type == 'doubao':
-            if not DOUBAO_API_KEY: return jsonify({'reply': '系统错误：未配置豆包 API Key。'})
-            url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DOUBAO_API_KEY}"}
-            payload["model"] = "ep-xxxxxxxxxxxx" 
-
-        elif model_type == 'kimi':
-            if not KIMI_API_KEY: return jsonify({'reply': '系统错误：未配置 Kimi API Key。'})
-            url = "https://api.moonshot.cn/v1/chat/completions"
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {KIMI_API_KEY}"}
-            if 'enable_search' in payload: del payload['enable_search']
-            payload["model"] = "moonshot-v1-32k"
-        
-        else:
-            return jsonify({'reply': '未选择有效的模型。'})
-
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200:
-            result = resp.json()
-            reply = result['choices'][0]['message']['content']
-            stripped_reply = reply
-            if '```json' in stripped_reply:
-                stripped_reply = stripped_reply.replace('```json', '').replace('```', '').strip()
-            try:
-                parsed = json.loads(stripped_reply)
-                if isinstance(parsed, dict) and 'reply' in parsed:
-                    return jsonify({'reply': parsed['reply'], 'actions': parsed.get('actions', [])})
-                if isinstance(parsed, dict) and parsed.get('action') == 'ASK_CONFIRM':
-                    return jsonify(parsed)
-                if isinstance(parsed, dict) and parsed.get('action'):
-                    return jsonify({'reply': parsed.get('reply', '已执行。'), 'actions': [parsed]})
-                return jsonify({'reply': stripped_reply})
-            except:
-                return jsonify({'reply': stripped_reply})
-        else:
-            return jsonify({'reply': f'API 请求出错 (状态码: {resp.status_code})'})
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': '请求异常，请稍后重试。'})
-
-@main_bp.route('/api/command', methods=['POST'])
-def handle_external_command():
-    data = request.get_json()
-    user_text = data.get('text', '')
-    print(f"收到外部指令: {user_text}")
-    if '放首歌' in user_text or '打开音乐' in user_text or '听音乐' in user_text:
-        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_ON', 'reply': '已收到指令，正在调用 AI 大脑...'})
-    elif '关闭音乐' in user_text:
-        return jsonify({'status': 'ok', 'action': 'MACRO_MUSIC_OFF', 'reply': '已收到指令，正在关闭...'})
-    try:
-        ai_resp = requests.post(
-            "https://gsbot.up.railway.app/api/agent/chat",
-            json={"message": user_text, "mode": "discussion", "model_type": "zhipu"},
-            timeout=15
-        )
-        if ai_resp.status_code == 200:
-            ai_reply = ai_resp.json().get('reply', '我有点卡住了。')
-            return jsonify({'status': 'ok', 'reply': ai_reply})
-        else:
-            return jsonify({'status': 'ok', 'reply': '暂时无法思考。'})
-    except:
-        return jsonify({'status': 'ok', 'reply': '网络有点延迟，稍等再聊。'})
 
 # ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
