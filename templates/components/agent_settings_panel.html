@@ -1,18 +1,19 @@
-<!-- Agent 独立配置面板（新增激进沙盒模块） -->
+<!-- Agent 独立配置面板（调整标题大小，激进沙盒开启为红色） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
         <div class="flex justify-between items-start">
-            <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
+            <!-- 配置中心放大到 text-4xl -->
+            <h1 class="text-white text-4xl font-bold tracking-wide">配置中心</h1>
         </div>
 
-        <div class="flex flex-col gap-10 mt-1">
+        <div class="flex flex-col gap-8 mt-1">
 
-            <!-- ✨ 新增：越狱设置（放在 2.5 上面） -->
+            <!-- 越狱设置（大标题缩小到 text-2xl） -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">越狱设置</div>
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">越狱设置</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
@@ -27,9 +28,9 @@
                 </div>
             </div>
 
-            <!-- 分类一：省钱模型 -->
+            <!-- 分类一：省钱模型（大标题缩小到 text-2xl） -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
@@ -68,9 +69,9 @@
                 </div>
             </div>
 
-            <!-- 分类二：烧钱模型 -->
+            <!-- 分类二：烧钱模型（大标题缩小到 text-2xl） -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
@@ -99,7 +100,7 @@
     </div>
 </div>
 
-<!-- ⚡ 按钮组 CSS（引入了新的 ID 映射） -->
+<!-- ⚡ 按钮组 CSS（激进沙盒开启红色） -->
 <style>
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
@@ -148,21 +149,28 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
     
-    /* 关闭/默认状态 */
+    /* ✨ 关闭状态（所有按钮共用银色） */
     #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
     #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
         transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
-    /* 开启状态 */
+    
+    /* ✨ 其他按钮的开启状态（保留金色） */
     #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 {
+    #think-pro-on:checked ~ .glass-glider-2 {
         transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
+    
+    /* ✨ 激进沙盒的开启状态（改为红色） */
+    #jailbreak-flash-on:checked ~ .glass-glider-2 {
+        transform: translateX(100%); background: linear-gradient(135deg, #ef444455, #dc2626); box-shadow: 0 0 18px rgba(239, 68, 68, 0.5), 0 0 10px rgba(239, 68, 68, 0.4) inset;
+    }
+
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
-<!-- 🎯 本地存储控制逻辑（保存了“激进沙盒”的状态） -->
+<!-- 🎯 本地存储控制逻辑（无改动） -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
@@ -171,14 +179,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
-        // 新增 jailbreak 默认为关闭 (false)
         config = {
             discussion: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'low', jailbreak: false },
             agent: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'high' }
         };
         localStorage.setItem(configKey, JSON.stringify(config));
     } else {
-        // 兼容旧配置，如果没存 jailbreak 则自动增加 false
         if (!config.discussion) config.discussion = {};
         if (!config.agent) config.agent = {};
         config.discussion.think = true;
@@ -213,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('search-flash-off').checked = !config.discussion.search;
         document.getElementById('search-flash-on').checked = config.discussion.search;
         
-        // 激进沙盒渲染
         document.getElementById('jailbreak-flash-off').checked = !config.discussion.jailbreak;
         document.getElementById('jailbreak-flash-on').checked = config.discussion.jailbreak;
 
