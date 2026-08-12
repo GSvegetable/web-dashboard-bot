@@ -18,7 +18,6 @@ from PIL import Image, ImageDraw, ImageFont
 from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
-from agent_prompts import DISCUSSION_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
@@ -147,6 +146,9 @@ def agent_chat():
     if not DEEPSEEK_API_KEY:
         return jsonify({'reply': '系统错误：未配置 DeepSeek API Key。'})
 
+    # ✅ 直接把提示词写在代码里，省去导入 agent_prompts 的麻烦
+    discussion_prompt = "你是一个乐于助人的 AI 助手，请用简洁、通俗易懂的语言回答用户的问题。"
+
     try:
         url = "https://api.deepseek.com/chat/completions"
         headers = {
@@ -156,7 +158,7 @@ def agent_chat():
         payload = {
             "model": "deepseek-chat", # 最便宜的模型
             "messages": [
-                {"role": "system", "content": DISCUSSION_PROMPT},
+                {"role": "system", "content": discussion_prompt},
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.3,
