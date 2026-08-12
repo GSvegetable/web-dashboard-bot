@@ -19,84 +19,34 @@ from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
-from agent_tools import TOOLS
 
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
-# DeepSeek API 通用调用封装
-def call_deepseek(messages, model='deepseek-chat', tools=None):
-    if not DEEPSEEK_API_KEY:
-        return None, "系统错误：未配置 DeepSeek API Key。"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
-    }
-    payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": 0.3,
-        "stream": False
-    }
-    if tools:
-        payload['tools'] = tools
-        payload['tool_choice'] = 'auto'
-    try:
-        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200:
-            return resp.json(), None
-        else:
-            return None, f"API 请求错误，状态码: {resp.status_code}"
-    except Exception as e:
-        return None, f"请求异常: {str(e)}"
-
-# 绑定机器人的内部执行函数
-def execute_bind_bot(token, chat_id, name='宫水编辑器'):
-    try:
-        test_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10)
-        if test_resp.status_code != 200:
-            return {"ok": False, "msg": "Token 无效或网络错误"}
-        getme_data = test_resp.json()
-        real_bot_name = name
-        bot_avatar_url = None
-        if getme_data.get('ok'):
-            result = getme_data.get('result', {})
-            real_bot_name = result.get('first_name') or result.get('username') or name
-            bot_id = result.get('id')
-            if bot_id:
-                try:
-                    photos_resp = requests.get(f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1", timeout=10)
-                    if photos_resp.status_code == 200 and photos_resp.json().get('result', {}).get('total_count', 0) > 0:
-                        file_id = photos_resp.json()['result']['photos'][0][-1]['file_id']
-                        file_resp = requests.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}", timeout=10)
-                        if file_resp.status_code == 200:
-                            file_path = file_resp.json()['result']['file_path']
-                            bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
-                except: pass
-        send_resp = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": f"机器人已绑定{real_bot_name}"}, timeout=10)
-        if send_resp.status_code == 200:
-            return {"ok": True, "msg": "绑定成功", "bot_name": real_bot_name, "avatar": bot_avatar_url}
-        return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
-    except Exception as e:
-        return {"ok": False, "msg": f"执行异常: {str(e)}"}
-
 @main_bp.route('/')
-def splash(): return render_template('splash.html')
+def splash():
+    return render_template('splash.html')
 
 @main_bp.route('/warehouse')
-def warehouse(): return render_template('warehouse.html')
+def warehouse():
+    return render_template('warehouse.html')
 
 @main_bp.route('/logout')
-def logout(): logout_user(); return redirect(url_for('main.splash'))
+def logout():
+    logout_user()
+    return redirect(url_for('main.splash'))
 
 @main_bp.route('/admin/dashboard')
 def admin_dashboard():
-    if not current_user.is_authenticated or not current_user.is_admin: return "无权访问", 403
-    return render_template('admin/dashboard.html', users=User.query.order_by(User.created_at.desc()).all())
+    if not current_user.is_authenticated or not current_user.is_admin:
+        return "无权访问，请使用管理员密码登录", 403
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('admin/dashboard.html', users=users)
 
 @main_bp.route('/workspace')
-def workspace(): return render_template('workspace/workspace.html')
+def workspace():
+    return render_template('workspace/workspace.html')
 
 def fetch_telegram_user_info(tg_id):
     try:
@@ -119,23 +69,65 @@ def bind_bot():
     if result['ok']: return jsonify({'ok': True, 'msg': result['msg'], 'bot_name': result['bot_name'], 'bot_avatar_url': result.get('avatar')})
     return jsonify({'ok': False, 'msg': result['msg']})
 
+def execute_bind_bot(token, chat_id, name='宫水编辑器'):
+    try:
+        test_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10)
+        if test_resp.status_code != 200: return {"ok": False, "msg": "Token 无效或网络错误"}
+        getme_data = test_resp.json()
+        real_bot_name = name; bot_avatar_url = None
+        if getme_data.get('ok'):
+            result = getme_data.get('result', {})
+            real_bot_name = result.get('first_name') or result.get('username') or name
+            bot_id = result.get('id')
+            if bot_id:
+                try:
+                    photos_resp = requests.get(f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1", timeout=10)
+                    if photos_resp.status_code == 200 and photos_resp.json().get('result', {}).get('total_count', 0) > 0:
+                        file_id = photos_resp.json()['result']['photos'][0][-1]['file_id']
+                        file_resp = requests.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}", timeout=10)
+                        if file_resp.status_code == 200:
+                            file_path = file_resp.json()['result']['file_path']
+                            bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
+                except: pass
+        send_resp = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": f"机器人已绑定{real_bot_name}"}, timeout=10)
+        if send_resp.status_code == 200: return {"ok": True, "msg": "绑定成功", "bot_name": real_bot_name, "avatar": bot_avatar_url}
+        return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
+    except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
+
+# ==========================================
+# DeepSeek 终极 AI 接口 (包含用户自定义配置映射)
+# ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
+    
     if not user_message: return jsonify({'reply': '请先输入消息。'})
 
+    # 获取前端传来的配置
+    user_config = data.get('config', {})
+    mode_config = user_config.get(mode, {})
+    
+    # 配置默认值（如果不传，强制使用最省钱的方案）
+    final_config = {
+        'model': mode_config.get('model', 'deepseek-v4-flash'),
+        'think': mode_config.get('think', False),
+        'search': mode_config.get('search', False),
+        'strength': mode_config.get('strength', 'low')
+    }
+
+    # 处理记忆历史
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
-    # ⚙️ 核心逻辑：15句话即触发压缩记忆
+    # 15句压缩记忆
     if len(chat_history) >= 15:
         summary_messages = [
             {"role": "system", "content": SUMMARY_PROMPT},
             {"role": "user", "content": f"历史概要：{chat_summary}\n新对话内容：{chat_history}"}
         ]
-        summary_res, err = call_deepseek(summary_messages)
+        summary_res, err = call_deepseek_core(summary_messages, 'deepseek-v4-flash')
         if summary_res:
             chat_summary = summary_res['choices'][0]['message']['content']
             chat_history = []
@@ -147,51 +139,70 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 🧠 模型选择：讨论用 chat，代理用 reasoner
-    model = "deepseek-reasoner" if mode == 'agent' else "deepseek-chat"
-    tools = TOOLS if mode == 'agent' else None
-
-    ai_resp, err = call_deepseek(messages, model, tools)
-    if err: return jsonify({'reply': err})
+    # 准备调用核心 API
+    model_name = final_config['model']
     
-    ai_message = ai_resp['choices'][0]['message']
-    chat_history.append({"role": "assistant", "content": ai_message['content'], "tool_calls": ai_message.get('tool_calls')})
-    
-    # 准备向前端发送的数据
-    final_reply = ai_message['content']
-    reasoning_content = ai_message.get('reasoning_content') # ✨ 提取思考过程
-    action_payload = None
+    # Pro 不支持 low，如果选了 low 和 pro，强制切到 high
+    effort = final_config.get('strength', 'low')
+    if model_name == 'deepseek-v4-pro' and effort == 'low':
+        effort = 'high'
 
-    # 🔧 处理工具调用（Agent 执行环节）
-    if ai_message.get('tool_calls'):
-        for tool_call in ai_message['tool_calls']:
-            func_name = tool_call['function']['name']
-            args = json.loads(tool_call['function']['arguments'])
-            result_content = {}
-            if func_name == 'bind_bot':
-                result_content = execute_bind_bot(args['token'], args['telegram_id'], args.get('name'))
-            elif func_name == 'add_bot_node':
-                result_content = {"status": "success", "action": "add_bot_node", "params": args}
-                action_payload = {"action": "add_bot_node", "params": args}
+    # 构建 DeepSeek 请求
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
+
+    payload = {
+        "model": model_name,
+        "messages": messages,
+        "temperature": 0.3,
+        "stream": False
+    }
+
+    # 开启思考模式
+    if final_config.get('think', False):
+        payload['extra_body'] = {
+            "thinking": {
+                "type": "enabled",
+                "reasoning_effort": effort
+            }
+        }
+
+    # 【联网搜索拦截说明】
+    # 因为当前使用的是 Chat Completions API，官方不支持服务端原生搜网。
+    # 如果开启了 Pro，前端搜索按钮会自动禁用。这里不传 search 参数即可。
+    # 如果后续要改为支持原生搜索的 Responses API，再额外改写。
+
+    try:
+        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            result = resp.json()
+            ai_reply = result['choices'][0]['message']['content']
+            reasoning_content = result['choices'][0]['message'].get('reasoning_content')
             
-            chat_history.append({
-                "role": "tool",
-                "tool_call_id": tool_call['id'],
-                "content": json.dumps(result_content)
-            })
-        
-        # 再调一次大模型，把执行结果包装成自然语言回复
-        second_resp, err = call_deepseek(chat_history, model)
-        if second_resp:
-            final_reply = second_resp['choices'][0]['message']['content']
-            # 如果是第二次调用，通常 reasoning_content 为空，这里只取 content
+            chat_history.append({"role": "user", "content": user_message})
+            chat_history.append({"role": "assistant", "content": ai_reply})
+            session['chat_history'] = chat_history
 
-    session['chat_history'] = chat_history
-    response_data = {'reply': final_reply}
-    if reasoning_content:
-        response_data['reasoning'] = reasoning_content # ✨ 把思考过程传给前端
-    if action_payload: response_data.update(action_payload)
-    return jsonify(response_data)
+            response_data = {'reply': ai_reply}
+            if reasoning_content: response_data['reasoning'] = reasoning_content
+            return jsonify(response_data)
+        else:
+            return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
+    except Exception as e:
+        print(f"Agent Error: {e}")
+        return jsonify({'reply': '请求异常，请稍后重试。'})
+
+def call_deepseek_core(messages, model='deepseek-v4-flash'):
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    if not DEEPSEEK_API_KEY: return None, "未配置 Key"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    payload = {"model": model, "messages": messages, "stream": False}
+    try:
+        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200: return resp.json(), None
+        return None, f"错误: {resp.status_code}"
+    except Exception as e: return None, str(e)
 
 # ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
