@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 终极 AI 接口 (硬编码模型映射，完美对接配置面板)
+# DeepSeek 终极 AI 接口 (修复了思考开关无法关闭的漏洞)
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -105,30 +105,25 @@ def agent_chat():
     
     if not user_message: return jsonify({'reply': '请先输入消息。'})
 
-    # 1. 获取配置面板传过来的参数
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 2. 强制锁定模型映射 (讨论=2.5-flash, 代理人=2-pro)
+    # 1. 强制锁定模型映射 (讨论=2.5-flash, 代理人=2-pro)
     if mode == 'agent':
         model_name = "deepseek-v4-pro"
-        # Pro 不支持低档，前端如果发了 low，强制切到 high
         raw_strength = mode_config.get('strength', 'high')
         reasoning_effort = 'high' if raw_strength == 'low' else raw_strength
     else:
         model_name = "deepseek-v4-flash"
         reasoning_effort = mode_config.get('strength', 'low')
 
-    # 3. 读取深度思考开关
+    # 2. 读取用户面板状态
     think_enabled = mode_config.get('think', False)
-
-    # 4. 读取联网搜索开关 (Pro 原生不支持，这里做安全拦截)
     search_enabled = mode_config.get('search', False)
-    # 如果是 Pro 模型，强行忽略联网搜索参数
     if model_name == "deepseek-v4-pro":
         search_enabled = False
 
-    # 处理记忆历史
+    # 3. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -149,7 +144,7 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 5. 组装 DeepSeek API 请求包
+    # 4. 组装 DeepSeek API 请求包
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
@@ -160,7 +155,7 @@ def agent_chat():
         "stream": False
     }
 
-    # 根据面板开关加入思考参数
+    # 🎯 核心修复：无论开还是关，都要强制传 extra_body！
     if think_enabled:
         payload['extra_body'] = {
             "thinking": {
@@ -168,9 +163,15 @@ def agent_chat():
                 "reasoning_effort": reasoning_effort
             }
         }
+    else:
+        # 如果用户关了思考，必须明确告诉 API “禁用”，而不是不传参数
+        payload['extra_body'] = {
+            "thinking": {
+                "type": "disabled"
+            }
+        }
 
-    # 联网搜索目前通过 Chat Completions API 原生支持不了 V4 Pro 和原生搜索参数，
-    # 暂留空间供后续对接官方 Responses API 使用。
+    # 联网搜索接口暂留（Pro 原生不支持，需等官方新版 Response API）
 
     try:
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
