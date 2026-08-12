@@ -1,4 +1,4 @@
-<!-- Agent 主面板（终极Flex对齐版，快捷面板自动跟随主面板位置） -->
+<!-- Agent 主面板（终极Flex对齐版，大幅左移） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -27,7 +27,8 @@
 </style>
 
 <!-- 终极布局改造：将侧面板和主面板放在同一个父容器里 -->
-<div id="agentPanelsWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
+<!-- ✨ 核心改动：将 left-1/2 (50%) 改成了 left-[25%]，实现了整体大幅左移 -->
+<div id="agentPanelsWrapper" class="fixed bottom-0 left-[25%] -translate-x-1/2 z-50 hidden" style="width: 0;">
     <!-- 在这个容器里，我用 flex items-start 让两个面板顶部完美自动对齐 -->
     <div id="agentPanelsContainer" class="flex flex-row items-start gap-4 w-full justify-center">
         
