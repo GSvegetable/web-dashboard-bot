@@ -18,7 +18,8 @@ from PIL import Image, ImageDraw, ImageFont
 from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
-from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
+# ✨ 导入新加的提示词
+from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
@@ -95,7 +96,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 稳定版接口（纯 Chat Completions，无联网）
+# DeepSeek 稳定版接口（新增动态提示词切换）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -107,6 +108,15 @@ def agent_chat():
 
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
+
+    # 🛡️ 核心逻辑：根据越狱开关选择对应的提示词
+    if mode == 'discussion':
+        if mode_config.get('jailbreak', False):
+            system_prompt = SANDBOX_PROMPT
+        else:
+            system_prompt = DEFAULT_PROMPT
+    else:
+        system_prompt = AGENT_PROMPT
 
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
@@ -123,7 +133,7 @@ def agent_chat():
             session['chat_summary'] = chat_summary
             session['chat_history'] = chat_history
 
-    messages = [{"role": "system", "content": AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT}]
+    messages = [{"role": "system", "content": system_prompt}]
     if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
@@ -136,7 +146,6 @@ def agent_chat():
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
-    think_enabled = True  # 强制开启
 
     def generate():
         try:
