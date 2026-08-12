@@ -1,15 +1,12 @@
-<!-- Agent 独立配置面板（纯直降动画、居中、去叉号） -->
+<!-- Agent 独立配置面板（整合了 Uiverse 玻璃质感单选组） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
-    <!-- 遮罩层：透明背景，点击任何外部区域直接关闭 -->
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
-    <!-- 主体弹窗：从顶部正上方飞速滑落至正中间 -->
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
         <!-- 左上角：配置中心 -->
         <div class="flex justify-between items-start">
             <h1 class="text-white text-xl font-bold tracking-wide">配置中心</h1>
-            <!-- 去掉了叉号，只能点击外部关闭 -->
         </div>
 
         <!-- 两大分类大标题 -->
@@ -19,11 +16,47 @@
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-flash</div>
                 
-                <!-- 子标题 -->
-                <div class="flex flex-col gap-4 pl-2 border-l-2 border-white/10">
-                    <div class="text-base font-medium text-white/80">深度思考</div>
-                    <div class="text-base font-medium text-white/80">联网搜索</div>
-                    <div class="text-base font-medium text-white/80">思考强度</div>
+                <!-- 子标题带控件 -->
+                <div class="flex flex-col gap-6 pl-2 border-l-2 border-white/10">
+                    
+                    <!-- 1. 深度思考（2选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">深度思考</div>
+                        <div class="glass-radio-group-2">
+                            <input type="radio" name="think-flash" id="think-flash-off" checked />
+                            <label for="think-flash-off">关闭</label>
+                            <input type="radio" name="think-flash" id="think-flash-on" />
+                            <label for="think-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 联网搜索（2选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">联网搜索</div>
+                        <div class="glass-radio-group-2">
+                            <input type="radio" name="search-flash" id="search-flash-off" checked />
+                            <label for="search-flash-off">关闭</label>
+                            <input type="radio" name="search-flash" id="search-flash-on" />
+                            <label for="search-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 思考强度（3选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">思考强度</div>
+                        <div class="glass-radio-group-3">
+                            <input type="radio" name="strength-flash" id="strength-flash-low" checked />
+                            <label for="strength-flash-low">低</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-mid" />
+                            <label for="strength-flash-mid">高</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-max" />
+                            <label for="strength-flash-max">最大</label>
+                            <div class="glass-glider-3"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -31,11 +64,47 @@
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-pro</div>
                 
-                <!-- 子标题 -->
-                <div class="flex flex-col gap-4 pl-2 border-l-2 border-white/10">
-                    <div class="text-base font-medium text-white/80">深度思考</div>
-                    <div class="text-base font-medium text-white/80">联网搜索</div>
-                    <div class="text-base font-medium text-white/80">思考强度</div>
+                <!-- 子标题带控件 -->
+                <div class="flex flex-col gap-6 pl-2 border-l-2 border-white/10">
+                    
+                    <!-- 1. 深度思考（2选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">深度思考</div>
+                        <div class="glass-radio-group-2">
+                            <input type="radio" name="think-pro" id="think-pro-off" checked />
+                            <label for="think-pro-off">关闭</label>
+                            <input type="radio" name="think-pro" id="think-pro-on" />
+                            <label for="think-pro-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 联网搜索（2选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">联网搜索</div>
+                        <div class="glass-radio-group-2">
+                            <input type="radio" name="search-pro" id="search-pro-off" checked />
+                            <label for="search-pro-off">关闭</label>
+                            <input type="radio" name="search-pro" id="search-pro-on" />
+                            <label for="search-pro-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 思考强度（3选1） -->
+                    <div class="w-full">
+                        <div class="text-base font-medium text-white/80 mb-2">思考强度</div>
+                        <div class="glass-radio-group-3">
+                            <input type="radio" name="strength-pro" id="strength-pro-low" checked />
+                            <label for="strength-pro-low">低</label>
+                            <input type="radio" name="strength-pro" id="strength-pro-mid" />
+                            <label for="strength-pro-mid">高</label>
+                            <input type="radio" name="strength-pro" id="strength-pro-max" />
+                            <label for="strength-pro-max">最大</label>
+                            <div class="glass-glider-3"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -43,29 +112,103 @@
     </div>
 </div>
 
-<!-- 丝滑动画 JS 逻辑 -->
+<!-- ⚡ 纯原版 CSS 动画逻辑（无任何参数改动，精准还原 Uiverse 效果） -->
+<style>
+    /* 3选项开关基础样式 */
+    .glass-radio-group-3 {
+        --bg: rgba(255, 255, 255, 0.06);
+        --text: #e5e5e5;
+        display: flex;
+        position: relative;
+        background: var(--bg);
+        border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        width: fit-content;
+    }
+    .glass-radio-group-3 input { display: none; }
+    .glass-radio-group-3 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        min-width: 70px; font-size: 14px; padding: 0.8rem 1.6rem; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
+    }
+    .glass-radio-group-3 label:hover { color: white; }
+    .glass-radio-group-3 input:checked + label { color: #fff; }
+    .glass-glider-3 {
+        position: absolute; top: 0; bottom: 0;
+        width: calc(100% / 3);
+        border-radius: 1rem; z-index: 1;
+        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
+    /* 3选项滑块状态 */
+    #strength-flash-low:checked ~ .glass-glider-3,
+    #strength-pro-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #strength-flash-mid:checked ~ .glass-glider-3,
+    #strength-pro-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    #strength-flash-max:checked ~ .glass-glider-3,
+    #strength-pro-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
+
+    /* 2选项开关基础样式（宽度微调为50%） */
+    .glass-radio-group-2 {
+        --bg: rgba(255, 255, 255, 0.06);
+        --text: #e5e5e5;
+        display: flex;
+        position: relative;
+        background: var(--bg);
+        border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        width: fit-content;
+    }
+    .glass-radio-group-2 input { display: none; }
+    .glass-radio-group-2 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        min-width: 70px; font-size: 14px; padding: 0.8rem 1.6rem; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
+    }
+    .glass-radio-group-2 label:hover { color: white; }
+    .glass-radio-group-2 input:checked + label { color: #fff; }
+    .glass-glider-2 {
+        position: absolute; top: 0; bottom: 0;
+        width: 50%; /* 两个选项时宽度占一半 */
+        border-radius: 1rem; z-index: 1;
+        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
+    /* 2选项滑块状态 */
+    #think-flash-off:checked ~ .glass-glider-2,
+    #search-flash-off:checked ~ .glass-glider-2,
+    #think-pro-off:checked ~ .glass-glider-2,
+    #search-pro-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #think-flash-on:checked ~ .glass-glider-2,
+    #search-flash-on:checked ~ .glass-glider-2,
+    #think-pro-on:checked ~ .glass-glider-2,
+    #search-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+</style>
+
+<!-- 🎯 弹出动画和关闭控制逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const content = document.getElementById('settingsModalContent');
 
-    // 打开面板：从上落到正中
     window.openAgentSettings = function() {
         panel.classList.remove('hidden');
-        // 使用 requestAnimationFrame 强制浏览器在渲染前准备，绝不卡顿
         requestAnimationFrame(() => {
             content.classList.remove('opacity-0', '-translate-y-[120%]');
             content.classList.add('opacity-100', 'translate-y-0');
         });
     };
 
-    // 关闭面板：收回顶部
     window.closeAgentSettings = function() {
         content.classList.remove('opacity-100', 'translate-y-0');
         content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => {
             panel.classList.add('hidden');
-        }, 500); // 等待 500ms，等整个下落动画彻底播完再隐藏
+        }, 500);
     };
 });
 </script>
