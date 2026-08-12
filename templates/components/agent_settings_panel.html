@@ -1,19 +1,17 @@
-<!-- Agent 独立配置面板（调整标题大小，激进沙盒开启为红色） -->
+<!-- Agent 独立配置面板（稳定同步激进沙盒开关） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
         <div class="flex justify-between items-start">
-            <!-- 配置中心放大到 text-4xl -->
-            <h1 class="text-white text-4xl font-bold tracking-wide">配置中心</h1>
+            <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         </div>
 
-        <div class="flex flex-col gap-8 mt-1">
-
-            <!-- 越狱设置（大标题缩小到 text-2xl） -->
+        <div class="flex flex-col gap-10 mt-1">
+            <!-- ✨ 新模块：越狱设置 -->
             <div class="w-full">
-                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">越狱设置</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">越狱设置</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
@@ -28,9 +26,9 @@
                 </div>
             </div>
 
-            <!-- 分类一：省钱模型（大标题缩小到 text-2xl） -->
+            <!-- 分类一：省钱模型 -->
             <div class="w-full">
-                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
@@ -69,9 +67,9 @@
                 </div>
             </div>
 
-            <!-- 分类二：烧钱模型（大标题缩小到 text-2xl） -->
+            <!-- 分类二：烧钱模型 -->
             <div class="w-full">
-                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
@@ -100,77 +98,30 @@
     </div>
 </div>
 
-<!-- ⚡ 按钮组 CSS（激进沙盒开启红色） -->
 <style>
-    .glass-radio-group-3 {
-        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
-        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
-        backdrop-filter: blur(12px);
-        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
-        overflow: hidden; flex-shrink: 0;
-    }
+    .glass-radio-group-3 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
     .glass-radio-group-3 input { display: none; }
-    .glass-radio-group-3 label {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
-        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
-        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
-    }
+    .glass-radio-group-3 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
     .glass-radio-group-3 label:hover { color: white; }
     .glass-radio-group-3 input:checked + label { color: #fff; }
-    .glass-glider-3 {
-        position: absolute; top: 0; bottom: 0; width: calc(100% / 3);
-        border-radius: 1rem; z-index: 1;
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
-    }
+    .glass-glider-3 { position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    .glass-radio-group-2 {
-        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
-        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
-        backdrop-filter: blur(12px);
-        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
-        overflow: hidden; flex-shrink: 0;
-    }
+    .glass-radio-group-2 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
     .glass-radio-group-2 input { display: none; }
-    .glass-radio-group-2 label {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
-        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
-        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
-    }
+    .glass-radio-group-2 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
     .glass-radio-group-2 label:hover { color: white; }
     .glass-radio-group-2 input:checked + label { color: #fff; }
-    .glass-glider-2 {
-        position: absolute; top: 0; bottom: 0; width: 50%;
-        border-radius: 1rem; z-index: 1;
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
-    }
+    .glass-glider-2 { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
     
-    /* ✨ 关闭状态（所有按钮共用银色） */
-    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
-    #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
-        transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
-    }
-    
-    /* ✨ 其他按钮的开启状态（保留金色） */
-    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2 {
-        transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
-    }
-    
-    /* ✨ 激进沙盒的开启状态（改为红色） */
-    #jailbreak-flash-on:checked ~ .glass-glider-2 {
-        transform: translateX(100%); background: linear-gradient(135deg, #ef444455, #dc2626); box-shadow: 0 0 18px rgba(239, 68, 68, 0.5), 0 0 10px rgba(239, 68, 68, 0.4) inset;
-    }
-
+    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
-<!-- 🎯 本地存储控制逻辑（无改动） -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
@@ -179,10 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
-        config = {
-            discussion: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'low', jailbreak: false },
-            agent: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'high' }
-        };
+        config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'high' } };
         localStorage.setItem(configKey, JSON.stringify(config));
     } else {
         if (!config.discussion) config.discussion = {};
@@ -195,13 +143,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
-        
         [flashGroup, proGroup].forEach((group) => {
             if (!group) return;
             const offRadio = group.querySelector('input[id$="-off"]');
             const onRadio = group.querySelector('input[id$="-on"]');
             onRadio.checked = true;
-
             offRadio.addEventListener('click', function(e) {
                 group.classList.add('shake-toggle');
                 setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
@@ -215,13 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyStoredConfig() {
         document.getElementById('think-flash-on').checked = true;
         document.getElementById('think-pro-on').checked = true;
-        
         document.getElementById('search-flash-off').checked = !config.discussion.search;
         document.getElementById('search-flash-on').checked = config.discussion.search;
-        
         document.getElementById('jailbreak-flash-off').checked = !config.discussion.jailbreak;
         document.getElementById('jailbreak-flash-on').checked = config.discussion.jailbreak;
-
         document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
         document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
@@ -239,16 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 let key = null;
                 let val = null;
 
-                if (name.startsWith('search-')) {
-                    key = 'search';
-                    val = value.endsWith('-on');
-                } else if (name.startsWith('jailbreak-')) {
-                    key = 'jailbreak';
-                    val = value.endsWith('-on');
-                } else if (name.startsWith('strength-')) {
-                    key = 'strength';
-                    val = value.replace('strength-', '').replace('flash-', '').replace('pro-', '');
-                }
+                if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
+                else if (name.startsWith('jailbreak-')) { key = 'jailbreak'; val = value.endsWith('-on'); }
+                else if (name.startsWith('strength-')) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
 
                 if (name.includes('-flash')) mode = 'discussion';
                 else if (name.includes('-pro')) mode = 'agent';
@@ -256,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (mode && key && val !== null) {
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
+                    window.currentAgentConfig = config; // ✨ 立刻同步到全局变量
                 }
             });
         });
@@ -264,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'high' } };
+        window.currentAgentConfig = config; // ✨ 确保打开时也同步
         applyStoredConfig();
         setupThinkLock();
 
