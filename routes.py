@@ -19,6 +19,9 @@ from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 
+# ✅ 关键修改：现在它会在根目录寻找你移动过去的文件
+from agent_prompts import DISCUSSION_PROMPT
+
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
@@ -127,7 +130,7 @@ def bind_bot():
         return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
 
 # ==========================================
-# DeepSeek AI 接口（最省钱版）
+# DeepSeek AI 接口
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -138,16 +141,12 @@ def agent_chat():
     if not user_message:
         return jsonify({'reply': '请先输入消息。'})
 
-    # 代理人模式暂未开放
     if mode == 'agent':
         return jsonify({'reply': '代理人模式暂未开放，请使用“讨论”模式。'})
 
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY:
         return jsonify({'reply': '系统错误：未配置 DeepSeek API Key。'})
-
-    # ✅ 直接把提示词写在代码里，省去导入 agent_prompts 的麻烦
-    discussion_prompt = "你是一个乐于助人的 AI 助手，请用简洁、通俗易懂的语言回答用户的问题。"
 
     try:
         url = "https://api.deepseek.com/chat/completions"
@@ -158,7 +157,8 @@ def agent_chat():
         payload = {
             "model": "deepseek-chat", # 最便宜的模型
             "messages": [
-                {"role": "system", "content": discussion_prompt},
+                # ✅ 现在会动态读取你移动过去的 agent_prompts.py 里的新设定！
+                {"role": "system", "content": DISCUSSION_PROMPT},
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.3,
