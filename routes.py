@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（接入最新 `responses` API，支持联网）
+# DeepSeek AI 接口（讨论使用 Responses API，支持联网）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -132,117 +132,84 @@ def agent_chat():
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
-    try:
-        if mode == 'agent':
-            # 🔴 代理人模式：Pro 模型（原生不支持联网，退回到 Chat Completions API）
-            api_url = "https://api.deepseek.com/chat/completions"
-            model_name = "deepseek-v4-pro"
-            raw_strength = mode_config.get('strength', 'high')
-            reasoning_effort = 'high' if raw_strength == 'low' else raw_strength
-            think_enabled = True
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    
+    model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
+    raw_strength = mode_config.get('strength', 'low')
+    reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
+    think_enabled = True  # 深度思考强制开启
+    search_enabled = mode_config.get('search', False)
 
-            headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-            payload = {"model": model_name, "messages": messages, "temperature": 0.3, "stream": True}
-            payload['extra_body'] = {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
+    def generate():
+        try:
+            if mode == 'agent':
+                # 🔴 代理人模式保持 Chat Completions
+                api_url = "https://api.deepseek.com/chat/completions"
+                payload = {
+                    "model": model_name, "messages": messages, "temperature": 0.3, "stream": True,
+                    "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
+                }
+                resp = requests.post(api_url, headers=headers, json=payload, stream=True)
+                for line in resp.iter_lines():
+                    if line:
+                        line = line.decode('utf-8')
+                        if line.startswith('data: '):
+                            data_str = line[6:]
+                            if data_str == '[DONE]': break
+                            try:
+                                chunk = json.loads(data_str)
+                                delta = chunk['choices'][0]['delta']
+                                if delta.get('reasoning_content'): yield f"data: {json.dumps({'type': 'reasoning', 'content': delta['reasoning_content']})}\n\n"
+                                if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
+                                if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                            except: pass
+            else:
+                # 🟢 讨论模式：使用官方 Responses API（原生支持联网搜索！）
+                api_url = "https://api.deepseek.com/responses"
+                payload = {
+                    "model": "deepseek-v4-flash",
+                    "input": messages,
+                    "temperature": 0.3,
+                    "stream": True,
+                    "reasoning": {"type": "enabled", "effort": reasoning_effort}
+                }
+                
+                # 只要开启了联网搜索，就传给官方接口
+                if search_enabled:
+                    payload["tools"] = [{"type": "web_search"}]
+                
+                resp = requests.post(api_url, headers=headers, json=payload, stream=True)
+                for line in resp.iter_lines():
+                    if line:
+                        line = line.decode('utf-8')
+                        if line.startswith('data: '):
+                            data_str = line[6:]
+                            if data_str == '[DONE]': break
+                            try:
+                                chunk = json.loads(data_str)
+                                chunk_type = chunk.get('type')
+                                chunk_data = chunk.get('data', {})
+                                
+                                if chunk_type == 'reasoning':
+                                    reasoning_text = chunk_data.get('text')
+                                    if reasoning_text:
+                                        yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_text})}\n\n"
+                                elif chunk_type == 'text':
+                                    content_text = chunk_data.get('text')
+                                    if content_text:
+                                        yield f"data: {json.dumps({'type': 'content', 'content': content_text})}\n\n"
+                                elif chunk_type == 'web_search_call':
+                                    # 如果只想显示地址，可以在这里处理，这里我们保持透传或跳过
+                                    pass
+                            except: pass
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-            resp = requests.post(api_url, headers=headers, json=payload, stream=True)
-            
-            if resp.status_code == 200:
-                def generate_pro():
-                    try:
-                        for line in resp.iter_lines():
-                            if line:
-                                line = line.decode('utf-8')
-                                if line.startswith('data: '):
-                                    data_str = line[6:]
-                                    if data_str == '[DONE]': break
-                                    try:
-                                        chunk = json.loads(data_str)
-                                        delta = chunk['choices'][0]['delta']
-                                        finish_reason = chunk['choices'][0].get('finish_reason')
-                                        
-                                        reasoning = delta.get('reasoning_content')
-                                        content = delta.get('content')
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'content': '请求异常，请稍后重试。'})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
 
-                                        if reasoning:
-                                            yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
-                                        if content:
-                                            yield f"data: {json.dumps({'type': 'content', 'content': content})}\n\n"
-                                        if finish_reason:
-                                            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                                    except: pass
-                    except:
-                        yield f"data: {json.dumps({'type': 'error', 'content': '请求异常'})}\n\n"
-                    yield "data: [DONE]\n\n"
-                return Response(stream_with_context(generate_pro()), mimetype='text/event-stream')
-
-        else:
-            # 🟢 讨论模式：Flash 模型 + Responses API（完美原生支持联网搜索）
-            api_url = "https://api.deepseek.com/responses"
-            model_name = "deepseek-v4-flash"
-            reasoning_effort = mode_config.get('strength', 'low')
-            think_enabled = True
-            search_enabled = mode_config.get('search', False)
-
-            payload = {
-                "model": model_name,
-                "input": messages,
-                "temperature": 0.3,
-                "stream": True
-            }
-
-            if think_enabled:
-                payload["reasoning"] = {"type": "enabled", "effort": reasoning_effort}
-
-            if search_enabled:
-                payload["tools"] = [{"type": "web_search"}]
-                payload["tool_choice"] = "auto"  # 🎯 必须加上这个，联网搜索才能真正启动！
-
-            # ✨ 最核心修复：加入 Accept: text/event-stream 请求头
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-                "Accept": "text/event-stream"
-            }
-
-            resp = requests.post(api_url, headers=headers, json=payload, stream=True)
-            
-            if resp.status_code == 200:
-                # 🎯 正确解析新版 responses 流式数据格式
-                def generate_resp():
-                    try:
-                        for line in resp.iter_lines():
-                            if line:
-                                line = line.decode('utf-8')
-                                if line.startswith('data: '):
-                                    data_str = line[6:]
-                                    if data_str == '[DONE]': break
-                                    try:
-                                        chunk = json.loads(data_str)
-                                        msg_type = chunk.get('type')
-                                        data_obj = chunk.get('data', {})
-
-                                        if msg_type == 'response.reasoning_summary.delta':
-                                            reasoning = data_obj.get('delta')
-                                            if reasoning:
-                                                yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
-                                        elif msg_type == 'response.output_text.delta':
-                                            content = data_obj.get('delta')
-                                            if content:
-                                                yield f"data: {json.dumps({'type': 'content', 'content': content})}\n\n"
-                                        elif msg_type == 'response.done':
-                                            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                                    except: pass
-                    except:
-                        yield f"data: {json.dumps({'type': 'error', 'content': '联网搜索请求异常'})}\n\n"
-                    yield "data: [DONE]\n\n"
-                return Response(stream_with_context(generate_resp()), mimetype='text/event-stream')
-
-        return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
-
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': '请求异常，请稍后重试。'})
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 def call_deepseek_core(messages, model='deepseek-v4-flash'):
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
@@ -255,14 +222,13 @@ def call_deepseek_core(messages, model='deepseek-v4-flash'):
         return None, f"错误: {resp.status_code}"
     except Exception as e: return None, str(e)
 
-# ✅ 清空记忆接口
+# ================= 下方路由保持不变 =================
 @main_bp.route('/api/agent/clear', methods=['POST'])
 def clear_agent_history():
     session.pop('chat_history', None)
     session.pop('chat_summary', None)
     return jsonify({'status': 'ok', 'msg': '记忆已清空。'})
 
-# ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
