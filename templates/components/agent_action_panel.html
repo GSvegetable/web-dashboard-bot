@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（UI保留，接入DeepSeek） -->
+<!-- Agent 玻璃质感底部面板组件（完美同步，支持节点自动渲染） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -44,7 +44,6 @@
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
         
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <!-- UI 布局保持完全一样 -->
             <div class="flex items-end gap-2 w-full">
                 <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
                 <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
@@ -69,19 +68,15 @@ document.addEventListener("DOMContentLoaded", function() {
     let isPanelOpen = false;
     let isProcessing = false;
 
-    // ---------- Tab 切换控制 ----------
     function switchMode(mode) {
         if (mode === currentMode) return;
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden');
-        targetList.classList.remove('hidden');
-        currentMode = mode;
+        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
     }
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
-    // ---------- 面板窗口控制 ----------
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
@@ -107,10 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 panelWrapper.style.transform = 'translateX(-50%)';
             }
             panelWrapper.style.display = 'block';
-            setTimeout(() => { 
-                panel.classList.remove('translate-y-full'); 
-                setTimeout(() => { agentInput.focus(); }, 300);
-            }, 10);
+            setTimeout(() => { panel.classList.remove('translate-y-full'); setTimeout(() => { agentInput.focus(); }, 300); }, 10);
         } else {
             panel.classList.add('translate-y-full');
             setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
@@ -118,7 +110,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ---------- 发送消息到 DeepSeek ----------
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -127,63 +118,40 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const targetList = currentMode === 'discussion' ? discussionList : agentList;
         
-        // 用户气泡
-        const userBubble = document.createElement('div');
-        userBubble.className = 'chat-bubble user';
-        userBubble.textContent = text;
-        targetList.appendChild(userBubble);
-        agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：立刻滚动到底部！
-        agentInput.value = '';
-        agentInput.style.height = 'auto';
+        const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
+        targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        agentInput.value = ''; agentInput.style.height = 'auto';
+        
+        let loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = '思考中...'; loadingMsg.id = 'loading-bubble';
+        targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
-        // 等待提示
-        let loadingMsg = document.createElement('div');
-        loadingMsg.className = 'ai-text-msg text-gray-400';
-        loadingMsg.textContent = '思考中...';
-        loadingMsg.id = 'loading-bubble';
-        targetList.appendChild(loadingMsg);
-        agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：思考时也滚到底部！
-
-        // 封装 Payload 发送给后端
-        fetch('/api/agent/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, mode: currentMode })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error(`API 请求失败，状态码: ${res.status}`);
-            return res.json();
-        })
+        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode }) })
+        .then(res => { if (!res.ok) throw new Error(`API 失败，状态码: ${res.status}`); return res.json(); })
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            
-            // 删除思考气泡，显示回复
-            const botMsg = document.createElement('div');
-            botMsg.className = 'ai-text-msg';
+            const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg';
             botMsg.textContent = data.reply || '抱歉，没有收到回复。';
-            targetList.appendChild(botMsg);
-            agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：回复完立刻滚到底部！
+            targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             isProcessing = false;
+            
+            // ✨ 新增：如果 AI 发出了“添加节点”的动作指令，立即调用画布渲染函数！
+            if (data.action === 'add_bot_node' && data.params) {
+                if (typeof window.addBotNode === 'function') {
+                    window.addBotNode(data.params.name, data.params.avatar || null);
+                }
+            }
         })
         .catch(() => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            const errMsg = document.createElement('div');
-            errMsg.className = 'ai-text-msg text-red-400/80';
-            errMsg.textContent = '网络异常或 Key 未配置，请检查控制台。';
-            targetList.appendChild(errMsg);
-            agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：报错时也滚到底部！
+            const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80';
+            errMsg.textContent = '网络异常或 Key 未配置。';
+            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             isProcessing = false;
         });
     }
 
     agentSendBtn.addEventListener('click', sendMessageInternal);
-    agentInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-        if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; }
-    });
-    agentInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); }
-    });
+    agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
+    agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
 });
 </script>
