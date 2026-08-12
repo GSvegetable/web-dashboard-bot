@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（修复文字竖排，区分按钮长度） -->
+<!-- Agent 独立配置面板（精准匹配按钮长度，缩短了一半） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -17,11 +17,9 @@
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-flash</div>
                 <div class="flex flex-col gap-4">
                     
-                    <!-- 1. 深度思考（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
-                        <!-- ✨ 加上 whitespace-nowrap 彻底解决文字竖排问题 -->
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[80px]">
                             <input type="radio" name="think-flash" id="think-flash-off" checked />
                             <label for="think-flash-off">关闭</label>
                             <input type="radio" name="think-flash" id="think-flash-on" />
@@ -30,10 +28,9 @@
                         </div>
                     </div>
 
-                    <!-- 2. 联网搜索（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[80px]">
                             <input type="radio" name="search-flash" id="search-flash-off" checked />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
@@ -42,11 +39,9 @@
                         </div>
                     </div>
 
-                    <!-- 3. 思考强度（3选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <!-- ✨ 3 选项按钮保留更长宽度，让它比前两个长出半截 -->
-                        <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
+                        <div class="glass-radio-group-3 flex-shrink-0 w-[120px]">
                             <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                             <label for="strength-flash-low">低</label>
                             <input type="radio" name="strength-flash" id="strength-flash-mid" />
@@ -67,7 +62,7 @@
                     
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[80px]">
                             <input type="radio" name="think-pro" id="think-pro-off" checked />
                             <label for="think-pro-off">关闭</label>
                             <input type="radio" name="think-pro" id="think-pro-on" />
@@ -78,7 +73,7 @@
 
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[80px]">
                             <input type="radio" name="search-pro" id="search-pro-off" checked />
                             <label for="search-pro-off">关闭</label>
                             <input type="radio" name="search-pro" id="search-pro-on" />
@@ -89,7 +84,7 @@
 
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
+                        <div class="glass-radio-group-3 flex-shrink-0 w-[120px]">
                             <input type="radio" name="strength-pro" id="strength-pro-low" checked />
                             <label for="strength-pro-low">低</label>
                             <input type="radio" name="strength-pro" id="strength-pro-mid" />
@@ -107,9 +102,8 @@
     </div>
 </div>
 
-<!-- ⚡ 按钮组 CSS（适配宽度差异化） -->
+<!-- ⚡ 按钮组 CSS（极短宽度，完美区分长度） -->
 <style>
-    /* 3选项基础样式 */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06);
         --text: #e5e5e5;
@@ -120,7 +114,6 @@
         backdrop-filter: blur(12px);
         box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        width: 100%; 
         flex-shrink: 0;
     }
     .glass-radio-group-3 input { display: none; }
@@ -142,7 +135,6 @@
     #strength-flash-mid:checked ~ .glass-glider-3, #strength-pro-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
     #strength-flash-max:checked ~ .glass-glider-3, #strength-pro-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
 
-    /* 2选项基础样式 */
     .glass-radio-group-2 {
         --bg: rgba(255, 255, 255, 0.06);
         --text: #e5e5e5;
@@ -153,7 +145,6 @@
         backdrop-filter: blur(12px);
         box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        width: 100%; 
         flex-shrink: 0;
     }
     .glass-radio-group-2 input { display: none; }
