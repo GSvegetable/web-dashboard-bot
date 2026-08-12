@@ -1,309 +1,381 @@
-import os
-import random
-import re
-import requests
-import uuid
-from datetime import datetime
-import io
-import base64
-import json
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>gsbot 启动页</title>
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
-from flask_login import login_user, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+    <!-- ✅ 预加载两张背景图，解决初次加载和切换时的卡顿 -->
+    <link rel="preload" as="image" href="{{ url_for('static', filename='mmexport1785785172198.jpg') }}">
+    <link rel="preload" as="image" href="{{ url_for('static', filename='bg.png') }}">
 
-import qrcode
-from PIL import Image, ImageDraw, ImageFont
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
-from models import db, User, EmailCode, QrLoginSession, TelegramCode
-from telegram_bot import send_verification_code, handle_message
-from tg_config import BOT_TOKEN
-from agent_prompts import DISCUSSION_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
+        button:focus, a:focus, input:focus { outline: none; }
+        :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
+        body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
+        body.loaded { opacity: 1; }
+        .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
+        .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
+        .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
+        #themeToggleBtn { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
+        #themeToggleBtn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
+        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
+        .main-title { font-size: 64px; }
+        .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
 
-main_bp = Blueprint('main', __name__)
-
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-
-@main_bp.route('/')
-def splash():
-    return render_template('splash.html')
-
-@main_bp.route('/warehouse')
-def warehouse():
-    return render_template('warehouse.html')
-
-@main_bp.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('main.splash'))
-
-@main_bp.route('/admin/dashboard')
-def admin_dashboard():
-    if not current_user.is_authenticated or not current_user.is_admin:
-        return "无权访问，请使用管理员密码登录", 403
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/dashboard.html', users=users)
-
-@main_bp.route('/workspace')
-def workspace():
-    return render_template('workspace/workspace.html')
-
-def fetch_telegram_user_info(tg_id):
-    try:
-        resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
-        if resp.status_code == 200 and resp.json().get('ok'):
-            chat = resp.json().get('result', {})
-            return {
-                'first_name': chat.get('first_name', ''), 'last_name': chat.get('last_name', ''),
-                'username': chat.get('username', ''), 'avatar_url': None
-            }
-    except: pass
-    return None
-
-@main_bp.route('/api/bind_bot', methods=['POST'])
-def bind_bot():
-    data = request.get_json()
-    token, chat_id, bot_name = data.get('token'), data.get('telegram_id'), data.get('name', '宫水编辑器')
-    if not token or not chat_id: return jsonify({'ok': False, 'msg': '缺少参数'})
-    result = execute_bind_bot(token, chat_id, bot_name)
-    if result['ok']: return jsonify({'ok': True, 'msg': result['msg'], 'bot_name': result['bot_name'], 'bot_avatar_url': result.get('avatar')})
-    return jsonify({'ok': False, 'msg': result['msg']})
-
-def execute_bind_bot(token, chat_id, name='宫水编辑器'):
-    try:
-        test_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10)
-        if test_resp.status_code != 200: return {"ok": False, "msg": "Token 无效或网络错误"}
-        getme_data = test_resp.json()
-        real_bot_name = name; bot_avatar_url = None
-        if getme_data.get('ok'):
-            result = getme_data.get('result', {})
-            real_bot_name = result.get('first_name') or result.get('username') or name
-            bot_id = result.get('id')
-            if bot_id:
-                try:
-                    photos_resp = requests.get(f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1", timeout=10)
-                    if photos_resp.status_code == 200 and photos_resp.json().get('result', {}).get('total_count', 0) > 0:
-                        file_id = photos_resp.json()['result']['photos'][0][-1]['file_id']
-                        file_resp = requests.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}", timeout=10)
-                        if file_resp.status_code == 200:
-                            file_path = file_resp.json()['result']['file_path']
-                            bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
-                except: pass
-        send_resp = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": f"机器人已绑定{real_bot_name}"}, timeout=10)
-        if send_resp.status_code == 200: return {"ok": True, "msg": "绑定成功", "bot_name": real_bot_name, "avatar": bot_avatar_url}
-        return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
-    except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
-
-# ==========================================
-# DeepSeek 终极 AI 接口 (包含用户自定义配置映射)
-# ==========================================
-@main_bp.route('/api/agent/chat', methods=['POST'])
-def agent_chat():
-    data = request.get_json()
-    user_message = data.get('message', '')
-    mode = data.get('mode', 'discussion')
-    
-    if not user_message: return jsonify({'reply': '请先输入消息。'})
-
-    # 获取前端传来的配置
-    user_config = data.get('config', {})
-    mode_config = user_config.get(mode, {})
-    
-    # 配置默认值（如果不传，强制使用最省钱的方案）
-    final_config = {
-        'model': mode_config.get('model', 'deepseek-v4-flash'),
-        'think': mode_config.get('think', False),
-        'search': mode_config.get('search', False),
-        'strength': mode_config.get('strength', 'low')
-    }
-
-    # 处理记忆历史
-    chat_summary = session.get('chat_summary', '')
-    chat_history = session.get('chat_history', [])
-
-    # 15句压缩记忆
-    if len(chat_history) >= 15:
-        summary_messages = [
-            {"role": "system", "content": SUMMARY_PROMPT},
-            {"role": "user", "content": f"历史概要：{chat_summary}\n新对话内容：{chat_history}"}
-        ]
-        summary_res, err = call_deepseek_core(summary_messages, 'deepseek-v4-flash')
-        if summary_res:
-            chat_summary = summary_res['choices'][0]['message']['content']
-            chat_history = []
-            session['chat_summary'] = chat_summary
-            session['chat_history'] = chat_history
-
-    messages = [{"role": "system", "content": AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT}]
-    if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
-    for msg in chat_history: messages.append(msg)
-    messages.append({"role": "user", "content": user_message})
-
-    # 准备调用核心 API
-    model_name = final_config['model']
-    
-    # Pro 不支持 low，如果选了 low 和 pro，强制切到 high
-    effort = final_config.get('strength', 'low')
-    if model_name == 'deepseek-v4-pro' and effort == 'low':
-        effort = 'high'
-
-    # 构建 DeepSeek 请求
-    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-    if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
-
-    payload = {
-        "model": model_name,
-        "messages": messages,
-        "temperature": 0.3,
-        "stream": False
-    }
-
-    # 开启思考模式
-    if final_config.get('think', False):
-        payload['extra_body'] = {
-            "thinking": {
-                "type": "enabled",
-                "reasoning_effort": effort
-            }
+        .text-group, #themeToggleBtn {
+            opacity: 0; transform: translateY(60px);
+            animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
+        #themeToggleBtn { animation-delay: 0s; }
+        .text-group { animation-delay: 0s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
 
-    # 【联网搜索拦截说明】
-    # 因为当前使用的是 Chat Completions API，官方不支持服务端原生搜网。
-    # 如果开启了 Pro，前端搜索按钮会自动禁用。这里不传 search 参数即可。
-    # 如果后续要改为支持原生搜索的 Responses API，再额外改写。
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
+        .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
+        .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-    try:
-        headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200:
-            result = resp.json()
-            ai_reply = result['choices'][0]['message']['content']
-            reasoning_content = result['choices'][0]['message'].get('reasoning_content')
+        @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
+        .shake-field { animation: shakeField 0.2s ease-in-out 2; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
+        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .modal-box { opacity: 0; transform: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.active .modal-box { opacity: 1; }
+
+        .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
+
+        .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
+        .music-track-info { display: flex; align-items: center; gap: 12px; }
+        .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; transition: transform 0.3s ease; }
+        .album-art:hover { transform: scale(1.05); }
+        .track-details { flex-grow: 1; overflow: hidden; }
+        .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-artist-name { font-size: 0.85rem; color: #9ca3af; margin-top: 2px; }
+        .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
+        .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
+        .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
+        .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
+
+        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
+        #custom-toast.error { border-left-color: #ef4444; }
+        #custom-toast.success { border-left-color: #22c55e; }
+        #custom-toast.show { opacity: 1; visibility: visible; }
+
+        @media (max-width: 600px) {
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
+            .main-title { font-size: 44px; }
+            .sub-title { font-size: 16px; }
+            .top-actions { top: 12px; right: 12px; gap: 6px; }
+            .top-btn { font-size: 11px; padding: 6px 8px; }
+            .modal-overlay { padding-top: 70px; padding-right: 12px; }
+            .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    
+    {% include 'components/user_profile.html' %}
+
+    <div class="content-area" id="contentArea">
+        <div id="theme-ring"></div>
+        <div class="title-row">
+            <div class="text-group">
+                <h1 class="text-pattern main-title">宫水大世界</h1>
+                <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
+                {% include 'components/action_btn.html' %}
+            </div>
+            <button id="themeToggleBtn" class="theme-btn-title" onclick="toggleTheme(event)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="top-actions">
+        <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
+        <button class="top-btn" onclick="openContactModal()">联系我们</button>
+        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="/admin/dashboard" class="top-btn">后台管理</a>
+        {% endif %}
+        <button class="top-btn" onclick="openBecomeFanModal()">开发者</button>
+        {% if not current_user.is_authenticated %}
+        <button class="top-btn" onclick="openLoginModal()">Log in</button>
+        {% endif %}
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
+    </div>
+
+    {% include 'components/toast.html' %}
+
+    {% include 'components/auth_card.html' %}
+    {% include 'components/music_card.html' %}
+    {% include 'components/contact_card.html' %}
+    {% include 'components/update_log_card.html' %}
+    {% include 'components/become_fan_card.html' %}
+    {% include 'components/agent_action_panel.html' %}
+
+    <!-- ✨ 如果你需要加独立的左侧面板，就在这里取消注释（并确保文件存在） -->
+    <!-- {% include 'components/agent_side_panel.html' %} -->
+
+    <!-- ✨ 如果你需要加独立的配置中心面板，这里已经引入了 -->
+    {% include 'components/agent_settings_panel.html' %}
+    {% include 'components/plan_detail_modal.html' %}
+
+    <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
+
+    <script>
+        window.showToast = function(id, isError = false) {
+            const msgMap = {
+                '1': '请输入电报ID',
+                '2': '验证码已发送至邮箱',
+                '3': '已通过@gsdsjbot向你发送验证码',
+                '4': 'ID无效',
+                '5': '网络错误',
+                '6': '请正确填写所有必填项',
+                '7': '表格信息填写不完整',
+                '8': '输入密码不一致',
+                '9': '验证码错误或已超时',
+                '10': '登录成功',
+                '11': '注册成功',
+                '12': '请求异常'
+            };
+            const msg = msgMap[id];
+            if (!msg) return;
+
+            const toastBox = document.getElementById('custom-toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (!toastBox || !toastMsg) return;
+
+            toastMsg.innerText = msg;
+            toastBox.className = 'toast-glass';
+            if (isError) { toastBox.classList.add('error'); } else { toastBox.classList.add('success'); }
+
+            clearTimeout(toastBox._timer);
+            toastBox.classList.add('show');
+            toastBox._timer = setTimeout(() => { toastBox.classList.remove('show'); }, 3000);
+        };
+
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        };
+
+        window.openContactModal = function() {
+            const modal = document.getElementById('contactModal');
+            if (modal) modal.classList.add('active');
+        };
+        window.closeContactModal = function(e) {
+            const modal = document.getElementById('contactModal');
+            if (modal && e && e.target === e.currentTarget) {
+                modal.classList.remove('active');
+            }
+        };
+        window.openUpdateLogModal = function() {
+            const modal = document.getElementById('updateLogModal');
+            if (modal) modal.classList.add('active');
+        };
+        window.closeUpdateLogModal = function(e) {
+            const modal = document.getElementById('updateLogModal');
+            if (modal && e && e.target === e.currentTarget) {
+                modal.classList.remove('active');
+            }
+        };
+        window.toggleMusicModal = function() {
+            const musicModal = document.getElementById('musicModal');
+            if (!musicModal) return;
+            if (musicModal.classList.contains('active')) { window.closeMusicModal(); } else { window.openMusicModal(); }
+        };
+        window.openMusicModal = function() {
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal && loginModal.classList.contains('active')) { window.closeLoginModal(); }
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.add('active');
+        };
+        window.closeMusicModal = function() {
+            const modal = document.getElementById('musicModal');
+            if (modal) modal.classList.remove('active');
+        };
+
+        gsap.registerPlugin(ScrollTrigger);
+        let isExpanded = false;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const themeRing = document.getElementById('theme-ring');
+            const contentArea = document.getElementById('contentArea');
+            const textElements = document.querySelectorAll('.text-pattern');
             
-            chat_history.append({"role": "user", "content": user_message})
-            chat_history.append({"role": "assistant", "content": ai_reply})
-            session['chat_history'] = chat_history
+            const defaultBgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+            const newBgUrl = "{{ url_for('static', filename='bg.png') }}";
+            const defaultTextUrl = "{{ url_for('static', filename='mmexport1785791861411.jpg') }}";
+            const newTextUrl = "{{ url_for('static', filename='texture.jpg') }}";
 
-            response_data = {'reply': ai_reply}
-            if reasoning_content: response_data['reasoning'] = reasoning_content
-            return jsonify(response_data)
-        else:
-            return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': '请求异常，请稍后重试。'})
+            textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
 
-def call_deepseek_core(messages, model='deepseek-v4-flash'):
-    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-    if not DEEPSEEK_API_KEY: return None, "未配置 Key"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    payload = {"model": model, "messages": messages, "stream": False}
-    try:
-        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200: return resp.json(), None
-        return None, f"错误: {resp.status_code}"
-    except Exception as e: return None, str(e)
+            window.toggleTheme = function(event) {
+                if (!themeRing || !contentArea) return;
+                const btn = event.currentTarget;
+                const btnRect = btn.getBoundingClientRect();
+                const areaRect = contentArea.getBoundingClientRect();
+                const x = (btnRect.left - areaRect.left) + btnRect.width / 2;
+                const y = (btnRect.top - areaRect.top) + btnRect.height / 2;
 
-# ================= 下方原有路由保持不变 =================
-@main_bp.route('/api/get_qr_login', methods=['GET'])
-def get_qr_login():
-    token = uuid.uuid4().hex[:16]
-    deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}" if 'telegram' in request.headers.get('User-Agent', '').lower() else f"https://t.me/gsdsjbot?start=qr_{token}"
-    db.session.add(QrLoginSession(token=token, status='pending'))
-    db.session.commit()
-    try:
-        qr = qrcode.QRCode(box_size=10, border=2)
-        qr.add_data(deep_link)
-        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
-        d = ImageDraw.Draw(img)
-        try: font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
-        except: font = ImageFont.load_default()
-        bbox = d.textbbox((0, 0), "GS", font=font)
-        d.text(((img.width - (bbox[2]-bbox[0]))/2, (img.height - (bbox[3]-bbox[1]))/2), "GS", fill=(0,0,0), font=font)
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
-        return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode()}"})
-    except: return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"})
+                isExpanded = !isExpanded;
+                gsap.killTweensOf(themeRing);
 
-@main_bp.route('/api/check_qr_login/<token>', methods=['GET'])
-def check_qr_login(token):
-    session_obj = QrLoginSession.query.filter_by(token=token).first()
-    if not session_obj: return jsonify({'status': 'expired'})
-    if session_obj.status == 'success' and session_obj.telegram_id:
-        user = User.query.filter_by(telegram_id=session_obj.telegram_id).first()
-        if user: login_user(user); user.last_login = datetime.utcnow(); db.session.commit(); return jsonify({'status': 'success'})
-        return jsonify({'status': 'unregistered'})
-    if (datetime.utcnow() - session_obj.created_at).seconds > 180:
-        session_obj.status = 'expired'; db.session.commit(); return jsonify({'status': 'expired'})
-    return jsonify({'status': session_obj.status})
+                if (isExpanded) {
+                    themeRing.style.backgroundImage = `url("${newBgUrl}")`;
+                    gsap.set(themeRing, { clipPath: `circle(0% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.2, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${newTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(150% at ${x}px ${y}px)` });
+                } else {
+                    gsap.set(themeRing, { clipPath: `circle(150% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.35, () => { textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; }); });
+                    void themeRing.offsetHeight; 
+                    gsap.to(themeRing, { duration: 0.8, ease: "power2.inOut", clipPath: `circle(0% at ${x}px ${y}px)` });
+                    gsap.delayedCall(0.9, () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; });
+                }
+            };
 
-@main_bp.route('/api/process_qr_token', methods=['POST'])
-def process_qr_token():
-    data = request.get_json()
-    s = QrLoginSession.query.filter_by(token=data.get('token')).first()
-    if s and s.status == 'pending':
-        s.status = 'success'; s.telegram_id = data.get('chat_id'); db.session.commit(); return jsonify({'ok': True})
-    return jsonify({'ok': False})
+            const bgImg = new Image(); const imgUrl = "{{ url_for('static', filename='mmexport1785785172198.jpg') }}";
+            bgImg.src = imgUrl; bgImg.onload = function() { document.body.classList.add('loaded'); };
+            setTimeout(() => { if(!document.body.classList.contains('loaded')) { document.body.classList.add('loaded'); } }, 3000);
 
-@main_bp.route('/api/send_code', methods=['POST'])
-def send_code():
-    data, account = request.get_json(), data.get('email')
-    if not account: return jsonify({'ok': False, 'msg': '请输入账号或电报ID'})
-    code = str(random.randint(100000, 999999))
-    if re.match(r"[^@]+@[^@]+\.[^@]+", account):
-        record = EmailCode.query.filter_by(email=account).first()
-        if record: record.code = code; record.created_at = datetime.utcnow()
-        else: db.session.add(EmailCode(email=account, code=code))
-        db.session.commit(); return jsonify({'ok': True, 'msg': '验证码已发送至邮箱'})
-    else:
-        success, _ = send_verification_code(account, code)
-        return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'}) if success else jsonify({'ok': False, 'msg': 'ID无效'})
+            if (themeRing) {
+                gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` });
+                setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(150% at 0 0)` }); setTimeout(() => { gsap.set(themeRing, { clipPath: `circle(0% at 0 0)` }); }, 100); }, 200);
+            }
 
-@main_bp.route('/register', methods=['POST'])
-def register():
-    account = request.form.get('email'); password = request.form.get('password')
-    confirm = request.form.get('confirm_password'); code = request.form.get('code')
-    if password == "121100":
-        admin_user = User.query.filter_by(is_admin=True).first()
-        if not admin_user: admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash("121100"), is_admin=True); db.session.add(admin_user); db.session.commit()
-        admin_user.last_login = datetime.utcnow(); db.session.commit(); login_user(admin_user); return "登录成功"
-    if not all([account, password, confirm, code]): return "表格信息填写不完整"
-    if password != confirm: return "输入密码不一致"
-    is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
-    record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first() if is_email else TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
-    if not record or record.code != code or (datetime.utcnow() - record.created_at).seconds > 300: return "验证码错误或已超时"
-    user = User.query.filter_by(email=account).first() if is_email else User.query.filter_by(telegram_id=account).first()
-    if user: login_user(user); user.last_login = datetime.utcnow()
-    else:
-        hashed_password = generate_password_hash(password)
-        if is_email: new_user = User(email=account, password_hash=hashed_password)
-        else:
-            tg_info = fetch_telegram_user_info(account)
-            new_user = User(telegram_id=account, password_hash=hashed_password, first_name=tg_info['first_name'] if tg_info else '', last_name=tg_info['last_name'] if tg_info else '', telegram_username=tg_info['username'] if tg_info else '', avatar_url=tg_info['avatar_url'] if tg_info else None)
-        db.session.add(new_user); db.session.commit(); login_user(new_user)
-    return "登录成功" if user else "注册成功"
+            if (typeof gsap !== 'undefined') {
+                const tl = gsap.timeline();
+                tl.to(".text-group", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0)
+                  .to("#themeToggleBtn", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out" }, 0);
+            }
 
-@main_bp.route('/tg_webhook', methods=['POST'])
-def tg_webhook():
-    data = request.get_json()
-    if 'message' in data:
-        msg = data['message']; chat_id = str(msg['chat']['id']); text = msg.get('text', '')
-        if text.startswith('/start qr_'):
-            token = text.replace('/start qr_', '').strip()
-            session_obj = QrLoginSession.query.filter_by(token=token).first()
-            if session_obj:
-                if session_obj.status == 'pending':
-                    session_obj.status = 'success'; session_obj.telegram_id = chat_id; db.session.commit()
-                    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": "登录成功"})
-                elif session_obj.status == 'expired':
-                    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": chat_id, "text": "二维码已过期，请刷新"})
-            return "OK"
-        handle_message(data)
-    return "OK"
+            const topBtns = document.querySelectorAll('.top-actions .top-btn');
+            if (topBtns.length > 0 && typeof gsap !== 'undefined') {
+                gsap.fromTo(topBtns, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.3 });
+            }
 
-@main_bp.route('/setup_webhook', methods=['GET'])
-def setup_webhook():
-    try:
-        resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url=https://{request.host}/tg_webhook", timeout=10)
-        return jsonify(resp.json())
-    except Exception as e: return jsonify({'ok': False, 'error': str(e)})
+            const bgAudio = document.getElementById('bg-audio');
+            if (bgAudio) bgAudio.volume = 0.3; 
+
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const progressFill = document.getElementById('music-progress-fill');
+            const currentTimeDisplay = document.getElementById('music-current-time');
+            const totalTimeDisplay = document.getElementById('music-total-time');
+            const progressTrack = document.getElementById('music-progress-track');
+
+            function formatTime(seconds) {
+                if (isNaN(seconds)) return "0:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            function togglePlayPauseLocal() {
+                if (!bgAudio) return;
+                if (bgAudio.paused) {
+                    bgAudio.play().catch(e => console.log("播放受限:", e));
+                    playPauseBtn.classList.add('playing');
+                } else {
+                    bgAudio.pause();
+                    playPauseBtn.classList.remove('playing');
+                }
+            }
+
+            if (playPauseBtn) {
+                playPauseBtn.addEventListener('click', togglePlayPauseLocal);
+            }
+
+            bgAudio.addEventListener('loadedmetadata', () => {
+                if (totalTimeDisplay) totalTimeDisplay.textContent = formatTime(bgAudio.duration);
+            });
+
+            bgAudio.addEventListener('timeupdate', () => {
+                const current = bgAudio.currentTime;
+                const duration = bgAudio.duration;
+                const percent = (current / duration) * 100;
+                if (currentTimeDisplay) currentTimeDisplay.textContent = formatTime(current);
+                if (progressFill) progressFill.style.width = percent + '%';
+            });
+
+            if (progressTrack) {
+                progressTrack.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    if (bgAudio && bgAudio.duration) {
+                        bgAudio.currentTime = percent * bgAudio.duration;
+                    }
+                });
+            }
+
+            const img = document.getElementById('album-cover-img');
+            const btns = document.querySelectorAll('.music-btn');
+            if (img) {
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width; canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    
+                    const centerX = Math.floor(img.width / 2);
+                    const centerY = Math.floor(img.height / 2);
+                    const sampleSize = 20;
+                    const pixels = ctx.getImageData(centerX - sampleSize/2, centerY - sampleSize/2, sampleSize, sampleSize).data;
+                    
+                    let r=0, g=0, b=0, count=0;
+                    for (let i=0; i<pixels.length; i+=4) {
+                        r += pixels[i]; g += pixels[i+1]; b += pixels[i+2]; count++;
+                    }
+                    r = Math.round(r/count); g = Math.round(g/count); b = Math.round(b/count);
+                    
+                    const brightness = (r*299 + g*587 + b*114) / 1000;
+                    let factor = 1;
+                    if (brightness < 100) factor = 1.5;
+                    
+                    const nr = Math.min(255, Math.round(r * factor));
+                    const ng = Math.min(255, Math.round(g * factor));
+                    const nb = Math.min(255, Math.round(b * factor));
+                    
+                    const gradStr = `linear-gradient(135deg, rgba(${r},${g},${b},0.35), rgba(${nr},${ng},${nb},0.55))`;
+                    btns.forEach(btn => {
+                        btn.style.background = gradStr;
+                        btn.style.border = '1px solid rgba(255,255,255,0.4)';
+                    });
+                };
+                if (img.complete && img.naturalWidth > 0) { img.onload(); }
+            }
+
+            const loginModalEl = document.getElementById('loginModal');
+            if (loginModalEl) {
+                loginModalEl.addEventListener('click', function(e) {
+                    if (e.target === e.currentTarget) {
+                        if (typeof window.closeLoginModal === 'function') { window.closeLoginModal(); }
+                    }
+                });
+            }
+            const musicModalEl = document.getElementById('musicModal');
+            if (musicModalEl) {
+                musicModalEl.addEventListener('click', function(e) {
+                    if (e.target === e.currentTarget) {
+                        if (typeof window.closeMusicModal === 'function') { window.closeMusicModal(); }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
