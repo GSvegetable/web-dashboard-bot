@@ -1,9 +1,9 @@
-<!-- 🚨 终极测试版：侧边面板强行放在画面正中央，确保一定能看见 -->
-<div id="agentSidePanel" class="fixed inset-0 m-auto z-[9999] w-[300px] h-[300px] bg-red-500 border-8 border-white rounded-3xl shadow-[0_0_50px_rgba(255,0,0,0.8)] flex flex-col items-center justify-center transition-transform duration-500 translate-y-full overflow-hidden">
-    <div class="text-white font-black text-4xl text-center drop-shadow-2xl">
-        找到我了！<br>我是侧面板
+<!-- Agent 左侧附加面板（恢复玻璃质感，位置向右上移） -->
+<div id="agentSidePanel" class="fixed z-[45] bottom-[220px] left-[55%] -translate-x-1/2 w-[460px] h-[330px] bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] flex flex-col p-6 transition-transform duration-500 translate-y-full overflow-hidden">
+    <div class="text-white font-bold text-sm mb-2 flex justify-between items-center">
+        <span>快捷操作</span>
     </div>
-    <div class="text-white text-sm mt-4 opacity-90">
-        如果看到我，说明代码生效了
+    <div class="flex-1 text-gray-400 text-xs flex items-center justify-center border border-white/5 rounded-xl border-dashed">
+        <span>这个面板已经成功显示，你可以开始定制里面的内容了</span>
     </div>
 </div>
