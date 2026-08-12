@@ -44,7 +44,7 @@
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
         
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <!-- UI 布局保持完全一样，没有任何额外选项 -->
+            <!-- UI 布局保持完全一样 -->
             <div class="flex items-end gap-2 w-full">
                 <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
                 <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function() {
         userBubble.className = 'chat-bubble user';
         userBubble.textContent = text;
         targetList.appendChild(userBubble);
-        targetList.scrollTop = targetList.scrollHeight;
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：立刻滚动到底部！
         agentInput.value = '';
         agentInput.style.height = 'auto';
 
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
         loadingMsg.textContent = '思考中...';
         loadingMsg.id = 'loading-bubble';
         targetList.appendChild(loadingMsg);
-        targetList.scrollTop = targetList.scrollHeight;
+        agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：思考时也滚到底部！
 
         // 封装 Payload 发送给后端
         fetch('/api/agent/chat', {
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
             botMsg.className = 'ai-text-msg';
             botMsg.textContent = data.reply || '抱歉，没有收到回复。';
             targetList.appendChild(botMsg);
-            targetList.scrollTop = targetList.scrollHeight;
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：回复完立刻滚到底部！
             isProcessing = false;
         })
         .catch(() => {
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
             errMsg.className = 'ai-text-msg text-red-400/80';
             errMsg.textContent = '网络异常或 Key 未配置，请检查控制台。';
             targetList.appendChild(errMsg);
-            targetList.scrollTop = targetList.scrollHeight;
+            agentMessageArea.scrollTop = agentMessageArea.scrollHeight; // ✅ 关键：报错时也滚到底部！
             isProcessing = false;
         });
     }
@@ -186,4 +186,4 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); }
     });
 });
-          </script>
+</script>
