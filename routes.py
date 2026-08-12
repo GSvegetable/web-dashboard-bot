@@ -19,8 +19,8 @@ from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
-# ✨ 导入我们刚才在 agent_tools 里写的工具函数
-from agent_tools import TOOLS, read_webpage
+# ✨ 导入你在 agent_tools 里写好的工具函数和工具列表
+from agent_tools import TOOLS, read_webpage, web_search
 
 main_bp = Blueprint('main', __name__)
 
@@ -94,7 +94,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口
+# DeepSeek AI 接口（包含真正的搜索联动）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -107,7 +107,7 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 提示词选择
+    # 1. 提示词选择
     if mode == 'discussion':
         if mode_config.get('jailbreak') is True:
             system_prompt = SANDBOX_PROMPT
@@ -116,6 +116,7 @@ def agent_chat():
     else:
         system_prompt = AGENT_PROMPT
 
+    # 2. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -136,21 +137,36 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
+    # 3. API 设置
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
-
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
 
+    # ✨ 核心修改：根据开关传递工具列表
+    # 只有“讨论模式”开启“联网搜索”时才传递 TOOLS 给 AI；
+    # 代理人模式默认自带工具调用权。
+    if mode == 'discussion':
+        tools = TOOLS if mode_config.get('search') else None
+    else:
+        tools = TOOLS
+
     def generate():
         try:
             payload = {
-                "model": model_name, "messages": messages, "temperature": 0.3, "stream": True,
+                "model": model_name, 
+                "messages": messages, 
+                "temperature": 0.3, 
+                "stream": True,
                 "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
             }
+            if tools:
+                payload['tools'] = tools
+                payload['tool_choice'] = 'auto'
+
             resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, stream=True, timeout=90)
             for line in resp.iter_lines():
                 if line:
@@ -171,17 +187,6 @@ def agent_chat():
             yield "data: [DONE]\n\n"
 
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
-
-def call_deepseek_core(messages, model='deepseek-v4-flash'):
-    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-    if not DEEPSEEK_API_KEY: return None, "未配置 Key"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    payload = {"model": model, "messages": messages, "stream": False}
-    try:
-        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
-        if resp.status_code == 200: return resp.json(), None
-        return None, f"错误: {resp.status_code}"
-    except Exception as e: return None, str(e)
 
 # ================= 清空与原有路由 =================
 @main_bp.route('/api/agent/clear', methods=['POST'])
