@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（左侧独立推理框） -->
+<!-- Agent 玻璃质感底部面板组件（独立思考过程侧边栏） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -21,50 +21,68 @@
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
+  .ai-thought-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; font-style: italic; padding: 2px 2px 0; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: -2px; }
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 响应式降级：屏幕太窄的时候自动变成上下排列，不破坏“旁边”的初衷 */
+  @media (max-width: 820px) {
+    #agentContainer { flex-wrap: wrap !important; justify-content: center !important; }
+    #agentThoughtPanel { width: 100% !important; height: 200px !important; margin-top: -10px !important; }
+  }
 </style>
 
-<!-- 🛠️ 外层改为 Flex 布局，左右并排 -->
-<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden flex flex-row items-start justify-center gap-3" style="width: auto;">
+<!-- 🟢 核心容器：由 JS 控制定位和宽度 -->
+<div id="agentContainer" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 flex flex-row items-start gap-4 hidden max-w-[95vw]" style="height: 660px; width: 0;">
     
-    <!-- ✨ 左侧：独立的长方形思考过程框（代理人模式下显示） -->
-    <div id="agentReasoningSidebar" class="hidden w-[320px] bg-white/5 backdrop-blur-md border border-white/20 rounded-xl p-4 flex flex-col mt-4 max-h-[620px] overflow-hidden">
-        <div class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase mb-2">思考过程</div>
-        <div id="agentReasoningContent" class="text-xs text-gray-300 font-light leading-relaxed overflow-y-auto pr-1 whitespace-pre-wrap h-full"></div>
-    </div>
-
-    <!-- 右侧：原有 Agent 主面板 -->
-    <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 480px;">
-        <div class="absolute top-4 left-4 z-20">
-            <div class="agent-tabs-wrapper">
-                <div class="container">
-                    <div class="tabs">
-                        <input checked="" name="tabs" id="radio-1" type="radio" />
-                        <label for="radio-1" class="tab">讨论</label>
-                        <input name="tabs" id="radio-2" type="radio" />
-                        <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
-                        <span class="glider"></span>
+    <!-- 🔵 原本的对话面板（包含所有输入、气泡、切换逻辑） -->
+    <div id="agentPanelWrapper" class="relative agent-panel-transition translate-y-full flex-none" style="height: 100%;">
+        <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] relative" style="height: 660px; width: 100%; min-width: 320px;">
+            
+            <!-- 顶部 Tab 切换 -->
+            <div class="absolute top-4 left-4 z-20">
+                <div class="agent-tabs-wrapper">
+                    <div class="container">
+                        <div class="tabs">
+                            <input checked="" name="tabs" id="radio-1" type="radio" />
+                            <label for="radio-1" class="tab">讨论</label>
+                            <input name="tabs" id="radio-2" type="radio" />
+                            <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                            <span class="glider"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
-        
-        <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <div class="flex items-end gap-2 w-full">
-                <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
-                <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
+            <!-- 聊天消息区域 -->
+            <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
+            
+            <!-- 底部输入区域 -->
+            <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
+                <div class="flex items-end gap-2 w-full">
+                    <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+                    <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- 🟡 全新的独立思考过程面板（只有在代理人模式下才会从旁边冒出来） -->
+    <div id="agentThoughtPanel" class="hidden bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex-none flex flex-col relative" style="height: 660px; width: 320px;">
+        <div class="p-4 border-b border-white/10 text-white/60 font-bold text-sm">🧠 思考过程</div>
+        <!-- 内容展示区 -->
+        <div id="thoughtContent" class="flex-1 overflow-y-auto p-4 text-white/40 text-xs font-mono leading-relaxed whitespace-pre-wrap break-words">
+            <div class="text-white/20 text-center mt-8 text-sm font-normal">等待 AI 思考...</div>
+        </div>
+    </div>
+
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const panelWrapper = document.getElementById('agentPanelWrapper');
-    const panel = document.getElementById('agentPanel');
+    const agentContainer = document.getElementById('agentContainer');
+    const agentPanelWrapper = document.getElementById('agentPanelWrapper');
+    const agentPanel = document.getElementById('agentPanel');
     const agentInput = document.getElementById('agentInput');
     const agentSendBtn = document.getElementById('agentSendBtn');
     const agentMessageArea = document.getElementById('agentMessageArea');
@@ -72,84 +90,99 @@ document.addEventListener("DOMContentLoaded", function() {
     const agentList = document.getElementById('agentList');
     const radio1 = document.getElementById('radio-1');
     const radio2 = document.getElementById('radio-2');
-    
-    // ✨ 获取左边思考框元素
-    const reasonSidebar = document.getElementById('agentReasoningSidebar');
-    const reasonContent = document.getElementById('agentReasoningContent');
+    const thoughtPanel = document.getElementById('agentThoughtPanel');
+    const thoughtContent = document.getElementById('thoughtContent');
     
     let currentMode = 'discussion';
     let isPanelOpen = false;
     let isProcessing = false;
 
-    // ---------- Tab 切换控制 ----------
     function switchMode(mode) {
         if (mode === currentMode) return;
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); 
-        
-        // ✨ 切换模式时，如果切到讨论，隐藏思考框；切到代理人，显示思考框（若里面有内容）
-        if (mode === 'discussion') {
-            reasonSidebar.classList.add('hidden');
-        } else if (mode === 'agent') {
-            // 清空上次残留的思考
-            reasonContent.textContent = '';
-            if (reasonContent.textContent.trim() !== '') {
-                reasonSidebar.classList.remove('hidden');
-            }
-        }
+        currentList.classList.add('hidden');
+        targetList.classList.remove('hidden');
         currentMode = mode;
+
+        // 切换模式时，自动控制旁边“思考面板”的显隐
+        if (mode === 'agent') {
+            thoughtPanel.classList.remove('hidden');
+        } else {
+            thoughtPanel.classList.add('hidden');
+        }
+        updateAgentPanelPosition(); // 触发容器宽度重算
     }
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
-    // ---------- 面板窗口控制 ----------
+    // 📏 核心定位函数：根据有无思考面板，动态计算整体宽度
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
         if (container) {
             const rect = container.getBoundingClientRect();
-            // 因为外层变成了 Flex 自适应，直接置中即可，JS 这块只需把宽度拉宽
-            panelWrapper.style.width = 'auto'; // 交给flex撑开
-            panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-            panelWrapper.style.transform = 'translateX(-50%)';
-        } else {
-            panelWrapper.style.width = 'auto';
-            panelWrapper.style.left = '50%';
-            panelWrapper.style.transform = 'translateX(-50%)';
+            // 限制聊天面板最大宽度，避免在超大屏幕上太宽
+            let chatWidth = rect.width * 4 / 3;
+            if (chatWidth > 550) chatWidth = 550;
+            if (chatWidth < 320) chatWidth = 320;
+
+            const thoughtWidth = 320; // 思考面板的固定宽度
+            const gap = 16; // 两个面板的间距
+
+            let totalWidth = chatWidth;
+            // 只有在代理人模式，且思考面板未被隐藏时，才为右边留位置
+            if (currentMode === 'agent') {
+                totalWidth = chatWidth + thoughtWidth + gap;
+            }
+
+            agentContainer.style.width = totalWidth + 'px';
+            agentContainer.style.left = rect.left + (rect.width / 2) + 'px';
+            agentContainer.style.transform = 'translateX(-50%)';
         }
     }
+
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
         if (isPanelOpen) {
             const container = document.getElementById('cardStackContainer');
             if (container) {
                 const rect = container.getBoundingClientRect();
-                panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-                panelWrapper.style.transform = 'translateX(-50%)';
+                let chatWidth = rect.width * 4 / 3;
+                if (chatWidth > 550) chatWidth = 550;
+                if (chatWidth < 320) chatWidth = 320;
+
+                const thoughtWidth = 320;
+                const gap = 16;
+                let totalWidth = chatWidth;
+
+                if (currentMode === 'agent') {
+                    thoughtPanel.classList.remove('hidden');
+                    totalWidth = chatWidth + thoughtWidth + gap;
+                } else {
+                    thoughtPanel.classList.add('hidden');
+                }
+                agentContainer.style.width = totalWidth + 'px';
+                agentContainer.style.left = rect.left + (rect.width / 2) + 'px';
+                agentContainer.style.transform = 'translateX(-50%)';
             } else {
-                panelWrapper.style.left = '50%';
-                panelWrapper.style.transform = 'translateX(-50%)';
+                // 兜底：如果找不到容器，定死在屏幕中间
+                agentContainer.style.width = '360px';
+                agentContainer.style.left = '50%';
+                agentContainer.style.transform = 'translateX(-50%)';
             }
-            panelWrapper.style.display = 'flex';
-            panelWrapper.style.width = 'auto';
+            agentContainer.style.display = 'block';
             setTimeout(() => { 
-                panel.classList.remove('translate-y-full'); 
+                agentPanelWrapper.classList.remove('translate-y-full'); 
                 setTimeout(() => { agentInput.focus(); }, 300);
             }, 10);
         } else {
-            panel.classList.add('translate-y-full');
-            setTimeout(() => { 
-                panelWrapper.style.display = 'none'; 
-                // ✨ 关闭面板时，隐藏思考框并清空内容
-                reasonSidebar.classList.add('hidden');
-                reasonContent.textContent = '';
-            }, 250);
+            agentPanelWrapper.classList.add('translate-y-full');
+            setTimeout(() => { agentContainer.style.display = 'none'; }, 250);
         }
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // ---------- 发送消息到 DeepSeek ----------
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -158,7 +191,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const targetList = currentMode === 'discussion' ? discussionList : agentList;
         
-        // 用户气泡
         const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
@@ -171,25 +203,23 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            // ✨ 如果是代理人模式且后端传回了思考过程
-            if (currentMode === 'agent' && data.reasoning) {
-                reasonContent.textContent = data.reasoning;
-                reasonSidebar.classList.remove('hidden');
-                // 滚动到思考框的最顶部
-                reasonSidebar.scrollTop = 0; 
-            } else if (currentMode === 'discussion') {
-                // 讨论模式思考框强制隐藏
-                reasonSidebar.classList.add('hidden');
-                reasonContent.textContent = '';
+            // ✅ 1. 将思考过程放入右侧的独立长方形中！
+            if (data.reasoning) {
+                thoughtPanel.classList.remove('hidden');
+                thoughtContent.textContent = data.reasoning;
+                updateAgentPanelPosition(); // 因为插入了内容，宽度保持不变，不需要额外计算
+            } else {
+                // 如果后端没返回思考过程（可能是普通模型），可以填充空白或隐藏
+                thoughtContent.textContent = '未生成思考过程';
             }
 
-            // 处理正式回复
+            // 2. 处理正式回复
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg';
             botMsg.textContent = data.reply || '抱歉，没有收到回复。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             isProcessing = false;
             
-            // 处理生成节点
+            // 3. 处理生成节点（保留之前的联动功能）
             if (data.action === 'add_bot_node' && data.params) {
                 if (typeof window.addBotNode === 'function') {
                     window.addBotNode(data.params.name, data.params.avatar || null);
@@ -209,4 +239,4 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
 });
-</script>
+      </script>
