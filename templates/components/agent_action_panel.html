@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（兼容流式输出 + 思考锁定） -->
+<!-- Agent 玻璃质感底部面板组件（适配 Responses API 流式输出） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -159,6 +159,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const userBubble = document.createElement('div'); userBubble.className = 'chat-bubble user'; userBubble.textContent = text;
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
+        
+        let thoughtBubble = null;
+        let replyBubble = null;
 
         fetch('/api/agent/chat', { 
             method: 'POST', 
@@ -173,8 +176,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
-            let thoughtBubble = null;
-            let replyBubble = null;
 
             function readStream() {
                 return reader.read().then(({done, value}) => {
@@ -204,7 +205,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                         thoughtBubble.className = 'ai-thought-msg';
                                         targetList.appendChild(thoughtBubble);
                                     }
-                                    thoughtBubble.textContent += content;
+                                    // 过滤掉潜在的对象字符串化
+                                    thoughtBubble.textContent += typeof content === 'string' ? content : '';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
                                 } else if (type === 'content') {
                                     if (!replyBubble) {
@@ -212,17 +214,17 @@ document.addEventListener("DOMContentLoaded", function() {
                                         replyBubble.className = 'ai-text-msg';
                                         targetList.appendChild(replyBubble);
                                     }
-                                    replyBubble.textContent += content;
+                                    replyBubble.textContent += typeof content === 'string' ? content : '';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
                                 } else if (type === 'done') {
                                     isProcessing = false;
                                 } else if (type === 'error') {
                                     if (!replyBubble) {
                                         replyBubble = document.createElement('div');
-                                        replyBubble.className = 'ai-text-msg text-red-400/80';
+                                        replyBubble.className = 'ai-text-msg';
                                         targetList.appendChild(replyBubble);
                                     }
-                                    replyBubble.textContent = content;
+                                    replyBubble.textContent = content || '网络异常或 Key 未配置。';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
                                     isProcessing = false;
                                 }
