@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（关闭统一银灰色，颜色精准对位） -->
+<!-- Agent 独立配置面板（首次打开默认全选好状态） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -111,8 +111,12 @@
         border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
+    
+    /* 低：银色（不变） */
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    /* 高：蓝色 */
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
+    /* 最高：金色 */
     #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
     /* --- 2选项样式 --- */
@@ -138,7 +142,7 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
 
-    /* ✅ 1. 所有的“关闭”状态：统一用银灰色 */
+    /* 所有的“关闭”：银灰色 */
     #think-flash-off:checked ~ .glass-glider-2,
     #search-flash-off:checked ~ .glass-glider-2,
     #think-pro-off:checked ~ .glass-glider-2,
@@ -148,7 +152,7 @@
         box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
 
-    /* ✅ 2. 所有的“开启”状态：统一用金色 */
+    /* 所有的“开启”：金色 */
     #think-flash-on:checked ~ .glass-glider-2,
     #search-flash-on:checked ~ .glass-glider-2,
     #think-pro-on:checked ~ .glass-glider-2,
@@ -158,14 +162,14 @@
         box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
 
-    /* ✅ 3. Pro 的“高”：使用蓝色 */
+    /* Pro 的“高”：蓝色 */
     #strength-pro-high:checked ~ .glass-glider-2 {
         transform: translateX(0%);
         background: linear-gradient(135deg, #d0e7ff55, #a0d8ff);
         box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset;
     }
 
-    /* ✅ 4. Pro 的“最高”：使用金色 */
+    /* Pro 的“最高”：金色 */
     #strength-pro-max:checked ~ .glass-glider-2 {
         transform: translateX(100%);
         background: linear-gradient(135deg, #ffd70055, #ffcc00);
@@ -173,21 +177,164 @@
     }
 </style>
 
-<!-- 🎯 弹出动画与关闭逻辑 -->
+<!-- 🎯 核心修正逻辑：让配置与单选框无缝双向绑定 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
-    const content = document.getElementById('settingsModalContent');
+    const configKey = 'gsbot_agent_config';
+
+    // 1. 默认配置（最省钱+全关闭+低强度）
+    const defaultConfig = {
+        discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
+        agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' }
+    };
+
+    // 2. 读取/初始化配置
+    let config = JSON.parse(localStorage.getItem(configKey));
+    if (!config) {
+        config = defaultConfig;
+        localStorage.setItem(configKey, JSON.stringify(config));
+    }
+
+    // 3. 渲染配置到 UI
+    function renderUI() {
+        // 更新文字并同步选中状态
+        document.querySelectorAll('.model-selector').forEach(el => {
+            const mode = el.dataset.mode;
+            el.querySelector('.model-label').innerText = config[mode].model;
+            
+            // 如果是 Pro，强制关闭搜索按钮、切换强度并禁用 low
+            if (config[mode].model === 'deepseek-v4-pro') {
+                const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
+                config[mode].search = false;
+                searchBtn.querySelector('.search-label').innerText = '不支持';
+                searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                if (config[mode].strength === 'low') {
+                    config[mode].strength = 'high';
+                }
+                const strengthLabel = el.closest('.bg-black/20').querySelector('.strength-label');
+                strengthLabel.innerText = `强度 ${config[mode].strength}`;
+            } else {
+                const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
+                searchBtn.querySelector('.search-label').innerText = config[mode].search ? '开启' : '关闭';
+                searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+
+        // 将配置真实对应到 Input 的 checked 状态
+        document.querySelectorAll('.think-toggle').forEach(btn => {
+            const mode = btn.dataset.mode;
+            const isOn = config[mode].think;
+            btn.querySelector('.think-label').innerText = isOn ? '开启' : '关闭';
+            document.getElementById(`think-${mode}-${isOn ? 'on' : 'off'}`).checked = true;
+        });
+
+        document.querySelectorAll('.search-toggle').forEach(btn => {
+            const mode = btn.dataset.mode;
+            const isOn = config[mode].search;
+            if (config[mode].model !== 'deepseek-v4-pro') {
+                btn.querySelector('.search-label').innerText = isOn ? '开启' : '关闭';
+                document.getElementById(`search-${mode}-${isOn ? 'on' : 'off'}`).checked = true;
+            }
+        });
+
+        document.querySelectorAll('.strength-selector').forEach(sel => {
+            const mode = sel.dataset.mode;
+            const strength = config[mode].strength;
+            sel.querySelector('.strength-label').innerText = `强度 ${strength}`;
+            
+            // 修正 Pro 模式下存在 `low` 的兜底
+            let targetId = `strength-${mode}-${strength}`;
+            if (mode === 'flash' && strength === 'high') targetId = `strength-flash-mid`;
+            if (mode === 'pro' && strength === 'low') targetId = `strength-pro-high`;
+            
+            const inputEl = document.getElementById(targetId);
+            if (inputEl) inputEl.checked = true;
+        });
+
+        localStorage.setItem(configKey, JSON.stringify(config));
+    }
+    
+    renderUI(); // 初始化时先强制调用一次，确保 UI 全部亮起
+
+    // 4. 下拉菜单触发
+    document.querySelectorAll('.model-trigger, .strength-trigger').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const parent = this.closest('.relative');
+            const menu = parent.querySelector('.model-menu, .strength-menu');
+            document.querySelectorAll('.model-menu, .strength-menu').forEach(m => { if (m !== menu) m.classList.add('hidden'); });
+            menu.classList.toggle('hidden');
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.relative')) {
+            document.querySelectorAll('.model-menu, .strength-menu').forEach(m => m.classList.add('hidden'));
+        }
+    });
+
+    // 5. 选项点击更新配置
+    document.querySelectorAll('.model-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            const mode = this.closest('.model-selector').dataset.mode;
+            const model = this.dataset.model;
+            config[mode].model = model;
+            renderUI();
+            document.querySelectorAll('.model-menu').forEach(m => m.classList.add('hidden'));
+            updateBackendConfig();
+        });
+    });
+
+    document.querySelectorAll('.strength-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            const mode = this.closest('.strength-selector').dataset.mode;
+            const strength = this.dataset.strength;
+            config[mode].strength = strength;
+            renderUI();
+            document.querySelectorAll('.strength-menu').forEach(m => m.classList.add('hidden'));
+            updateBackendConfig();
+        });
+    });
+
+    // 6. 开关切换
+    document.querySelectorAll('.think-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+            config[mode].think = !config[mode].think;
+            renderUI();
+            updateBackendConfig();
+        });
+    });
+
+    document.querySelectorAll('.search-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mode = this.dataset.mode;
+            if (config[mode].model === 'deepseek-v4-pro') return;
+            config[mode].search = !config[mode].search;
+            renderUI();
+            updateBackendConfig();
+        });
+    });
+
+    function updateBackendConfig() {
+        window.currentAgentConfig = config;
+        console.log("Agent 配置已更新:", config);
+    }
+    updateBackendConfig();
+
     window.openAgentSettings = function() {
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
-            content.classList.remove('opacity-0', '-translate-y-[120%]');
-            content.classList.add('opacity-100', 'translate-y-0');
+            document.getElementById('settingsModalContent').classList.remove('opacity-0', '-translate-y-[120%]');
+            document.getElementById('settingsModalContent').classList.add('opacity-100', 'translate-y-0');
         });
     };
+
     window.closeAgentSettings = function() {
-        content.classList.remove('opacity-100', 'translate-y-0');
-        content.classList.add('opacity-0', '-translate-y-[120%]');
+        document.getElementById('settingsModalContent').classList.remove('opacity-100', 'translate-y-0');
+        document.getElementById('settingsModalContent').classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
     };
 });
