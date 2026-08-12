@@ -1,4 +1,4 @@
-<!-- Agent 主面板（已调整布局，支持左侧伴侣面板） -->
+<!-- Agent 主面板（大幅左移版） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -26,15 +26,16 @@
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<!-- ✨ 核心修改：用父级包裹器同时控制两个面板的布局 -->
+<!-- 核心修改：外层包裹器居中，内部容器强制靠左并大幅左移 -->
 <div id="agentPanelsWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
-    <div id="agentPanelsContainer" class="flex flex-row items-end gap-4 w-full justify-center">
+    <!-- ✨ justify-start 强制左对齐，ml-16 把整体往左大幅平移 -->
+    <div id="agentPanelsContainer" class="flex flex-row items-end gap-4 w-full justify-start ml-16">
         
-        <!-- ✨ 引入左侧新增面板 -->
+        <!-- 引入左侧新增面板，设置为固定宽度防变形 -->
         {% include 'components/agent_side_panel.html' %}
 
-        <!-- 原来的聊天面板主体 -->
-        <div id="agentPanel" class="flex-1 max-w-[480px] h-[660px] bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative">
+        <!-- 聊天面板主体，设置为固定宽度防变形 -->
+        <div id="agentPanel" class="w-[480px] flex-shrink-0 h-[660px] bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative">
             <div class="absolute top-4 left-4 z-20">
                 <div class="agent-tabs-wrapper">
                     <div class="container">
@@ -65,7 +66,6 @@
     </div>
 </div>
 
-<!-- ✨ 引入独立配置面板（确保在 wrapper 外面） -->
 {% include 'components/agent_settings_panel.html' %}
 
 <script>
