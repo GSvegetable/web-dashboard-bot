@@ -94,9 +94,9 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
         return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
-# ==========================================================
-# 🧠 核心引擎：将前端面板的配置「真正」映射到 API 请求中
-# ==========================================================
+# ==========================================
+# DeepSeek 终极 AI 接口 (硬编码模型映射，完美对接配置面板)
+# ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
@@ -105,21 +105,30 @@ def agent_chat():
     
     if not user_message: return jsonify({'reply': '请先输入消息。'})
 
-    # 1. 获取前端用户面板的配置，如果没有则使用绝对最低成本默认值
+    # 1. 获取配置面板传过来的参数
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
-    
-    # 定义最终参数
-    final_model = mode_config.get('model', 'deepseek-v4-flash')
-    final_think = mode_config.get('think', False)
-    final_search = mode_config.get('search', False)
-    final_strength = mode_config.get('strength', 'low')
 
-    # ⚠️ 兼容性修正：DeepSeek V4 Pro 不支持 `low` 档，如果选了低档，自动拉高到 `high`
-    if final_model == 'deepseek-v4-pro' and final_strength == 'low':
-        final_strength = 'high'
+    # 2. 强制锁定模型映射 (讨论=2.5-flash, 代理人=2-pro)
+    if mode == 'agent':
+        model_name = "deepseek-v4-pro"
+        # Pro 不支持低档，前端如果发了 low，强制切到 high
+        raw_strength = mode_config.get('strength', 'high')
+        reasoning_effort = 'high' if raw_strength == 'low' else raw_strength
+    else:
+        model_name = "deepseek-v4-flash"
+        reasoning_effort = mode_config.get('strength', 'low')
 
-    # 2. 处理记忆历史（15句压缩）
+    # 3. 读取深度思考开关
+    think_enabled = mode_config.get('think', False)
+
+    # 4. 读取联网搜索开关 (Pro 原生不支持，这里做安全拦截)
+    search_enabled = mode_config.get('search', False)
+    # 如果是 Pro 模型，强行忽略联网搜索参数
+    if model_name == "deepseek-v4-pro":
+        search_enabled = False
+
+    # 处理记忆历史
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -135,38 +144,34 @@ def agent_chat():
             session['chat_summary'] = chat_summary
             session['chat_history'] = chat_history
 
-    # 3. 构造消息列表
     messages = [{"role": "system", "content": AGENT_PROMPT if mode == 'agent' else DISCUSSION_PROMPT}]
     if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 4. 组织 DeepSeek 请求参数
+    # 5. 组装 DeepSeek API 请求包
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
     payload = {
-        "model": final_model,
+        "model": model_name,
         "messages": messages,
         "temperature": 0.3,
         "stream": False
     }
 
-    # 🟢 开启深度思考模式
-    if final_think:
+    # 根据面板开关加入思考参数
+    if think_enabled:
         payload['extra_body'] = {
             "thinking": {
                 "type": "enabled",
-                "reasoning_effort": final_strength
+                "reasoning_effort": reasoning_effort
             }
         }
 
-    # 🌐 关于联网搜索的官方说明：
-    # 在当前的 Chat Completions API 下，官方原生不支持服务端联网。
-    # 只有换成 Responses API 才支持原生一键联网。目前该参数暂时保留，等待官方统一。
-    # 如果你后面想开联网，我们可以专门升级 Responses API。
+    # 联网搜索目前通过 Chat Completions API 原生支持不了 V4 Pro 和原生搜索参数，
+    # 暂留空间供后续对接官方 Responses API 使用。
 
-    # 5. 发送请求给 DeepSeek
     try:
         headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
         resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
