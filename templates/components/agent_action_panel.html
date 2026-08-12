@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（完美同步，支持节点自动渲染） -->
+<!-- Agent 玻璃质感底部面板组件（加入思考过程展示） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -21,6 +21,7 @@
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
+  .ai-thought-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; font-style: italic; padding: 2px 2px 0; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: -2px; }
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
@@ -129,12 +130,23 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(res => { if (!res.ok) throw new Error(`API 失败，状态码: ${res.status}`); return res.json(); })
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
+            
+            // ✨ 处理思考过程（如果不为空则显示）
+            if (data.reasoning) {
+                const thoughtBubble = document.createElement('div');
+                thoughtBubble.className = 'ai-thought-msg';
+                thoughtBubble.textContent = '🤔 ' + data.reasoning;
+                targetList.appendChild(thoughtBubble);
+                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+            }
+
+            // 处理正式回复
             const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg';
             botMsg.textContent = data.reply || '抱歉，没有收到回复。';
             targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
             isProcessing = false;
             
-            // ✨ 新增：如果 AI 发出了“添加节点”的动作指令，立即调用画布渲染函数！
+            // 处理生成节点
             if (data.action === 'add_bot_node' && data.params) {
                 if (typeof window.addBotNode === 'function') {
                     window.addBotNode(data.params.name, data.params.avatar || null);
