@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（完美兼容主页与工作台） -->
+<!-- Agent 主面板（已调整布局，支持左侧伴侣面板） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -26,45 +26,53 @@
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
-<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
-    <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
-        <div class="absolute top-4 left-4 z-20">
-            <div class="agent-tabs-wrapper">
-                <div class="container">
-                    <div class="tabs">
-                        <input checked="" name="tabs" id="radio-1" type="radio" />
-                        <label for="radio-1" class="tab">讨论</label>
-                        <input name="tabs" id="radio-2" type="radio" />
-                        <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
-                        <span class="glider"></span>
+<!-- ✨ 核心修改：用父级包裹器同时控制两个面板的布局 -->
+<div id="agentPanelsWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
+    <div id="agentPanelsContainer" class="flex flex-row items-end gap-4 w-full justify-center">
+        
+        <!-- ✨ 引入左侧新增面板 -->
+        {% include 'components/agent_side_panel.html' %}
+
+        <!-- 原来的聊天面板主体 -->
+        <div id="agentPanel" class="flex-1 max-w-[480px] h-[660px] bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative">
+            <div class="absolute top-4 left-4 z-20">
+                <div class="agent-tabs-wrapper">
+                    <div class="container">
+                        <div class="tabs">
+                            <input checked="" name="tabs" id="radio-1" type="radio" />
+                            <label for="radio-1" class="tab">讨论</label>
+                            <input name="tabs" id="radio-2" type="radio" />
+                            <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                            <span class="glider"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
-        
-        <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <!-- 设置齿轮按钮 + 输入框 -->
-            <div class="flex items-end gap-2 w-full">
-                <button onclick="openAgentSettings()" class="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                </button>
+            <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
+            
+            <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
+                <div class="flex items-end gap-2 w-full">
+                    <button onclick="openAgentSettings()" class="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
 
-                <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
-                <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
+                    <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
+                    <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
+                </div>
             </div>
         </div>
     </div>
-    
-    {% include 'components/agent_settings_panel.html' %}
-    {% include 'components/agent_side_panel.html' %}
 </div>
+
+<!-- ✨ 引入独立配置面板（确保在 wrapper 外面） -->
+{% include 'components/agent_settings_panel.html' %}
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const panelWrapper = document.getElementById('agentPanelWrapper');
-    const panel = document.getElementById('agentPanel');
+    const panelsWrapper = document.getElementById('agentPanelsWrapper');
+    const sidePanel = document.getElementById('agentSidePanel');
+    const chatPanel = document.getElementById('agentPanel');
     const agentInput = document.getElementById('agentInput');
     const agentSendBtn = document.getElementById('agentSendBtn');
     const agentMessageArea = document.getElementById('agentMessageArea');
@@ -86,83 +94,49 @@ document.addEventListener("DOMContentLoaded", function() {
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
-    // 🛠️ 优化：判断当前页面是否是工作台
-    function isWorkspace() {
-        return document.getElementById('cardStackContainer') !== null;
-    }
-
-    function updateAgentPanelPosition() {
+    function updateAgentPanelsPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
-        const sidePanel = document.getElementById('agentSidePanel');
-        
-        if (container) { // 工作台模式
+        if (container) {
             const rect = container.getBoundingClientRect();
-            const chatWidth = rect.width * 4 / 3;
-            const sideWidth = chatWidth / 2;
-            const gap = 12;
-            
-            panelWrapper.style.width = chatWidth + 'px';
-            panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-            panelWrapper.style.transform = 'translateX(-50%)';
-            
-            sidePanel.style.display = ''; // 显示侧面板
-            sidePanel.style.width = sideWidth + 'px';
-            sidePanel.style.height = '660px';
-            sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap}px)`;
-            sidePanel.style.transform = 'translateX(-50%)';
+            panelsWrapper.style.width = (rect.width * 4 / 3) + 'px';
+            panelsWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+            panelsWrapper.style.transform = 'translateX(-50%)';
+        } else {
+            panelsWrapper.style.width = '480px';
+            panelsWrapper.style.left = '50%';
+            panelsWrapper.style.transform = 'translateX(-50%)';
         }
-        // 如果非工作台，不用执行任何位置更新，`toggleAgentPanel` 里的回退方案会接管
     }
 
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
-        const sidePanel = document.getElementById('agentSidePanel');
-        const container = document.getElementById('cardStackContainer');
-
         if (isPanelOpen) {
-            if (container) { // 工作台：复杂对齐
+            const container = document.getElementById('cardStackContainer');
+            if (container) {
                 const rect = container.getBoundingClientRect();
-                const chatWidth = rect.width * 4 / 3;
-                const sideWidth = chatWidth / 2;
-                const gap = 12;
-                
-                panelWrapper.style.width = chatWidth + 'px';
-                panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-                panelWrapper.style.transform = 'translateX(-50%)';
-
-                sidePanel.style.display = ''; // 恢复显示
-                sidePanel.style.width = sideWidth + 'px';
-                sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap}px)`;
-                sidePanel.style.transform = 'translateX(-50%)';
-                sidePanel.classList.remove('translate-y-full');
-            } else { // 主页（splash.html）：简单独立模式
-                panelWrapper.style.width = '360px';
-                panelWrapper.style.left = '50%';
-                panelWrapper.style.transform = 'translateX(-50%)';
-                
-                // 主页绝对不显示左侧边面板，防止布局乱掉
-                sidePanel.style.display = 'none';
+                panelsWrapper.style.width = (rect.width * 4 / 3) + 'px';
+                panelsWrapper.style.left = rect.left + (rect.width / 2) + 'px';
+                panelsWrapper.style.transform = 'translateX(-50%)';
+            } else {
+                panelsWrapper.style.width = '480px';
+                panelsWrapper.style.left = '50%';
+                panelsWrapper.style.transform = 'translateX(-50%)';
             }
-            
-            panelWrapper.style.display = 'block';
+            panelsWrapper.style.display = 'block';
             setTimeout(() => { 
-                panel.classList.remove('translate-y-full'); 
+                sidePanel.classList.remove('translate-y-full');
+                chatPanel.classList.remove('translate-y-full');
                 setTimeout(() => { agentInput.focus(); }, 300);
             }, 10);
         } else {
-            panel.classList.add('translate-y-full');
-            if (container && sidePanel) {
-                sidePanel.classList.add('translate-y-full');
-            }
-            setTimeout(() => { 
-                panelWrapper.style.display = 'none'; 
-            }, 250);
+            sidePanel.classList.add('translate-y-full');
+            chatPanel.classList.add('translate-y-full');
+            setTimeout(() => { panelsWrapper.style.display = 'none'; }, 250);
         }
     };
-    window.addEventListener('resize', updateAgentPanelPosition);
+    window.addEventListener('resize', updateAgentPanelsPosition);
 
-    // 配置默认值
     function getDefaultConfig() {
         return {
             discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
