@@ -1,33 +1,45 @@
-<!-- 中央弹窗菜单（不靠边、可穿透点击背景、自底部上升动画） -->
-<!-- ✨ 核心修改：外层 pointer-events-none，允许点击透传到底部卡片；内层 pointer-events-auto 保证菜单正常交互 -->
+<!-- 放大拉长的高级质感会员卡片 -->
 <div id="planDetailModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
     
-    <!-- 圆润的透明卡片主体 -->
-    <div class="relative w-[90%] max-w-[420px] bg-[rgba(20,20,25,0.92)] backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-[0_30px_80px_rgba(0,0,0,0.6)] p-8 pt-6 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-        transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
+    <!-- 主体卡片：尺寸拉宽，内边距增加，质感增强 -->
+    <div class="relative w-[92%] max-w-[440px] bg-[rgba(15,18,28,0.92)] backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] p-7 pt-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
         
-        <!-- 左上角：关闭按钮 --
-        <button onclick="closePlanModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition">
+        <!-- 左上角：精致圆润的关闭按钮 -->
+        <button onclick="closePlanModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-black/40 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition border border-white/5 backdrop-blur-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
-        <!-- 右上角：动态标题 -->
-        <div class="flex justify-end items-center pt-1 mb-6">
-            <h3 id="modalPlanTitle" class="text-2xl font-bold text-white tracking-wide">星光</h3>
+        <!-- 居中加大加粗的标题 -->
+        <div class="flex flex-col items-center mt-6 mb-8">
+            <div class="text-xs font-medium tracking-widest text-[#8b949e] uppercase mb-1">会员中心</div>
+            <h3 id="modalPlanTitle" class="text-3xl font-extrabold text-white tracking-wide bg-gradient-to-r from-[#F5E6CF] to-white bg-clip-text text-transparent drop-shadow-sm">星光</h3>
         </div>
 
-        <!-- 菜单的中间内容 -->
-        <div class="text-gray-300 text-sm leading-relaxed space-y-3 pb-2">
-            <p>你选择的套餐是：<span id="modalPlanName" class="text-[#F5E6CF] font-medium"></span></p>
-            <div class="border-t border-white/5 my-4 pt-4 text-xs text-gray-400">
-                这里之后可以放详细的权益说明，或者支付二维码/按钮。
+        <!-- 会员详情包裹卡片（扩大了高度感） -->
+        <div class="bg-black/30 rounded-2xl border border-white/5 p-6 mb-8 shadow-inner space-y-5">
+            <div class="flex justify-between items-center text-gray-300 text-base">
+                <span class="text-gray-400 font-light">套餐名称</span>
+                <span id="modalPlanName" class="text-[#F5E6CF] font-semibold text-lg">星光</span>
+            </div>
+            <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+            <div class="flex justify-between items-center text-gray-300 text-base">
+                <span class="text-gray-400 font-light">有效期</span>
+                <span class="text-white font-medium">30 天</span>
+            </div>
+            <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+            <div class="flex justify-between items-center text-gray-300 text-base">
+                <span class="text-gray-400 font-light">订阅价格</span>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-white text-2xl font-extrabold">15</span>
+                    <span class="text-gray-500 text-sm font-normal">/ 月</span>
+                </div>
             </div>
         </div>
 
-        <!-- 底部占位 -->
-        <div class="mt-2 flex justify-center">
-            <button class="px-6 py-2 bg-[#3c4779] hover:bg-[#2e385e] text-white text-sm rounded-full transition">确认选择</button>
-        </div>
+        <!-- 底部大按钮：采用了你偏爱的 #3c4779 并加宽了高度 -->
+        <button class="w-full py-4 bg-[#3c4779] hover:bg-[#2e385e] text-white text-base font-bold rounded-2xl transition active:scale-95 shadow-[0_8px_30px_rgba(60,71,121,0.4)] tracking-wide">
+            确认选择并支付
+        </button>
     </div>
 </div>
 
@@ -38,14 +50,10 @@
         const titleEl = document.getElementById('modalPlanTitle');
         const nameEl = document.getElementById('modalPlanName');
         
-        // 刷新菜单文字（无缝切换时也会执行到这里刷新标题）
         titleEl.innerText = planName;
         nameEl.innerText = planName;
 
-        // 显示菜单
         modal.classList.remove('hidden');
-        
-        // 触发动画
         setTimeout(() => {
             const content = document.getElementById('modalContent');
             content.classList.remove('translate-y-8', 'scale-95', 'opacity-0');
@@ -55,16 +63,6 @@
 
     // 关闭菜单逻辑
     window.closePlanModal = function() {
-        // 🛑 在关菜单前，先通知卡片复位！
-        // 取消高亮聚焦
-        if (typeof window.unfocusCardStack === 'function') {
-            window.unfocusCardStack();
-        }
-        // 折叠回重叠状态
-        if (typeof window.collapseCardStack === 'function') {
-            window.collapseCardStack();
-        }
-
         const modal = document.getElementById('planDetailModal');
         const content = document.getElementById('modalContent');
         
