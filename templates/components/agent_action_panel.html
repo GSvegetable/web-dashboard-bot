@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（修复配置面板被挤压的问题） -->
+<!-- Agent 玻璃质感底部面板组件（思考过程拦截版） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -42,7 +42,6 @@
                 </div>
             </div>
 
-            <!-- 开启全新对话的加号按钮 -->
             <button id="newChatBtn" class="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95 text-lg leading-none font-light">
                 +
             </button>
@@ -61,9 +60,8 @@
             </div>
         </div>
     </div>
-</div> <!-- ✅ agentPanelWrapper 结束 -->
+</div>
 
-<!-- ✨ 核心修复：把配置面板移出带有 transform 的 Wrapper，直接放在 DOM 根节点！ -->
 {% include 'components/agent_settings_panel.html' %}
 
 <script>
@@ -168,7 +166,9 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             
-            if (data.reasoning) {
+            // 🛡️ 核心拦截：如果用户关闭了深度思考，即使API偷偷返回了 reasoning 也不显示！
+            const currentThinkEnabled = window.currentAgentConfig && window.currentAgentConfig[currentMode] && window.currentAgentConfig[currentMode].think;
+            if (data.reasoning && currentThinkEnabled) {
                 const thoughtBubble = document.createElement('div');
                 thoughtBubble.className = 'ai-thought-msg';
                 thoughtBubble.textContent = data.reasoning;
