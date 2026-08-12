@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
+from agent_prompts import DISCUSSION_PROMPT
 
 main_bp = Blueprint('main', __name__)
 
@@ -125,7 +126,53 @@ def bind_bot():
             return jsonify({'ok': False, 'msg': 'Token有效，但向该ID发送失败，请检查Telegram ID是否正确'})
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'请求异常: {str(e)}'})
+
 # ==========================================
+# DeepSeek AI 接口（最省钱版）
+# ==========================================
+@main_bp.route('/api/agent/chat', methods=['POST'])
+def agent_chat():
+    data = request.get_json()
+    user_message = data.get('message', '')
+    mode = data.get('mode', 'discussion')
+    
+    if not user_message:
+        return jsonify({'reply': '请先输入消息。'})
+
+    # 代理人模式暂未开放
+    if mode == 'agent':
+        return jsonify({'reply': '代理人模式暂未开放，请使用“讨论”模式。'})
+
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    if not DEEPSEEK_API_KEY:
+        return jsonify({'reply': '系统错误：未配置 DeepSeek API Key。'})
+
+    try:
+        url = "https://api.deepseek.com/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+        }
+        payload = {
+            "model": "deepseek-chat", # 最便宜的模型
+            "messages": [
+                {"role": "system", "content": DISCUSSION_PROMPT},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.3,
+            "stream": False
+        }
+
+        resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200:
+            result = resp.json()
+            reply = result['choices'][0]['message']['content']
+            return jsonify({'reply': reply})
+        else:
+            return jsonify({'reply': f'DeepSeek 接口请求出错 (状态码: {resp.status_code})'})
+    except Exception as e:
+        print(f"Agent Error: {e}")
+        return jsonify({'reply': '请求异常，请稍后重试。'})
 
 # ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
@@ -252,8 +299,3 @@ def setup_webhook():
         return jsonify(resp.json())
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)})
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(host='0.0.0.0', port=8080)
