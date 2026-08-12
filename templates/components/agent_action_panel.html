@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（完美集成左侧面板，缝隙加大） -->
+<!-- Agent 玻璃质感底部面板组件（完美集成侧边面板 - 修正为左侧） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -45,6 +45,7 @@
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
         
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
+            <!-- 设置齿轮按钮 + 输入框 -->
             <div class="flex items-end gap-2 w-full">
                 <button onclick="openAgentSettings()" class="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -56,6 +57,7 @@
         </div>
     </div>
     
+    <!-- 引入独立配置面板和全新的侧边面板 -->
     {% include 'components/agent_settings_panel.html' %}
     {% include 'components/agent_side_panel.html' %}
 </div>
@@ -85,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function() {
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
-    // 🆕 更新位置：将侧边面板移到左边，缝隙加大到 24px
+    // 🆕 更新位置函数：让聊天面板和侧边面板并排出现，**侧边面板在左边**
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
@@ -94,22 +96,22 @@ document.addEventListener("DOMContentLoaded", function() {
             const rect = container.getBoundingClientRect();
             const chatWidth = rect.width * 4 / 3;
             const sideWidth = chatWidth / 2;
-            const gap = 24; // 缝隙加大
+            const gap = 12; // 中间留的缝隙宽度
             
             panelWrapper.style.width = chatWidth + 'px';
             panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
             panelWrapper.style.transform = 'translateX(-50%)';
 
-            // 控制侧边面板在左侧，完全对齐并留出 gap 缝隙
+            // ✅ 修正：把侧边面板挪到左边，用减号！
             sidePanel.style.width = sideWidth + 'px';
             sidePanel.style.height = '660px';
-            // 定位公式：中心点 - (聊天面板一半 + 缝隙 + 侧边面板一半)
-            sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap + (sideWidth / 2)}px)`;
+            // 聊天面板中心 - (聊天面板的一半 + 缝隙)
+            sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap}px)`;
             sidePanel.style.transform = 'translateX(-50%)';
         }
     }
 
-    // 🆕 切换面板逻辑：同步控制左侧面板
+    // 🆕 切换面板逻辑：同时控制聊天和侧边面板
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
         const sidePanel = document.getElementById('agentSidePanel');
@@ -119,22 +121,24 @@ document.addEventListener("DOMContentLoaded", function() {
                 const rect = container.getBoundingClientRect();
                 const chatWidth = rect.width * 4 / 3;
                 const sideWidth = chatWidth / 2;
-                const gap = 24;
+                const gap = 12;
                 
                 panelWrapper.style.width = chatWidth + 'px';
                 panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
                 panelWrapper.style.transform = 'translateX(-50%)';
 
+                // ✅ 修正：确保侧边面板在打开时定位在左边
                 sidePanel.style.width = sideWidth + 'px';
-                sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap + (sideWidth / 2)}px)`;
+                sidePanel.style.left = `calc(50% - ${(chatWidth / 2) + gap}px)`;
                 sidePanel.style.transform = 'translateX(-50%)';
                 sidePanel.classList.remove('translate-y-full');
             } else {
+                // 兜底方案（如果没有中间的卡片）
                 panelWrapper.style.width = '320px';
                 panelWrapper.style.left = '50%';
                 panelWrapper.style.transform = 'translateX(-50%)';
                 sidePanel.style.width = '160px';
-                sidePanel.style.left = `calc(50% - ${160 + 24 + 80}px)`;
+                sidePanel.style.left = `calc(50% - 172px)`; // ✅ 左边兜底也改成减号
                 sidePanel.style.transform = 'translateX(-50%)';
                 sidePanel.classList.remove('translate-y-full');
             }
@@ -145,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 10);
         } else {
             panel.classList.add('translate-y-full');
+            // 收起侧边面板
             sidePanel.classList.add('translate-y-full');
             setTimeout(() => { 
                 panelWrapper.style.display = 'none'; 
@@ -153,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
+    // 配置默认值
     function getDefaultConfig() {
         return {
             discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
