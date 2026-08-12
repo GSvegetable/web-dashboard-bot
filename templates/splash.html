@@ -106,9 +106,8 @@
     {% include 'components/become_fan_card.html' %}
     {% include 'components/agent_action_panel.html' %}
 
-    <!-- ✨ 侧面板只在这里被调用了，杜绝了重复 -->
-    {% include 'components/agent_side_panel.html' %}
-
+    <!-- ✨ 已经去掉侧面板的第二次引用，现在只会在 chat 面板里保留唯一的一个 -->
+    
     {% include 'components/agent_settings_panel.html' %}
     {% include 'components/plan_detail_modal.html' %}
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
