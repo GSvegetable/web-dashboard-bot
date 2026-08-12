@@ -1,57 +1,48 @@
-<!-- 放大拉长的高级质感会员卡片 -->
+<!-- 白色高级玻璃质感会员卡片（苹果风格、边缘反光） -->
 <div id="planDetailModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
     
-    <!-- 主体卡片：尺寸拉宽，内边距增加，质感增强 -->
-    <div class="relative w-[92%] max-w-[440px] bg-[rgba(15,18,28,0.92)] backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] p-7 pt-4 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
+    <!-- 主体卡片：奶白/高透玻璃质感，内发光边缘 -->
+    <div class="relative w-[92%] max-w-[460px] bg-white/70 backdrop-blur-3xl border border-white/80 shadow-[0_30px_80px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] rounded-[32px] p-8 pt-6 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform translate-y-8 scale-95 opacity-0 pointer-events-auto" id="modalContent">
         
-        <!-- 左上角：精致圆润的关闭按钮 -->
-        <button onclick="closePlanModal()" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-black/40 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition border border-white/5 backdrop-blur-sm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <!-- 左上角：纯粹的无圈叉号（苹果式极简） -->
+        <button onclick="closePlanModal()" class="absolute top-4 left-4 text-gray-400 hover:text-gray-800 transition">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
-        <!-- 居中加大加粗的标题 -->
-        <div class="flex flex-col items-center mt-6 mb-8">
-            <div class="text-xs font-medium tracking-widest text-[#8b949e] uppercase mb-1">会员中心</div>
-            <h3 id="modalPlanTitle" class="text-3xl font-extrabold text-white tracking-wide bg-gradient-to-r from-[#F5E6CF] to-white bg-clip-text text-transparent drop-shadow-sm">星光</h3>
+        <!-- 右上角：巨大价格，无多余修饰 -->
+        <div class="absolute top-3 right-4 flex items-baseline gap-1">
+            <span id="modalPlanPrice" class="text-5xl font-black text-gray-900 tracking-tight">15</span>
+            <span class="text-sm font-bold text-gray-500 ml-0.5">/月</span>
         </div>
 
-        <!-- 会员详情包裹卡片（扩大了高度感） -->
-        <div class="bg-black/30 rounded-2xl border border-white/5 p-6 mb-8 shadow-inner space-y-5">
-            <div class="flex justify-between items-center text-gray-300 text-base">
-                <span class="text-gray-400 font-light">套餐名称</span>
-                <span id="modalPlanName" class="text-[#F5E6CF] font-semibold text-lg">星光</span>
-            </div>
-            <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-            <div class="flex justify-between items-center text-gray-300 text-base">
-                <span class="text-gray-400 font-light">有效期</span>
-                <span class="text-white font-medium">30 天</span>
-            </div>
-            <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-            <div class="flex justify-between items-center text-gray-300 text-base">
-                <span class="text-gray-400 font-light">订阅价格</span>
-                <div class="flex items-baseline gap-1">
-                    <span class="text-white text-2xl font-extrabold">15</span>
-                    <span class="text-gray-500 text-sm font-normal">/ 月</span>
-                </div>
-            </div>
+        <!-- 居中的套餐名称 -->
+        <div class="mt-14 mb-8 text-center">
+            <h3 id="modalPlanName" class="text-2xl font-bold text-gray-900 tracking-wide">星光</h3>
         </div>
 
-        <!-- 底部大按钮：采用了你偏爱的 #3c4779 并加宽了高度 -->
-        <button class="w-full py-4 bg-[#3c4779] hover:bg-[#2e385e] text-white text-base font-bold rounded-2xl transition active:scale-95 shadow-[0_8px_30px_rgba(60,71,121,0.4)] tracking-wide">
-            确认选择并支付
+        <!-- 底部确认按钮：使用你偏好的 #3c4779 -->
+        <button class="w-full py-4 bg-[#3c4779] hover:bg-[#2e385e] text-white text-base font-semibold rounded-2xl transition active:scale-95 shadow-lg shadow-[#3c4779]/20">
+            确认选择
         </button>
     </div>
 </div>
 
 <script>
-    // 打开菜单逻辑
+    // 打开菜单逻辑（联动动态价格）
     window.openPlanModal = function(planName) {
         const modal = document.getElementById('planDetailModal');
-        const titleEl = document.getElementById('modalPlanTitle');
         const nameEl = document.getElementById('modalPlanName');
+        const priceEl = document.getElementById('modalPlanPrice');
         
-        titleEl.innerText = planName;
+        // 价格映射表
+        const priceMap = {
+            '星光': '15',
+            '极光': '40',
+            '极光pro': '310'
+        };
+
         nameEl.innerText = planName;
+        priceEl.innerText = priceMap[planName] || '15'; // 匹配不到时默认为15
 
         modal.classList.remove('hidden');
         setTimeout(() => {
