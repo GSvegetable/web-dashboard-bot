@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（纯净版：完美对齐按钮宽度） -->
+<!-- Agent 独立配置面板（修复文字竖排，区分按钮长度） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -19,8 +19,9 @@
                     
                     <!-- 1. 深度思考（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
+                        <!-- ✨ 加上 whitespace-nowrap 彻底解决文字竖排问题 -->
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
                             <input type="radio" name="think-flash" id="think-flash-off" checked />
                             <label for="think-flash-off">关闭</label>
                             <input type="radio" name="think-flash" id="think-flash-on" />
@@ -31,8 +32,8 @@
 
                     <!-- 2. 联网搜索（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
                             <input type="radio" name="search-flash" id="search-flash-off" checked />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
@@ -43,7 +44,8 @@
 
                     <!-- 3. 思考强度（3选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">思考强度</span>
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                        <!-- ✨ 3 选项按钮保留更长宽度，让它比前两个长出半截 -->
                         <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                             <label for="strength-flash-low">低</label>
@@ -64,8 +66,8 @@
                 <div class="flex flex-col gap-4">
                     
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
                             <input type="radio" name="think-pro" id="think-pro-off" checked />
                             <label for="think-pro-off">关闭</label>
                             <input type="radio" name="think-pro" id="think-pro-on" />
@@ -75,8 +77,8 @@
                     </div>
 
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[130px]">
                             <input type="radio" name="search-pro" id="search-pro-off" checked />
                             <label for="search-pro-off">关闭</label>
                             <input type="radio" name="search-pro" id="search-pro-on" />
@@ -86,7 +88,7 @@
                     </div>
 
                     <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80">思考强度</span>
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="strength-pro" id="strength-pro-low" checked />
                             <label for="strength-pro-low">低</label>
@@ -105,7 +107,7 @@
     </div>
 </div>
 
-<!-- ⚡ 按钮组 CSS（加入 min-width 解决对齐问题） -->
+<!-- ⚡ 按钮组 CSS（适配宽度差异化） -->
 <style>
     /* 3选项基础样式 */
     .glass-radio-group-3 {
@@ -118,7 +120,7 @@
         backdrop-filter: blur(12px);
         box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        width: 100%; /* 这里我们让它占满父级 min-width 的宽度 */
+        width: 100%; 
         flex-shrink: 0;
     }
     .glass-radio-group-3 input { display: none; }
@@ -151,7 +153,7 @@
         backdrop-filter: blur(12px);
         box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        width: 100%; /* 填满父级宽度 */
+        width: 100%; 
         flex-shrink: 0;
     }
     .glass-radio-group-2 input { display: none; }
