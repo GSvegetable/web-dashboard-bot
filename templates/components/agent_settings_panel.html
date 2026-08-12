@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（按钮固定等宽版） -->
+<!-- Agent 独立配置面板（纯净版：完美对齐按钮宽度） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -9,17 +9,18 @@
             <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         </div>
 
-        <!-- 两大分类大标题 + 选项 -->
+        <!-- 两大分类 -->
         <div class="flex flex-col gap-10 mt-1">
 
             <!-- 分类一：省钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-flash</div>
-                
                 <div class="flex flex-col gap-4">
+                    
+                    <!-- 1. 深度思考（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">深度思考</span>
-                        <div class="glass-radio-group-2">
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="think-flash" id="think-flash-off" checked />
                             <label for="think-flash-off">关闭</label>
                             <input type="radio" name="think-flash" id="think-flash-on" />
@@ -28,9 +29,10 @@
                         </div>
                     </div>
 
+                    <!-- 2. 联网搜索（2选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">联网搜索</span>
-                        <div class="glass-radio-group-2">
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="search-flash" id="search-flash-off" checked />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
@@ -39,9 +41,10 @@
                         </div>
                     </div>
 
+                    <!-- 3. 思考强度（3选项） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">思考强度</span>
-                        <div class="glass-radio-group-3">
+                        <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                             <label for="strength-flash-low">低</label>
                             <input type="radio" name="strength-flash" id="strength-flash-mid" />
@@ -51,17 +54,18 @@
                             <div class="glass-glider-3"></div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
             <!-- 分类二：烧钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">deepseek-v4-pro</div>
-                
                 <div class="flex flex-col gap-4">
+                    
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">深度思考</span>
-                        <div class="glass-radio-group-2">
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="think-pro" id="think-pro-off" checked />
                             <label for="think-pro-off">关闭</label>
                             <input type="radio" name="think-pro" id="think-pro-on" />
@@ -72,7 +76,7 @@
 
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">联网搜索</span>
-                        <div class="glass-radio-group-2">
+                        <div class="glass-radio-group-2 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="search-pro" id="search-pro-off" checked />
                             <label for="search-pro-off">关闭</label>
                             <input type="radio" name="search-pro" id="search-pro-on" />
@@ -83,7 +87,7 @@
 
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80">思考强度</span>
-                        <div class="glass-radio-group-3">
+                        <div class="glass-radio-group-3 flex-shrink-0 min-w-[170px]">
                             <input type="radio" name="strength-pro" id="strength-pro-low" checked />
                             <label for="strength-pro-low">低</label>
                             <input type="radio" name="strength-pro" id="strength-pro-mid" />
@@ -93,6 +97,7 @@
                             <div class="glass-glider-3"></div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -100,10 +105,10 @@
     </div>
 </div>
 
-<!-- ⚡ 全新等宽玻璃切换按钮 CSS（完全对齐） -->
+<!-- ⚡ 按钮组 CSS（加入 min-width 解决对齐问题） -->
 <style>
-    /* 共用样式：强制总宽度一致 */
-    .glass-radio-group-2, .glass-radio-group-3 {
+    /* 3选项基础样式 */
+    .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06);
         --text: #e5e5e5;
         display: flex;
@@ -113,47 +118,59 @@
         backdrop-filter: blur(12px);
         box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
         overflow: hidden;
-        width: 170px; /* ✨ 强制固定总宽度，2选项和3选项绝对等宽 */
-        height: 36px;
+        width: 100%; /* 这里我们让它占满父级 min-width 的宽度 */
         flex-shrink: 0;
     }
-    
-    /* 标签强制平分填满格子 */
-    .glass-radio-group-2 label, .glass-radio-group-3 label {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        padding: 0;
-        font-size: 13px;
-        cursor: pointer;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        color: var(--text);
-        position: relative;
-        z-index: 2;
-        transition: color 0.3s ease-in-out;
+    .glass-radio-group-3 input { display: none; }
+    .glass-radio-group-3 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
     }
-    .glass-radio-group-2 label:hover, .glass-radio-group-3 label:hover { color: white; }
-    .glass-radio-group-2 input:checked + label, .glass-radio-group-3 input:checked + label { color: #fff; }
-
-    /* 2选项滑动块 (宽度固定 50%) */
-    .glass-glider-2 {
-        position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1;
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
-    }
-    .glass-radio-group-2 input:checked ~ .glass-glider-2 { transform: translateX(0%); }
-    .glass-radio-group-2 input[id$="-on"]:checked ~ .glass-glider-2 { transform: translateX(100%); }
-
-    /* 3选项滑动块 (宽度固定 33.33%) */
+    .glass-radio-group-3 label:hover { color: white; }
+    .glass-radio-group-3 input:checked + label { color: #fff; }
     .glass-glider-3 {
-        position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1;
+        position: absolute; top: 0; bottom: 0;
+        width: calc(100% / 3);
+        border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
-    .glass-radio-group-3 input:checked ~ .glass-glider-3 { transform: translateX(0%); }
-    .glass-radio-group-3 input[id$="-mid"]:checked ~ .glass-glider-3 { transform: translateX(100%); }
-    .glass-radio-group-3 input[id$="-max"]:checked ~ .glass-glider-3 { transform: translateX(200%); }
+    #strength-flash-low:checked ~ .glass-glider-3, #strength-pro-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #strength-flash-mid:checked ~ .glass-glider-3, #strength-pro-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    #strength-flash-max:checked ~ .glass-glider-3, #strength-pro-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
+
+    /* 2选项基础样式 */
+    .glass-radio-group-2 {
+        --bg: rgba(255, 255, 255, 0.06);
+        --text: #e5e5e5;
+        display: flex;
+        position: relative;
+        background: var(--bg);
+        border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        width: 100%; /* 填满父级宽度 */
+        flex-shrink: 0;
+    }
+    .glass-radio-group-2 input { display: none; }
+    .glass-radio-group-2 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
+    }
+    .glass-radio-group-2 label:hover { color: white; }
+    .glass-radio-group-2 input:checked + label { color: #fff; }
+    .glass-glider-2 {
+        position: absolute; top: 0; bottom: 0;
+        width: 50%;
+        border-radius: 1rem; z-index: 1;
+        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
+    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #search-pro-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2, #search-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
 <!-- 🎯 纯滑落动画与关闭逻辑 -->
