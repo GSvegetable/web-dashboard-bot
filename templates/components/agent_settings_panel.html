@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（绝对死锁默认高亮版） -->
+<!-- Agent 独立配置面板（修复：正确读取并保存用户配置） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -148,30 +148,103 @@
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
-<!-- 🎯 纯滑落动画与绝对强制勾选逻辑 -->
+<!-- 🎯 滑落动画与修复持久化逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const content = document.getElementById('settingsModalContent');
+    const configKey = 'gsbot_agent_config';
 
-    // 用一个绝对强制勾选函数
-    function forceDefaultCheck() {
-        // gs-v2.5-flash 强制默认：思考-关闭、搜索-关闭、强度-低
-        document.getElementById('think-flash-off').checked = true;
-        document.getElementById('search-flash-off').checked = true;
-        document.getElementById('strength-flash-low').checked = true;
+    // 1. 获取或初始化配置
+    let config = JSON.parse(localStorage.getItem(configKey));
+    if (!config) {
+        config = {
+            discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
+            agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'high' }
+        };
+        localStorage.setItem(configKey, JSON.stringify(config));
+    }
 
-        // gs-v2-pro 强制默认：思考-关闭、搜索-关闭、强度-高 (Pro不支持低)
-        document.getElementById('think-pro-off').checked = true;
-        document.getElementById('search-pro-off').checked = true;
-        document.getElementById('strength-pro-high').checked = true;
+    // 2. 渲染函数：根据 config 勾选对应的输入框，并更新文字标签
+    function applyStoredConfig() {
+        // --- gs-v2.5-flash (discussion) ---
+        // 深度思考
+        document.getElementById('think-flash-off').checked = !config.discussion.think;
+        document.getElementById('think-flash-on').checked = config.discussion.think;
+        // 联网搜索
+        document.getElementById('search-flash-off').checked = !config.discussion.search;
+        document.getElementById('search-flash-on').checked = config.discussion.search;
+        // 思考强度
+        document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
+        document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
+        document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
+
+        // --- gs-v2-pro (agent) ---
+        // 深度思考
+        document.getElementById('think-pro-off').checked = !config.agent.think;
+        document.getElementById('think-pro-on').checked = config.agent.think;
+        // 联网搜索
+        document.getElementById('search-pro-off').checked = !config.agent.search;
+        document.getElementById('search-pro-on').checked = config.agent.search;
+        // 思考强度
+        document.getElementById('strength-pro-high').checked = config.agent.strength === 'high';
+        document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
+        
+        // 同步文字（让上面显示的“开启/关闭，低/高/最高”和勾选状态一致）
+        const labels = document.querySelectorAll('.think-label, .search-label, .strength-label');
+        labels.forEach(el => {
+            // 文本已在事件监听中更新，这里只需确保 input 勾选触发 CSS 即可
+        });
+    }
+
+    // 3. 绑定点击事件与保存逻辑
+    function bindEvents() {
+        document.querySelectorAll('input[type="radio"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const name = this.name;
+                const value = this.id;
+                
+                // 通过 name 判断更新哪个配置对象
+                let mode = 'discussion';
+                let key = null;
+                let val = null;
+
+                if (name.startsWith('think-')) {
+                    key = 'think';
+                    val = value.endsWith('-on');
+                } else if (name.startsWith('search-')) {
+                    key = 'search';
+                    val = value.endsWith('-on');
+                } else if (name.startsWith('strength-')) {
+                    key = 'strength';
+                    val = value.replace('strength-', '').replace('flash-', '').replace('pro-', '');
+                }
+
+                // 提取模式
+                if (name.includes('-flash')) mode = 'discussion';
+                else if (name.includes('-pro')) mode = 'agent';
+
+                if (mode && key && val !== null) {
+                    config[mode][key] = val;
+                    localStorage.setItem(configKey, JSON.stringify(config));
+                }
+            });
+        });
     }
 
     window.openAgentSettings = function() {
-        panel.classList.remove('hidden');
-        // 在展开动画触发前，直接先强制打勾，绝不留空
-        forceDefaultCheck();
+        // 在弹出之前加载存储的配置
+        config = JSON.parse(localStorage.getItem(configKey));
+        if (!config) {
+            // 如果不存在就重新初始化（兜底）
+            config = {
+                discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
+                agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'high' }
+            };
+        }
+        applyStoredConfig();
 
+        panel.classList.remove('hidden');
         requestAnimationFrame(() => {
             content.classList.remove('opacity-0', '-translate-y-[120%]');
             content.classList.add('opacity-100', 'translate-y-0');
@@ -183,5 +256,8 @@ document.addEventListener('DOMContentLoaded', function() {
         content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
     };
+
+    // 初始化绑定事件
+    bindEvents();
 });
 </script>
