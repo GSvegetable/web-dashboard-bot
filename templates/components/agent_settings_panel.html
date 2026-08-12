@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（完美修复默认选中映射） -->
+<!-- Agent 独立配置面板（彻底修复默认未选中映射缺失问题） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -111,7 +111,6 @@
         border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
-    
     /* 低：银色 */
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
     /* 高：蓝色 */
@@ -177,7 +176,7 @@
     }
 </style>
 
-<!-- 🎯 100% 强制定位默认选中的 JS 逻辑 -->
+<!-- 🎯 终极修正：精准匹配模型映射与强弱数据 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
@@ -196,80 +195,85 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem(configKey, JSON.stringify(config));
     }
 
-    // 3. 核心修复：映射模式 ID 并强制高亮
+    // 3. 核心渲染逻辑（修复代理模式找不到 low 选项的 Bug）
     function renderUI() {
-        // 更新左侧面板文字
-        document.querySelectorAll('.model-selector').forEach(el => {
-            const modeKey = el.dataset.mode;
-            el.querySelector('.model-label').innerText = config[modeKey].model;
-            
-            // Pro 模型特殊处理
-            if (config[modeKey].model === 'deepseek-v4-pro') {
-                const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
-                config[modeKey].search = false;
-                searchBtn.querySelector('.search-label').innerText = '不支持';
-                searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        const modeKeys = ['discussion', 'agent'];
+        
+        modeKeys.forEach(modeKey => {
+            const suffix = modeKey === 'discussion' ? 'flash' : 'pro';
+            const modeConfig = config[modeKey];
 
-                if (config[modeKey].strength === 'low') {
-                    config[modeKey].strength = 'high';
+            // 模型切换
+            const modelSelector = document.querySelector(`.model-selector[data-mode="${modeKey}"]`);
+            if (modelSelector) {
+                modelSelector.querySelector('.model-label').innerText = modeConfig.model;
+            }
+
+            // 深度思考
+            const thinkBtn = document.querySelector(`.think-toggle[data-mode="${modeKey}"]`);
+            if (thinkBtn) {
+                const isOn = modeConfig.think;
+                thinkBtn.querySelector('.think-label').innerText = isOn ? '开启' : '关闭';
+                const thinkInput = document.getElementById(`think-${suffix}-${isOn ? 'on' : 'off'}`);
+                if (thinkInput) thinkInput.checked = true;
+            }
+
+            // 联网搜索
+            const searchBtn = document.querySelector(`.search-toggle[data-mode="${modeKey}"]`);
+            if (searchBtn) {
+                if (modeConfig.model === 'deepseek-v4-pro') {
+                    modeConfig.search = false;
+                    searchBtn.querySelector('.search-label').innerText = '不支持';
+                    searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    const isOn = modeConfig.search;
+                    searchBtn.querySelector('.search-label').innerText = isOn ? '开启' : '关闭';
+                    searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    const searchInput = document.getElementById(`search-${suffix}-${isOn ? 'on' : 'off'}`);
+                    if (searchInput) searchInput.checked = true;
                 }
-                const strengthLabel = el.closest('.bg-black/20').querySelector('.strength-label');
-                strengthLabel.innerText = `强度 ${config[modeKey].strength}`;
-            } else {
-                const searchBtn = el.closest('.bg-black/20').querySelector('.search-toggle');
-                searchBtn.querySelector('.search-label').innerText = config[modeKey].search ? '开启' : '关闭';
-                searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
-        });
 
-        // ✨ 强制选中对应的 HTML input 元素
-        const getSuffix = (mode) => mode === 'discussion' ? 'flash' : 'pro';
+            // 思考强度 (💀 之前代码挂掉的核心位置)
+            const strengthSelector = document.querySelector(`.strength-selector[data-mode="${modeKey}"]`);
+            if (strengthSelector) {
+                let strength = modeConfig.strength;
 
-        document.querySelectorAll('.think-toggle').forEach(btn => {
-            const modeKey = btn.dataset.mode;
-            const isOn = config[modeKey].think;
-            const idSuffix = getSuffix(modeKey);
-            btn.querySelector('.think-label').innerText = isOn ? '开启' : '关闭';
-            document.getElementById(`think-${idSuffix}-${isOn ? 'on' : 'off'}`).checked = true;
-        });
+                // ✅ 致命修复：代理模式只支持 high 和 max，初始 low 必转为 high
+                if (modeKey === 'agent' && strength === 'low') {
+                    strength = 'high';
+                    modeConfig.strength = 'high';
+                }
 
-        document.querySelectorAll('.search-toggle').forEach(btn => {
-            const modeKey = btn.dataset.mode;
-            const isOn = config[modeKey].search;
-            const idSuffix = getSuffix(modeKey);
-            if (config[modeKey].model !== 'deepseek-v4-pro') {
-                btn.querySelector('.search-label').innerText = isOn ? '开启' : '关闭';
-                document.getElementById(`search-${idSuffix}-${isOn ? 'on' : 'off'}`).checked = true;
+                // 处理显示文字与对应 ID
+                let displayStrength = strength;
+                if (modeKey === 'discussion') {
+                    if (strength === 'low') displayStrength = '低';
+                    else if (strength === 'mid') displayStrength = '高';
+                    else if (strength === 'max') displayStrength = '最高';
+                } else { // agent
+                    if (strength === 'high') displayStrength = '高';
+                    else if (strength === 'max') displayStrength = '最高';
+                }
+
+                strengthSelector.querySelector('.strength-label').innerText = `强度 ${displayStrength}`;
+
+                // 计算最终要勾选的 ID
+                let inputId = `strength-${suffix}-${strength}`;
+                if (modeKey === 'discussion' && strength === 'high') inputId = `strength-flash-mid`;
+                if (modeKey === 'agent' && strength === 'high') inputId = `strength-pro-high`;
+
+                const inputEl = document.getElementById(inputId);
+                if (inputEl) inputEl.checked = true;
             }
-        });
-
-        document.querySelectorAll('.strength-selector').forEach(sel => {
-            const modeKey = sel.dataset.mode;
-            let strength = config[modeKey].strength;
-            const idSuffix = getSuffix(modeKey);
-            
-            // Pro 模型兜底
-            if (modeKey === 'agent' && strength === 'low') strength = 'high';
-            if (modeKey === 'discussion' && strength === 'high') strength = 'mid'; // 映射 flash 的 高
-            if (modeKey === 'agent' && strength === 'high') strength = 'high';
-            if (strength === 'max') strength = 'max';
-
-            sel.querySelector('.strength-label').innerText = `强度 ${strength === 'mid' ? '高' : strength === 'max' ? '最高' : strength}`;
-            
-            let inputId = `strength-${idSuffix}-${strength}`;
-            if (modeKey === 'discussion' && strength === 'high') inputId = `strength-flash-mid`;
-            if (modeKey === 'agent' && strength === 'high') inputId = `strength-pro-high`;
-            
-            const inputEl = document.getElementById(inputId);
-            if (inputEl) inputEl.checked = true;
         });
 
         localStorage.setItem(configKey, JSON.stringify(config));
     }
     
-    renderUI(); // 首次打开强力执行
+    renderUI(); // 首次渲染执行
 
-    // 4. 下拉菜单触发和保存逻辑
+    // 4. 下拉菜单、点击交互逻辑
     document.querySelectorAll('.model-trigger, .strength-trigger').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -346,4 +350,4 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
     };
 });
-</script>
+            </script>
