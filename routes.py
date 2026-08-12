@@ -8,7 +8,7 @@ import io
 import base64
 import json
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, Response, stream_with_context
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（统一走稳定版 Chat Completions API）
+# DeepSeek AI 接口（流式输出，分块推送）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -108,7 +108,7 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 1. 记忆压缩逻辑
+    # 记忆压缩逻辑（保持不变）
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -129,54 +129,62 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 2. 核心配置参数
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
-    # 锁定模型映射
+    # ✅ 统一走 Chat Completions，开启流式传输
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     
-    # 锁定额度和处理 Pro 不支持 Low 的防错逻辑
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
-    think_enabled = mode_config.get('think', False)
+    think_enabled = True  # 🛡️ 核心逻辑改成：永远强制开启深度思考！
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     payload = {
         "model": model_name,
         "messages": messages,
         "temperature": 0.3,
-        "stream": False
+        "stream": True,  # 核心开关：流式
+        "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
     }
 
-    # 3. 🎯 完美控制深度思考开关
-    if think_enabled:
-        payload['extra_body'] = {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
-    else:
-        payload['extra_body'] = {"thinking": {"type": "disabled"}}
+    # 使用生成器处理流式响应
+    def generate():
+        try:
+            resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, stream=True)
+            for line in resp.iter_lines():
+                if line:
+                    line = line.decode('utf-8')
+                    if line.startswith('data: '):
+                        data_str = line[6:]
+                        if data_str == '[DONE]':
+                            break
+                        try:
+                            chunk = json.loads(data_str)
+                            delta = chunk['choices'][0]['delta']
+                            finish_reason = chunk['choices'][0].get('finish_reason')
+                            
+                            # 提取思考过程和正文
+                            reasoning = delta.get('reasoning_content')
+                            content = delta.get('content')
 
-    try:
-        api_url = "https://api.deepseek.com/chat/completions"
-        resp = requests.post(api_url, headers=headers, json=payload, timeout=30)
+                            if reasoning:
+                                yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning})}\n\n"
+                            if content:
+                                yield f"data: {json.dumps({'type': 'content', 'content': content})}\n\n"
+                            
+                            if finish_reason:
+                                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                        except:
+                            pass
+        except Exception as e:
+            yield f"data: {json.dumps({'type': 'error', 'content': '请求异常，请稍后重试。'})}\n\n"
+        finally:
+            yield "data: [DONE]\n\n"
 
-        if resp.status_code == 200:
-            result = resp.json()
-            ai_reply = result['choices'][0]['message']['content']
-            reasoning_content = result['choices'][0]['message'].get('reasoning_content')
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
-            chat_history.append({"role": "user", "content": user_message})
-            chat_history.append({"role": "assistant", "content": ai_reply})
-            session['chat_history'] = chat_history
-
-            response_data = {'reply': ai_reply}
-            if reasoning_content: response_data['reasoning'] = reasoning_content
-            return jsonify(response_data)
-        else:
-            return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': '请求异常，请稍后重试。'})
-
+# 旧的记忆总结接口依然保留用非流式
 def call_deepseek_core(messages, model='deepseek-v4-flash'):
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return None, "未配置 Key"
