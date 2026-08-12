@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（适配 Responses API 流式输出） -->
+<!-- Agent 玻璃质感底部面板组件（强制携带配置） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -25,14 +25,7 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   
-  @keyframes shakeToggle {
-    0% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-    100% { transform: translateX(0); }
-  }
+  @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
   .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
 
@@ -52,9 +45,7 @@
                 </div>
             </div>
 
-            <button id="newChatBtn" class="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95 text-lg leading-none font-light">
-                +
-            </button>
+            <button id="newChatBtn" class="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95 text-lg leading-none font-light">+</button>
         </div>
 
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
@@ -136,16 +127,16 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    function getDefaultConfig() {
-        return {
-            discussion: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'low' },
-            agent: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'high' }
-        };
-    }
-
-    if (!window.currentAgentConfig) {
+    // ✨ 确保每次发消息都拿最新的配置
+    function getCurrentConfig() {
         const saved = localStorage.getItem('gsbot_agent_config');
-        window.currentAgentConfig = saved ? JSON.parse(saved) : getDefaultConfig();
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch(e) { /* ignore */ }
+        }
+        // 兜底默认配置
+        return { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'high' } };
     }
 
     function sendMessageInternal() {
@@ -163,13 +154,15 @@ document.addEventListener("DOMContentLoaded", function() {
         let thoughtBubble = null;
         let replyBubble = null;
 
+        const payloadConfig = getCurrentConfig(); // ⚡️ 直接从本地取，绝对保证同步！
+
         fetch('/api/agent/chat', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ 
                 message: text, 
                 mode: currentMode,
-                config: window.currentAgentConfig || getDefaultConfig() 
+                config: payloadConfig
             }) 
         })
         .then(response => {
@@ -179,10 +172,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             function readStream() {
                 return reader.read().then(({done, value}) => {
-                    if (done) {
-                        isProcessing = false;
-                        return;
-                    }
+                    if (done) { isProcessing = false; return; }
                     buffer += decoder.decode(value, {stream: true});
                     const lines = buffer.split('\n');
                     buffer = lines.pop();
@@ -190,10 +180,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const jsonStr = line.slice(6).trim();
-                            if (jsonStr === '[DONE]') {
-                                isProcessing = false;
-                                return;
-                            }
+                            if (jsonStr === '[DONE]') { isProcessing = false; return; }
                             try {
                                 const data = JSON.parse(jsonStr);
                                 const type = data.type;
@@ -205,7 +192,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         thoughtBubble.className = 'ai-thought-msg';
                                         targetList.appendChild(thoughtBubble);
                                     }
-                                    // 过滤掉潜在的对象字符串化
                                     thoughtBubble.textContent += typeof content === 'string' ? content : '';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
                                 } else if (type === 'content') {
@@ -216,9 +202,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                     }
                                     replyBubble.textContent += typeof content === 'string' ? content : '';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                                } else if (type === 'done') {
-                                    isProcessing = false;
-                                } else if (type === 'error') {
+                                } else if (type === 'done') { isProcessing = false; } 
+                                else if (type === 'error') {
                                     if (!replyBubble) {
                                         replyBubble = document.createElement('div');
                                         replyBubble.className = 'ai-text-msg';
@@ -257,11 +242,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     if (data.status === 'ok') {
                         discussionList.innerHTML = '';
                         agentList.innerHTML = '';
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('已开启全新对话', false);
-                        } else {
-                            alert('✅ 已开启全新对话');
-                        }
+                        if (typeof window.showToast === 'function') { window.showToast('已开启全新对话', false); } 
+                        else { alert('✅ 已开启全新对话'); }
                     }
                 })
                 .catch(() => { alert('清空记忆失败，请检查网络连接。'); });
