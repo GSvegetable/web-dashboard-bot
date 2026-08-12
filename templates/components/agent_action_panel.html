@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（接入设置面板、保留UI与动画） -->
+<!-- Agent 玻璃质感底部面板组件（完美修复配置面板无法全屏弹出的BUG） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -45,10 +45,8 @@
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
         
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <!-- UI 布局：加入了设置齿轮按钮 -->
+            <!-- 设置齿轮按钮 -->
             <div class="flex items-end gap-2 w-full">
-                
-                <!-- ✨ 设置齿轮按钮 ✨ -->
                 <button onclick="openAgentSettings()" class="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 </button>
@@ -58,10 +56,10 @@
             </div>
         </div>
     </div>
-    
-    <!-- ✨ 引入独立配置面板 ✨ -->
-    {% include 'components/agent_settings_panel.html' %}
-</div>
+</div> <!-- agentPanelWrapper 结束 -->
+
+<!-- ✨ 修复核心：把设置面板移到 wrapper 的外面，作为独立的元素固定到屏幕最下方 ✨ -->
+{% include 'components/agent_settings_panel.html' %}
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -124,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // 定义一个默认配置，防止第一次发送时 window.currentAgentConfig 为空
     function getDefaultConfig() {
         return {
             discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
@@ -132,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 
-    // 确保配置全局可用
     if (!window.currentAgentConfig) {
         const saved = localStorage.getItem('gsbot_agent_config');
         window.currentAgentConfig = saved ? JSON.parse(saved) : getDefaultConfig();
@@ -153,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function() {
         let loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = '思考中...'; loadingMsg.id = 'loading-bubble';
         targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
 
-        // ✨ 发送消息时，把当前的配置一起传给后端
         fetch('/api/agent/chat', { 
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' }, 
