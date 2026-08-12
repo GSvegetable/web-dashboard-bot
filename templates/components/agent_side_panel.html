@@ -1,5 +1,6 @@
-<!-- Agent 左侧附加面板（高度为聊天的 1/2，纯占位用） -->
-<div id="agentSidePanel" class="flex-1 max-w-[480px] h-[330px] bg-white/10 backdrop-blur-md border border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex flex-col p-6 transition-transform duration-500 translate-y-full overflow-hidden">
+<!-- Agent 左侧附加面板（绝对定位，独立控制位置） -->
+<!-- ✨ 用 absolute 和 translate 完全脱离主面板控制，这是调位置的唯一地方 -->
+<div id="agentSidePanel" class="absolute bottom-0 left-0 -translate-x-[calc(100% + 16px)] w-[480px] h-[330px] bg-white/10 backdrop-blur-md border border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex flex-col p-6 transition-transform duration-500 translate-y-full overflow-hidden">
     <div class="text-white font-bold text-sm mb-2 flex justify-between items-center">
         <span>快捷操作</span>
     </div>
