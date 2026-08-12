@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 终极 AI 接口 (强制拦截并删除思考过程)
+# DeepSeek 终极 AI 接口
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -108,7 +108,7 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 1. 强制锁定模型映射
+    # 1. 强制锁定模型映射 (讨论=2.5-flash, 代理人=2-pro)
     if mode == 'agent':
         model_name = "deepseek-v4-pro"
         raw_strength = mode_config.get('strength', 'high')
@@ -117,12 +117,13 @@ def agent_chat():
         model_name = "deepseek-v4-flash"
         reasoning_effort = mode_config.get('strength', 'low')
 
+    # 2. 读取用户面板状态
     think_enabled = mode_config.get('think', False)
     search_enabled = mode_config.get('search', False)
     if model_name == "deepseek-v4-pro":
         search_enabled = False
 
-    # 2. 记忆压缩逻辑
+    # 3. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -143,7 +144,7 @@ def agent_chat():
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 3. 组装 DeepSeek API 请求包
+    # 4. 组装 DeepSeek API 请求包
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
@@ -154,6 +155,7 @@ def agent_chat():
         "stream": False
     }
 
+    # 🎯 核心修复：无论开还是关，都要强制传 extra_body！
     if think_enabled:
         payload['extra_body'] = {
             "thinking": {
@@ -162,7 +164,6 @@ def agent_chat():
             }
         }
     else:
-        # 依然明确告诉 API 关闭，但后端会做最终拦截
         payload['extra_body'] = {
             "thinking": {
                 "type": "disabled"
@@ -175,18 +176,14 @@ def agent_chat():
         if resp.status_code == 200:
             result = resp.json()
             ai_reply = result['choices'][0]['message']['content']
-            
-            # ✅ 核心修正：如果用户关了思考，直接在后端把思考过程物理删除，绝不发给前端！
-            response_data = {'reply': ai_reply}
-            if think_enabled:
-                reasoning_content = result['choices'][0]['message'].get('reasoning_content')
-                if reasoning_content:
-                    response_data['reasoning'] = reasoning_content
+            reasoning_content = result['choices'][0]['message'].get('reasoning_content')
             
             chat_history.append({"role": "user", "content": user_message})
             chat_history.append({"role": "assistant", "content": ai_reply})
             session['chat_history'] = chat_history
 
+            response_data = {'reply': ai_reply}
+            if reasoning_content: response_data['reasoning'] = reasoning_content
             return jsonify(response_data)
         else:
             return jsonify({'reply': f'DeepSeek 接口错误 (状态码: {resp.status_code})'})
@@ -204,6 +201,16 @@ def call_deepseek_core(messages, model='deepseek-v4-flash'):
         if resp.status_code == 200: return resp.json(), None
         return None, f"错误: {resp.status_code}"
     except Exception as e: return None, str(e)
+
+# ==========================================
+# ✅ 新增：清空 AI 记忆接口（用于"+"号按钮）
+# ==========================================
+@main_bp.route('/api/agent/clear', methods=['POST'])
+def clear_agent_history():
+    # 从 session 中移除历史和摘要
+    session.pop('chat_history', None)
+    session.pop('chat_summary', None)
+    return jsonify({'status': 'ok', 'msg': '记忆已清空，可以开始全新对话。'})
 
 # ================= 下方原有路由保持不变 =================
 @main_bp.route('/api/get_qr_login', methods=['GET'])
