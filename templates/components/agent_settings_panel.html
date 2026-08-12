@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（物理层面强制默认选中、映射逻辑直白不迷路） -->
+<!-- Agent 独立配置面板（关闭统一银灰色，颜色精准对位） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -16,7 +16,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="think-flash" id="think-flash-off" checked />
                             <label for="think-flash-off">关闭</label>
                             <input type="radio" name="think-flash" id="think-flash-on" />
@@ -27,7 +26,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="search-flash" id="search-flash-off" checked />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
@@ -38,7 +36,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
-                            <!-- ✅ 物理默认选择：低 -->
                             <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                             <label for="strength-flash-low">低</label>
                             <input type="radio" name="strength-flash" id="strength-flash-mid" />
@@ -58,7 +55,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="think-pro" id="think-pro-off" checked />
                             <label for="think-pro-off">关闭</label>
                             <input type="radio" name="think-pro" id="think-pro-on" />
@@ -69,7 +65,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="search-pro" id="search-pro-off" checked />
                             <label for="search-pro-off">关闭</label>
                             <input type="radio" name="search-pro" id="search-pro-on" />
@@ -80,7 +75,6 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <!-- ✅ Pro 初始只能选 高 或 最高，物理默认选择：高 -->
                             <input type="radio" name="strength-pro" id="strength-pro-high" checked />
                             <label for="strength-pro-high">高</label>
                             <input type="radio" name="strength-pro" id="strength-pro-max" />
@@ -117,11 +111,8 @@
         border-radius: 1rem; z-index: 1;
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
-    /* 低：银色 */
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
-    /* 高：蓝色 */
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
-    /* 最高：金色 */
     #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
     /* --- 2选项样式 --- */
@@ -147,7 +138,7 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
 
-    /* 所有的“关闭”：银灰色 */
+    /* ✅ 1. 所有的“关闭”状态：统一用银灰色 */
     #think-flash-off:checked ~ .glass-glider-2,
     #search-flash-off:checked ~ .glass-glider-2,
     #think-pro-off:checked ~ .glass-glider-2,
@@ -157,7 +148,7 @@
         box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
 
-    /* 所有的“开启”：金色 */
+    /* ✅ 2. 所有的“开启”状态：统一用金色 */
     #think-flash-on:checked ~ .glass-glider-2,
     #search-flash-on:checked ~ .glass-glider-2,
     #think-pro-on:checked ~ .glass-glider-2,
@@ -167,14 +158,14 @@
         box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
 
-    /* Pro 的“高”：蓝色 */
+    /* ✅ 3. Pro 的“高”：使用蓝色 */
     #strength-pro-high:checked ~ .glass-glider-2 {
         transform: translateX(0%);
         background: linear-gradient(135deg, #d0e7ff55, #a0d8ff);
         box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset;
     }
 
-    /* Pro 的“最高”：金色 */
+    /* ✅ 4. Pro 的“最高”：使用金色 */
     #strength-pro-max:checked ~ .glass-glider-2 {
         transform: translateX(100%);
         background: linear-gradient(135deg, #ffd70055, #ffcc00);
@@ -182,75 +173,21 @@
     }
 </style>
 
-<!-- 🎯 绝对直白的默认状态同步逻辑 -->
+<!-- 🎯 弹出动画与关闭逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
-    const configKey = 'gsbot_agent_config';
-
-    // 1. 根据页面物理 checked 状态提取默认配置
-    function getCurrentConfig() {
-        return {
-            discussion: { 
-                model: 'deepseek-v4-flash', 
-                think: document.getElementById('think-flash-on')?.checked || false, 
-                search: document.getElementById('search-flash-on')?.checked || false, 
-                strength: document.getElementById('strength-flash-low')?.checked ? 'low' : document.getElementById('strength-flash-mid')?.checked ? 'mid' : 'max'
-            },
-            agent: { 
-                model: 'deepseek-v4-flash', 
-                think: document.getElementById('think-pro-on')?.checked || false, 
-                search: document.getElementById('search-pro-on')?.checked || false, 
-                strength: document.getElementById('strength-pro-high')?.checked ? 'high' : 'max'
-            }
-        };
-    }
-
-    // 2. 同步最新配置到 localStorage
-    function syncConfigToStorage() {
-        const current = getCurrentConfig();
-        localStorage.setItem(configKey, JSON.stringify(current));
-        window.currentAgentConfig = current;
-        console.log("Agent 配置同步:", current);
-    }
-    
-    // 第一次加载时，不管 localStorage 里有什么，强制用物理层选中的状态刷新一遍
-    syncConfigToStorage();
-
-    // 3. 交互监听：每点一个选项，触发保存
-    document.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.addEventListener('change', function() {
-            syncConfigToStorage();
-        });
-    });
-
-    // 4. 原有的下拉菜单展开交互
-    document.querySelectorAll('.model-trigger, .strength-trigger').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const parent = this.closest('.relative');
-            const menu = parent.querySelector('.model-menu, .strength-menu');
-            document.querySelectorAll('.model-menu, .strength-menu').forEach(m => { if (m !== menu) m.classList.add('hidden'); });
-            menu.classList.toggle('hidden');
-        });
-    });
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.relative')) {
-            document.querySelectorAll('.model-menu, .strength-menu').forEach(m => m.classList.add('hidden'));
-        }
-    });
-
-    // 5. 弹窗动画
+    const content = document.getElementById('settingsModalContent');
     window.openAgentSettings = function() {
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
-            document.getElementById('settingsModalContent').classList.remove('opacity-0', '-translate-y-[120%]');
-            document.getElementById('settingsModalContent').classList.add('opacity-100', 'translate-y-0');
+            content.classList.remove('opacity-0', '-translate-y-[120%]');
+            content.classList.add('opacity-100', 'translate-y-0');
         });
     };
     window.closeAgentSettings = function() {
-        document.getElementById('settingsModalContent').classList.remove('opacity-100', 'translate-y-0');
-        document.getElementById('settingsModalContent').classList.add('opacity-0', '-translate-y-[120%]');
+        content.classList.remove('opacity-100', 'translate-y-0');
+        content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
     };
 });
