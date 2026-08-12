@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>gsbot 启动页</title>
 
-    <!-- ✅ 预加载两张背景图，解决初次加载和切换时的卡顿 -->
+    
     <link rel="preload" as="image" href="{{ url_for('static', filename='mmexport1785785172198.jpg') }}">
     <link rel="preload" as="image" href="{{ url_for('static', filename='bg.png') }}">
 
