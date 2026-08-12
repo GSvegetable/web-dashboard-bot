@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（彻底修复默认未选中映射缺失问题） -->
+<!-- Agent 独立配置面板（物理层面强制默认选中、映射逻辑直白不迷路） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -16,6 +16,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="think-flash" id="think-flash-off" checked />
                             <label for="think-flash-off">关闭</label>
                             <input type="radio" name="think-flash" id="think-flash-on" />
@@ -26,6 +27,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="search-flash" id="search-flash-off" checked />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
@@ -36,6 +38,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
+                            <!-- ✅ 物理默认选择：低 -->
                             <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                             <label for="strength-flash-low">低</label>
                             <input type="radio" name="strength-flash" id="strength-flash-mid" />
@@ -55,6 +58,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="think-pro" id="think-pro-off" checked />
                             <label for="think-pro-off">关闭</label>
                             <input type="radio" name="think-pro" id="think-pro-on" />
@@ -65,6 +69,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <!-- ✅ 物理默认选择：关闭 -->
                             <input type="radio" name="search-pro" id="search-pro-off" checked />
                             <label for="search-pro-off">关闭</label>
                             <input type="radio" name="search-pro" id="search-pro-on" />
@@ -75,6 +80,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <!-- ✅ Pro 初始只能选 高 或 最高，物理默认选择：高 -->
                             <input type="radio" name="strength-pro" id="strength-pro-high" checked />
                             <label for="strength-pro-high">高</label>
                             <input type="radio" name="strength-pro" id="strength-pro-max" />
@@ -176,104 +182,49 @@
     }
 </style>
 
-<!-- 🎯 终极修正：精准匹配模型映射与强弱数据 -->
+<!-- 🎯 绝对直白的默认状态同步逻辑 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
     const configKey = 'gsbot_agent_config';
 
-    // 1. 默认配置（最省钱、全关闭、低强度）
-    const defaultConfig = {
-        discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
-        agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' }
-    };
-
-    // 2. 读取配置，如果无配置则写入默认
-    let config = JSON.parse(localStorage.getItem(configKey));
-    if (!config) {
-        config = defaultConfig;
-        localStorage.setItem(configKey, JSON.stringify(config));
+    // 1. 根据页面物理 checked 状态提取默认配置
+    function getCurrentConfig() {
+        return {
+            discussion: { 
+                model: 'deepseek-v4-flash', 
+                think: document.getElementById('think-flash-on')?.checked || false, 
+                search: document.getElementById('search-flash-on')?.checked || false, 
+                strength: document.getElementById('strength-flash-low')?.checked ? 'low' : document.getElementById('strength-flash-mid')?.checked ? 'mid' : 'max'
+            },
+            agent: { 
+                model: 'deepseek-v4-flash', 
+                think: document.getElementById('think-pro-on')?.checked || false, 
+                search: document.getElementById('search-pro-on')?.checked || false, 
+                strength: document.getElementById('strength-pro-high')?.checked ? 'high' : 'max'
+            }
+        };
     }
 
-    // 3. 核心渲染逻辑（修复代理模式找不到 low 选项的 Bug）
-    function renderUI() {
-        const modeKeys = ['discussion', 'agent'];
-        
-        modeKeys.forEach(modeKey => {
-            const suffix = modeKey === 'discussion' ? 'flash' : 'pro';
-            const modeConfig = config[modeKey];
-
-            // 模型切换
-            const modelSelector = document.querySelector(`.model-selector[data-mode="${modeKey}"]`);
-            if (modelSelector) {
-                modelSelector.querySelector('.model-label').innerText = modeConfig.model;
-            }
-
-            // 深度思考
-            const thinkBtn = document.querySelector(`.think-toggle[data-mode="${modeKey}"]`);
-            if (thinkBtn) {
-                const isOn = modeConfig.think;
-                thinkBtn.querySelector('.think-label').innerText = isOn ? '开启' : '关闭';
-                const thinkInput = document.getElementById(`think-${suffix}-${isOn ? 'on' : 'off'}`);
-                if (thinkInput) thinkInput.checked = true;
-            }
-
-            // 联网搜索
-            const searchBtn = document.querySelector(`.search-toggle[data-mode="${modeKey}"]`);
-            if (searchBtn) {
-                if (modeConfig.model === 'deepseek-v4-pro') {
-                    modeConfig.search = false;
-                    searchBtn.querySelector('.search-label').innerText = '不支持';
-                    searchBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                } else {
-                    const isOn = modeConfig.search;
-                    searchBtn.querySelector('.search-label').innerText = isOn ? '开启' : '关闭';
-                    searchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    const searchInput = document.getElementById(`search-${suffix}-${isOn ? 'on' : 'off'}`);
-                    if (searchInput) searchInput.checked = true;
-                }
-            }
-
-            // 思考强度 (💀 之前代码挂掉的核心位置)
-            const strengthSelector = document.querySelector(`.strength-selector[data-mode="${modeKey}"]`);
-            if (strengthSelector) {
-                let strength = modeConfig.strength;
-
-                // ✅ 致命修复：代理模式只支持 high 和 max，初始 low 必转为 high
-                if (modeKey === 'agent' && strength === 'low') {
-                    strength = 'high';
-                    modeConfig.strength = 'high';
-                }
-
-                // 处理显示文字与对应 ID
-                let displayStrength = strength;
-                if (modeKey === 'discussion') {
-                    if (strength === 'low') displayStrength = '低';
-                    else if (strength === 'mid') displayStrength = '高';
-                    else if (strength === 'max') displayStrength = '最高';
-                } else { // agent
-                    if (strength === 'high') displayStrength = '高';
-                    else if (strength === 'max') displayStrength = '最高';
-                }
-
-                strengthSelector.querySelector('.strength-label').innerText = `强度 ${displayStrength}`;
-
-                // 计算最终要勾选的 ID
-                let inputId = `strength-${suffix}-${strength}`;
-                if (modeKey === 'discussion' && strength === 'high') inputId = `strength-flash-mid`;
-                if (modeKey === 'agent' && strength === 'high') inputId = `strength-pro-high`;
-
-                const inputEl = document.getElementById(inputId);
-                if (inputEl) inputEl.checked = true;
-            }
-        });
-
-        localStorage.setItem(configKey, JSON.stringify(config));
+    // 2. 同步最新配置到 localStorage
+    function syncConfigToStorage() {
+        const current = getCurrentConfig();
+        localStorage.setItem(configKey, JSON.stringify(current));
+        window.currentAgentConfig = current;
+        console.log("Agent 配置同步:", current);
     }
     
-    renderUI(); // 首次渲染执行
+    // 第一次加载时，不管 localStorage 里有什么，强制用物理层选中的状态刷新一遍
+    syncConfigToStorage();
 
-    // 4. 下拉菜单、点击交互逻辑
+    // 3. 交互监听：每点一个选项，触发保存
+    document.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.addEventListener('change', function() {
+            syncConfigToStorage();
+        });
+    });
+
+    // 4. 原有的下拉菜单展开交互
     document.querySelectorAll('.model-trigger, .strength-trigger').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -283,57 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
             menu.classList.toggle('hidden');
         });
     });
-
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.relative')) {
             document.querySelectorAll('.model-menu, .strength-menu').forEach(m => m.classList.add('hidden'));
         }
     });
-
-    document.querySelectorAll('.model-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-            const modeKey = this.closest('.model-selector').dataset.mode;
-            config[modeKey].model = this.dataset.model;
-            renderUI();
-            document.querySelectorAll('.model-menu').forEach(m => m.classList.add('hidden'));
-            updateBackendConfig();
-        });
-    });
-
-    document.querySelectorAll('.strength-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-            const modeKey = this.closest('.strength-selector').dataset.mode;
-            config[modeKey].strength = this.dataset.strength;
-            renderUI();
-            document.querySelectorAll('.strength-menu').forEach(m => m.classList.add('hidden'));
-            updateBackendConfig();
-        });
-    });
-
-    document.querySelectorAll('.think-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modeKey = this.dataset.mode;
-            config[modeKey].think = !config[modeKey].think;
-            renderUI();
-            updateBackendConfig();
-        });
-    });
-
-    document.querySelectorAll('.search-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modeKey = this.dataset.mode;
-            if (config[modeKey].model === 'deepseek-v4-pro') return;
-            config[modeKey].search = !config[modeKey].search;
-            renderUI();
-            updateBackendConfig();
-        });
-    });
-
-    function updateBackendConfig() {
-        window.currentAgentConfig = config;
-        console.log("Agent 配置已更新:", config);
-    }
-    updateBackendConfig();
 
     // 5. 弹窗动画
     window.openAgentSettings = function() {
@@ -343,11 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('settingsModalContent').classList.add('opacity-100', 'translate-y-0');
         });
     };
-
     window.closeAgentSettings = function() {
         document.getElementById('settingsModalContent').classList.remove('opacity-100', 'translate-y-0');
         document.getElementById('settingsModalContent').classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
     };
 });
-            </script>
+</script>
