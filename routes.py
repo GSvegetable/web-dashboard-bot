@@ -95,7 +95,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（讨论使用 Responses API，支持联网）
+# DeepSeek 稳定版接口（纯 Chat Completions，无联网）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -108,7 +108,6 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -137,73 +136,28 @@ def agent_chat():
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
-    think_enabled = True  # 深度思考强制开启
-    search_enabled = mode_config.get('search', False)
+    think_enabled = True  # 强制开启
 
     def generate():
         try:
-            if mode == 'agent':
-                # 🔴 代理人模式保持 Chat Completions
-                api_url = "https://api.deepseek.com/chat/completions"
-                payload = {
-                    "model": model_name, "messages": messages, "temperature": 0.3, "stream": True,
-                    "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
-                }
-                resp = requests.post(api_url, headers=headers, json=payload, stream=True)
-                for line in resp.iter_lines():
-                    if line:
-                        line = line.decode('utf-8')
-                        if line.startswith('data: '):
-                            data_str = line[6:]
-                            if data_str == '[DONE]': break
-                            try:
-                                chunk = json.loads(data_str)
-                                delta = chunk['choices'][0]['delta']
-                                if delta.get('reasoning_content'): yield f"data: {json.dumps({'type': 'reasoning', 'content': delta['reasoning_content']})}\n\n"
-                                if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
-                                if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                            except: pass
-            else:
-                # 🟢 讨论模式：使用官方 Responses API（原生支持联网搜索！）
-                api_url = "https://api.deepseek.com/responses"
-                payload = {
-                    "model": "deepseek-v4-flash",
-                    "input": messages,
-                    "temperature": 0.3,
-                    "stream": True,
-                    "reasoning": {"type": "enabled", "effort": reasoning_effort}
-                }
-                
-                # 只要开启了联网搜索，就传给官方接口
-                if search_enabled:
-                    payload["tools"] = [{"type": "web_search"}]
-                
-                resp = requests.post(api_url, headers=headers, json=payload, stream=True)
-                for line in resp.iter_lines():
-                    if line:
-                        line = line.decode('utf-8')
-                        if line.startswith('data: '):
-                            data_str = line[6:]
-                            if data_str == '[DONE]': break
-                            try:
-                                chunk = json.loads(data_str)
-                                chunk_type = chunk.get('type')
-                                chunk_data = chunk.get('data', {})
-                                
-                                if chunk_type == 'reasoning':
-                                    reasoning_text = chunk_data.get('text')
-                                    if reasoning_text:
-                                        yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_text})}\n\n"
-                                elif chunk_type == 'text':
-                                    content_text = chunk_data.get('text')
-                                    if content_text:
-                                        yield f"data: {json.dumps({'type': 'content', 'content': content_text})}\n\n"
-                                elif chunk_type == 'web_search_call':
-                                    # 如果只想显示地址，可以在这里处理，这里我们保持透传或跳过
-                                    pass
-                            except: pass
-                yield f"data: {json.dumps({'type': 'done'})}\n\n"
-
+            payload = {
+                "model": model_name, "messages": messages, "temperature": 0.3, "stream": True,
+                "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
+            }
+            resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, stream=True, timeout=90)
+            for line in resp.iter_lines():
+                if line:
+                    line = line.decode('utf-8')
+                    if line.startswith('data: '):
+                        data_str = line[6:]
+                        if data_str == '[DONE]': break
+                        try:
+                            chunk = json.loads(data_str)
+                            delta = chunk['choices'][0]['delta']
+                            if delta.get('reasoning_content'): yield f"data: {json.dumps({'type': 'reasoning', 'content': delta['reasoning_content']})}\n\n"
+                            if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
+                            if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                        except: pass
         except Exception as e:
             yield f"data: {json.dumps({'type': 'error', 'content': '请求异常，请稍后重试。'})}\n\n"
         finally:
@@ -222,7 +176,7 @@ def call_deepseek_core(messages, model='deepseek-v4-flash'):
         return None, f"错误: {resp.status_code}"
     except Exception as e: return None, str(e)
 
-# ================= 下方路由保持不变 =================
+# ================= 清空与原有路由 =================
 @main_bp.route('/api/agent/clear', methods=['POST'])
 def clear_agent_history():
     session.pop('chat_history', None)
