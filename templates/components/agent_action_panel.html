@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（含思考截断拦截） -->
+<!-- Agent 玻璃质感底部面板组件（流式输出 + 强制思考开启） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -24,6 +24,19 @@
   .ai-thought-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; font-style: italic; padding: 2px 2px 0; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: -2px; }
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  
+  /* ✨ 拒绝关闭的摇头晃脑动画 */
+  @keyframes shakeToggle {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+    100% { transform: translateX(0); }
+  }
+  .shake-toggle {
+    animation: shakeToggle 0.4s ease-in-out 2;
+  }
 </style>
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
@@ -128,8 +141,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function getDefaultConfig() {
         return {
-            discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
-            agent: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'high' }
+            discussion: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'low' },
+            agent: { model: 'deepseek-v4-flash', think: true, search: false, strength: 'high' }
         };
     }
 
@@ -138,6 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
         window.currentAgentConfig = saved ? JSON.parse(saved) : getDefaultConfig();
     }
 
+    // 修改流式发送逻辑
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -150,8 +164,11 @@ document.addEventListener("DOMContentLoaded", function() {
         targetList.appendChild(userBubble); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
         
-        let loadingMsg = document.createElement('div'); loadingMsg.className = 'ai-text-msg text-gray-400'; loadingMsg.textContent = '思考中...'; loadingMsg.id = 'loading-bubble';
-        targetList.appendChild(loadingMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+        // 🚨 彻底移除了“思考中...”的 loadingMsg
+
+        // 创建思考气泡和正文气泡的占位（为了流式追加）
+        let thoughtBubble = null;
+        let replyBubble = null;
 
         fetch('/api/agent/chat', { 
             method: 'POST', 
@@ -162,33 +179,70 @@ document.addEventListener("DOMContentLoaded", function() {
                 config: window.currentAgentConfig || getDefaultConfig() 
             }) 
         })
-        .then(res => { if (!res.ok) throw new Error(`API 失败，状态码: ${res.status}`); return res.json(); })
-        .then(data => {
-            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
-            
-            // 🛡️ 核心拦截：如果用户关闭了深度思考，即使API偷偷返回了 reasoning 也不显示！
-            const currentThinkEnabled = window.currentAgentConfig && window.currentAgentConfig[currentMode] && window.currentAgentConfig[currentMode].think;
-            if (data.reasoning && currentThinkEnabled) {
-                const thoughtBubble = document.createElement('div');
-                thoughtBubble.className = 'ai-thought-msg';
-                thoughtBubble.textContent = data.reasoning;
-                targetList.appendChild(thoughtBubble);
-                agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            }
+        .then(response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
 
-            const botMsg = document.createElement('div'); botMsg.className = 'ai-text-msg';
-            botMsg.textContent = data.reply || '抱歉，没有收到回复。';
-            targetList.appendChild(botMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            isProcessing = false;
-            
-            if (data.action === 'add_bot_node' && data.params) {
-                if (typeof window.addBotNode === 'function') {
-                    window.addBotNode(data.params.name, data.params.avatar || null);
-                }
+            function readStream() {
+                return reader.read().then(({done, value}) => {
+                    if (done) {
+                        isProcessing = false;
+                        return;
+                    }
+                    buffer += decoder.decode(value, {stream: true});
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const jsonStr = line.slice(6).trim();
+                            if (jsonStr === '[DONE]') {
+                                isProcessing = false;
+                                return;
+                            }
+                            try {
+                                const data = JSON.parse(jsonStr);
+                                const type = data.type;
+                                const content = data.content;
+
+                                if (type === 'reasoning') {
+                                    if (!thoughtBubble) {
+                                        thoughtBubble = document.createElement('div');
+                                        thoughtBubble.className = 'ai-thought-msg';
+                                        targetList.appendChild(thoughtBubble);
+                                    }
+                                    thoughtBubble.textContent += content;
+                                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                                } else if (type === 'content') {
+                                    if (!replyBubble) {
+                                        replyBubble = document.createElement('div');
+                                        replyBubble.className = 'ai-text-msg';
+                                        targetList.appendChild(replyBubble);
+                                    }
+                                    replyBubble.textContent += content;
+                                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                                } else if (type === 'done') {
+                                    isProcessing = false;
+                                } else if (type === 'error') {
+                                    if (!replyBubble) {
+                                        replyBubble = document.createElement('div');
+                                        replyBubble.className = 'ai-text-msg';
+                                        targetList.appendChild(replyBubble);
+                                    }
+                                    replyBubble.textContent = content;
+                                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
+                                    isProcessing = false;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                    return readStream();
+                });
             }
+            return readStream();
         })
         .catch(() => {
-            if (loadingMsg && loadingMsg.parentNode) loadingMsg.remove();
             const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80';
             errMsg.textContent = '网络异常或 Key 未配置。';
             targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
