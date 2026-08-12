@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（完美修复配置面板无法全屏弹出的BUG） -->
+<!-- Agent 玻璃质感底部面板组件（完美集成侧边面板） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -45,7 +45,7 @@
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
         
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
-            <!-- 设置齿轮按钮 -->
+            <!-- 设置齿轮按钮 + 输入框 -->
             <div class="flex items-end gap-2 w-full">
                 <button onclick="openAgentSettings()" class="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -56,10 +56,11 @@
             </div>
         </div>
     </div>
-</div> <!-- agentPanelWrapper 结束 -->
-
-<!-- ✨ 修复核心：把设置面板移到 wrapper 的外面，作为独立的元素固定到屏幕最下方 ✨ -->
-{% include 'components/agent_settings_panel.html' %}
+    
+    <!-- 引入独立配置面板和全新的侧边面板 -->
+    {% include 'components/agent_settings_panel.html' %}
+    {% include 'components/agent_side_panel.html' %}
+</div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -86,29 +87,60 @@ document.addEventListener("DOMContentLoaded", function() {
     radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
     radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
 
+    // 🆕 更新位置函数：让聊天面板和侧边面板并排出现，中间留缝
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
         const container = document.getElementById('cardStackContainer');
+        const sidePanel = document.getElementById('agentSidePanel');
         if (container) {
             const rect = container.getBoundingClientRect();
-            panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+            const chatWidth = rect.width * 4 / 3;
+            const sideWidth = chatWidth / 2;
+            const gap = 12; // 中间留的缝隙宽度
+            
+            panelWrapper.style.width = chatWidth + 'px';
             panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
             panelWrapper.style.transform = 'translateX(-50%)';
+
+            // 控制侧边面板的位置和宽度
+            sidePanel.style.width = sideWidth + 'px';
+            sidePanel.style.height = '660px';
+            // 聊天面板宽度的一半 + 缝隙
+            sidePanel.style.left = `calc(50% + ${(chatWidth / 2) + gap}px)`;
+            sidePanel.style.transform = 'translateX(-50%)';
         }
     }
+
+    // 🆕 切换面板逻辑：同时控制聊天和侧边面板
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
+        const sidePanel = document.getElementById('agentSidePanel');
         if (isPanelOpen) {
             const container = document.getElementById('cardStackContainer');
             if (container) {
                 const rect = container.getBoundingClientRect();
-                panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
+                const chatWidth = rect.width * 4 / 3;
+                const sideWidth = chatWidth / 2;
+                const gap = 12;
+                
+                panelWrapper.style.width = chatWidth + 'px';
                 panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
                 panelWrapper.style.transform = 'translateX(-50%)';
+
+                // 确保侧边面板在打开时定位并移除隐藏动画
+                sidePanel.style.width = sideWidth + 'px';
+                sidePanel.style.left = `calc(50% + ${(chatWidth / 2) + gap}px)`;
+                sidePanel.style.transform = 'translateX(-50%)';
+                sidePanel.classList.remove('translate-y-full');
             } else {
+                // 兜底方案（如果没有中间的卡片）
                 panelWrapper.style.width = '320px';
                 panelWrapper.style.left = '50%';
                 panelWrapper.style.transform = 'translateX(-50%)';
+                sidePanel.style.width = '160px';
+                sidePanel.style.left = `calc(50% + 172px)`;
+                sidePanel.style.transform = 'translateX(-50%)';
+                sidePanel.classList.remove('translate-y-full');
             }
             panelWrapper.style.display = 'block';
             setTimeout(() => { 
@@ -117,11 +149,16 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 10);
         } else {
             panel.classList.add('translate-y-full');
-            setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
+            // 收起侧边面板
+            sidePanel.classList.add('translate-y-full');
+            setTimeout(() => { 
+                panelWrapper.style.display = 'none'; 
+            }, 250);
         }
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
+    // 配置默认值
     function getDefaultConfig() {
         return {
             discussion: { model: 'deepseek-v4-flash', think: false, search: false, strength: 'low' },
