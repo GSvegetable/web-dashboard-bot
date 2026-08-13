@@ -93,7 +93,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（V2 完美同频联网搜索）
+# DeepSeek AI 接口（修复联网搜索关闭后AI依然吹牛的Bug）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -106,13 +106,21 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 1. 提示词选择
+    # 1. 根据沙盒开关选择基础人设
+    base_prompt = ""
     if mode == 'discussion':
-        system_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
+        base_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
     else:
-        system_prompt = AGENT_PROMPT
+        base_prompt = AGENT_PROMPT
 
-    # 2. 记忆压缩逻辑
+    # 2. 🛡️ 核心修复：根据联网开关动态增加“离线限制”提示词
+    search_enabled = mode_config.get('search', False)
+    if not search_enabled:
+        # 如果关闭了联网搜索，加上这条强制脱钩指令，让它真正闭嘴
+        offline_instruction = "\n\n重要指令：你当前处于完全离线状态，无法访问任何互联网网站或链接。如果用户询问你是否有联网功能或要求你访问网页，你必须直接回复：“我当前没有联网搜索功能。”"
+        base_prompt += offline_instruction
+
+    # 3. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
@@ -128,12 +136,11 @@ def agent_chat():
             session['chat_summary'] = chat_summary
             session['chat_history'] = chat_history
 
-    messages = [{"role": "system", "content": system_prompt}]
+    messages = [{"role": "system", "content": base_prompt}]
     if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
-    # 3. API 设置
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
     
@@ -141,12 +148,13 @@ def agent_chat():
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
 
-    # 🛡️ 核心修正：V2 现在和 V2.5 一样，严格遵守联网搜索开关！
+    # 4. 处理工具列表
     tools = None
-    if mode_config.get('search'):
+    if search_enabled:
+        # 开启时，挂载全量工具（包含联网搜索）
         tools = TOOLS
     else:
-        # 如果关闭了搜索，为了让绑定机器人等功能依然可用，只传不含联网搜索的工具
+        # 关闭时，只提供绑定机器人、添加节点等基础工具，剔除 web_search
         tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
