@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（默认全关，V2增加联网开关） -->
+<!-- Agent 独立配置面板（修复深度思考强制开启与摇头锁定） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -30,19 +30,18 @@
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
                 <div class="flex flex-col gap-4">
-                    <!-- 深度思考（默认关闭） -->
+                    <!-- 深度思考（强制开启） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
                             <input type="radio" name="think-flash" id="think-flash-off" />
                             <label for="think-flash-off">关闭</label>
-                            <input type="radio" name="think-flash" id="think-flash-on" />
+                            <input type="radio" name="think-flash" id="think-flash-on" checked />
                             <label for="think-flash-on">开启</label>
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
                     
-                    <!-- 联网搜索 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
@@ -73,19 +72,19 @@
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
                 <div class="flex flex-col gap-4">
-                    <!-- 深度思考（默认关闭） -->
+                    <!-- 深度思考（强制开启） -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
                             <input type="radio" name="think-pro" id="think-pro-off" />
                             <label for="think-pro-off">关闭</label>
-                            <input type="radio" name="think-pro" id="think-pro-on" />
+                            <input type="radio" name="think-pro" id="think-pro-on" checked />
                             <label for="think-pro-on">开启</label>
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
 
-                    <!-- ✨ 新增：V2 模型的联网搜索开关 -->
+                    <!-- ✨ 新增：V2 模型联网搜索 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
@@ -190,21 +189,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const content = document.getElementById('settingsModalContent');
     const configKey = 'gsbot_agent_config';
 
-    // ✨ 默认配置：全部关闭
+    // 默认配置：全部关闭，但深度思考必须是开启的！
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
-        config = { discussion: { think: false, search: false, strength: 'low', jailbreak: false }, agent: { think: false, search: false, strength: 'low' } };
+        config = { 
+            discussion: { think: true, search: false, strength: 'low', jailbreak: false }, 
+            agent: { think: true, search: false, strength: 'low' } 
+        };
         localStorage.setItem(configKey, JSON.stringify(config));
     } else {
+        // 兼容老配置，确保深度思考永远是 true
         if (!config.discussion) config.discussion = {};
         if (!config.agent) config.agent = {};
-        // 🛡️ 移除强制开启的代码，让读取 localStorage 生效
+        config.discussion.think = true;
+        config.agent.think = true;
+        if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
+        if (typeof config.agent.search !== 'boolean') config.agent.search = false;
         if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
-        if (typeof config.discussion.think !== 'boolean') config.discussion.think = false;
-        if (typeof config.agent.think !== 'boolean') config.agent.think = false;
     }
 
-    // 这里的 setupThinkLock 现在其实是在允许用户操作状态（取消硬锁，但刚加载时全为关）
+    // ✨ 恢复：深度思考的“强制开启”与“摇头动画锁定”
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
@@ -212,24 +216,33 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!group) return;
             const offRadio = group.querySelector('input[id$="-off"]');
             const onRadio = group.querySelector('input[id$="-on"]');
-            // 取消 `onRadio.checked = true;` 的默认锁定
+            
+            // 强制勾选开启
+            onRadio.checked = true;
+
+            // 如果用户手贱点了关闭，触发动效并立刻弹回开启
+            offRadio.addEventListener('click', function(e) {
+                group.classList.add('shake-toggle');
+                setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
+                onRadio.checked = true;
+                e.preventDefault();
+                e.stopPropagation();
+            });
         });
     }
 
     function applyStoredConfig() {
-        document.getElementById('think-flash-off').checked = !config.discussion.think;
-        document.getElementById('think-flash-on').checked = config.discussion.think;
-        document.getElementById('think-pro-off').checked = !config.agent.think;
-        document.getElementById('think-pro-on').checked = config.agent.think;
+        // 强制开启深度思考
+        document.getElementById('think-flash-on').checked = true;
+        document.getElementById('think-pro-on').checked = true;
 
+        // 其他正常读取存储状态
         document.getElementById('search-flash-off').checked = !config.discussion.search;
         document.getElementById('search-flash-on').checked = config.discussion.search;
         document.getElementById('search-pro-off').checked = !config.agent.search;
         document.getElementById('search-pro-on').checked = config.agent.search;
-
         document.getElementById('jailbreak-flash-off').checked = !config.discussion.jailbreak;
         document.getElementById('jailbreak-flash-on').checked = config.discussion.jailbreak;
-
         document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
         document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
@@ -239,8 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
-            // 放开 think 的监听，让用户自己选
-            // if (input.name.includes('think-')) return;
+            // 允许用户点击思考开关，但会被 setupThinkLock 拦截并强制复位
             input.addEventListener('change', function() {
                 const name = this.name;
                 const value = this.id;
@@ -248,8 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let key = null;
                 let val = null;
 
-                if (name.startsWith('think-')) { key = 'think'; val = value.endsWith('-on'); }
-                else if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
+                if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
                 else if (name.startsWith('jailbreak-')) { key = 'jailbreak'; val = value.endsWith('-on'); }
                 else if (name.startsWith('strength-')) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
 
@@ -267,9 +278,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
-        if (!config) config = { discussion: { think: false, search: false, strength: 'low', jailbreak: false }, agent: { think: false, search: false, strength: 'low' } };
+        if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
         applyStoredConfig();
+        setupThinkLock(); // 初始化时重新挂载锁
 
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
