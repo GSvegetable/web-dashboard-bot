@@ -1,22 +1,11 @@
-<!-- Agent 独立配置面板（左侧贴边全高样式，加入汉堡菜单） -->
-<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-[480px] z-[9999] hidden pointer-events-none flex flex-col h-screen">
+<!-- Agent 独立配置面板（左侧贴边全高样式，移除汉堡菜单） -->
+<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
     <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <!-- ✨ 顶部修改区：把汉堡菜单搬到了这里，并让标题往右挪出空间 -->
-        <div class="relative w-full flex items-start justify-start">
-            <!-- 汉堡菜单按钮（原封不动贴过来，连带 ID 和 HTML 结构） -->
-            <div class="absolute top-0 left-0 z-50 w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
-                <label class="hamburger w-full h-full flex items-center justify-center">
-                    <input type="checkbox" id="hamburger-toggle">
-                    <svg viewBox="0 0 32 32">
-                        <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
-                        <path class="line" d="M7 16 27 16"></path>
-                    </svg>
-                </label>
-            </div>
-            <!-- 配置中心标题往右腾出位置（ml-12） -->
-            <h1 class="text-white text-2xl font-bold tracking-wide ml-12 pt-1">配置中心</h1>
+        <!-- ✨ 恢复标题靠左，不再需要 ml-12 腾空间 -->
+        <div class="flex justify-between items-start">
+            <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         </div>
 
         <div class="flex flex-col gap-10 mt-1">
@@ -119,7 +108,7 @@
 </div>
 
 <style>
-    /* ========== 玻璃质感按钮样式（完全不变） ========== */
+    /* ========== 玻璃质感按钮样式 ========== */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
@@ -167,30 +156,25 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
     
-    /* 关闭：银灰色 */
     #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
     #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
         transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
     
-    /* 🟡 开启：金色 */
     #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
     #think-pro-on:checked ~ .glass-glider-2 {
         transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
     
-    /* 🔴 激进沙盒开启：专属红色 */
     #jailbreak-flash-on:checked ~ .glass-glider-2 {
         transform: translateX(100%) !important; 
         background: linear-gradient(135deg, #ef444455, #dc2626) !important; 
         box-shadow: 0 0 18px rgba(239, 68, 68, 0.5) !important, 0 0 10px rgba(220, 38, 38, 0.4) inset !important;
     }
 
-    /* 烧钱模型思考强度：高(蓝)、最高(金) */
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* 摇头动画（用于深度思考锁定） */
     @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
     .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
@@ -219,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!config.agent.strength) config.agent.strength = 'low';
     }
 
-    // 🛡️ 深度思考强制开启与摇头锁定
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
@@ -256,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
-            // 允许点击，但会被 setupThinkLock 拦截复位
             input.addEventListener('change', function() {
                 const name = this.name;
                 const value = this.id;
@@ -272,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (name.includes('-pro')) mode = 'agent';
 
                 if (mode && key && val !== null) {
-                    // 深度思考在 change 事件里不做储存，只靠物理锁
                     if (key === 'think') return;
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
@@ -282,36 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ==========================================================
-    // ✅ 移植：汉堡菜单点击控制逻辑（原封不动移过来）
-    // ==========================================================
-    document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
-        e.preventDefault(); 
-        const checkbox = document.getElementById('hamburger-toggle');
-        const panel = document.getElementById('agentSettingsPanel');
-        const content = document.getElementById('settingsModalContent');
-        if (!checkbox || !panel || !content) return;
-
-        const isOpen = !panel.classList.contains('hidden');
-        if (!isOpen) {
-            checkbox.checked = true;
-            panel.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                content.classList.remove('opacity-0', '-translate-y-[120%]');
-                content.classList.add('opacity-100', 'translate-y-0');
-            });
-        } else {
-            checkbox.checked = false;
-            void checkbox.offsetHeight;
-            content.classList.remove('opacity-100', 'translate-y-0');
-            content.classList.add('opacity-0', '-translate-y-[120%]');
-            setTimeout(() => { panel.classList.add('hidden'); }, 500);
-        }
-    });
-
-    // ==========================================================
-    // 原来的面板开关控制（保持兼容性，避免产生新 Bug）
-    // ==========================================================
+    // 窗口面板开关函数
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
