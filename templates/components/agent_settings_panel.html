@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（开启状态改为红色） -->
+<!-- Agent 独立配置面板（修正：仅激进沙盒变红，其他恢复金色） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -9,7 +9,7 @@
         </div>
 
         <div class="flex flex-col gap-10 mt-1">
-            <!-- ✨ 新模块：越狱设置 -->
+            <!-- 越狱设置 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">越狱设置</div>
                 <div class="flex flex-col gap-4">
@@ -146,19 +146,26 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
     
-    /* 关闭/默认状态：银灰色 */
+    /* ✅ 1. 所有 2选项的默认关闭状态：银灰色 */
     #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
     #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
         transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
     
-    /* ✨ 开启状态：红色 */
+    /* ✅ 2. 常规开启状态（深度思考、联网搜索）：恢复金色 */
     #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 {
+    #think-pro-on:checked ~ .glass-glider-2 {
+        transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
+    }
+    
+    /* ✅ 3. 激进沙盒开启状态：专属红色 */
+    #jailbreak-flash-on:checked ~ .glass-glider-2 {
         transform: translateX(100%); background: linear-gradient(135deg, #ef444455, #dc2626); box-shadow: 0 0 18px rgba(239, 68, 68, 0.5), 0 0 10px rgba(220, 38, 38, 0.4) inset;
     }
     
+    /* ✅ 4. 烧钱模型思考强度（高：蓝色） */
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
+    /* ✅ 5. 烧钱模型思考强度（最高：金色） */
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
 
