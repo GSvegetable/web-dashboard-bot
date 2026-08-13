@@ -1,5 +1,6 @@
-<!-- Agent 独立配置面板（严格修复默认状态与联动锁定） -->
+<!-- Agent 独立配置面板（修复点击外部关闭后汉堡菜单未还原的问题） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
+    <!-- ✅ 点击外部透明区域，触发自带的自闭环关闭逻辑 -->
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
@@ -113,7 +114,6 @@
                         </div>
 
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✨ 修复：添加默认 checked，强制高亮“高” -->
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
                                 <input type="radio" name="strength-pro" id="strength-pro-high" checked />
                                 <label for="strength-pro-high">高</label>
@@ -332,8 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
         document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
-
-        // ✨ 修复：除非配置文件里的 state 是 'max'，否则一律强制默认高亮为“高”
         document.getElementById('strength-pro-high').checked = config.agent.strength !== 'max';
         document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
 
@@ -388,7 +386,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ==========================================================
+    // 🔥 关键修复：让面板自身完美闭环控制汉堡菜单
+    // ==========================================================
     window.openAgentSettings = function() {
+        // 1. 打开面板时，手动把左上角汉堡菜单勾选上（变成叉号）
+        const hamburgerCheckbox = document.getElementById('hamburger-toggle');
+        if (hamburgerCheckbox) {
+            hamburgerCheckbox.checked = true;
+        }
+
+        // 2. 执行面板弹出动画
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
@@ -403,6 +411,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.closeAgentSettings = function() {
+        // 1. 关闭面板时，强制把左上角汉堡菜单取消勾选（变回三条横线）
+        const hamburgerCheckbox = document.getElementById('hamburger-toggle');
+        if (hamburgerCheckbox) {
+            hamburgerCheckbox.checked = false;
+            void hamburgerCheckbox.offsetHeight; // 强制重绘，确保动画不卡
+        }
+
+        // 2. 执行面板关闭动画
         content.classList.remove('opacity-100', 'translate-y-0');
         content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
