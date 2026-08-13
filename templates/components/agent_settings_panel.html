@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（修复激进沙盒红色、小标题锁定为被动高亮） -->
+<!-- Agent 独立配置面板（终极锁定与极简改动） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -30,15 +30,13 @@
             <!-- 分类一：省钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
-                
                 <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- ✨ 左侧小标题（删除了 input，现在完全被动接收指令） -->
+                    <!-- 左侧小标题（去掉了所有动画过渡，纯静态显示当前状态） -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 3;">
                         <div class="sub-label">深度思考</div>
                         <div class="sub-label">联网搜索</div>
                         <div class="sub-label">思考强度</div>
-
                         <div class="glider-container"><div class="glider"></div></div>
                     </div>
 
@@ -82,14 +80,12 @@
             <!-- 分类二：烧钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
-                
                 <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- ✨ 左侧小标题（删除了 input，现在完全被动接收指令） -->
+                    <!-- 左侧小标题（去掉了所有动画过渡） -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 2;">
                         <div class="sub-label">深度思考</div>
                         <div class="sub-label">思考强度</div>
-
                         <div class="glider-container"><div class="glider"></div></div>
                     </div>
 
@@ -196,7 +192,7 @@
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* ========== ✨ Uiverse 小标题垂直滑块样式（改为纯被动） ========== */
+    /* ========== ✨ 左侧小标题垂直滑块样式（去掉了所有动画） ========== */
     .radio-container-sub {
         --main-color: #f7e479;
         --main-color-opacity: #f7e4791c;
@@ -207,7 +203,6 @@
         gap: 14px;
         padding-top: 6px;
     }
-    /* 🛑 去掉 input 后，小标题不再能点击，取消所有点击交互 */
     .radio-container-sub .sub-label {
         padding: 0;
         position: relative;
@@ -218,7 +213,8 @@
         display: flex;
         align-items: center;
         white-space: nowrap;
-        pointer-events: none; /* 完全阻止点击 */
+        pointer-events: none; /* 彻底禁止点击 */
+        transition: none !important; /* 🛑 强行去掉颜色动画 */
     }
     .radio-container-sub .sub-label.active {
         color: var(--main-color);
@@ -242,7 +238,7 @@
             var(--main-color) 50%,
             rgba(0, 0, 0, 0) 100%
         );
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56);
+        transition: none !important; /* 🛑 强行去掉滑杆的移动动画 */
     }
     .radio-container-sub .glider-container .glider::before {
         content: "";
@@ -278,24 +274,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const content = document.getElementById('settingsModalContent');
     const configKey = 'gsbot_agent_config';
 
+    // 1. 强制从本地读取配置
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
         config = { 
             discussion: { think: true, search: false, strength: 'low', jailbreak: false }, 
             agent: { think: true, search: false, strength: 'low' } 
         };
-        localStorage.setItem(configKey, JSON.stringify(config));
     } else {
+        // 如果读取到了，强制把逻辑删掉的数据补全
         if (!config.discussion) config.discussion = {};
         if (!config.agent) config.agent = {};
-        config.discussion.think = true;
-        config.agent.think = true;
         if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
         if (typeof config.agent.search !== 'boolean') config.agent.search = false;
         if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
         if (!config.discussion.strength) config.discussion.strength = 'low';
         if (!config.agent.strength) config.agent.strength = 'low';
     }
+
+    // 2. 🛡️ 暴力死锁深度思考（不管外界怎么改，这块拿命锁死）
+    config.discussion.think = true;
+    config.agent.think = true;
 
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
@@ -304,7 +303,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!group) return;
             const offRadio = group.querySelector('input[id$="-off"]');
             const onRadio = group.querySelector('input[id$="-on"]');
+            
             onRadio.checked = true;
+            
+            // 如果点了关闭，触发摇头，然后强行改回开启
             offRadio.addEventListener('click', function(e) {
                 group.classList.add('shake-toggle');
                 setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
@@ -318,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyStoredConfig() {
         document.getElementById('think-flash-on').checked = true;
         document.getElementById('think-pro-on').checked = true;
+
         document.getElementById('search-flash-off').checked = !config.discussion.search;
         document.getElementById('search-flash-on').checked = config.discussion.search;
         document.getElementById('search-pro-off').checked = !config.agent.search;
@@ -335,39 +338,31 @@ document.addEventListener('DOMContentLoaded', function() {
         syncLeftUI('agent');
     }
 
-    // ✨ 核心修改：左侧小标题高亮和滑杆完全跟随右侧按钮
+    // 左侧显示跟随右侧切换
     function syncLeftUI(mode) {
-        const prefix = mode === 'discussion' ? 'flash' : 'pro';
         const cfg = config[mode];
         if (!cfg) return;
         
-        // 获取当前模式下的左侧容器
         const container = document.querySelector(`.radio-container-sub[style*="--total-radio: ${mode === 'discussion' ? '3' : '2'}"]`);
         if (!container) return;
 
         const labels = container.querySelectorAll('.sub-label');
         const glider = container.querySelector('.glider');
 
-        // 决定左侧高亮哪一项的索引 (0=深度思考, 1=联网搜索, 2=思考强度)
         let activeIndex = 0; 
         if (mode === 'discussion') {
             if (cfg.search === true) activeIndex = 1;
             else if (cfg.strength && cfg.strength !== 'low') activeIndex = 2;
         } else {
-            // 代理人模式只有 0 和 1
             if (cfg.strength && cfg.strength !== 'low') activeIndex = 1;
         }
 
-        // 1. 更新左侧文字高亮
+        // 直接瞬间切换，没有任何 transition
         labels.forEach((label, idx) => {
-            if (idx === activeIndex) {
-                label.classList.add('active');
-            } else {
-                label.classList.remove('active');
-            }
+            if (idx === activeIndex) label.classList.add('active');
+            else label.classList.remove('active');
         });
 
-        // 2. 更新左侧滑杆位置
         if (glider) {
             const total = mode === 'discussion' ? 3 : 2;
             glider.style.transform = `translateY(${(activeIndex / total) * 100}%)`;
@@ -392,17 +387,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (name.includes('-pro')) mode = 'agent';
 
                 if (mode && key && val !== null) {
+                    // 🛡️ 核心保底：谁敢把深度思考改成 false，就强制修正！
+                    if (key === 'think' && val === false) return; 
+                    
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
                     window.currentAgentConfig = config;
-                    syncLeftUI(mode); // 立即联动左侧小标题
+                    syncLeftUI(mode);
                 }
             });
         });
     }
 
     // ==========================================================
-    // 🔥 面板打开/关闭 与 汉堡菜单联动
+    // 面板打开/关闭 与 汉堡菜单联动
     // ==========================================================
     window.openAgentSettings = function() {
         const hamburgerCheckbox = document.getElementById('hamburger-toggle');
