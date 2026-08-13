@@ -416,7 +416,7 @@
         });
 
         // ==========================================================
-        // 🔥 核心修复：打开与关闭联动逻辑
+        // 🔥 终极修复：关闭联动逻辑（杜绝叉号不还原）
         // ==========================================================
         document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -437,15 +437,17 @@
             }
         });
 
-        // ✨ 核心修复：强制关闭时把叉号变回三条横杠
         window.closeAgentSettings = function() {
             const checkbox = document.getElementById('hamburger-toggle');
-            // 只要关闭面板，就强制取消勾选，触发 CSS 动画还原回三条横杠！
+            
+            // 1. 第一步：立刻强制取消勾选 Checkbox（让 CSS 的 `:checked` 立刻失效）
             if (checkbox) {
                 checkbox.checked = false;
+                // ✨ 强制触发布局重绘，确保浏览器立刻从叉号变回三条线
+                void checkbox.offsetHeight; 
             }
 
-            // 执行面板隐藏动画
+            // 2. 执行面板隐藏动画
             const panel = document.getElementById('agentSettingsPanel');
             if (panel) {
                 const content = document.getElementById('settingsModalContent');
