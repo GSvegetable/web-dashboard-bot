@@ -69,7 +69,7 @@
             .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
         }
 
-        /* 汉堡菜单 CSS（实际文件已移动到面板里，但为了兼容原 CSS 保留） */
+        /* 汉堡菜单 CSS */
         .hamburger { cursor: pointer; }
         .hamburger input { display: none; }
         .hamburger svg {
@@ -90,7 +90,16 @@
     
     {% include 'components/user_profile.html' %}
 
-    <!-- ⚠️ 左上角的汉堡菜单已经搬进配置中心面板里面了，这里删除，防止重叠 -->
+    <!-- ✅ 还原：三条杠按钮回到原位置，并设 z-[9999] 确保永远在最顶层 -->
+    <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
+        <label class="hamburger w-full h-full flex items-center justify-center">
+            <input type="checkbox" id="hamburger-toggle">
+            <svg viewBox="0 0 32 32">
+                <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                <path class="line" d="M7 16 27 16"></path>
+            </svg>
+        </label>
+    </div>
 
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
@@ -235,6 +244,35 @@
                         window.closeMusicModal();
                     }
                 });
+            }
+        });
+
+        // ==========================================================
+        // 🔥 核心：点击三条杠，通过调用面板内部的函数来控制面板
+        // ==========================================================
+        document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
+            e.preventDefault(); 
+            e.stopPropagation();
+
+            const checkbox = document.getElementById('hamburger-toggle');
+            const panel = document.getElementById('agentSettingsPanel');
+            if (!checkbox || !panel) return;
+
+            const isOpen = !panel.classList.contains('hidden');
+            if (!isOpen) {
+                // 打开面板
+                checkbox.checked = true;
+                if (typeof window.openAgentSettings === 'function') {
+                    window.openAgentSettings();
+                }
+            } else {
+                // 关闭面板
+                checkbox.checked = false;
+                // 强制重绘，保证叉号变三条杠
+                void checkbox.offsetHeight;
+                if (typeof window.closeAgentSettings === 'function') {
+                    window.closeAgentSettings();
+                }
             }
         });
     </script>
