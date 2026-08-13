@@ -12,7 +12,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
-        /* 原样式保持完整，不修改任何已有 UI 定义 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
@@ -99,7 +98,7 @@
     
     {% include 'components/user_profile.html' %}
 
-    <!-- 左上角汉堡菜单（触发配置中心） -->
+    <!-- 左上角汉堡菜单 -->
     <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
         <label class="hamburger w-full h-full flex items-center justify-center">
             <input type="checkbox" id="hamburger-toggle">
@@ -392,21 +391,28 @@
         });
 
         // ==========================================================
-        // 🔥 新版：仅由汉堡菜单按钮控制面板开关（彻底告别叉号 Bug）
+        // 🔥 终极修复：解决“弹一下又关掉”的闪退 Bug
         // ==========================================================
         document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
+            // 🛡️ 核心修复：阻止浏览器自带的 Checkbox 状态反转！
+            e.preventDefault(); 
             e.stopPropagation();
+
             const checkbox = document.getElementById('hamburger-toggle');
             const panel = document.getElementById('agentSettingsPanel');
             const content = document.getElementById('settingsModalContent');
 
             if (!panel || !checkbox) return;
 
-            // 如果当前面板是开启状态，则执行关闭逻辑
-            if (checkbox.checked) {
+            // 以面板是否隐藏作为唯一状态判断标准
+            const isOpen = !panel.classList.contains('hidden');
+
+            if (isOpen) {
+                // 关闭面板
                 window.closeAgentSettings();
             } else {
-                // 如果当前面板是关闭状态，则执行开启逻辑
+                // 打开面板
+                checkbox.checked = true; // 手动控制钩子，触发变X动画
                 panel.classList.remove('hidden');
                 panel.classList.remove('pointer-events-none');
                 panel.classList.add('pointer-events-auto');
@@ -419,11 +425,10 @@
             }
         });
 
-        // 单独封装关闭函数，只供按钮事件和内部逻辑调用
         window.closeAgentSettings = function() {
             const checkbox = document.getElementById('hamburger-toggle');
             if (checkbox) {
-                checkbox.checked = false; // 强制取消勾选，触发 CSS 动画还原成三条杠
+                checkbox.checked = false; // 手动取消勾选，触发还原三条线动画
                 void checkbox.offsetHeight; // 强制重绘
             }
             const panel = document.getElementById('agentSettingsPanel');
