@@ -1,10 +1,22 @@
-<!-- Agent 独立配置面板（左侧贴边全高样式） -->
+<!-- Agent 独立配置面板（左侧贴边全高样式，加入汉堡菜单） -->
 <div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-[480px] z-[9999] hidden pointer-events-none flex flex-col h-screen">
     
     <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <div class="flex justify-between items-start">
-            <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
+        <!-- ✨ 顶部修改区：把汉堡菜单搬到了这里，并让标题往右挪出空间 -->
+        <div class="relative w-full flex items-start justify-start">
+            <!-- 汉堡菜单按钮（原封不动贴过来，连带 ID 和 HTML 结构） -->
+            <div class="absolute top-0 left-0 z-50 w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
+                <label class="hamburger w-full h-full flex items-center justify-center">
+                    <input type="checkbox" id="hamburger-toggle">
+                    <svg viewBox="0 0 32 32">
+                        <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                        <path class="line" d="M7 16 27 16"></path>
+                    </svg>
+                </label>
+            </div>
+            <!-- 配置中心标题往右腾出位置（ml-12） -->
+            <h1 class="text-white text-2xl font-bold tracking-wide ml-12 pt-1">配置中心</h1>
         </div>
 
         <div class="flex flex-col gap-10 mt-1">
@@ -270,6 +282,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ==========================================================
+    // ✅ 移植：汉堡菜单点击控制逻辑（原封不动移过来）
+    // ==========================================================
+    document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
+        e.preventDefault(); 
+        const checkbox = document.getElementById('hamburger-toggle');
+        const panel = document.getElementById('agentSettingsPanel');
+        const content = document.getElementById('settingsModalContent');
+        if (!checkbox || !panel || !content) return;
+
+        const isOpen = !panel.classList.contains('hidden');
+        if (!isOpen) {
+            checkbox.checked = true;
+            panel.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                content.classList.remove('opacity-0', '-translate-y-[120%]');
+                content.classList.add('opacity-100', 'translate-y-0');
+            });
+        } else {
+            checkbox.checked = false;
+            void checkbox.offsetHeight;
+            content.classList.remove('opacity-100', 'translate-y-0');
+            content.classList.add('opacity-0', '-translate-y-[120%]');
+            setTimeout(() => { panel.classList.add('hidden'); }, 500);
+        }
+    });
+
+    // ==========================================================
+    // 原来的面板开关控制（保持兼容性，避免产生新 Bug）
+    // ==========================================================
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
