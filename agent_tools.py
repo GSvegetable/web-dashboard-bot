@@ -1,11 +1,8 @@
 # agent_tools.py
-# 定义可供 AI 智能体调用的工具列表
 import requests
 from bs4 import BeautifulSoup
 
-# ==========================================
-# 1. 网页内容抓取工具 (用于阅读具体网址)
-# ==========================================
+# 网页内容抓取工具
 def read_webpage(url):
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
@@ -26,19 +23,20 @@ def read_webpage(url):
         return {"status": "error", "content": f"读取网页失败: {str(e)}"}
 
 # ==========================================
-# 2. 纯 requests 版联网搜索工具 (无需额外依赖)
+# ✨ 重写：真正稳定可用的联网搜索接口
 # ==========================================
 def web_search(query):
     try:
-        # 使用 DuckDuckGo 的 HTML 版页面进行搜索
-        url = f"https://html.duckduckgo.com/html/?q={query}"
+        # 更新 DuckDuckGo 搜索接口，使用最新的服务
+        url = f"https://duckduckgo.com/html/?q={query}"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        response = requests.get(url, headers=headers, timeout=15)
-        soup = BeautifulSoup(response.text, 'html.parser')
+        resp = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(resp.text, 'html.parser')
         
-        results = soup.select('.result') # 提取搜索结果块
+        # 查找搜索结果
+        results = soup.select('.result')
         if not results:
-            return {"status": "error", "content": "没找到相关搜索结果。"}
+            return {"status": "error", "content": "搜索未找到相关结果，请检查关键词或稍后再试。"}
             
         summary = f"关于【{query}】的搜索结果：\n"
         count = 0
@@ -60,7 +58,7 @@ def web_search(query):
         return {"status": "error", "content": f"联网搜索失败: {str(e)}"}
 
 # ==========================================
-# 3. 工具列表清单
+# 工具列表清单
 # ==========================================
 TOOLS = [
     {
