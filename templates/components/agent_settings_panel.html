@@ -1,6 +1,5 @@
-<!-- Agent 独立配置面板（修复点击外部关闭后汉堡菜单未还原的问题） -->
+<!-- Agent 独立配置面板（修复激进沙盒红色、小标题锁定为被动高亮） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
-    <!-- ✅ 点击外部透明区域，触发自带的自闭环关闭逻辑 -->
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
@@ -34,16 +33,11 @@
                 
                 <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- 左侧 Uiverse 小标题列表（3选项） -->
+                    <!-- ✨ 左侧小标题（删除了 input，现在完全被动接收指令） -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 3;">
-                        <input type="radio" name="sub-header-flash" id="sub-think-flash" />
-                        <label for="sub-think-flash">深度思考</label>
-                        
-                        <input type="radio" name="sub-header-flash" id="sub-search-flash" />
-                        <label for="sub-search-flash">联网搜索</label>
-                        
-                        <input type="radio" name="sub-header-flash" id="sub-strength-flash" />
-                        <label for="sub-strength-flash">思考强度</label>
+                        <div class="sub-label">深度思考</div>
+                        <div class="sub-label">联网搜索</div>
+                        <div class="sub-label">思考强度</div>
 
                         <div class="glider-container"><div class="glider"></div></div>
                     </div>
@@ -91,13 +85,10 @@
                 
                 <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- 左侧 2 选项小标题 -->
+                    <!-- ✨ 左侧小标题（删除了 input，现在完全被动接收指令） -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 2;">
-                        <input type="radio" name="sub-header-pro" id="sub-think-pro" />
-                        <label for="sub-think-pro">深度思考</label>
-                        
-                        <input type="radio" name="sub-header-pro" id="sub-strength-pro" />
-                        <label for="sub-strength-pro">思考强度</label>
+                        <div class="sub-label">深度思考</div>
+                        <div class="sub-label">思考强度</div>
 
                         <div class="glider-container"><div class="glider"></div></div>
                     </div>
@@ -131,7 +122,7 @@
 </div>
 
 <style>
-    /* ========== 原有玻璃质感按钮样式 ========== */
+    /* ========== 玻璃质感按钮样式 ========== */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
@@ -179,18 +170,33 @@
         transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
     }
     
+    /* 普通开关默认关闭的颜色：银灰色 */
     #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
-    #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
+    #think-pro-off:checked ~ .glass-glider-2 {
         transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
     }
+    #jailbreak-flash-off:checked ~ .glass-glider-2 {
+        transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
+    }
+    
+    /* 🟡 深度思考、联网搜索开启状态：金色 */
     #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 {
+    #think-pro-on:checked ~ .glass-glider-2 {
         transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
     }
+    
+    /* 🔴 激进沙盒开启状态：专属红色（强制覆盖） */
+    #jailbreak-flash-on:checked ~ .glass-glider-2 {
+        transform: translateX(100%) !important; 
+        background: linear-gradient(135deg, #ef444455, #dc2626) !important; 
+        box-shadow: 0 0 18px rgba(239, 68, 68, 0.5) !important, 0 0 10px rgba(220, 38, 38, 0.4) inset !important;
+    }
+    
+    /* 烧钱模型思考强度 */
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* ========== Uiverse 小标题垂直滑块样式 ========== */
+    /* ========== ✨ Uiverse 小标题垂直滑块样式（改为纯被动） ========== */
     .radio-container-sub {
         --main-color: #f7e479;
         --main-color-opacity: #f7e4791c;
@@ -201,21 +207,20 @@
         gap: 14px;
         padding-top: 6px;
     }
-    .radio-container-sub input { display: none; }
-    .radio-container-sub label {
-        cursor: pointer;
+    /* 🛑 去掉 input 后，小标题不再能点击，取消所有点击交互 */
+    .radio-container-sub .sub-label {
         padding: 0;
         position: relative;
         color: rgba(255, 255, 255, 0.5);
         font-size: 1rem;
         font-weight: 500;
-        transition: color 0.3s ease-in-out;
         height: 32px;
         display: flex;
         align-items: center;
         white-space: nowrap;
+        pointer-events: none; /* 完全阻止点击 */
     }
-    .radio-container-sub input:checked + label {
+    .radio-container-sub .sub-label.active {
         color: var(--main-color);
     }
     .radio-container-sub .glider-container {
@@ -261,15 +266,6 @@
             rgba(0, 0, 0, 0) 100%
         );
     }
-
-    /* 驱动 3 选项滑块移动 */
-    #sub-think-flash:checked ~ .glider-container .glider { transform: translateY(0); }
-    #sub-search-flash:checked ~ .glider-container .glider { transform: translateY(100%); }
-    #sub-strength-flash:checked ~ .glider-container .glider { transform: translateY(200%); }
-
-    /* 驱动 2 选项滑块移动 */
-    #sub-think-pro:checked ~ .glider-container .glider { transform: translateY(0); }
-    #sub-strength-pro:checked ~ .glider-container .glider { transform: translateY(100%); }
 
     /* 摇头动画（用于深度思考锁定） */
     @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
@@ -339,23 +335,42 @@ document.addEventListener('DOMContentLoaded', function() {
         syncLeftUI('agent');
     }
 
+    // ✨ 核心修改：左侧小标题高亮和滑杆完全跟随右侧按钮
     function syncLeftUI(mode) {
         const prefix = mode === 'discussion' ? 'flash' : 'pro';
         const cfg = config[mode];
         if (!cfg) return;
         
-        const thinkId = `sub-think-${prefix}`;
-        const searchId = `sub-search-${prefix}`;
-        const strengthId = `sub-strength-${prefix}`;
+        // 获取当前模式下的左侧容器
+        const container = document.querySelector(`.radio-container-sub[style*="--total-radio: ${mode === 'discussion' ? '3' : '2'}"]`);
+        if (!container) return;
 
-        if (cfg.search === true) {
-            document.getElementById(searchId).checked = true;
-        } 
-        else if (cfg.strength && cfg.strength !== 'low') {
-            document.getElementById(strengthId).checked = true;
-        } 
-        else {
-            document.getElementById(thinkId).checked = true;
+        const labels = container.querySelectorAll('.sub-label');
+        const glider = container.querySelector('.glider');
+
+        // 决定左侧高亮哪一项的索引 (0=深度思考, 1=联网搜索, 2=思考强度)
+        let activeIndex = 0; 
+        if (mode === 'discussion') {
+            if (cfg.search === true) activeIndex = 1;
+            else if (cfg.strength && cfg.strength !== 'low') activeIndex = 2;
+        } else {
+            // 代理人模式只有 0 和 1
+            if (cfg.strength && cfg.strength !== 'low') activeIndex = 1;
+        }
+
+        // 1. 更新左侧文字高亮
+        labels.forEach((label, idx) => {
+            if (idx === activeIndex) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
+        });
+
+        // 2. 更新左侧滑杆位置
+        if (glider) {
+            const total = mode === 'discussion' ? 3 : 2;
+            glider.style.transform = `translateY(${(activeIndex / total) * 100}%)`;
         }
     }
 
@@ -380,23 +395,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
                     window.currentAgentConfig = config;
-                    syncLeftUI(mode);
+                    syncLeftUI(mode); // 立即联动左侧小标题
                 }
             });
         });
     }
 
     // ==========================================================
-    // 🔥 关键修复：让面板自身完美闭环控制汉堡菜单
+    // 🔥 面板打开/关闭 与 汉堡菜单联动
     // ==========================================================
     window.openAgentSettings = function() {
-        // 1. 打开面板时，手动把左上角汉堡菜单勾选上（变成叉号）
         const hamburgerCheckbox = document.getElementById('hamburger-toggle');
-        if (hamburgerCheckbox) {
-            hamburgerCheckbox.checked = true;
-        }
+        if (hamburgerCheckbox) hamburgerCheckbox.checked = true;
 
-        // 2. 执行面板弹出动画
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
@@ -411,14 +422,12 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.closeAgentSettings = function() {
-        // 1. 关闭面板时，强制把左上角汉堡菜单取消勾选（变回三条横线）
         const hamburgerCheckbox = document.getElementById('hamburger-toggle');
         if (hamburgerCheckbox) {
             hamburgerCheckbox.checked = false;
-            void hamburgerCheckbox.offsetHeight; // 强制重绘，确保动画不卡
+            void hamburgerCheckbox.offsetHeight;
         }
 
-        // 2. 执行面板关闭动画
         content.classList.remove('opacity-100', 'translate-y-0');
         content.classList.add('opacity-0', '-translate-y-[120%]');
         setTimeout(() => { panel.classList.add('hidden'); }, 500);
