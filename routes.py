@@ -19,7 +19,6 @@ from models import db, User, EmailCode, QrLoginSession, TelegramCode
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
-# ✨ 导入你在 agent_tools 里写好的工具函数和工具列表
 from agent_tools import TOOLS, read_webpage, web_search
 
 main_bp = Blueprint('main', __name__)
@@ -94,7 +93,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（包含真正的搜索联动）
+# DeepSeek AI 接口（修复：先执行工具，再流式输出）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -140,53 +139,128 @@ def agent_chat():
     # 3. API 设置
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
+    tools = TOOLS if mode_config.get('search') else None
+    if mode == 'agent': tools = TOOLS # 代理人模式默认给工具
 
-    # ✨ 核心修改：根据开关传递工具列表
-    # 只有“讨论模式”开启“联网搜索”时才传递 TOOLS 给 AI；
-    # 代理人模式默认自带工具调用权。
-    if mode == 'discussion':
-        tools = TOOLS if mode_config.get('search') else None
-    else:
-        tools = TOOLS
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    
+    # 4. 第一步：先非流式调用，询问 AI 要不要使用工具
+    initial_payload = {
+        "model": model_name,
+        "messages": messages,
+        "temperature": 0.3,
+        "stream": False,
+        "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
+    }
+    if tools:
+        initial_payload['tools'] = tools
+        initial_payload['tool_choice'] = 'auto'
+    
+    try:
+        initial_resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=initial_payload, timeout=60)
+        if initial_resp.status_code != 200:
+            return jsonify({'reply': f'DeepSeek 初始请求失败 (状态码: {initial_resp.status_code})'})
+        
+        initial_result = initial_resp.json()
+        ai_message = initial_result['choices'][0]['message']
+        reasoning_content = ai_message.get('reasoning_content')
 
-    def generate():
-        try:
-            payload = {
-                "model": model_name, 
-                "messages": messages, 
-                "temperature": 0.3, 
+        # 5. 第二步：如果 AI 决定调用工具，立刻在后台执行
+        if ai_message.get('tool_calls'):
+            for tool_call in ai_message['tool_calls']:
+                func_name = tool_call['function']['name']
+                args = json.loads(tool_call['function']['arguments'])
+                result_content = {}
+                
+                if func_name == 'bind_bot':
+                    result_content = execute_bind_bot(args['token'], args['telegram_id'], args.get('name'))
+                elif func_name == 'add_bot_node':
+                    result_content = {"status": "success", "action": "add_bot_node", "params": args}
+                elif func_name == 'read_webpage':
+                    page_data = read_webpage(args['url'])
+                    result_content = page_data
+                elif func_name == 'web_search':
+                    search_data = web_search(args['query'])
+                    result_content = search_data
+                
+                # 把工具执行结果追加到对话记录里
+                messages.append(ai_message)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tool_call['id'],
+                    "content": json.dumps(result_content)
+                })
+
+            # 6. 第三步：带着工具执行的结果，重新请求 AI（这次使用流式输出流回前端）
+            final_payload = {
+                "model": model_name,
+                "messages": messages,
+                "temperature": 0.3,
                 "stream": True,
                 "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
             }
             if tools:
-                payload['tools'] = tools
-                payload['tool_choice'] = 'auto'
+                final_payload['tools'] = tools
+                final_payload['tool_choice'] = 'auto'
 
-            resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, stream=True, timeout=90)
-            for line in resp.iter_lines():
-                if line:
-                    line = line.decode('utf-8')
-                    if line.startswith('data: '):
-                        data_str = line[6:]
-                        if data_str == '[DONE]': break
-                        try:
-                            chunk = json.loads(data_str)
-                            delta = chunk['choices'][0]['delta']
-                            if delta.get('reasoning_content'): yield f"data: {json.dumps({'type': 'reasoning', 'content': delta['reasoning_content']})}\n\n"
-                            if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
-                            if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
-                        except: pass
-        except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'content': '请求异常，请稍后重试。'})}\n\n"
-        finally:
-            yield "data: [DONE]\n\n"
+            def generate_final():
+                try:
+                    final_resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=final_payload, stream=True, timeout=90)
+                    for line in final_resp.iter_lines():
+                        if line:
+                            line = line.decode('utf-8')
+                            if line.startswith('data: '):
+                                data_str = line[6:]
+                                if data_str == '[DONE]': break
+                                try:
+                                    chunk = json.loads(data_str)
+                                    delta = chunk['choices'][0]['delta']
+                                    if delta.get('reasoning_content'): yield f"data: {json.dumps({'type': 'reasoning', 'content': delta['reasoning_content']})}\n\n"
+                                    if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
+                                    if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                                except: pass
+                except Exception as e:
+                    yield f"data: {json.dumps({'type': 'error', 'content': '流式输出异常'})}\n\n"
+                finally:
+                    yield "data: [DONE]\n\n"
 
-    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+            # 存储到 Session
+            session['chat_history'] = messages
+
+            return Response(stream_with_context(generate_final()), mimetype='text/event-stream')
+
+        else:
+            # 如果没有工具调用，直接返回思考过程 + 普通文字回复
+            final_reply = ai_message['content']
+            def generate_normal():
+                if reasoning_content:
+                    yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
+                if final_reply:
+                    yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
+                yield f"data: {json.dumps({'type': 'done'})}\n\n"
+                yield "data: [DONE]\n\n"
+
+            session['chat_history'] = messages
+            return Response(stream_with_context(generate_normal()), mimetype='text/event-stream')
+
+    except Exception as e:
+        print(f"Agent Error: {e}")
+        return jsonify({'reply': '请求异常，请稍后重试。'})
+
+def call_deepseek_core(messages, model='deepseek-v4-flash'):
+    DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+    if not DEEPSEEK_API_KEY: return None, "未配置 Key"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+    payload = {"model": model, "messages": messages, "stream": False}
+    try:
+        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
+        if resp.status_code == 200: return resp.json(), None
+        return None, f"错误: {resp.status_code}"
+    except Exception as e: return None, str(e)
 
 # ================= 清空与原有路由 =================
 @main_bp.route('/api/agent/clear', methods=['POST'])
