@@ -1,6 +1,5 @@
-<!-- Agent 独立配置面板（纯净配置逻辑，放弃外界控制权） -->
+<!-- Agent 独立配置面板（极简、去动画、绝对锁死深度思考） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
-    <!-- ⚠️ 外部透明层不再绑定任何点击事件，开/关全权交由汉堡菜单控制 -->
     
     <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
@@ -8,7 +7,6 @@
             <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         </div>
 
-        <!-- 内部UI和选项布局保持你之前满意的状态，这里直接填入你最后一次满意的完整布局 -->
         <div class="flex flex-col gap-10 mt-1">
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">越狱设置</div>
@@ -104,7 +102,7 @@
 </div>
 
 <style>
-    /* 完整保留你之前所有正确的 CSS 样式，包括左右联动和红色锁定 */
+    /* ========== 玻璃质感按钮样式 ========== */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
@@ -151,21 +149,52 @@
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* 左侧 Uiverse 滑块 */
+    /* ========== 左侧小标题与滑块（已经强制删除了所有过渡动画） ========== */
     .radio-container-sub {
         --main-color: #f7e479;
-        --main-color-opacity: #f7e4791c;
         display: flex; flex-direction: column; position: relative; padding-left: 0.5rem; gap: 14px; padding-top: 6px;
     }
-    .radio-container-sub .sub-label { padding: 0; position: relative; color: rgba(255, 255, 255, 0.5); font-size: 1rem; font-weight: 500; height: 32px; display: flex; align-items: center; white-space: nowrap; pointer-events: none; transition: none !important; }
-    .radio-container-sub .sub-label.active { color: var(--main-color); }
-    .radio-container-sub .glider-container { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255, 255, 255, 0.15); width: 1px; height: 100%; }
-    .radio-container-sub .glider-container .glider { position: relative; height: calc(100% / var(--total-radio)); width: 100%; background: linear-gradient( 0deg, rgba(0, 0, 0, 0) 0%, var(--main-color) 50%, rgba(0, 0, 0, 0) 100% ); transition: none !important; }
-    .radio-container-sub .glider-container .glider::before { content: ""; position: absolute; height: 60%; width: 300%; top: 50%; transform: translateY(-50%); background: var(--main-color); filter: blur(10px); }
-    .radio-container-sub .glider-container .glider::after { content: ""; position: absolute; left: 0; height: 100%; width: 150px; background: linear-gradient( 90deg, var(--main-color-opacity) 0%, rgba(0, 0, 0, 0) 100% ); }
+    .radio-container-sub .sub-label {
+        padding: 0; position: relative;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1rem; font-weight: 500;
+        height: 32px; display: flex; align-items: center; white-space: nowrap;
+        pointer-events: none;
+        transition: none !important; /* 🛑 彻底抹除文字动画 */
+    }
+    .radio-container-sub .sub-label.active {
+        color: var(--main-color);
+    }
+    .radio-container-sub .glider-container {
+        position: absolute; left: 0; top: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.15); width: 1px; height: 100%;
+    }
+    .radio-container-sub .glider-container .glider {
+        position: relative;
+        height: calc(100% / var(--total-radio)); width: 100%;
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, var(--main-color) 50%, rgba(0, 0, 0, 0) 100%);
+        transition: none !important; /* 🛑 彻底抹除滑杆移动动画 */
+    }
+    .radio-container-sub .glider-container .glider::before {
+        content: ""; position: absolute; height: 60%; width: 300%;
+        top: 50%; transform: translateY(-50%);
+        background: var(--main-color); filter: blur(10px);
+    }
+    .radio-container-sub .glider-container .glider::after {
+        content: ""; position: absolute; left: 0;
+        height: 100%; width: 150px;
+        background: linear-gradient(90deg, var(--main-color-opacity) 0%, rgba(0, 0, 0, 0) 100%);
+    }
 
-    /* 摇头动画 */
-    @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+    /* 🌀 深度思考高频小幅摇头动画 */
+    @keyframes shakeToggle {
+        0% { transform: translateX(0); }
+        20% { transform: translateX(-6px); }
+        40% { transform: translateX(6px); }
+        60% { transform: translateX(-4px); }
+        80% { transform: translateX(4px); }
+        100% { transform: translateX(0); }
+    }
     .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
 
@@ -193,17 +222,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!config.agent.strength) config.agent.strength = 'low';
     }
 
+    // ==========================================================
+    // 🛡️ 核心锁死：强制开启，不接收关闭指令！
+    // ==========================================================
     function setupThinkLock() {
-        const flashGroup = document.getElementById('thinkFlashGroup'), proGroup = document.getElementById('thinkProGroup');
+        const flashGroup = document.getElementById('thinkFlashGroup');
+        const proGroup = document.getElementById('thinkProGroup');
         [flashGroup, proGroup].forEach((group) => {
             if (!group) return;
-            const offRadio = group.querySelector('input[id$="-off"]'), onRadio = group.querySelector('input[id$="-on"]');
+            const offRadio = group.querySelector('input[id$="-off"]');
+            const onRadio = group.querySelector('input[id$="-on"]');
             onRadio.checked = true;
             offRadio.addEventListener('click', function(e) {
+                // 触发高频小幅左右颤抖
                 group.classList.add('shake-toggle');
                 setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
+                // 强制弹回开启状态，绝无任何更改可能！
                 onRadio.checked = true;
-                e.preventDefault(); e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
             });
         });
     }
@@ -255,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (name.startsWith('strength-')) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
                 if (name.includes('-flash')) mode = 'discussion'; else if (name.includes('-pro')) mode = 'agent';
                 if (mode && key && val !== null) {
+                    // 🛡️ 即使有别的代码试图强行把 think 改成 false，这里也会直接拦截作废！
                     if (key === 'think' && val === false) return;
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
@@ -265,12 +303,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 弹出函数供 splash.html 调用（前提是你的 splash 直接操作DOM，这个其实可以不调用了，但留着备用安全）
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
         applyStoredConfig(); setupThinkLock();
+
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
             content.classList.remove('opacity-0', '-translate-y-[120%]');
