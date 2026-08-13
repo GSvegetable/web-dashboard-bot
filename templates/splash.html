@@ -69,7 +69,7 @@
             .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
         }
 
-        /* 汉堡菜单 */
+        /* 汉堡菜单 CSS（实际文件已移动到面板里，但为了兼容原 CSS 保留） */
         .hamburger { cursor: pointer; }
         .hamburger input { display: none; }
         .hamburger svg {
@@ -90,16 +90,7 @@
     
     {% include 'components/user_profile.html' %}
 
-    <!-- 左上角纯净汉堡菜单 -->
-    <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
-        <label class="hamburger w-full h-full flex items-center justify-center">
-            <input type="checkbox" id="hamburger-toggle">
-            <svg viewBox="0 0 32 32">
-                <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
-                <path class="line" d="M7 16 27 16"></path>
-            </svg>
-        </label>
-    </div>
+    <!-- ⚠️ 左上角的汉堡菜单已经搬进配置中心面板里面了，这里删除，防止重叠 -->
 
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
@@ -224,33 +215,6 @@
             const topBtns = document.querySelectorAll('.top-actions .top-btn');
             if (topBtns.length > 0 && typeof gsap !== 'undefined') {
                 gsap.fromTo(topBtns, { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: "power2.out", delay: 0.3 });
-            }
-        });
-
-        /* ==========================================================
-           🔥 配置中心：汉堡菜单开关（无需任何外部文件控制）
-           ========================================================== */
-        document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
-            e.preventDefault(); 
-            const checkbox = document.getElementById('hamburger-toggle');
-            const panel = document.getElementById('agentSettingsPanel');
-            const content = document.getElementById('settingsModalContent');
-            if (!checkbox || !panel || !content) return;
-
-            const isOpen = !panel.classList.contains('hidden');
-            if (!isOpen) {
-                checkbox.checked = true;
-                panel.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    content.classList.remove('opacity-0', '-translate-y-[120%]');
-                    content.classList.add('opacity-100', 'translate-y-0');
-                });
-            } else {
-                checkbox.checked = false;
-                void checkbox.offsetHeight;
-                content.classList.remove('opacity-100', 'translate-y-0');
-                content.classList.add('opacity-0', '-translate-y-[120%]');
-                setTimeout(() => { panel.classList.add('hidden'); }, 500);
             }
         });
 
