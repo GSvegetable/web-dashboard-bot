@@ -1,185 +1,144 @@
-<!-- Agent 独立配置面板（退回垂直滑杆前版本，保留深度思考锁定） -->
-<div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
-    <!-- ⚠️ 外部透明层不绑定点击事件，开/关交由汉堡菜单按钮控制 -->
+<!-- Agent 独立配置面板（右侧滑出、内部菜单锁死版） -->
+<!-- 面板容器：定位到右侧，上下贴合，初始状态隐于右侧屏幕外 -->
+<div id="agentSettingsPanel" class="fixed top-0 right-0 bottom-0 w-[480px] max-w-[95%] z-[9999] bg-white/10 backdrop-blur-md border-l border-white/20 shadow-2xl p-6 pb-10 overflow-y-auto transition-transform duration-500 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] will-change-transform transform translate-x-full">
     
-    <div id="settingsModalContent" class="relative w-[480px] max-w-[95%] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto max-h-[85vh] overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
+    <!-- 顶部布局：标题居左，汉堡菜单居右 -->
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         
-        <div class="flex justify-between items-start">
-            <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
+        <!-- 内部汉堡菜单（控制面板开/关） -->
+        <div id="panel-menu-btn-wrapper" class="w-9 h-9 flex items-center justify-center cursor-pointer">
+            <label class="hamburger w-full h-full flex items-center justify-center">
+                <input type="checkbox" id="panel-hamburger-toggle">
+                <svg viewBox="0 0 32 32">
+                    <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                    <path class="line" d="M7 16 27 16"></path>
+                </svg>
+            </label>
+        </div>
+    </div>
+
+    <!-- 配置项内容区域（保留你原来稳定且已锁定的所有配置逻辑） -->
+    <div class="flex flex-col gap-6 mt-1">
+        <!-- 越狱设置 -->
+        <div class="w-full">
+            <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">越狱设置</div>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
+                    <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
+                        <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
+                        <label for="jailbreak-flash-off">关闭</label>
+                        <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
+                        <label for="jailbreak-flash-on">开启</label>
+                        <div class="glass-glider-2"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="flex flex-col gap-10 mt-1">
-
-            <!-- 越狱设置 -->
-            <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">越狱设置</div>
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
-                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
-                            <label for="jailbreak-flash-off">关闭</label>
-                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
-                            <label for="jailbreak-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
+        <!-- 分类一：省钱模型 -->
+        <div class="w-full">
+            <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                    <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
+                        <input type="radio" name="think-flash" id="think-flash-off" />
+                        <label for="think-flash-off">关闭</label>
+                        <input type="radio" name="think-flash" id="think-flash-on" checked />
+                        <label for="think-flash-on">开启</label>
+                        <div class="glass-glider-2"></div>
+                    </div>
+                </div>
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                    <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                        <input type="radio" name="search-flash" id="search-flash-off" checked />
+                        <label for="search-flash-off">关闭</label>
+                        <input type="radio" name="search-flash" id="search-flash-on" />
+                        <label for="search-flash-on">开启</label>
+                        <div class="glass-glider-2"></div>
+                    </div>
+                </div>
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                    <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
+                        <input type="radio" name="strength-flash" id="strength-flash-low" checked />
+                        <label for="strength-flash-low">低</label>
+                        <input type="radio" name="strength-flash" id="strength-flash-mid" />
+                        <label for="strength-flash-mid">高</label>
+                        <input type="radio" name="strength-flash" id="strength-flash-max" />
+                        <label for="strength-flash-max">最高</label>
+                        <div class="glass-glider-3"></div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- 分类一：省钱模型 -->
-            <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
-                
-                <div class="flex flex-col gap-4 mt-2">
-                    <!-- 深度思考 -->
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
-                            <input type="radio" name="think-flash" id="think-flash-off" />
-                            <label for="think-flash-off">关闭</label>
-                            <input type="radio" name="think-flash" id="think-flash-on" checked />
-                            <label for="think-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
+        <!-- 分类二：烧钱模型 -->
+        <div class="w-full">
+            <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                    <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
+                        <input type="radio" name="think-pro" id="think-pro-off" />
+                        <label for="think-pro-off">关闭</label>
+                        <input type="radio" name="think-pro" id="think-pro-on" checked />
+                        <label for="think-pro-on">开启</label>
+                        <div class="glass-glider-2"></div>
                     </div>
-                    
-                    <!-- 联网搜索 -->
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="search-flash" id="search-flash-off" checked />
-                            <label for="search-flash-off">关闭</label>
-                            <input type="radio" name="search-flash" id="search-flash-on" />
-                            <label for="search-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-
-                    <!-- 思考强度 -->
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
-                            <input type="radio" name="strength-flash" id="strength-flash-low" checked />
-                            <label for="strength-flash-low">低</label>
-                            <input type="radio" name="strength-flash" id="strength-flash-mid" />
-                            <label for="strength-flash-mid">高</label>
-                            <input type="radio" name="strength-flash" id="strength-flash-max" />
-                            <label for="strength-flash-max">最高</label>
-                            <div class="glass-glider-3"></div>
-                        </div>
+                </div>
+                <div class="flex flex-row items-center justify-between w-full">
+                    <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                    <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                        <input type="radio" name="strength-pro" id="strength-pro-high" checked />
+                        <label for="strength-pro-high">高</label>
+                        <input type="radio" name="strength-pro" id="strength-pro-max" />
+                        <label for="strength-pro-max">最高</label>
+                        <div class="glass-glider-2"></div>
                     </div>
                 </div>
             </div>
-
-            <!-- 分类二：烧钱模型 -->
-            <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
-                
-                <div class="flex flex-col gap-4 mt-2">
-                    <!-- 深度思考 -->
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
-                            <input type="radio" name="think-pro" id="think-pro-off" />
-                            <label for="think-pro-off">关闭</label>
-                            <input type="radio" name="think-pro" id="think-pro-on" checked />
-                            <label for="think-pro-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-
-                    <!-- 思考强度 -->
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="strength-pro" id="strength-pro-high" checked />
-                            <label for="strength-pro-high">高</label>
-                            <input type="radio" name="strength-pro" id="strength-pro-max" />
-                            <label for="strength-pro-max">最高</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
 
 <style>
-    /* ========== 玻璃质感按钮样式 ========== */
-    .glass-radio-group-3 {
-        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
-        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
-        backdrop-filter: blur(12px);
-        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
-        overflow: hidden; flex-shrink: 0;
-    }
+    /* 所有玻璃质感按钮样式保持原状，与上一版一致 */
+    .glass-radio-group-3 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
     .glass-radio-group-3 input { display: none; }
-    .glass-radio-group-3 label {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
-        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
-        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
-    }
+    .glass-radio-group-3 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
     .glass-radio-group-3 label:hover { color: white; }
     .glass-radio-group-3 input:checked + label { color: #fff; }
-    .glass-glider-3 {
-        position: absolute; top: 0; bottom: 0; width: calc(100% / 3);
-        border-radius: 1rem; z-index: 1;
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
-    }
+    .glass-glider-3 { position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    .glass-radio-group-2 {
-        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
-        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
-        backdrop-filter: blur(12px);
-        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
-        overflow: hidden; flex-shrink: 0;
-    }
+    .glass-radio-group-2 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
     .glass-radio-group-2 input { display: none; }
-    .glass-radio-group-2 label {
-        flex: 1; display: flex; align-items: center; justify-content: center;
-        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
-        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
-        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
-    }
+    .glass-radio-group-2 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
     .glass-radio-group-2 label:hover { color: white; }
     .glass-radio-group-2 input:checked + label { color: #fff; }
-    .glass-glider-2 {
-        position: absolute; top: 0; bottom: 0; width: 50%;
-        border-radius: 1rem; z-index: 1;
-        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
-    }
-    
-    /* 关闭：银灰色 */
-    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
-    #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
-        transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
-    }
-    
-    /* 🟡 开启：金色 */
-    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
-    #think-pro-on:checked ~ .glass-glider-2 {
-        transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset;
-    }
-    
-    /* 🔴 激进沙盒开启：专属红色 */
-    #jailbreak-flash-on:checked ~ .glass-glider-2 {
-        transform: translateX(100%) !important; 
-        background: linear-gradient(135deg, #ef444455, #dc2626) !important; 
-        box-shadow: 0 0 18px rgba(239, 68, 68, 0.5) !important, 0 0 10px rgba(220, 38, 38, 0.4) inset !important;
-    }
-
-    /* 烧钱模型思考强度：高(蓝)、最高(金) */
+    .glass-glider-2 { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
+    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
+    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    #jailbreak-flash-on:checked ~ .glass-glider-2 { transform: translateX(100%) !important; background: linear-gradient(135deg, #ef444455, #dc2626) !important; box-shadow: 0 0 18px rgba(239, 68, 68, 0.5) !important, 0 0 10px rgba(220, 38, 38, 0.4) inset !important; }
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* 摇头动画（用于深度思考锁定） */
+    /* 汉堡菜单 CSS */
+    .hamburger { cursor: pointer; }
+    .hamburger input { display: none; }
+    .hamburger svg { height: 100%; width: 100%; transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1); }
+    .line { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1), stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1); }
+    .line-top-bottom { stroke-dasharray: 12 63; }
+    .hamburger input:checked + svg { transform: rotate(-45deg); }
+    .hamburger input:checked + svg .line-top-bottom { stroke-dasharray: 20 300; stroke-dashoffset: -32.42; }
+
+    /* 深度思考摇头动画 */
     @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
     .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
@@ -187,7 +146,9 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const panel = document.getElementById('agentSettingsPanel');
-    const content = document.getElementById('settingsModalContent');
+    const content = panel.querySelector('#settingsModalContent'); // 内部布局变化，需重新找元素
+    // 由于结构变了，获取内容元素需要适配
+    const settingsContent = panel.querySelector('#settingsModalContent') || panel;
     const configKey = 'gsbot_agent_config';
 
     let config = JSON.parse(localStorage.getItem(configKey));
@@ -196,19 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
             discussion: { think: true, search: false, strength: 'low', jailbreak: false }, 
             agent: { think: true, search: false, strength: 'low' } 
         };
-    } else {
-        if (!config.discussion) config.discussion = {};
-        if (!config.agent) config.agent = {};
-        config.discussion.think = true;
-        config.agent.think = true;
-        if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
-        if (typeof config.agent.search !== 'boolean') config.agent.search = false;
-        if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
-        if (!config.discussion.strength) config.discussion.strength = 'low';
-        if (!config.agent.strength) config.agent.strength = 'low';
     }
 
-    // 🛡️ 深度思考强制开启与摇头锁定
+    // 深度思考强制开启与摇头锁定
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
@@ -245,7 +196,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
-            // 允许点击，但会被 setupThinkLock 拦截复位
             input.addEventListener('change', function() {
                 const name = this.name;
                 const value = this.id;
@@ -256,13 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
                 else if (name.startsWith('jailbreak-')) { key = 'jailbreak'; val = value.endsWith('-on'); }
                 else if (name.startsWith('strength-')) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
+                if (key === 'think') return; // 物理锁死深度思考
 
                 if (name.includes('-flash')) mode = 'discussion';
                 else if (name.includes('-pro')) mode = 'agent';
 
                 if (mode && key && val !== null) {
-                    // 深度思考在 change 事件里不做储存，只靠物理锁
-                    if (key === 'think') return;
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
                     window.currentAgentConfig = config;
@@ -271,25 +220,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ==========================================================
+    // 🔥 新的控制中心：单一汉堡菜单操控右侧滑出面板
+    // ==========================================================
     window.openAgentSettings = function() {
+        const internalToggle = document.getElementById('panel-hamburger-toggle');
+        if (internalToggle) {
+            internalToggle.checked = true; // 变成叉号
+        }
+
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
         applyStoredConfig();
         setupThinkLock();
 
-        panel.classList.remove('hidden');
-        requestAnimationFrame(() => {
-            content.classList.remove('opacity-0', '-translate-y-[120%]');
-            content.classList.add('opacity-100', 'translate-y-0');
-        });
+        // 从右侧滑入
+        panel.classList.remove('translate-x-full');
     };
 
     window.closeAgentSettings = function() {
-        content.classList.remove('opacity-100', 'translate-y-0');
-        content.classList.add('opacity-0', '-translate-y-[120%]');
-        setTimeout(() => { panel.classList.add('hidden'); }, 500);
+        const internalToggle = document.getElementById('panel-hamburger-toggle');
+        if (internalToggle) {
+            internalToggle.checked = false; // 变回三条杠
+            void internalToggle.offsetHeight;
+        }
+
+        // 滑出右侧屏幕外
+        panel.classList.add('translate-x-full');
     };
+
+    // 内部汉堡菜单的点击事件
+    document.getElementById('panel-menu-btn-wrapper').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const isPanelOpen = !panel.classList.contains('translate-x-full');
+        if (isPanelOpen) {
+            window.closeAgentSettings();
+        } else {
+            window.openAgentSettings();
+        }
+    });
 
     bindEvents();
 });
