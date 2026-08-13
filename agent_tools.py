@@ -2,7 +2,6 @@
 # 定义可供 AI 智能体调用的工具列表
 import requests
 from bs4 import BeautifulSoup
-from duckduckgo_search import DDGS
 
 # ==========================================
 # 1. 网页内容抓取工具 (用于阅读具体网址)
@@ -27,19 +26,36 @@ def read_webpage(url):
         return {"status": "error", "content": f"读取网页失败: {str(e)}"}
 
 # ==========================================
-# 2. 真正的联网搜索工具 (配合面板开关启用)
+# 2. 纯 requests 版联网搜索工具 (无需额外依赖)
 # ==========================================
 def web_search(query):
     try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=5))
-            if not results:
-                return {"status": "error", "content": "没找到相关搜索结果。"}
+        # 使用 DuckDuckGo 的 HTML 版页面进行搜索
+        url = f"https://html.duckduckgo.com/html/?q={query}"
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        response = requests.get(url, headers=headers, timeout=15)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        results = soup.select('.result') # 提取搜索结果块
+        if not results:
+            return {"status": "error", "content": "没找到相关搜索结果。"}
             
-            summary = f"关于【{query}】的搜索结果：\n"
-            for i, res in enumerate(results, 1):
-                summary += f"\n{i}. 标题：{res['title']}\n   链接：{res['href']}\n   简介：{res['body']}\n"
-            return {"status": "success", "content": summary}
+        summary = f"关于【{query}】的搜索结果：\n"
+        count = 0
+        for res in results:
+            if count >= 5: break
+            title_tag = res.select_one('.result__a')
+            link_tag = res.select_one('.result__url')
+            body_tag = res.select_one('.result__snippet')
+            
+            title = title_tag.text.strip() if title_tag else "无标题"
+            link = link_tag.text.strip() if link_tag else "无链接"
+            body = body_tag.text.strip() if body_tag else "无简介"
+            
+            count += 1
+            summary += f"\n{count}. 标题：{title}\n   链接：{link}\n   简介：{body}\n"
+            
+        return {"status": "success", "content": summary}
     except Exception as e:
         return {"status": "error", "content": f"联网搜索失败: {str(e)}"}
 
