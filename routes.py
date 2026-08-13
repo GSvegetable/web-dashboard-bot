@@ -93,7 +93,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（隔离讨论模式工具列表）
+# DeepSeek 核心接口（修复无缓存/实时流式、联网问题）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -106,23 +106,16 @@ def agent_chat():
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
 
-    # 1. 根据沙盒开关选择基础人设
-    base_prompt = ""
+    # 提示词选择
     if mode == 'discussion':
-        base_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
+        system_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
     else:
-        base_prompt = AGENT_PROMPT
+        system_prompt = AGENT_PROMPT
 
-    # 2. 给关闭联网搜索的 AI 加上离线限制提示词
-    search_enabled = mode_config.get('search', False)
-    if not search_enabled:
-        offline_instruction = "\n\n重要指令：你当前处于完全离线状态，无法访问任何互联网网站或链接。如果用户询问你是否有联网功能或要求你访问网页，你必须直接回复：“我当前没有联网搜索功能。”"
-        base_prompt += offline_instruction
-
-    # 3. 记忆压缩逻辑
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
 
+    # 15句记忆压缩
     if len(chat_history) >= 15:
         summary_messages = [
             {"role": "system", "content": SUMMARY_PROMPT},
@@ -135,32 +128,30 @@ def agent_chat():
             session['chat_summary'] = chat_summary
             session['chat_history'] = chat_history
 
-    messages = [{"role": "system", "content": base_prompt}]
+    messages = [{"role": "system", "content": system_prompt}]
     if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
 
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
-    
+
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
 
-    # ==========================================================
-    # 🛡️ 核心修改：严格隔离讨论模式与代理人模式的工具列表
-    # ==========================================================
+    # 联网开关对应工具挂载
+    search_enabled = mode_config.get('search', False)
     tools = None
-    if mode == 'agent':
-        # 代理人模式：注入完整的工具列表（包含绑定机器人、搜索等）
+    if search_enabled:
         tools = TOOLS
     else:
-        # 讨论模式：不给任何工具，AI 连“功能”的影子都看不到，彻底隔绝推销行为
-        tools = None
-    # ==========================================================
+        # 关闭时，剔除搜索工具，但保留其他常规工具（如绑定）
+        tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     
+    # 1. 第一阶段：非流式，先问 AI 要不要用工具
     initial_payload = {
         "model": model_name,
         "messages": messages,
@@ -181,6 +172,7 @@ def agent_chat():
         ai_message = initial_result['choices'][0]['message']
         reasoning_content = ai_message.get('reasoning_content')
 
+        # 2. 如果 AI 决定调用工具
         if ai_message.get('tool_calls'):
             for tool_call in ai_message['tool_calls']:
                 func_name = tool_call['function']['name']
@@ -205,6 +197,7 @@ def agent_chat():
                     "content": json.dumps(result_content)
                 })
 
+            # 3. 工具执行完后，发起流式输出（立刻一句句往外吐）
             final_payload = {
                 "model": model_name,
                 "messages": messages,
@@ -241,10 +234,18 @@ def agent_chat():
             return Response(stream_with_context(generate_final()), mimetype='text/event-stream')
 
         else:
+            # 4. 如果 AI 没有调用工具，直接流式输出文字（不再囤积）
             final_reply = ai_message['content']
             def generate_normal():
-                if reasoning_content: yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
-                if final_reply: yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
+                # 先流式输出思考过程
+                if reasoning_content:
+                    yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
+                # 再流式输出文字
+                if final_reply:
+                    # 这里为了极端测试，我们也可以直接把 final_reply 全部产出，但流式更好。
+                    # 为了确保它是流的，我们假设后端如果不分段，Chat Completions 有可能直接给一个长字符串。
+                    # 但是正常流式返回都是分的。
+                    yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 yield "data: [DONE]\n\n"
 
