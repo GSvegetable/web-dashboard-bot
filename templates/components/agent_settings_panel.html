@@ -16,7 +16,6 @@
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
-                        <!-- ✅ 默认关闭 -->
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
                             <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
                             <label for="jailbreak-flash-off">关闭</label>
@@ -51,7 +50,6 @@
                     <!-- 右侧：原按钮垂直排列 -->
                     <div class="flex flex-col flex-1 gap-3 justify-between pt-1">
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✅ 深度思考：强制开启，关闭会摇头拒绝 -->
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
                                 <input type="radio" name="think-flash" id="think-flash-off" />
                                 <label for="think-flash-off">关闭</label>
@@ -62,7 +60,6 @@
                         </div>
                         
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✅ 联网搜索：默认关闭 -->
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
                                 <input type="radio" name="search-flash" id="search-flash-off" checked />
                                 <label for="search-flash-off">关闭</label>
@@ -73,7 +70,6 @@
                         </div>
 
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✅ 思考强度：默认最低 (低) -->
                             <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
                                 <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                                 <label for="strength-flash-low">低</label>
@@ -107,7 +103,6 @@
 
                     <div class="flex flex-col flex-1 gap-3 justify-between pt-1">
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✅ 深度思考：强制开启，关闭会摇头拒绝 -->
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
                                 <input type="radio" name="think-pro" id="think-pro-off" />
                                 <label for="think-pro-off">关闭</label>
@@ -118,9 +113,9 @@
                         </div>
 
                         <div class="flex flex-row items-center justify-end w-full">
-                            <!-- ✅ 思考强度：默认最低 (低)，后端会映射成高 -->
+                            <!-- ✨ 修复：添加默认 checked，强制高亮“高” -->
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                                <input type="radio" name="strength-pro" id="strength-pro-high" />
+                                <input type="radio" name="strength-pro" id="strength-pro-high" checked />
                                 <label for="strength-pro-high">高</label>
                                 <input type="radio" name="strength-pro" id="strength-pro-max" />
                                 <label for="strength-pro-max">最高</label>
@@ -287,18 +282,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const content = document.getElementById('settingsModalContent');
     const configKey = 'gsbot_agent_config';
 
-    // 🟢 核心修改：强制定位首次加载的默认值
     let config = JSON.parse(localStorage.getItem(configKey));
     if (!config) {
         config = { 
-            // 讨论：深度思考开启、搜索关闭、强度最低、沙盒关闭
             discussion: { think: true, search: false, strength: 'low', jailbreak: false }, 
-            // 代理人：深度思考开启、强度最低（后端会自动把 Pro 的 low 转为 high）
             agent: { think: true, search: false, strength: 'low' } 
         };
         localStorage.setItem(configKey, JSON.stringify(config));
     } else {
-        // 兜底保护：强制执行配置中的深度思考为开启状态
         if (!config.discussion) config.discussion = {};
         if (!config.agent) config.agent = {};
         config.discussion.think = true;
@@ -310,7 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!config.agent.strength) config.agent.strength = 'low';
     }
 
-    // 🟢 核心修改：确保每次打开都执行强制锁定
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
@@ -318,11 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!group) return;
             const offRadio = group.querySelector('input[id$="-off"]');
             const onRadio = group.querySelector('input[id$="-on"]');
-            
-            // 强制勾选开启状态
             onRadio.checked = true;
-
-            // 锁定点击事件：触发摇头动画并强制弹回开启
             offRadio.addEventListener('click', function(e) {
                 group.classList.add('shake-toggle');
                 setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
@@ -333,13 +319,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🟢 核心修改：把配置渲染到 UI 上，并联动左侧滑杆高亮
     function applyStoredConfig() {
-        // 强制勾选深度思考开启
         document.getElementById('think-flash-on').checked = true;
         document.getElementById('think-pro-on').checked = true;
-
-        // 渲染其他开关
         document.getElementById('search-flash-off').checked = !config.discussion.search;
         document.getElementById('search-flash-on').checked = config.discussion.search;
         document.getElementById('search-pro-off').checked = !config.agent.search;
@@ -347,19 +329,18 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('jailbreak-flash-off').checked = !config.discussion.jailbreak;
         document.getElementById('jailbreak-flash-on').checked = config.discussion.jailbreak;
 
-        // 渲染思考强度 (默认为 low)
         document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
         document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
-        document.getElementById('strength-pro-high').checked = config.agent.strength === 'high';
+
+        // ✨ 修复：除非配置文件里的 state 是 'max'，否则一律强制默认高亮为“高”
+        document.getElementById('strength-pro-high').checked = config.agent.strength !== 'max';
         document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
 
-        // 联动左侧滑杆
         syncLeftUI('discussion');
         syncLeftUI('agent');
     }
 
-    // 🟢 核心修改：右侧选中什么，左边滑杆就亮什么
     function syncLeftUI(mode) {
         const prefix = mode === 'discussion' ? 'flash' : 'pro';
         const cfg = config[mode];
@@ -369,15 +350,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchId = `sub-search-${prefix}`;
         const strengthId = `sub-strength-${prefix}`;
 
-        // 如果用户开启了搜索，滑杆滑到「联网搜索」
         if (cfg.search === true) {
             document.getElementById(searchId).checked = true;
         } 
-        // 如果用户调整了思考强度（不是默认最低档），滑杆滑到「思考强度」
         else if (cfg.strength && cfg.strength !== 'low') {
             document.getElementById(strengthId).checked = true;
         } 
-        // 否则，永远停在第一个「深度思考」
         else {
             document.getElementById(thinkId).checked = true;
         }
@@ -385,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
-            // 重点：监听所有开关的变动
             input.addEventListener('change', function() {
                 const name = this.name;
                 const value = this.id;
@@ -405,8 +382,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
                     window.currentAgentConfig = config;
-                    
-                    // 🟢 核心修改：每次用户手选，立刻同步左侧高亮
                     syncLeftUI(mode);
                 }
             });
