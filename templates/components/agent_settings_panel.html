@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（稳定同步激进沙盒开关） -->
+<!-- Agent 独立配置面板（开启状态改为红色） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -35,7 +35,7 @@
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
                             <input type="radio" name="think-flash" id="think-flash-off" />
                             <label for="think-flash-off">关闭</label>
-                            <input type="radio" name="think-flash" id="think-flash-on" checked />
+                            <input type="radio" name="think-flash" id="think-flash-on" />
                             <label for="think-flash-on">开启</label>
                             <div class="glass-glider-2"></div>
                         </div>
@@ -44,7 +44,7 @@
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="search-flash" id="search-flash-off" checked />
+                            <input type="radio" name="search-flash" id="search-flash-off" />
                             <label for="search-flash-off">关闭</label>
                             <input type="radio" name="search-flash" id="search-flash-on" />
                             <label for="search-flash-on">开启</label>
@@ -76,7 +76,7 @@
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
                             <input type="radio" name="think-pro" id="think-pro-off" />
                             <label for="think-pro-off">关闭</label>
-                            <input type="radio" name="think-pro" id="think-pro-on" checked />
+                            <input type="radio" name="think-pro" id="think-pro-on" />
                             <label for="think-pro-on">开启</label>
                             <div class="glass-glider-2"></div>
                         </div>
@@ -99,25 +99,65 @@
 </div>
 
 <style>
-    .glass-radio-group-3 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
+    .glass-radio-group-3 {
+        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
+        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden; flex-shrink: 0;
+    }
     .glass-radio-group-3 input { display: none; }
-    .glass-radio-group-3 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
+    .glass-radio-group-3 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
+    }
     .glass-radio-group-3 label:hover { color: white; }
     .glass-radio-group-3 input:checked + label { color: #fff; }
-    .glass-glider-3 { position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
+    .glass-glider-3 {
+        position: absolute; top: 0; bottom: 0; width: calc(100% / 3);
+        border-radius: 1rem; z-index: 1;
+        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
     #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
     #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    .glass-radio-group-2 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
+    .glass-radio-group-2 {
+        --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
+        display: flex; position: relative; background: var(--bg); border-radius: 1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden; flex-shrink: 0;
+    }
     .glass-radio-group-2 input { display: none; }
-    .glass-radio-group-2 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
+    .glass-radio-group-2 label {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 0.6rem 0; font-size: 13px; cursor: pointer;
+        font-weight: 600; letter-spacing: 0.3px; color: var(--text);
+        position: relative; z-index: 2; transition: color 0.3s ease-in-out;
+    }
     .glass-radio-group-2 label:hover { color: white; }
     .glass-radio-group-2 input:checked + label { color: #fff; }
-    .glass-glider-2 { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
+    .glass-glider-2 {
+        position: absolute; top: 0; bottom: 0; width: 50%;
+        border-radius: 1rem; z-index: 1;
+        transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    }
     
-    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset; }
-    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
+    /* 关闭/默认状态：银灰色 */
+    #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2,
+    #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 {
+        transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); box-shadow: 0 0 18px rgba(192, 192, 192, 0.5), 0 0 10px rgba(255, 255, 255, 0.4) inset;
+    }
+    
+    /* ✨ 开启状态：红色 */
+    #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2,
+    #think-pro-on:checked ~ .glass-glider-2, #jailbreak-flash-on:checked ~ .glass-glider-2 {
+        transform: translateX(100%); background: linear-gradient(135deg, #ef444455, #dc2626); box-shadow: 0 0 18px rgba(239, 68, 68, 0.5), 0 0 10px rgba(220, 38, 38, 0.4) inset;
+    }
+    
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 </style>
@@ -192,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (mode && key && val !== null) {
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
-                    window.currentAgentConfig = config; // ✨ 立刻同步到全局变量
+                    window.currentAgentConfig = config;
                 }
             });
         });
@@ -201,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openAgentSettings = function() {
         config = JSON.parse(localStorage.getItem(configKey));
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'high' } };
-        window.currentAgentConfig = config; // ✨ 确保打开时也同步
+        window.currentAgentConfig = config;
         applyStoredConfig();
         setupThinkLock();
 
