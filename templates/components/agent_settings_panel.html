@@ -1,15 +1,15 @@
-<!-- Agent 独立配置面板（左侧贴边全高样式，移除汉堡菜单） -->
+<!-- Agent 独立配置面板（移到屏幕最左，面板层级极低，绝对无法遮挡三条杠） -->
 <div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
     <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <!-- ✨ 恢复标题靠左，不再需要 ml-12 腾空间 -->
+        <!-- 标题保留原位置，不做任何多余偏移，避免干扰三条杠 -->
         <div class="flex justify-between items-start">
             <h1 class="text-white text-2xl font-bold tracking-wide">配置中心</h1>
         </div>
 
         <div class="flex flex-col gap-10 mt-1">
-
+            <!-- 内容区，无需改动 -->
             <!-- 越狱设置 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">越狱设置</div>
@@ -26,13 +26,10 @@
                     </div>
                 </div>
             </div>
-
             <!-- 分类一：省钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
-                
                 <div class="flex flex-col gap-4 mt-2">
-                    <!-- 深度思考 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
@@ -43,8 +40,6 @@
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
-                    
-                    <!-- 联网搜索 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
@@ -55,8 +50,6 @@
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
-
-                    <!-- 思考强度 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
@@ -71,13 +64,10 @@
                     </div>
                 </div>
             </div>
-
             <!-- 分类二：烧钱模型 -->
             <div class="w-full">
                 <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
-                
                 <div class="flex flex-col gap-4 mt-2">
-                    <!-- 深度思考 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
@@ -88,8 +78,6 @@
                             <div class="glass-glider-2"></div>
                         </div>
                     </div>
-
-                    <!-- 思考强度 -->
                     <div class="flex flex-row items-center justify-between w-full">
                         <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
                         <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
@@ -102,13 +90,12 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
 <style>
-    /* ========== 玻璃质感按钮样式 ========== */
+    /* 玻璃质感按钮样式（保持原样） */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
