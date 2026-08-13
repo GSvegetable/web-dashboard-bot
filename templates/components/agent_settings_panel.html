@@ -1,4 +1,4 @@
-<!-- Agent 独立配置面板（小标题改为 Uiverse 垂直滑块样式，按钮保持原样） -->
+<!-- Agent 独立配置面板（修复联动高亮与首次加载选中状态） -->
 <div id="agentSettingsPanel" class="fixed inset-0 z-[9999] hidden pointer-events-none flex items-center justify-center">
     <div class="absolute inset-0 bg-transparent pointer-events-auto" onclick="closeAgentSettings()"></div>
     
@@ -29,15 +29,13 @@
 
             <!-- 分类一：省钱模型 -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2.5-flash</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
                 
-                <!-- ✨ 改版：左右分列。左侧为 Uiverse 垂直滑杆小标题，右侧为原样按钮 -->
-                <div class="flex flex-row w-full mt-4 gap-6">
+                <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- 左侧：Uiverse 风格的小标题列表（3选项） -->
+                    <!-- 左侧 Uiverse 风格的小标题列表（3选项） -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 3;">
-                        <!-- radio 用于驱动小标题发光和高亮 -->
-                        <input type="radio" name="sub-header-flash" id="sub-think-flash" checked />
+                        <input type="radio" name="sub-header-flash" id="sub-think-flash" />
                         <label for="sub-think-flash">深度思考</label>
                         
                         <input type="radio" name="sub-header-flash" id="sub-search-flash" />
@@ -46,12 +44,11 @@
                         <input type="radio" name="sub-header-flash" id="sub-strength-flash" />
                         <label for="sub-strength-flash">思考强度</label>
 
-                        <!-- 左侧发光滑杆 -->
                         <div class="glider-container"><div class="glider"></div></div>
                     </div>
 
                     <!-- 右侧：原按钮垂直排列 -->
-                    <div class="flex flex-col flex-1 gap-4 justify-between pt-1">
+                    <div class="flex flex-col flex-1 gap-3 justify-between pt-1">
                         <div class="flex flex-row items-center justify-end w-full">
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
                                 <input type="radio" name="think-flash" id="think-flash-off" />
@@ -89,14 +86,13 @@
 
             <!-- 分类二：烧钱模型 -->
             <div class="w-full">
-                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-5 whitespace-nowrap">gs-v2-pro</div>
+                <div class="text-3xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
                 
-                <!-- ✨ 改版：左右分列。左侧为 2 选项 Uiverse 垂直滑杆小标题 -->
-                <div class="flex flex-row w-full mt-4 gap-6">
+                <div class="flex flex-row w-full mt-2 gap-6">
                     
-                    <!-- 左侧：2选项小标题 -->
+                    <!-- 左侧 2 选项小标题 -->
                     <div class="radio-container-sub flex-shrink-0 w-[130px]" style="--total-radio: 2;">
-                        <input type="radio" name="sub-header-pro" id="sub-think-pro" checked />
+                        <input type="radio" name="sub-header-pro" id="sub-think-pro" />
                         <label for="sub-think-pro">深度思考</label>
                         
                         <input type="radio" name="sub-header-pro" id="sub-strength-pro" />
@@ -106,7 +102,7 @@
                     </div>
 
                     <!-- 右侧：原按钮垂直排列 -->
-                    <div class="flex flex-col flex-1 gap-4 justify-between pt-1">
+                    <div class="flex flex-col flex-1 gap-3 justify-between pt-1">
                         <div class="flex flex-row items-center justify-end w-full">
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
                                 <input type="radio" name="think-pro" id="think-pro-off" />
@@ -135,7 +131,7 @@
 </div>
 
 <style>
-    /* ========== 原有的玻璃质感按钮样式（保持不变） ========== */
+    /* ========== 原有玻璃质感按钮样式（保持不变） ========== */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
@@ -194,16 +190,16 @@
     #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); box-shadow: 0 0 18px rgba(160, 216, 255, 0.5), 0 0 10px rgba(200, 240, 255, 0.4) inset; }
     #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); box-shadow: 0 0 18px rgba(255, 215, 0, 0.5), 0 0 10px rgba(255, 235, 150, 0.4) inset; }
 
-    /* ========== ✨ 新增：Uiverse 小标题垂直滑块样式 ========== */
+    /* ========== ✨ 修改：Uiverse 小标题垂直滑块样式 ========== */
     .radio-container-sub {
-        --main-color: #f7e479; /* 和你提供的 Uiverse 颜色一致 */
+        --main-color: #f7e479;
         --main-color-opacity: #f7e4791c;
         display: flex;
         flex-direction: column;
         position: relative;
         padding-left: 0.5rem;
-        gap: 14px; /* 完美对齐右侧按钮的 gap-4 */
-        padding-top: 6px; /* 垂直居中对齐右侧第一排按钮 */
+        gap: 14px;
+        padding-top: 6px;
     }
     .radio-container-sub input { display: none; }
     .radio-container-sub label {
@@ -227,13 +223,9 @@
         left: 0;
         top: 0;
         bottom: 0;
-        background: linear-gradient(
-            0deg,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(27, 27, 27, 1) 50%,
-            rgba(0, 0, 0, 0) 100%
-        );
-        width: 2px;
+        /* ✨ 移除两头渐变，改为颜色均匀的 1px 细线 */
+        background: rgba(255, 255, 255, 0.15);
+        width: 1px;
         height: 100%;
     }
     .radio-container-sub .glider-container .glider {
@@ -280,7 +272,7 @@
     #sub-think-pro:checked ~ .glider-container .glider { transform: translateY(0); }
     #sub-strength-pro:checked ~ .glider-container .glider { transform: translateY(100%); }
 
-    /* 摇头动画（用于深度思考锁定） */
+    /* 摇头动画 */
     @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
     .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 </style>
@@ -341,11 +333,43 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
         document.getElementById('strength-pro-high').checked = config.agent.strength === 'high';
         document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
+
+        // ✨ 新增：强制同步左侧滑杆的高亮
+        syncLeftUI('discussion');
+        syncLeftUI('agent');
+    }
+
+    // ✨ 同步左侧滑杆高亮至正确配置项
+    function syncLeftUI(mode) {
+        const prefix = mode === 'discussion' ? 'flash' : 'pro';
+        const cfg = config[mode];
+        if (!cfg) return;
+        
+        // 同步顺序优先级：深度思考 > 联网搜索 > 思考强度 (根据用户实际点击)
+        // 首次加载时，如果没有高亮，需要强制选中一个
+        const thinkId = `sub-think-${prefix}`;
+        const searchId = `sub-search-${prefix}`;
+        const strengthId = `sub-strength-${prefix}`;
+
+        // 为了能精确切换到对应的左侧标签，我们在保存和加载时由右侧事件驱动
+        // 面板打开时，如果配置是默认值，我们需要让滑块停留在正确的初始位置
+        // 默认情况下，think 是 true，所以 high light 应该是深度思考
+        // 但如果用户设置了 search 为 true，则高亮搜索
+        // 如果用户设置了 strength，则高亮强度
+        
+        // 优先匹配当前生效的值
+        if (cfg.think === true) {
+            document.getElementById(thinkId).checked = true;
+        } else if (cfg.search === true) {
+            document.getElementById(searchId).checked = true;
+        } else {
+            // 默认高亮第一项
+            document.getElementById(thinkId).checked = true;
+        }
     }
 
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(input => {
-            if (input.name.includes('think-')) return;
             input.addEventListener('change', function() {
                 const name = this.name;
                 const value = this.id;
@@ -353,7 +377,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 let key = null;
                 let val = null;
 
-                if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
+                if (name.startsWith('think-')) { key = 'think'; val = value.endsWith('-on'); }
+                else if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on'); }
                 else if (name.startsWith('jailbreak-')) { key = 'jailbreak'; val = value.endsWith('-on'); }
                 else if (name.startsWith('strength-')) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
 
@@ -364,6 +389,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
                     window.currentAgentConfig = config;
+                    
+                    // ✨ 用户切换时，立即联动左侧高亮
+                    syncLeftUI(mode);
                 }
             });
         });
