@@ -93,7 +93,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（修复联网搜索关闭后AI依然吹牛的Bug）
+# DeepSeek AI 接口（隔离讨论模式工具列表）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -113,10 +113,9 @@ def agent_chat():
     else:
         base_prompt = AGENT_PROMPT
 
-    # 2. 🛡️ 核心修复：根据联网开关动态增加“离线限制”提示词
+    # 2. 给关闭联网搜索的 AI 加上离线限制提示词
     search_enabled = mode_config.get('search', False)
     if not search_enabled:
-        # 如果关闭了联网搜索，加上这条强制脱钩指令，让它真正闭嘴
         offline_instruction = "\n\n重要指令：你当前处于完全离线状态，无法访问任何互联网网站或链接。如果用户询问你是否有联网功能或要求你访问网页，你必须直接回复：“我当前没有联网搜索功能。”"
         base_prompt += offline_instruction
 
@@ -148,14 +147,17 @@ def agent_chat():
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
 
-    # 4. 处理工具列表
+    # ==========================================================
+    # 🛡️ 核心修改：严格隔离讨论模式与代理人模式的工具列表
+    # ==========================================================
     tools = None
-    if search_enabled:
-        # 开启时，挂载全量工具（包含联网搜索）
+    if mode == 'agent':
+        # 代理人模式：注入完整的工具列表（包含绑定机器人、搜索等）
         tools = TOOLS
     else:
-        # 关闭时，只提供绑定机器人、添加节点等基础工具，剔除 web_search
-        tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
+        # 讨论模式：不给任何工具，AI 连“功能”的影子都看不到，彻底隔绝推销行为
+        tools = None
+    # ==========================================================
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     
