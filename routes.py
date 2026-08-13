@@ -93,7 +93,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek AI 接口（修复：先执行工具，再流式输出）
+# DeepSeek AI 接口（V2 完美同频联网搜索）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -108,10 +108,7 @@ def agent_chat():
 
     # 1. 提示词选择
     if mode == 'discussion':
-        if mode_config.get('jailbreak') is True:
-            system_prompt = SANDBOX_PROMPT
-        else:
-            system_prompt = DEFAULT_PROMPT
+        system_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
     else:
         system_prompt = AGENT_PROMPT
 
@@ -143,12 +140,17 @@ def agent_chat():
     model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
-    tools = TOOLS if mode_config.get('search') else None
-    if mode == 'agent': tools = TOOLS # 代理人模式默认给工具
+
+    # 🛡️ 核心修正：V2 现在和 V2.5 一样，严格遵守联网搜索开关！
+    tools = None
+    if mode_config.get('search'):
+        tools = TOOLS
+    else:
+        # 如果关闭了搜索，为了让绑定机器人等功能依然可用，只传不含联网搜索的工具
+        tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     
-    # 4. 第一步：先非流式调用，询问 AI 要不要使用工具
     initial_payload = {
         "model": model_name,
         "messages": messages,
@@ -169,7 +171,6 @@ def agent_chat():
         ai_message = initial_result['choices'][0]['message']
         reasoning_content = ai_message.get('reasoning_content')
 
-        # 5. 第二步：如果 AI 决定调用工具，立刻在后台执行
         if ai_message.get('tool_calls'):
             for tool_call in ai_message['tool_calls']:
                 func_name = tool_call['function']['name']
@@ -187,7 +188,6 @@ def agent_chat():
                     search_data = web_search(args['query'])
                     result_content = search_data
                 
-                # 把工具执行结果追加到对话记录里
                 messages.append(ai_message)
                 messages.append({
                     "role": "tool",
@@ -195,7 +195,6 @@ def agent_chat():
                     "content": json.dumps(result_content)
                 })
 
-            # 6. 第三步：带着工具执行的结果，重新请求 AI（这次使用流式输出流回前端）
             final_payload = {
                 "model": model_name,
                 "messages": messages,
@@ -228,19 +227,14 @@ def agent_chat():
                 finally:
                     yield "data: [DONE]\n\n"
 
-            # 存储到 Session
             session['chat_history'] = messages
-
             return Response(stream_with_context(generate_final()), mimetype='text/event-stream')
 
         else:
-            # 如果没有工具调用，直接返回思考过程 + 普通文字回复
             final_reply = ai_message['content']
             def generate_normal():
-                if reasoning_content:
-                    yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
-                if final_reply:
-                    yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
+                if reasoning_content: yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
+                if final_reply: yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 yield "data: [DONE]\n\n"
 
