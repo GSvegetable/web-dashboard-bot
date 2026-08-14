@@ -1,15 +1,15 @@
-<!-- Agent 独立配置面板（根菜单 + 设置面板二合一） -->
+<!-- Agent 独立配置面板（根菜单 + 设置面板二合一，彻底消除双层边框） -->
 
 <div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
     <!-- 面板容器：外框唯一毛玻璃容器 -->
     <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-y-auto transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <!-- ✨ 核心菜单 1：根菜单（用户卡片，去掉了内部边框，完全撑满外层面板） -->
-        <div id="agentRootMenu" class="relative z-10 flex flex-col h-full w-full bg-white/5 rounded-xl overflow-hidden">
+        <!-- ✨ 核心菜单 1：根菜单（彻底去掉了内层的 bg-white/5、圆角和边框，直接贴合外框） -->
+        <div id="agentRootMenu" class="relative z-10 flex flex-col h-full w-full">
             
             <!-- 用户头部信息 -->
-            <div class="px-4 py-4 border-b border-white/10 bg-gradient-to-r from-blue-800/60 to-blue-600/60 flex-shrink-0">
+            <div class="px-4 py-4 border-b border-white/10 bg-gradient-to-r from-blue-800/60 to-blue-600/60 flex-shrink-0 rounded-t-[28px]">
                 <p class="text-xs font-medium text-blue-300 uppercase tracking-wider">
                 Signed in as
                 </p>
@@ -372,4 +372,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     bindEvents();
 });
-                </script>
+</script>
