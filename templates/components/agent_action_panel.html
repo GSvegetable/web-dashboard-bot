@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const count = Object.keys(chatSessions).length;
                 historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
             }
-            // ✅ 修复回退逻辑，强制判断是哪种有效模式，绝不乱跳
+            // 延时 300ms 后弹回
             setTimeout(() => {
                 let target = radio1; // 默认回讨论
                 if (window._lastValidMode === 'agent') target = radio2;
@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 renderHistoryList();
                 loadCurrentSession();
             }
-            // ✅ 修复回退逻辑，强制判断是哪种有效模式，绝不乱跳
+            // 延时 300ms 后弹回
             setTimeout(() => {
                 let target = radio1; // 默认回讨论
                 if (window._lastValidMode === 'agent') target = radio2;
@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function() {
             panelWrapper.style.display = 'block';
             setTimeout(() => { 
                 panel.classList.remove('translate-y-full'); 
-                setTimeout(() => { agentInput.focus(); }, 300);
+                // 移除自动聚焦逻辑，防止弹出键盘
             }, 10);
         } else {
             panel.classList.add('translate-y-full');
