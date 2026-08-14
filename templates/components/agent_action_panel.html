@@ -1,15 +1,17 @@
 <!-- Agent 玻璃质感底部面板组件（完整版，增加历史记录按钮） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-  .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); width: fit-content; gap: 0; }
   .agent-tabs-wrapper .tabs * { z-index: 2; }
   .agent-tabs-wrapper input[type="radio"] { display: none; }
-  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; }
+  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; position: relative; }
   .agent-tabs-wrapper .notification { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto; font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px; background-color: rgba(255, 255, 255, 0.1); transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5); }
   .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
   .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
   .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
+  .agent-tabs-wrapper input[id="radio-3"]:checked ~ .glider { transform: translateX(200%); }
+  .agent-tabs-wrapper input[id="radio-4"]:checked ~ .glider { transform: translateX(300%); }
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
   
@@ -53,32 +55,30 @@
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
     <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
         
-        <!-- 顶部区域 -->
+        <!-- 顶部区域：扩展为四个可滑动标签 -->
         <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
             <div class="agent-tabs-wrapper">
                 <div class="container">
                     <div class="tabs">
                         <input checked="" name="tabs" id="radio-1" type="radio" />
                         <label for="radio-1" class="tab">讨论</label>
+                        
                         <input name="tabs" id="radio-2" type="radio" />
                         <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
+                        
+                        <input name="tabs" id="radio-3" type="radio" />
+                        <label for="radio-3" class="tab">记录</label>
+                        
+                        <input name="tabs" id="radio-4" type="radio" />
+                        <label for="radio-4" class="tab">新建</label>
+
                         <span class="glider"></span>
                     </div>
                 </div>
             </div>
-
-            <!-- ✨ 历史记录按钮（真正对接起来了） -->
-            <button id="historyBtn" class="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-            </button>
-
-            <!-- 原有的“+”加号按钮 -->
-            <button id="newChatBtn" class="w-8 h-8 rounded-full bg-[rgba(255,255,255,0.08)] border border-white/20 text-white/70 hover:text-white hover:bg-[rgba(255,255,255,0.15)] flex items-center justify-center transition active:scale-95 text-lg leading-none font-light">
-                +
-            </button>
         </div>
 
-        <!-- ✨ 新增：悬浮历史记录列表面板 -->
+        <!-- ✨ 悬浮历史记录列表面板 -->
         <div id="historyPanel">
             <div class="text-xs text-white/50 font-medium px-1 mb-1">点击切换历史对话</div>
             <div id="historyList" class="flex flex-col gap-1"></div>
@@ -110,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const agentList = document.getElementById('agentList');
     const radio1 = document.getElementById('radio-1');
     const radio2 = document.getElementById('radio-2');
+    const radio3 = document.getElementById('radio-3');
+    const radio4 = document.getElementById('radio-4');
     const newChatBtn = document.getElementById('newChatBtn');
     
     // ✨ 历史记录 DOM
@@ -237,9 +239,65 @@ document.addEventListener("DOMContentLoaded", function() {
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
         currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
+        // 记录上一次实际使用的模式，用于点击记录/新建后弹回
+        window._lastValidMode = mode;
     }
-    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
-    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
+
+    radio1.addEventListener('change', function() { if (this.checked) { switchMode('discussion'); } });
+    radio2.addEventListener('change', function() { if (this.checked) { switchMode('agent'); } });
+    
+    // ✨ 新增：点击“记录”标签的交互
+    radio3.addEventListener('change', function() {
+        if (this.checked) {
+            renderHistoryList();
+            const isHidden = historyPanel.style.display === 'none';
+            historyPanel.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) {
+                const count = Object.keys(chatSessions).length;
+                historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
+            }
+            // 动画弹回：如果是记录，执行完毕后把黑块弹回之前选定的模式（讨论或代理人）
+            requestAnimationFrame(() => {
+                const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
+                target.checked = true;
+            });
+        }
+    });
+
+    // ✨ 新增：点击“新建”标签的交互
+    radio4.addEventListener('change', function() {
+        if (this.checked) {
+            // 执行新建对话逻辑
+            const current = chatSessions[currentSessionId];
+            const hasContent = current && (current.discussion.length > 0 || current.agent.length > 0);
+
+            if (!hasContent) {
+                if (typeof window.showToast === 'function') {
+                    window.showToast('当前已经是新对话了，无需重复创建', false);
+                } else {
+                    alert('当前已经是新对话了，无需重复创建');
+                }
+            } else {
+                const newId = 'session_' + Date.now();
+                chatSessions[newId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
+                currentSessionId = newId;
+                saveSessions();
+                renderHistoryList();
+                loadCurrentSession();
+                if (typeof window.showToast === 'function') {
+                    window.showToast('已开启全新对话', false);
+                } else {
+                    alert('✅ 已开启全新对话');
+                }
+            }
+
+            // 动画弹回：执行完毕后把黑块弹回之前选定的模式
+            requestAnimationFrame(() => {
+                const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
+                target.checked = true;
+            });
+        }
+    });
 
     function updateAgentPanelPosition() {
         if (!isPanelOpen) return;
@@ -404,54 +462,6 @@ document.addEventListener("DOMContentLoaded", function() {
     agentSendBtn.addEventListener('click', sendMessageInternal);
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
-
-    // ✨ 修复：新建对话逻辑（判断是否为空）
-    if (newChatBtn) {
-        newChatBtn.addEventListener('click', function() {
-            // 检查当前会话是否有真实消息
-            const current = chatSessions[currentSessionId];
-            const hasContent = current && (current.discussion.length > 0 || current.agent.length > 0);
-
-            // 如果没有一条消息，阻止新建空记录，并给提示
-            if (!hasContent) {
-                if (typeof window.showToast === 'function') {
-                    window.showToast('当前已经是新对话了，无需重复创建', false);
-                } else {
-                    alert('当前已经是新对话了，无需重复创建');
-                }
-                return;
-            }
-
-            // 有消息时才新建
-            const newId = 'session_' + Date.now();
-            chatSessions[newId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
-            currentSessionId = newId;
-            saveSessions();
-            renderHistoryList();
-            loadCurrentSession();
-            if (typeof window.showToast === 'function') {
-                window.showToast('已开启全新对话', false);
-            } else {
-                alert('✅ 已开启全新对话');
-            }
-        });
-    }
-
-    // ✨ 历史记录按钮点击：显示/隐藏
-    if (historyBtn) {
-        historyBtn.addEventListener('click', function() {
-            // 重新渲染确保数据最新
-            renderHistoryList();
-            const isHidden = historyPanel.style.display === 'none';
-            historyPanel.style.display = isHidden ? 'flex' : 'none';
-            if (isHidden) {
-                // 计算适合的显示高度
-                const count = Object.keys(chatSessions).length;
-                if (count <= 3) historyPanel.style.maxHeight = '140px';
-                else historyPanel.style.maxHeight = '200px';
-            }
-        });
-    }
 
     // 初始化加载
     initSessions();
