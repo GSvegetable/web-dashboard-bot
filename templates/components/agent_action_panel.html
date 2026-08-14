@@ -4,16 +4,19 @@
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); width: fit-content; gap: 0; }
   .agent-tabs-wrapper .tabs * { z-index: 2; }
   .agent-tabs-wrapper input[type="radio"] { display: none; }
-  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 70px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; position: relative; }
+  .agent-tabs-wrapper .tab { display: flex; align-items: center; justify-content: center; height: 30px; width: 60px; font-size: 0.8rem; color: rgba(255, 255, 255, 0.6); font-weight: 500; border-radius: 99px; cursor: pointer; transition: color 0.15s ease-in; position: relative; }
   .agent-tabs-wrapper .notification { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto; font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px; background-color: rgba(255, 255, 255, 0.1); transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5); }
   .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
+  
+  /* 缩小宽度后的 4 档滑动定位 */
   .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
   .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
   .agent-tabs-wrapper input[id="radio-3"]:checked ~ .glider { transform: translateX(200%); }
   .agent-tabs-wrapper input[id="radio-4"]:checked ~ .glider { transform: translateX(300%); }
+  
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
-  .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 70px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
+  .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 60px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
   
   #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
   #agentMessageArea::-webkit-scrollbar { display: none; }
@@ -30,7 +33,7 @@
   @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
   .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 
-  /* ✨ 新增：历史记录面板样式 */
+  /* ✨ 历史记录面板样式 */
   #historyPanel {
       position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
       width: 85%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(24px);
@@ -112,7 +115,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio2 = document.getElementById('radio-2');
     const radio3 = document.getElementById('radio-3');
     const radio4 = document.getElementById('radio-4');
-    const newChatBtn = document.getElementById('newChatBtn');
     
     // ✨ 历史记录 DOM
     const historyBtn = document.getElementById('historyBtn');
@@ -246,7 +248,7 @@ document.addEventListener("DOMContentLoaded", function() {
     radio1.addEventListener('change', function() { if (this.checked) { switchMode('discussion'); } });
     radio2.addEventListener('change', function() { if (this.checked) { switchMode('agent'); } });
     
-    // ✨ 新增：点击“记录”标签的交互
+    // ✨ 点击“记录”标签：滑块先划过去，再收回
     radio3.addEventListener('change', function() {
         if (this.checked) {
             renderHistoryList();
@@ -256,46 +258,33 @@ document.addEventListener("DOMContentLoaded", function() {
                 const count = Object.keys(chatSessions).length;
                 historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
             }
-            // 动画弹回：如果是记录，执行完毕后把黑块弹回之前选定的模式（讨论或代理人）
-            requestAnimationFrame(() => {
+            // 延时 300ms 后弹回
+            setTimeout(() => {
                 const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
                 target.checked = true;
-            });
+            }, 300);
         }
     });
 
-    // ✨ 新增：点击“新建”标签的交互
+    // ✨ 点击“新建”标签：滑块先划过去，执行静默新建，再收回
     radio4.addEventListener('change', function() {
         if (this.checked) {
-            // 执行新建对话逻辑
             const current = chatSessions[currentSessionId];
             const hasContent = current && (current.discussion.length > 0 || current.agent.length > 0);
 
-            if (!hasContent) {
-                if (typeof window.showToast === 'function') {
-                    window.showToast('当前已经是新对话了，无需重复创建', false);
-                } else {
-                    alert('当前已经是新对话了，无需重复创建');
-                }
-            } else {
+            if (hasContent) {
                 const newId = 'session_' + Date.now();
                 chatSessions[newId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
                 currentSessionId = newId;
                 saveSessions();
                 renderHistoryList();
                 loadCurrentSession();
-                if (typeof window.showToast === 'function') {
-                    window.showToast('已开启全新对话', false);
-                } else {
-                    alert('✅ 已开启全新对话');
-                }
             }
-
-            // 动画弹回：执行完毕后把黑块弹回之前选定的模式
-            requestAnimationFrame(() => {
+            // 无论是否新建，都延时 300ms 后弹回
+            setTimeout(() => {
                 const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
                 target.checked = true;
-            });
+            }, 300);
         }
     });
 
@@ -344,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
     }
 
-    // ✨ 修改发消息逻辑，存入 sessionStorage
+    // 发消息逻辑
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -358,10 +347,8 @@ document.addEventListener("DOMContentLoaded", function() {
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
         
-        // 存入当前会话
         if (!chatSessions[currentSessionId]) chatSessions[currentSessionId] = { discussion: [], agent: [] };
         chatSessions[currentSessionId][currentMode].push(userMsg);
-        // 更新标题
         if (chatSessions[currentSessionId][currentMode].length === 1) {
             chatSessions[currentSessionId].title = generateTitle(chatSessions[currentSessionId][currentMode]);
             chatSessions[currentSessionId].time = new Date().toLocaleTimeString();
@@ -392,7 +379,6 @@ document.addEventListener("DOMContentLoaded", function() {
             function readStream() {
                 return reader.read().then(({done, value}) => {
                     if (done) { 
-                        // 流结束后存入最终消息
                         if (finalReplyContent) {
                             chatSessions[currentSessionId][currentMode].push({ role: 'assistant', content: finalReplyContent });
                             saveSessions();
