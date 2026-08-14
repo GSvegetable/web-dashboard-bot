@@ -117,12 +117,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio4 = document.getElementById('radio-4');
     
     // ✨ 历史记录 DOM
-    const historyBtn = document.getElementById('historyBtn');
     const historyPanel = document.getElementById('historyPanel');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
 
-    // ✨ 会话存储逻辑 (使用 sessionStorage，关闭标签页即清空)
+    // ✨ 会话存储逻辑
     const STORAGE_KEY = 'gsbot_demo_sessions';
     let chatSessions = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {};
     let currentSessionId = null;
@@ -130,7 +129,9 @@ document.addEventListener("DOMContentLoaded", function() {
     let isPanelOpen = false;
     let isProcessing = false;
 
-    // 初始化或加载第一段对话
+    // ✅ 修复：默认将上一次有效的模式设为 'discussion'，防止回退时跳错
+    window._lastValidMode = 'discussion';
+
     function initSessions() {
         const keys = Object.keys(chatSessions);
         if (keys.length === 0) {
@@ -161,7 +162,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return '新对话';
     }
 
-    // ✨ 渲染历史记录侧边栏
     function renderHistoryList() {
         const keys = Object.keys(chatSessions);
         historyList.innerHTML = '';
@@ -173,18 +173,14 @@ document.addEventListener("DOMContentLoaded", function() {
         keys.reverse().forEach(id => {
             const item = document.createElement('div');
             item.className = 'history-item' + (id === currentSessionId ? ' active' : '');
-            
             const titleSpan = document.createElement('span');
             titleSpan.className = 'history-title';
             titleSpan.textContent = chatSessions[id].title || '新对话';
-            
             const timeSpan = document.createElement('span');
             timeSpan.className = 'history-time';
             timeSpan.textContent = chatSessions[id].time || '';
-            
             item.appendChild(titleSpan);
             item.appendChild(timeSpan);
-            
             item.addEventListener('click', function() {
                 switchSession(id);
             });
@@ -192,7 +188,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // ✨ 切换对话
     function switchSession(sessionId) {
         if (sessionId === currentSessionId) {
             historyPanel.style.display = 'none';
@@ -205,22 +200,18 @@ document.addEventListener("DOMContentLoaded", function() {
         historyPanel.style.display = 'none';
     }
 
-    // ✨ 加载当前对话的消息
     function loadCurrentSession() {
         discussionList.innerHTML = '';
         agentList.innerHTML = '';
         const session = chatSessions[currentSessionId];
         if (!session) return;
-        
         const discMsgs = session.discussion || [];
         const agentMsgs = session.agent || [];
-        
         discMsgs.forEach(msg => renderMessage(msg, discussionList));
         agentMsgs.forEach(msg => renderMessage(msg, agentList));
         setTimeout(() => agentMessageArea.scrollTop = agentMessageArea.scrollHeight, 50);
     }
 
-    // 渲染单条消息的辅助函数
     function renderMessage(msg, targetList) {
         const el = document.createElement('div');
         if (msg.role === 'user') {
@@ -241,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
         currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
-        // 记录上一次实际使用的模式，用于点击记录/新建后弹回
+        // 记录有效的模式
         window._lastValidMode = mode;
     }
 
@@ -258,9 +249,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 const count = Object.keys(chatSessions).length;
                 historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
             }
-            // 延时 300ms 后弹回
+            // ✅ 修复回退逻辑，强制判断是哪种有效模式，绝不乱跳
             setTimeout(() => {
-                const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
+                let target = radio1; // 默认回讨论
+                if (window._lastValidMode === 'agent') target = radio2;
                 target.checked = true;
             }, 300);
         }
@@ -280,9 +272,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 renderHistoryList();
                 loadCurrentSession();
             }
-            // 无论是否新建，都延时 300ms 后弹回
+            // ✅ 修复回退逻辑，强制判断是哪种有效模式，绝不乱跳
             setTimeout(() => {
-                const target = window._lastValidMode === 'discussion' ? radio1 : radio2;
+                let target = radio1; // 默认回讨论
+                if (window._lastValidMode === 'agent') target = radio2;
                 target.checked = true;
             }, 300);
         }
@@ -324,7 +317,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
     window.addEventListener('resize', updateAgentPanelPosition);
 
-    // 读取配置
     function getCurrentConfig() {
         const saved = localStorage.getItem('gsbot_agent_config');
         if (saved) {
@@ -333,20 +325,16 @@ document.addEventListener("DOMContentLoaded", function() {
         return { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
     }
 
-    // 发消息逻辑
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
         if (!text) return;
         isProcessing = true;
-
         const targetList = currentMode === 'discussion' ? discussionList : agentList;
-        
         const userMsg = { role: 'user', content: text };
         renderMessage(userMsg, targetList);
         agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
         agentInput.value = ''; agentInput.style.height = 'auto';
-        
         if (!chatSessions[currentSessionId]) chatSessions[currentSessionId] = { discussion: [], agent: [] };
         chatSessions[currentSessionId][currentMode].push(userMsg);
         if (chatSessions[currentSessionId][currentMode].length === 1) {
@@ -358,7 +346,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let thoughtBubble = null;
         let replyBubble = null;
-
         const payloadConfig = getCurrentConfig();
 
         fetch('/api/agent/chat', { 
@@ -399,7 +386,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                 const data = JSON.parse(jsonStr);
                                 const type = data.type;
                                 const content = data.content;
-
                                 if (type === 'reasoning') {
                                     if (!thoughtBubble) {
                                         thoughtBubble = document.createElement('div');
@@ -449,7 +435,6 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
 
-    // 初始化加载
     initSessions();
 });
 </script>
