@@ -103,7 +103,8 @@
     position: absolute;
     z-index: 0;
     inset: 0;
-    backdrop-filter: blur(3px);
+    /* ✨ 修改点：为了在你深色的背景图上看到位移，把 blur 从 3px 降低到了 1px */
+    backdrop-filter: blur(1px);
     filter: url(#glass-distortion);
     overflow: hidden;
     isolation: isolate;
@@ -112,7 +113,6 @@
     z-index: 1;
     position: absolute;
     inset: 0;
-    /* 为了适配你的黑色背景，原版是白色0.25，我稍微调暗了一点点到0.15，让白字更清晰 */
     background: rgba(0, 0, 0, 0.15);
 }
 .liquidGlass-shine {
