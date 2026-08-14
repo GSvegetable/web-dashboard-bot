@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
-        /* 与你原本的 splash.css 完全一致 */
+        /* 原有 CSS 保持不变 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
@@ -76,75 +76,13 @@
         .line-top-bottom { stroke-dasharray: 12 63; }
         .hamburger input:checked + svg { transform: rotate(-45deg); }
         .hamburger input:checked + svg .line-top-bottom { stroke-dasharray: 20 300; stroke-dashoffset: -32.42; }
-
-        /* =======================================================
-           ⭐ 新加入：macOS WWDC 液态玻璃组件 CSS
-           ======================================================= */
-        .liquidGlass-wrapper {
-          position: relative;
-          display: flex;
-          font-weight: 600;
-          overflow: hidden;
-          color: black;
-          cursor: pointer;
-          box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
-          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
-        }
-        .liquidGlass-effect {
-          position: absolute;
-          z-index: 0;
-          inset: 0;
-          backdrop-filter: blur(3px);
-          filter: url(#glass-distortion);
-          overflow: hidden;
-          isolation: isolate;
-        }
-        .liquidGlass-tint {
-          z-index: 1;
-          position: absolute;
-          inset: 0;
-          background: rgba(255, 255, 255, 0.25);
-        }
-        .liquidGlass-shine {
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-          overflow: hidden;
-          box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
-            inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
-        }
-        .liquidGlass-text {
-          z-index: 3;
-          font-size: 1.4rem;
-          color: black;
-          display: flex; gap: 6px; align-items: center;
-        }
-        .liquidGlass-text > div {
-            padding: 0.4rem 0.8rem;
-            border-radius: 0.8rem;
-            transition: all 0.1s ease-in;
-            cursor: pointer;
-        }
-        .liquidGlass-text > div:hover {
-            background-color: rgba(255, 255, 255, 0.5);
-            box-shadow: inset -2px -2px 2px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(2px);
-        }
-        .test-menu {
-            padding: 0.4rem;
-            border-radius: 1.8rem;
-        }
-        .test-menu:hover {
-            padding: 0.6rem;
-            border-radius: 1.8rem;
-        }
     </style>
 </head>
 <body>
     
     {% include 'components/user_profile.html' %}
 
-    <!-- 三条横杠 -->
+    <!-- 置于最顶层的三条横杠，绝对不可能被面板遮挡 -->
     <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
         <label class="hamburger w-full h-full flex items-center justify-center">
             <input type="checkbox" id="hamburger-toggle">
@@ -156,40 +94,9 @@
     </div>
 
     <!-- =======================================================
-         🎯 屏幕正中央：新版 macOS 液态玻璃菜单
+         🧹 删除了屏幕正中央的测试组件，保持纯净
          ======================================================= -->
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]">
-        <div class="liquidGlass-wrapper test-menu">
-            <div class="liquidGlass-effect"></div>
-            <div class="liquidGlass-tint"></div>
-            <div class="liquidGlass-shine"></div>
-            <div class="liquidGlass-text">
-                <div>文件</div>
-                <div>编辑</div>
-                <div>查看</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 隐藏的 SVG 滤镜（液态扭曲的核心） -->
-    <svg style="display: none; position: absolute; width: 0; height: 0;">
-        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence"/>
-            <feComponentTransfer in="turbulence" result="mapped">
-                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-            </feComponentTransfer>
-            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-                <fePointLight x="-200" y="-200" z="300" />
-            </feSpecularLighting>
-            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-    </svg>
-
-    <!-- 原有背景内容 -->
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
