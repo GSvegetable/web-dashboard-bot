@@ -1,154 +1,117 @@
 <!-- 音乐卡片组件：深蓝到淡蓝渐变，空心描边，丝滑形变 -->
-<!-- 🟢 注入原版液态玻璃 SVG 扭曲滤镜 -->
-<svg style="display: none; position: absolute; width: 0; height: 0;">
-    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
-        <!-- ✨ 优化1：加快循环到 3秒，且首帧直接设定在动态值上，无需等待 -->
-        <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence">
-            <animate attributeName="baseFrequency" values="0.015 0.012; 0.01 0.01; 0.015 0.012" dur="3s" repeatCount="indefinite" begin="0s" />
-        </feTurbulence>
-        
-        <feComponentTransfer in="turbulence" result="mapped">
-            <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-            <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-            <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-        </feComponentTransfer>
-        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-        <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-            <fePointLight x="-200" y="-200" z="300" />
-        </feSpecularLighting>
-        <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-        <!-- ✨ 优化2：拉扯力度精确改为 65 -->
-        <feDisplacementMap in="SourceGraphic" in2="softMap" scale="65" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-</svg>
-
 <div class="modal-overlay" id="musicModal">
     <div class="modal-box">
-        <!-- 🟡 用原版液态玻璃包裹器替换原来的 music-card-glass -->
-        <div class="liquidGlass-wrapper" style="width: 320px; padding: 20px 24px; border-radius: 20px; align-items: stretch;">
+        <div class="music-card-glass">
+            <!-- 专辑封面图片预加载 -->
+            <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" style="display: none;" crossorigin="anonymous">
             
-            <!-- 核心 4 层液态玻璃效果 -->
-            <div class="liquidGlass-effect"></div>
-            <div class="liquidGlass-tint"></div>
-            <div class="liquidGlass-shine"></div>
+            <!-- 音频播放器 -->
+            <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
-            <!-- 内容层：为适配深色背景，把字从原版黑字改成白字加阴影 -->
-            <div class="liquidGlass-text" style="display: flex; flex-direction: column; width: 100%; gap: 12px; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">
-
-                <!-- 专辑封面图片预加载 -->
-                <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" style="display: none;" crossorigin="anonymous">
+            <!-- 内容区 -->
+            <div class="music-track-info">
+                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>
                 
-                <!-- 音频播放器 -->
-                <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
-                
-                <!-- 内容区 -->
-                <div class="music-track-info" style="display: flex; align-items: center; gap: 12px;">
-                    <div class="album-art" id="album-art-display" style="width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
-                    
-                    <div class="track-details" style="flex: 1; min-width: 0; overflow: hidden;">
-                        <div class="music-track-title" style="font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">你的名字</div>
-                        <div class="music-artist-name" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">纯音乐</div>
-                    </div>
-
-                    <!-- 渐变空心、丝滑切换按钮 -->
-                    <button id="play-pause-btn" class="play-pause-btn" style="appearance: none; -webkit-appearance: none; background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent; margin-right: 4px;">
-                        <div class="svg-container" style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                            <svg class="icon-circle" viewBox="0 0 32 32" width="32" height="32" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                                <defs>
-                                    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#1e3a8a" /> <!-- 深蓝 -->
-                                        <stop offset="100%" stop-color="#93c5fd" /> <!-- 淡蓝 -->
-                                    </linearGradient>
-                                </defs>
-                                <circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
-                            </svg>
-                            
-                            <svg class="icon-square" viewBox="0 0 32 32" width="32" height="32" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: scale(0.8);">
-                                <rect x="2" y="2" width="28" height="28" rx="6" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
-                            </svg>
-                        </div>
-                    </button>
-                </div>
-                
-                <!-- 进度条区域 -->
-                <div class="music-progress-area" style="display: flex; flex-direction: column; gap: 6px;">
-                    <div class="music-time-row" style="display: flex; justify-content: space-between; font-size: 0.75rem; color: rgba(255,255,255,0.5);">
-                        <span id="music-current-time">0:00</span>
-                        <span id="music-total-time">0:00</span>
-                    </div>
-                    <div class="music-progress-track" id="music-progress-track" style="position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; cursor: pointer;">
-                        <div class="music-progress-fill" id="music-progress-fill" style="height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear;"></div>
-                        <div class="music-progress-handle" id="music-progress-handle" style="position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none;"></div>
-                    </div>
+                <div class="track-details">
+                    <div class="music-track-title">你的名字</div>
+                    <div class="music-artist-name">纯音乐</div>
                 </div>
 
+                <!-- ★★★ 渐变空心、丝滑切换按钮 ★★★ -->
+                <button id="play-pause-btn" class="play-pause-btn">
+                    <!-- 内部 SVG 容器 -->
+                    <div class="svg-container">
+                        <!-- 播放状态：深蓝到淡蓝渐变的空心圆 -->
+                        <svg class="icon-circle" viewBox="0 0 32 32" width="32" height="32">
+                            <defs>
+                                <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#1e3a8a" /> <!-- 深蓝 -->
+                                    <stop offset="100%" stop-color="#93c5fd" /> <!-- 淡蓝 -->
+                                </linearGradient>
+                            </defs>
+                            <!-- 描边粗细设置适中为 4px -->
+                            <circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                        
+                        <!-- 暂停状态：深蓝到淡蓝渐变的空心圆角正方形 -->
+                        <svg class="icon-square" viewBox="0 0 32 32" width="32" height="32">
+                            <!-- 填充 none，实现空心 -->
+                            <rect x="2" y="2" width="28" height="28" rx="6" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- 进度条区域 -->
+            <div class="music-progress-area">
+                <div class="music-time-row">
+                    <span id="music-current-time">0:00</span>
+                    <span id="music-total-time">0:00</span>
+                </div>
+                <div class="music-progress-track" id="music-progress-track">
+                    <div class="music-progress-fill" id="music-progress-fill"></div>
+                    <div class="music-progress-handle" id="music-progress-handle"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-/* =======================================================
-   原版液态玻璃样式（直接照搬人家仓库的核心代码）
-   ======================================================= */
-.liquidGlass-wrapper {
+/* 外层布局 */
+.music-track-info { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; }
+.track-details { flex: 1; min-width: 0; overflow: hidden; }
+.music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-artist-name { font-size: 0.85rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+/* ★★★ 极简按钮容器 ★★★ */
+.play-pause-btn {
+    appearance: none; -webkit-appearance: none;
+    background: transparent !important; border: none !important;
+    box-shadow: none !important; outline: none !important;
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    margin-right: 4px;
+}
+
+/* 内部包裹 SVG，确保居中 */
+.svg-container {
     position: relative;
-    display: flex;
-    font-weight: 600;
-    overflow: hidden;
-    color: black;
-    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
 }
 
-.liquidGlass-effect {
+/* 两个 SVG 初始都重叠放在中间 */
+.icon-circle, .icon-square {
     position: absolute;
-    z-index: 0;
-    inset: 0;
-    backdrop-filter: blur(1px);
-    filter: url(#glass-distortion);
-    overflow: hidden;
-    isolation: isolate;
-    /* 强制开启 GPU 渲染，加速首屏启动 */
-    will-change: filter, backdrop-filter;
-    transform: translateZ(0);
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.liquidGlass-tint {
-    z-index: 1;
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.15);
-}
-.liquidGlass-shine {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    overflow: hidden;
-    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5), inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
-}
-.liquidGlass-text {
-    z-index: 3;
-    font-size: 1.4rem;
-}
+/* 默认：只显示圆形，正方形隐藏并缩小 */
+.icon-circle { opacity: 1; transform: scale(1); }
+.icon-square { opacity: 0; transform: scale(0.8); }
 
-/* 🎵 播放按钮内部图标默认状态重置 */
-.play-pause-btn .icon-circle { opacity: 1; transform: scale(1); }
-.play-pause-btn .icon-square { opacity: 0; transform: scale(0.8); }
+/* 播放状态：圆形隐藏缩小，正方形显现放大 */
 .play-pause-btn.playing .icon-circle { opacity: 0; transform: scale(0.6); }
 .play-pause-btn.playing .icon-square { opacity: 1; transform: scale(1); }
-</style>
 
-<!-- ✨ 优化3：页加载时提前在后台预编译 SVG 滤镜，消灭 0.5 秒延迟 -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    // 创建一个极小透明的元素，提前应用一次滤镜，强迫浏览器提前完成 GPU 编译
-    const dummy = document.createElement('div');
-    dummy.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;filter:url(#glass-distortion);backdrop-filter:blur(1px);z-index:-9999;';
-    document.body.appendChild(dummy);
-    // 强制触发一次浏览器重排（不会对页面产生任何影响）
-    dummy.offsetHeight;
-    // 瞬间清除掉这个元素（滤镜已经被编译好了）
-    document.body.removeChild(dummy);
-});
-</script>
+/* 恢复原始毛玻璃卡片容器 */
+.music-card-glass {
+    position: relative;
+    width: 320px;
+    padding: 20px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+</style>
