@@ -1,7 +1,9 @@
 <!-- Agent 独立配置面板（保留布局结构，仅仅去掉文字） -->
-<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
+<!-- 修复：改为响应式宽度，防止在手机上溢出 -->
+<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
-    <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
+    <!-- 内部增加手机端 padding，防止内容贴边 -->
+    <div id="settingsModalContent" class="relative mx-auto w-[85%] sm:w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
         <!-- ✨ 只删除了“配置中心”文字，但完美保留了相同的间距（留了一个空占位，保持高度完全不变） -->
         <div class="flex justify-between items-start h-8"></div>
@@ -92,7 +94,7 @@
 </div>
 
 <style>
-    /* 玻璃质感按钮样式 */
+    /* 玻璃质感按钮样式 (保持原样，不需要改动) */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
