@@ -178,6 +178,36 @@
                     gsap.delayedCall(0.9, () => { themeRing.style.backgroundImage = `url("${defaultBgUrl}")`; });
                 }
             };
+
+            // ✨ 修复1：全屏显示按钮的正确写法
+            window.toggleFullScreen = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            };
+
+            // ✨ 修复2：点击模态框背景空白处，自动关闭
+            document.addEventListener('click', function(e) {
+                const target = e.target;
+                if (target.classList.contains('modal-overlay')) {
+                    const modalId = target.id;
+                    if (modalId === 'loginModal' && typeof window.closeLoginModal === 'function') {
+                        window.closeLoginModal();
+                    } else if (modalId === 'musicModal' && typeof window.closeMusicModal === 'function') {
+                        window.closeMusicModal();
+                    } else if (modalId === 'contactModal' && typeof window.closeContactModal === 'function') {
+                        window.closeContactModal();
+                    } else if (modalId === 'updateLogModal' && typeof window.closeUpdateLogModal === 'function') {
+                        window.closeUpdateLogModal();
+                    } else if (modalId === 'becomeFanModal' && typeof window.closeBecomeFanModal === 'function') {
+                        window.closeBecomeFanModal();
+                    }
+                }
+            });
         });
 
         // 点击三条杠，切换配置中心面板
