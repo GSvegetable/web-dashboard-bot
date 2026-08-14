@@ -1,5 +1,5 @@
-<!-- Agent 独立配置面板（修改为左侧横向滑出，保留纯净单层版） -->
-<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
+<!-- Agent 独立配置面板（修复横向滑出卡顿，彻底解决渲染问题） -->
+<div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 invisible pointer-events-none flex flex-col h-screen">
     
     <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-x-full">
         
@@ -258,19 +258,24 @@ document.addEventListener('DOMContentLoaded', function() {
         applyStoredConfig();
         setupThinkLock();
 
-        panel.classList.remove('hidden');
+        // ✅ 彻底解决卡顿：强制使用 invisible/visible，保持 DOM 存在，不会被浏览器丢掉渲染
+        panel.classList.remove('invisible');
+        panel.classList.add('visible');
+        // 强制重新计算一次样式，防止浏览器偷懒
+        void content.offsetHeight; 
         requestAnimationFrame(() => {
-            // 核心修改：改为横向滑出（从左侧滑入）
             content.classList.remove('opacity-0', '-translate-x-full');
             content.classList.add('opacity-100', 'translate-x-0');
         });
     };
 
     window.closeAgentSettings = function() {
-        // 核心修改：改为横向滑回隐藏（向左侧滑出）
         content.classList.remove('opacity-100', 'translate-x-0');
         content.classList.add('opacity-0', '-translate-x-full');
-        setTimeout(() => { panel.classList.add('hidden'); }, 500);
+        setTimeout(() => {
+            panel.classList.remove('visible');
+            panel.classList.add('invisible');
+        }, 500);
     };
 
     bindEvents();
