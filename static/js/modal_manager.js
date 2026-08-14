@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", function() {
     window.closeBecomeFanModal = function() {
         const el = document.getElementById('becomeFanModal');
         if (el) {
-            // 关闭时重置卡片位置
             const modalBox = el.querySelector('.modal-box');
             if (modalBox) modalBox.style.transform = 'translateX(0px)';
             el.classList.remove('active');
@@ -56,6 +55,17 @@ document.addEventListener("DOMContentLoaded", function() {
         window.closeAllModals();
         const el = document.getElementById('updateLogModal');
         if (el) el.classList.add('active');
+    };
+
+    // ✨ 修复：补全缺失的 toggleMusicModal 函数
+    window.toggleMusicModal = function() {
+        const el = document.getElementById('musicModal');
+        if (!el) return;
+        if (el.classList.contains('active')) {
+            window.closeMusicModal();
+        } else {
+            window.openMusicModal();
+        }
     };
 
     // ==========================================================
