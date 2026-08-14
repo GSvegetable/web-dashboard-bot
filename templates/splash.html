@@ -10,20 +10,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
-        /* ===========================================
-           保留你原有的全部核心样式
-           =========================================== */
+        /* 与你原本的 splash.css 完全一致，只改这里无需大改 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
+        button:focus, a:focus, input:focus { outline: none; }
         :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
         body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
+        body.loaded { opacity: 1; }
         .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
-        #themeToggleBtn { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s; opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
+        #themeToggleBtn { z-index: 9999; position: relative; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; color: #ffffff; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; transform: translateY(60px); flex-shrink: 0; margin-top: 6px; }
         #themeToggleBtn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; }
+        .text-pattern { color: #ffffff; background-image: url("{{ url_for('static', filename='texture.jpg') }}"); background-size: cover; background-position: center; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; text-shadow: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; line-height: 1.3; padding-top: 2px; padding-bottom: 4px; }
         .main-title { font-size: 64px; }
         .sub-title { font-size: 22px; letter-spacing: 2px; font-weight: 600; }
         .text-group, #themeToggleBtn { opacity: 0; transform: translateY(60px); animation: fadeInUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
@@ -32,105 +32,108 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
 
         .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 10px; width: auto; justify-content: flex-end; }
-        .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .top-btn { text-align: center; padding: 8px 12px; border-radius: 30px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: flex; align-items: center; justify-content: center; border: none; touch-action: manipulation; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; pointer-events: none; }
+        @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
+        .shake-field { animation: shakeField 0.2s ease-in-out 2; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
-        .modal-box { opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-box { opacity: 0; transform: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { opacity: 1; }
-        .login-card { width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
-        .music-card-glass { width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
+        .login-card { position: relative; width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
+        #send-code-btn:disabled { background: rgba(255, 255, 255, 0.15) !important; color: #9ca3af !important; cursor: not-allowed !important; }
+        .music-card-glass { position: relative; width: 320px; padding: 20px 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 12px; }
         .music-track-info { display: flex; align-items: center; gap: 12px; }
-        .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; }
+        .album-art { width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0; transition: transform 0.3s ease; }
+        .album-art:hover { transform: scale(1.05); }
         .track-details { flex-grow: 1; overflow: hidden; }
         .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-artist-name { font-size: 0.85rem; color: #9ca3af; margin-top: 2px; }
+        .music-progress-area { display: flex; flex-direction: column; gap: 6px; }
+        .music-time-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: #9ca3af; }
         .music-progress-track { position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.15); border-radius: 4px; cursor: pointer; }
         .music-progress-fill { height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear; }
-        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; border-left: 4px solid #8b5cf6; max-width: 90%; text-align: center; }
+        .music-progress-handle { position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: #ffffff; border-radius: 50%; box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); display: none; }
+        .music-controls { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 4px; }
+        #custom-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #f3f4f6; padding: 10px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.6); z-index: 99999; font-size: 14px; opacity: 0; visibility: hidden; transition: all 0.3s ease; white-space: nowrap; border-left: 4px solid #8b5cf6; max-width: 90%; white-space: normal; text-align: center; }
+        #custom-toast.error { border-left-color: #ef4444; }
+        #custom-toast.success { border-left-color: #22c55e; }
         #custom-toast.show { opacity: 1; visibility: visible; }
-
         @media (max-width: 600px) {
-            .content-area { padding-top: 11vh; padding-left: 6%; }
+            .content-area { padding-top: 11vh; padding-left: 6%; min-height: 100vh; }
             .main-title { font-size: 44px; }
+            .sub-title { font-size: 16px; }
             .top-actions { top: 12px; right: 12px; gap: 6px; }
             .top-btn { font-size: 11px; padding: 6px 8px; }
+            .modal-overlay { padding-top: 70px; padding-right: 12px; }
+            .login-card, .music-card-glass { width: 280px; padding: 16px 20px; }
         }
+        /* 汉堡菜单 CSS */
+        .hamburger { cursor: pointer; }
+        .hamburger input { display: none; }
+        .hamburger svg {
+            height: 100%; width: 100%;
+            transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .line {
+            fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3;
+            transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+                        stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .line-top-bottom { stroke-dasharray: 12 63; }
+        .hamburger input:checked + svg { transform: rotate(-45deg); }
+        .hamburger input:checked + svg .line-top-bottom { stroke-dasharray: 20 300; stroke-dashoffset: -32.42; }
 
-        /* ===========================================
-           ✨ 全新复刻：轻量级液态玻璃测试组件 (替代 WebGL 物理计算)
-           =========================================== */
-        .liquid-btn-wrapper {
+        /* =======================================================
+           放大后的液态玻璃测试组件 CSS
+           ======================================================= */
+        .liquid-glass {
             position: relative;
-            /* 核心玻璃质感：高透 + 轻微模糊 */
             background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(8px) saturate(150%);
-            -webkit-backdrop-filter: blur(8px) saturate(150%);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 40px;
-            padding: 8px;
-            /* 边缘高光折射模拟 */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.8), 0 2px 8px rgba(255,255,255,0.15);
-            display: flex;
-            position: relative;
-            width: 400px;
-            height: 72px;
-            align-items: center;
-            /* 模拟液态玻璃的轻微反光纹理 */
-            background-image: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.2) 0%, transparent 30%),
-                              radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 30%);
-            pointer-events: auto;
-            z-index: 9999;
+            backdrop-filter: blur(2px) saturate(180%);
+            -webkit-backdrop-filter: blur(2px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 2.8rem;
+            padding: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.3);
         }
-        .liquid-btn-wrapper input[type="radio"] { display: none; }
-        .liquid-btn-wrapper label {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 56px;
-            border-radius: 32px;
-            font-size: 20px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.5);
-            z-index: 2;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            letter-spacing: 2px;
-        }
-        .liquid-btn-wrapper input[type="radio"]:checked + label {
-            color: #ffffff;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        }
-        .liquid-glider {
+        .liquid-glass::after {
+            content: '';
             position: absolute;
-            top: 8px;
-            left: 8px;
-            height: 56px;
-            width: calc(50% - 8px);
-            border-radius: 32px;
-            z-index: 1;
-            /* 滑动黑块，加了细微光泽，模拟反光 */
-            background: rgba(10, 10, 10, 0.6);
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.4);
-            transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2.8rem;
+            backdrop-filter: blur(1px);
+            box-shadow: inset -10px -8px 0px -11px rgba(255, 255, 255, 1), inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
+            opacity: 0.6;
+            z-index: -1;
+            filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+            pointer-events: none;
         }
-        #liquid-a:checked ~ .liquid-glider { transform: translateX(0); }
-        #liquid-b:checked ~ .liquid-glider { transform: translateX(100%); }
-
-        @media (max-width: 500px) {
-            .liquid-btn-wrapper {
-                width: 85vw;
-                height: 64px;
-            }
-            .liquid-btn-wrapper label { font-size: 16px; height: 48px; border-radius: 28px; }
-            .liquid-glider { height: 48px; border-radius: 28px; top: 8px; left: 8px; width: calc(50% - 8px); }
+        .toggle-wrapper { display: flex; position: relative; width: 350px; height: 64px; align-items: center; }
+        .toggle-wrapper input[type="radio"] { display: none; }
+        .toggle-wrapper label {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            color: rgba(255, 255, 255, 0.6); font-weight: 600; font-size: 22px;
+            z-index: 2; cursor: pointer; transition: color 0.3s ease; letter-spacing: 2px;
         }
+        .toggle-wrapper input[type="radio"]:checked + label { color: #ffffff; }
+        .glider {
+            position: absolute; top: 6px; left: 6px;
+            width: calc(50% - 6px); height: calc(100% - 12px);
+            background: rgba(0, 0, 0, 0.3); border-radius: 2rem;
+            z-index: 1; transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #tab-a:checked ~ .glider { transform: translateX(0); }
+        #tab-b:checked ~ .glider { transform: translateX(100%); }
     </style>
 </head>
 <body>
+    
     {% include 'components/user_profile.html' %}
 
-    <!-- 顶部三条横杠，保持不变 -->
+    <!-- 置于最顶层的三条横杠，绝对不可能被面板遮挡 -->
     <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
         <label class="hamburger w-full h-full flex items-center justify-center">
             <input type="checkbox" id="hamburger-toggle">
@@ -141,16 +144,16 @@
         </label>
     </div>
 
-    <!-- 🎯 屏幕正中央：新版轻量级液态玻璃切换按钮组 (完美模拟) -->
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] pointer-events-none">
-        <div class="liquid-btn-wrapper pointer-events-auto">
-            <input type="radio" name="liquid_test" id="liquid-a" checked>
-            <label for="liquid-a">测试 A</label>
-            
-            <input type="radio" name="liquid_test" id="liquid-b">
-            <label for="liquid-b">测试 B</label>
-            
-            <div class="liquid-glider"></div>
+    <!-- =======================================================
+         🎯 屏幕正中央放大的液态玻璃测试组件
+         ======================================================= -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]">
+        <div class="liquid-glass toggle-wrapper">
+            <input type="radio" name="test_tab" id="tab-a" checked>
+            <label for="tab-a">测试A</label>
+            <input type="radio" name="test_tab" id="tab-b">
+            <label for="tab-b">测试B</label>
+            <div class="glider"></div>
         </div>
     </div>
 
@@ -194,9 +197,10 @@
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
-        // 主题切换逻辑保持不变...
+        // 主题切换逻辑
         gsap.registerPlugin(ScrollTrigger);
         let isExpanded = false;
+
         document.addEventListener("DOMContentLoaded", function() {
             const themeRing = document.getElementById('theme-ring');
             const contentArea = document.getElementById('contentArea');
@@ -208,6 +212,7 @@
             textElements.forEach(el => { el.style.backgroundImage = `url("${defaultTextUrl}")`; });
 
             window.toggleTheme = function(event) {
+                // 主题切换动画逻辑
                 if (!themeRing || !contentArea) return;
                 const btn = event.currentTarget;
                 const btnRect = btn.getBoundingClientRect();
@@ -232,24 +237,36 @@
             };
 
             window.toggleFullScreen = function() {
-                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-                else if (document.exitFullscreen) document.exitFullscreen();
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
             };
 
+            // 点击模态框背景空白处，自动关闭
             document.addEventListener('click', function(e) {
                 const target = e.target;
                 if (target.classList.contains('modal-overlay')) {
                     const modalId = target.id;
-                    if (modalId === 'loginModal' && typeof window.closeLoginModal === 'function') window.closeLoginModal();
-                    else if (modalId === 'musicModal' && typeof window.closeMusicModal === 'function') window.closeMusicModal();
-                    else if (modalId === 'contactModal' && typeof window.closeContactModal === 'function') window.closeContactModal();
-                    else if (modalId === 'updateLogModal' && typeof window.closeUpdateLogModal === 'function') window.closeUpdateLogModal();
-                    else if (modalId === 'becomeFanModal' && typeof window.closeBecomeFanModal === 'function') window.closeBecomeFanModal();
+                    if (modalId === 'loginModal' && typeof window.closeLoginModal === 'function') {
+                        window.closeLoginModal();
+                    } else if (modalId === 'musicModal' && typeof window.closeMusicModal === 'function') {
+                        window.closeMusicModal();
+                    } else if (modalId === 'contactModal' && typeof window.closeContactModal === 'function') {
+                        window.closeContactModal();
+                    } else if (modalId === 'updateLogModal' && typeof window.closeUpdateLogModal === 'function') {
+                        window.closeUpdateLogModal();
+                    } else if (modalId === 'becomeFanModal' && typeof window.closeBecomeFanModal === 'function') {
+                        window.closeBecomeFanModal();
+                    }
                 }
             });
         });
 
-        // 三条杠点击逻辑
+        // 点击三条杠，切换配置中心面板
         document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
             e.preventDefault(); 
             const checkbox = document.getElementById('hamburger-toggle');
