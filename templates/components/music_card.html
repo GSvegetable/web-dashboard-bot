@@ -17,7 +17,7 @@
                     <div class="music-artist-name">纯音乐</div>
                 </div>
 
-                <!-- ★★★ 渐变空心、丝滑切换按钮 ★★★ -->
+                <!-- 渐变空心、丝滑切换按钮 -->
                 <button id="play-pause-btn" class="play-pause-btn">
                     <!-- 内部 SVG 容器 -->
                     <div class="svg-container">
@@ -29,13 +29,11 @@
                                     <stop offset="100%" stop-color="#93c5fd" /> <!-- 淡蓝 -->
                                 </linearGradient>
                             </defs>
-                            <!-- 描边粗细设置适中为 4px -->
                             <circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
                         </svg>
                         
                         <!-- 暂停状态：深蓝到淡蓝渐变的空心圆角正方形 -->
                         <svg class="icon-square" viewBox="0 0 32 32" width="32" height="32">
-                            <!-- 填充 none，实现空心 -->
                             <rect x="2" y="2" width="28" height="28" rx="6" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
                         </svg>
                     </div>
@@ -65,7 +63,7 @@
 .music-track-title { font-size: 1.1rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-artist-name { font-size: 0.85rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-/* ★★★ 极简按钮容器 ★★★ */
+/* 极简按钮容器 */
 .play-pause-btn {
     appearance: none; -webkit-appearance: none;
     background: transparent !important; border: none !important;
@@ -76,27 +74,19 @@
     -webkit-tap-highlight-color: transparent;
     margin-right: 4px;
 }
-
-/* 内部包裹 SVG，确保居中 */
 .svg-container {
     position: relative;
     width: 32px; height: 32px;
     display: flex; align-items: center; justify-content: center;
 }
-
-/* 两个 SVG 初始都重叠放在中间 */
 .icon-circle, .icon-square {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
-/* 默认：只显示圆形，正方形隐藏并缩小 */
 .icon-circle { opacity: 1; transform: scale(1); }
 .icon-square { opacity: 0; transform: scale(0.8); }
-
-/* 播放状态：圆形隐藏缩小，正方形显现放大 */
 .play-pause-btn.playing .icon-circle { opacity: 0; transform: scale(0.6); }
 .play-pause-btn.playing .icon-square { opacity: 1; transform: scale(1); }
 
