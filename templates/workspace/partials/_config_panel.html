@@ -12,49 +12,46 @@
     <style>
         /* ================== 全屏模式（机器人仓库） ================== */
         .panel-fullscreen {
-            top: 20px !important;        /* 抵消刘海，视觉上等宽 */
-            left: 32px !important;       /* ✅ 左右边距死锁 */
-            right: 32px !important;      /* ✅ 左右边距死锁 */
-            bottom: 32px !important;     /* ✅ 底部边距死锁 */
+            top: 20px !important;        
+            left: 32px !important;       
+            right: 32px !important;      
+            bottom: 32px !important;     
             width: auto !important;
             height: auto !important;
             border-radius: 28px !important;
             
-            /* 外层只负责圆角和背景 */
             background: rgba(255, 255, 255, 0.04) !important;
             backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
         }
 
-        /* 🔥 内层负责裁剪，绝对不会被任何东西遮挡！ */
         .panel-fullscreen .panel-inner {
             width: 100% !important;
             height: 100% !important;
             border-radius: 28px !important;
 
-            /* ✨ 精确的 6 角裁切：切入右边 220px，垂直深度 30px */
-            clip-path: polygon(
-                0% 0%, 
-                calc(100% - 220px) 0%, 
-                calc(100% - 220px) 30px, 
-                100% 30px, 
-                100% 100%, 
-                0% 100%
-            ) !important;
-
-            /* 🎯 给那个内角打磨圆滑：16px 的圆润内角 */
-            mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
-            -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+            /* ✨ 边角裁剪，加上了手机适配 (手机端去掉复杂的凹凸裁剪，防止错位) */
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
         }
-
+        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
+        @media (min-width: 768px) {
+            .panel-fullscreen .panel-inner {
+                clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
+                mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+                -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+            }
+        }
 
         /* ================== 缩回模式（机器人配置） ================== */
         .panel-collapsed {
             top: auto !important;
             left: 24px !important;
             bottom: 24px !important;
-            right: auto !important;
-            width: 480px !important;
+            right: 24px !important; /* 修复：右对齐，避免手机端悬浮时溢出 */
+            width: auto !important;
+            max-width: 480px !important; /* 修复：仅设定最大宽度，而不是固定死 */
             height: auto !important;
             max-height: calc(100vh - 48px) !important;
             border-radius: 28px !important;
