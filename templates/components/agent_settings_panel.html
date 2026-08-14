@@ -1,118 +1,89 @@
-<!-- Agent 独立配置面板（完美融合液态扭曲与高清文字） -->
-<!-- 注入 SVG 滤镜核心 -->
-<svg style="display: none; position: absolute; width: 0; height: 0;">
-    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
-        <feTurbulence type="fractalNoise" baseFrequency="0.015 0.015" numOctaves="1" seed="5" result="turbulence"/>
-        <feComponentTransfer in="turbulence" result="mapped">
-            <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-            <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-            <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-        </feComponentTransfer>
-        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-        <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-            <fePointLight x="-200" y="-200" z="300" />
-        </feSpecularLighting>
-        <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-        <feDisplacementMap in="SourceGraphic" in2="softMap" scale="120" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-</svg>
-
+<!-- Agent 独立配置面板（恢复清爽磨砂玻璃，保留屏幕适配与锁定） -->
 <div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
-    <!-- 🟢 主容器：保持半透明白色，让底层风景图能透过来产生扭曲 -->
-    <div id="settingsModalContent" class="relative w-full h-full bg-white/15 backdrop-blur-md rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-hidden flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
+    <!-- 面板容器：回到纯粹的模糊与半透明白 -->
+    <div id="settingsModalContent" class="relative w-full h-full bg-white/10 backdrop-blur-md border border-white/20 rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-y-auto flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-y-[120%]">
         
-        <!-- 🟡 液态玻璃核心：扭曲与高光层 (使底层背景产生水波扭曲) -->
-        <div class="absolute inset-0 z-0 backdrop-filter blur-[2px] filter-[url(#glass-distortion)] overflow-hidden isolation-isolate rounded-r-[28px]"></div>
-        <!-- 🔵 液态玻璃核心：折射边缘高光反射 -->
-        <div class="absolute inset-0 z-[1] overflow-hidden pointer-events-none shadow-[inset_2px_2px_1px_0_rgba(255,255,255,0.6),inset_-2px_-2px_1px_1px_rgba(255,255,255,0.5)] rounded-r-[28px]"></div>
-        <!-- 🔵 极淡透光遮罩层：确保字能看清，同时不破坏背景透光 -->
-        <div class="absolute inset-0 z-[1] bg-black/20 mix-blend-multiply rounded-r-[28px]"></div>
+        <!-- ✨ 顶部空占位（高度不变） -->
+        <div class="flex justify-between items-start h-8"></div>
 
-        <!-- ⭐ 内容区域：确保不被遮盖 -->
-        <div class="relative z-10 flex flex-col gap-8 h-full overflow-y-auto hide-scrollbar">
-            
-            <!-- ✨ 顶部空占位 -->
-            <div class="flex justify-between items-start h-8"></div>
-
-            <div class="flex flex-col gap-10 mt-1">
-                <!-- 越狱设置 -->
-                <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">越狱设置</div>
-                    <div class="flex flex-col gap-4">
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">激进沙盒</span>
-                            <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
-                                <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
-                                <label for="jailbreak-flash-off">关闭</label>
-                                <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
-                                <label for="jailbreak-flash-on">开启</label>
-                                <div class="glass-glider-2"></div>
-                            </div>
+        <div class="flex flex-col gap-10 mt-1">
+            <!-- 越狱设置 -->
+            <div class="w-full">
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">越狱设置</div>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
+                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
+                            <label for="jailbreak-flash-off">关闭</label>
+                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
+                            <label for="jailbreak-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
                         </div>
                     </div>
                 </div>
-                <!-- 分类一：省钱模型 -->
-                <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">gs-v2.5-flash</div>
-                    <div class="flex flex-col gap-4 mt-2">
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">深度思考</span>
-                            <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
-                                <input type="radio" name="think-flash" id="think-flash-off" />
-                                <label for="think-flash-off">关闭</label>
-                                <input type="radio" name="think-flash" id="think-flash-on" checked />
-                                <label for="think-flash-on">开启</label>
-                                <div class="glass-glider-2"></div>
-                            </div>
+            </div>
+            <!-- 分类一：省钱模型 -->
+            <div class="w-full">
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2.5-flash</div>
+                <div class="flex flex-col gap-4 mt-2">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
+                            <input type="radio" name="think-flash" id="think-flash-off" />
+                            <label for="think-flash-off">关闭</label>
+                            <input type="radio" name="think-flash" id="think-flash-on" checked />
+                            <label for="think-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
                         </div>
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                            <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                                <input type="radio" name="search-flash" id="search-flash-off" checked />
-                                <label for="search-flash-off">关闭</label>
-                                <input type="radio" name="search-flash" id="search-flash-on" />
-                                <label for="search-flash-on">开启</label>
-                                <div class="glass-glider-2"></div>
-                            </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <input type="radio" name="search-flash" id="search-flash-off" checked />
+                            <label for="search-flash-off">关闭</label>
+                            <input type="radio" name="search-flash" id="search-flash-on" />
+                            <label for="search-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
                         </div>
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">思考强度</span>
-                            <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
-                                <input type="radio" name="strength-flash" id="strength-flash-low" checked />
-                                <label for="strength-flash-low">低</label>
-                                <input type="radio" name="strength-flash" id="strength-flash-mid" />
-                                <label for="strength-flash-mid">高</label>
-                                <input type="radio" name="strength-flash" id="strength-flash-max" />
-                                <label for="strength-flash-max">最高</label>
-                                <div class="glass-glider-3"></div>
-                            </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                        <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
+                            <input type="radio" name="strength-flash" id="strength-flash-low" checked />
+                            <label for="strength-flash-low">低</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-mid" />
+                            <label for="strength-flash-mid">高</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-max" />
+                            <label for="strength-flash-max">最高</label>
+                            <div class="glass-glider-3"></div>
                         </div>
                     </div>
                 </div>
-                <!-- 分类二：烧钱模型 -->
-                <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">gs-v2-pro</div>
-                    <div class="flex flex-col gap-4 mt-2">
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">深度思考</span>
-                            <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
-                                <input type="radio" name="think-pro" id="think-pro-off" />
-                                <label for="think-pro-off">关闭</label>
-                                <input type="radio" name="think-pro" id="think-pro-on" checked />
-                                <label for="think-pro-on">开启</label>
-                                <div class="glass-glider-2"></div>
-                            </div>
+            </div>
+            <!-- 分类二：烧钱模型 -->
+            <div class="w-full">
+                <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md mb-3 whitespace-nowrap">gs-v2-pro</div>
+                <div class="flex flex-col gap-4 mt-2">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
+                            <input type="radio" name="think-pro" id="think-pro-off" />
+                            <label for="think-pro-off">关闭</label>
+                            <input type="radio" name="think-pro" id="think-pro-on" checked />
+                            <label for="think-pro-on">开启</label>
+                            <div class="glass-glider-2"></div>
                         </div>
-                        <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">思考强度</span>
-                            <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                                <input type="radio" name="strength-pro" id="strength-pro-high" checked />
-                                <label for="strength-pro-high">高</label>
-                                <input type="radio" name="strength-pro" id="strength-pro-max" />
-                                <label for="strength-pro-max">最高</label>
-                                <div class="glass-glider-2"></div>
-                            </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <input type="radio" name="strength-pro" id="strength-pro-high" checked />
+                            <label for="strength-pro-high">高</label>
+                            <input type="radio" name="strength-pro" id="strength-pro-max" />
+                            <label for="strength-pro-max">最高</label>
+                            <div class="glass-glider-2"></div>
                         </div>
                     </div>
                 </div>
@@ -122,7 +93,7 @@
 </div>
 
 <style>
-    /* 玻璃质感按钮样式 (保持原有) */
+    /* 玻璃质感按钮样式 (维持原样) */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
