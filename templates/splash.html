@@ -37,7 +37,7 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
         
-        /* 🔥 核心修改：背景改为完全透明（只保留6px的模糊效果，不会变暗！） */
+        /* 🔥 纯模糊（不暗化） */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { opacity: 0; transform: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -191,25 +191,31 @@
             });
         });
 
+        // ✨ 核心修复：点击三条杠，触发横向滑入滑出
         document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
             e.preventDefault(); 
             const checkbox = document.getElementById('hamburger-toggle');
             const panel = document.getElementById('agentSettingsPanel');
             const content = document.getElementById('settingsModalContent');
             if (!checkbox || !panel || !content) return;
+
             const isOpen = !panel.classList.contains('hidden');
             if (!isOpen) {
                 checkbox.checked = true;
                 panel.classList.remove('hidden');
+                // 强制浏览器重绘，防止动画被跳过
+                void content.offsetHeight; 
                 requestAnimationFrame(() => {
-                    content.classList.remove('opacity-0', '-translate-y-[120%]');
-                    content.classList.add('opacity-100', 'translate-y-0');
+                    // 从左侧滑入
+                    content.classList.remove('opacity-0', '-translate-x-full');
+                    content.classList.add('opacity-100', 'translate-x-0');
                 });
             } else {
                 checkbox.checked = false;
                 void checkbox.offsetHeight;
-                content.classList.remove('opacity-100', 'translate-y-0');
-                content.classList.add('opacity-0', '-translate-y-[120%]');
+                // 向左侧滑出
+                content.classList.remove('opacity-100', 'translate-x-0');
+                content.classList.add('opacity-0', '-translate-x-full');
                 setTimeout(() => { panel.classList.add('hidden'); }, 500);
             }
         });
