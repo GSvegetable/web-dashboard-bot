@@ -94,7 +94,7 @@
 </div>
 
 <style>
-    /* 玻璃质感按钮样式 (保持原样，不需要改动) */
+    /* 玻璃质感按钮样式 */
     .glass-radio-group-3 {
         --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5;
         display: flex; position: relative; background: var(--bg); border-radius: 1rem;
@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!config.agent.strength) config.agent.strength = 'low';
     }
 
+    // ✅【彻底锁死“深度思考”】修复：同时拦截点击和选中，保证 100% 瞬间弹回！
     function setupThinkLock() {
         const flashGroup = document.getElementById('thinkFlashGroup');
         const proGroup = document.getElementById('thinkProGroup');
@@ -196,13 +197,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!group) return;
             const offRadio = group.querySelector('input[id$="-off"]');
             const onRadio = group.querySelector('input[id$="-on"]');
+            
+            // 强制初始设置为开启
             onRadio.checked = true;
+            offRadio.checked = false;
+
+            // 1. 拦截点击和触摸 (导致抖动，并阻止选中)
             offRadio.addEventListener('click', function(e) {
-                group.classList.add('shake-toggle');
-                setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
-                onRadio.checked = true;
                 e.preventDefault();
                 e.stopPropagation();
+                // 触发抖动动画
+                group.classList.add('shake-toggle');
+                setTimeout(() => { group.classList.remove('shake-toggle'); }, 500);
+                // 强制定位回开启
+                offRadio.checked = false;
+                onRadio.checked = true;
+            });
+
+            // 2. 拦截底层 change 事件 (兜底，防止通过标签/键盘触发状态改变)
+            offRadio.addEventListener('change', function(e) {
+                if (offRadio.checked) {
+                    // 强制把选中的灰色背景弹回白色背景
+                    offRadio.checked = false;
+                    onRadio.checked = true;
+                }
             });
         });
     }
@@ -240,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (name.includes('-pro')) mode = 'agent';
 
                 if (mode && key && val !== null) {
+                    // 碰到 think 直接拦截，绝不记录
                     if (key === 'think') return;
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
@@ -254,7 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
         window.currentAgentConfig = config;
         applyStoredConfig();
-        setupThinkLock();
+        setupThinkLock(); // 每次打开都强制执行锁定
 
         panel.classList.remove('hidden');
         requestAnimationFrame(() => {
