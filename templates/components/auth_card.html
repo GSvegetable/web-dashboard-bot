@@ -69,6 +69,25 @@
     </div>
 </div>
 
+<style>
+/* 单独提取 login-card 的 CSS，修复手机端宽度问题 */
+.login-card { 
+    position: relative; 
+    width: 100%; 
+    max-width: 320px; /* ✅ 修复：最大320px，不是固定320px */
+    margin: 0 12px;   /* ✅ 修复：左右强制保留 12px 的安全间距，防止贴边 */
+    padding: 24px; 
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px solid rgba(255, 255, 255, 0.35); 
+    border-radius: 20px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+    color: #e5e7eb; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 14px; 
+}
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     window.openLoginModal = function() {
