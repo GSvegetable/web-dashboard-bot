@@ -37,8 +37,8 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
         
-        /* 🔥 核心恢复：暗色遮罩 + 全局背景模糊 */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
+        /* 🔥 核心修改：背景改为完全透明（只保留6px的模糊效果，不会变暗！） */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { opacity: 0; transform: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { opacity: 1; }
