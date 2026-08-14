@@ -405,17 +405,35 @@ document.addEventListener("DOMContentLoaded", function() {
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
 
-    // ✨ 新建对话逻辑（保留并分离至历史记录）
+    // ✨ 修复：新建对话逻辑（判断是否为空）
     if (newChatBtn) {
         newChatBtn.addEventListener('click', function() {
+            // 检查当前会话是否有真实消息
+            const current = chatSessions[currentSessionId];
+            const hasContent = current && (current.discussion.length > 0 || current.agent.length > 0);
+
+            // 如果没有一条消息，阻止新建空记录，并给提示
+            if (!hasContent) {
+                if (typeof window.showToast === 'function') {
+                    window.showToast('当前已经是新对话了，无需重复创建', false);
+                } else {
+                    alert('当前已经是新对话了，无需重复创建');
+                }
+                return;
+            }
+
+            // 有消息时才新建
             const newId = 'session_' + Date.now();
             chatSessions[newId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
             currentSessionId = newId;
             saveSessions();
             renderHistoryList();
             loadCurrentSession();
-            if (typeof window.showToast === 'function') { window.showToast('已开启全新对话', false); } 
-            else { alert('✅ 已开启全新对话'); }
+            if (typeof window.showToast === 'function') {
+                window.showToast('已开启全新对话', false);
+            } else {
+                alert('✅ 已开启全新对话');
+            }
         });
     }
 
