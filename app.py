@@ -7,7 +7,6 @@ from routes import main_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
-# ✅ 关键修改：Vercel 无法写入本地 local.db，必须改为内存数据库才能立刻跑通
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -20,7 +19,6 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 注册蓝图（所有路由都移到了 routes.py）
 app.register_blueprint(main_bp)
 
 if __name__ == '__main__':
