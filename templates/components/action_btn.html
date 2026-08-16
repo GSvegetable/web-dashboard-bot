@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（互换位置，间距加 2px） -->
+<!-- 极光炫彩渐变按钮组件（彻底重构点击逻辑，修复吞事件问题） -->
 <style>
   .action-flex {
     display: flex;
@@ -24,6 +24,8 @@
       inset 0px 35px 30px rgba(0, 0, 0, 0.8),
       0px 5px 10px rgba(0, 0, 0, 0.7);
     text-shadow: 1px 1px 1px #000;
+    /* 确保点击事件穿透到元素本身 */
+    pointer-events: auto !important;
   }
   .outer-cont::before {
     content: "";
@@ -58,7 +60,7 @@
   }
 </style>
 
-<!-- 外层容器：间距 gap-[14px] -->
+<!-- 外层容器 -->
 <div class="flex flex-row items-center gap-[14px] w-full max-w-[240px]">
   
   <!-- 按钮 1：开发作品 -->
@@ -68,9 +70,9 @@
     </span>
   </div>
 
-  <!-- 按钮 2：Agent -->
-  <!-- ✅ 核心修复：改用 HTML 的 ID 绑定，并在 JS 中直接接管点击事件，绝对不被吞 -->
-  <div id="homeAgentBtn" class="outer-cont flex-1">
+  <!-- 按钮 2：Agent（终极修复版） -->
+  <!-- ✅ 使用 onmousedown 替代 onclick，或者延迟 100ms 触发，保证函数已经加载完毕 -->
+  <div class="outer-cont flex-1" onmousedown="setTimeout(() => { if(window.toggleAgentPanel) window.toggleAgentPanel(); }, 100)">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
@@ -83,26 +85,3 @@
   </div>
 
 </div>
-
-<!-- ✅ 核心修复：通过脚本强制把这个按钮和面板打开功能绑死 -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const homeBtn = document.getElementById('homeAgentBtn');
-    if (homeBtn) {
-        homeBtn.addEventListener('click', function(e) {
-            e.stopPropagation(); // 阻止事件冒泡被外层吞掉
-            // 直接调用你在工作台验证过好用的全局函数
-            if (typeof window.toggleAgentPanel === 'function') {
-                window.toggleAgentPanel();
-            } else {
-                // 如果加载顺序太快函数还没准备好，就等 200 毫秒再试一次
-                setTimeout(() => {
-                    if (typeof window.toggleAgentPanel === 'function') {
-                        window.toggleAgentPanel();
-                    }
-                }, 200);
-            }
-        });
-    }
-});
-</script>
