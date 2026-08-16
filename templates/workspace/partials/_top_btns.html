@@ -1,5 +1,28 @@
+<!-- 工作台顶部按钮：只保留添加项目和返回主页 -->
 <div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
-    <button onclick="toggleAgentPanel()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">Agent</button>
-    <button onclick="toggleFullScreen()" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">全屏显示</button>
-    <button onclick="window.location.href='/'" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">返回主页</button>
+    <!-- 按钮 1：添加项目 -->
+    <button onclick="addProject()" class="flex-1 px-3 py-2 text-nowrap bg-[#238636] border border-[#2ea043] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[#2ea043] active:scale-95 shadow-md">
+        + 添加项目
+    </button>
+    
+    <!-- 按钮 2：返回主页 -->
+    <button onclick="window.location.href='/'" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
+        返回主页
+    </button>
 </div>
+
+<!-- 添加一个通用的 JS 函数，让你后续对接实际的后台创建项目逻辑 -->
+<script>
+function addProject() {
+    // 🟢 你可以在这里修改成你想要的弹出框或者跳转页面逻辑
+    // 比如弹窗让用户输入项目名称，或者直接跳转到新建页面
+    const projectName = prompt("请输入新项目的名称：");
+    if (projectName && projectName.trim() !== "") {
+        alert("正在创建项目：" + projectName + "\n（请在 addProject() 函数中替换为你的真实后端 API 请求）");
+        // 示例：调用后端创建项目接口
+        // fetch('/api/create_project', { method: 'POST', body: JSON.stringify({name: projectName}) })
+    } else if (projectName !== null) {
+        alert("项目名称不能为空！");
+    }
+}
+</script>
