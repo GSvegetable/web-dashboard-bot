@@ -216,7 +216,7 @@
     {% include 'components/plan_detail_modal.html' %}
 
     <!-- ============================================================== -->
-    <!--  ⚠️ 核心备份：如果 include 中的脚本没加载，这个也能100%控制面板  -->
+    <!--  ⚠️ 核心备份：贴在右边，留一条小缝隙                         -->
     <!-- ============================================================== -->
     <script>
         (function() {
@@ -237,9 +237,10 @@
                         panel.classList.add('translate-y-full');
                         setTimeout(function() { wrapper.style.display = 'none'; }, 250);
                     } else {
-                        // ✅ 定位改回：贴近左边，留一条小缝隙
+                        // ✅ 定位改回：贴在右边，留一条小缝隙
                         wrapper.style.width = '340px';
-                        wrapper.style.left = '24px';
+                        wrapper.style.left = 'auto';     // 清除左侧
+                        wrapper.style.right = '24px';    // 右侧留缝
                         wrapper.style.transform = 'none';
                         wrapper.style.display = 'block';
                         setTimeout(function() { panel.classList.remove('translate-y-full'); }, 10);
