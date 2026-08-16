@@ -1,4 +1,4 @@
-<!-- Agent 玻璃质感底部面板组件（完整版，增加历史记录按钮） -->
+<!-- Agent 玻璃质感底部面板组件（修复宽度计算，保证能弹出来） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); width: fit-content; gap: 0; }
@@ -9,7 +9,6 @@
   .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
   
-  /* 缩小宽度后的 4 档滑动定位 */
   .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
   .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
   .agent-tabs-wrapper input[id="radio-3"]:checked ~ .glider { transform: translateX(200%); }
@@ -33,7 +32,6 @@
   @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
   .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
 
-  /* ✨ 历史记录面板样式 */
   #historyPanel {
       position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
       width: 85%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(24px);
@@ -81,7 +79,7 @@
             </div>
         </div>
 
-        <!-- ✨ 悬浮历史记录列表面板 -->
+        <!-- 悬浮历史记录列表面板 -->
         <div id="historyPanel">
             <div class="text-xs text-white/50 font-medium px-1 mb-1">点击切换历史对话</div>
             <div id="historyList" class="flex flex-col gap-1"></div>
@@ -116,12 +114,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio3 = document.getElementById('radio-3');
     const radio4 = document.getElementById('radio-4');
     
-    // ✨ 历史记录 DOM
     const historyPanel = document.getElementById('historyPanel');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
 
-    // ✨ 会话存储逻辑
     const STORAGE_KEY = 'gsbot_demo_sessions';
     let chatSessions = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {};
     let currentSessionId = null;
@@ -129,7 +125,6 @@ document.addEventListener("DOMContentLoaded", function() {
     let isPanelOpen = false;
     let isProcessing = false;
 
-    // ✅ 默认将上一次有效的模式设为 'discussion'，防止回退时跳错
     window._lastValidMode = 'discussion';
 
     function initSessions() {
@@ -232,14 +227,12 @@ document.addEventListener("DOMContentLoaded", function() {
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
         currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
-        // 记录有效的模式
         window._lastValidMode = mode;
     }
 
     radio1.addEventListener('change', function() { if (this.checked) { switchMode('discussion'); } });
     radio2.addEventListener('change', function() { if (this.checked) { switchMode('agent'); } });
     
-    // ✨ 点击“记录”标签
     radio3.addEventListener('change', function() {
         if (this.checked) {
             renderHistoryList();
@@ -250,14 +243,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
             }
             setTimeout(() => {
-                let target = radio1; // 默认回讨论
+                let target = radio1;
                 if (window._lastValidMode === 'agent') target = radio2;
                 target.checked = true;
             }, 300);
         }
     });
 
-    // ✨ 点击“新建”标签
     radio4.addEventListener('change', function() {
         if (this.checked) {
             const current = chatSessions[currentSessionId];
@@ -272,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 loadCurrentSession();
             }
             setTimeout(() => {
-                let target = radio1; // 默认回讨论
+                let target = radio1;
                 if (window._lastValidMode === 'agent') target = radio2;
                 target.checked = true;
             }, 300);
@@ -289,11 +281,16 @@ document.addEventListener("DOMContentLoaded", function() {
             panelWrapper.style.transform = 'translateX(-50%)';
         }
     }
+
+    // ==========================================
+    // ✅ 核心修复：toggleAgentPanel 全局函数
+    // ==========================================
     window.toggleAgentPanel = function() {
         isPanelOpen = !isPanelOpen;
         if (isPanelOpen) {
             const container = document.getElementById('cardStackContainer');
-            if (container) {
+            // ✅ 重要：只有容器可见且宽度 > 0 时才使用它，否则用固定 320px
+            if (container && container.offsetWidth > 0) {
                 const rect = container.getBoundingClientRect();
                 panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
                 panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
@@ -312,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function() {
             setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
         }
     };
+
     window.addEventListener('resize', updateAgentPanelPosition);
 
     function getCurrentConfig() {
