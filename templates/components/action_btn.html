@@ -69,7 +69,8 @@
   </div>
 
   <!-- 按钮 2：Agent（移到右边） -->
-  <div class="outer-cont flex-1" onclick="toggleAgentPanel()">
+  <!-- ✅ 核心修改：加上 window. 前缀，强制找到全局函数，点击绝对有反应 -->
+  <div class="outer-cont flex-1" onclick="window.toggleAgentPanel()">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
