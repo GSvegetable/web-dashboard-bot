@@ -17,8 +17,8 @@
                     <div class="music-artist-name">纯音乐</div>
                 </div>
 
-                <!-- 渐变空心、丝滑切换按钮 -->
-                <button id="play-pause-btn" class="play-pause-btn">
+                <!-- ✅ 修复：增加 onclick 事件绑定播放/暂停函数 -->
+                <button id="play-pause-btn" class="play-pause-btn" onclick="toggleMusicPlay()">
                     <!-- 内部 SVG 容器 -->
                     <div class="svg-container">
                         <!-- 播放状态：深蓝到淡蓝渐变的空心圆 -->
@@ -105,3 +105,81 @@
     gap: 12px;
 }
 </style>
+
+<!-- ✅ 新增核心修复 JS：真实控制播放/暂停，切换图标 -->
+<script>
+function toggleMusicPlay() {
+    const audio = document.getElementById('bg-audio');
+    const btn = document.getElementById('play-pause-btn');
+    
+    if (!audio || !btn) {
+        console.warn('音频元素或按钮未找到');
+        return;
+    }
+
+    // 如果正在播放 -> 暂停
+    if (!audio.paused) {
+        audio.pause();
+        btn.classList.remove('playing');
+    } 
+    // 如果暂停 -> 播放
+    else {
+        // 浏览器对于自动播放策略的限制：必须由用户手势触发（符合点击事件条件）
+        audio.play().catch(e => {
+            console.warn('播放被浏览器拦截，尝试重新触发', e);
+            // 某些浏览器第一次播放可能会被静音拦截，这里可以加个兜底提示
+        });
+        btn.classList.add('playing');
+    }
+}
+
+// ✅ 补充：用户在进度条上点击控制跳转（可选，添加了这个体验更好）
+document.addEventListener("DOMContentLoaded", function() {
+    const audio = document.getElementById('bg-audio');
+    const progressTrack = document.getElementById('music-progress-track');
+    const progressFill = document.getElementById('music-progress-fill');
+    const currentTimeEl = document.getElementById('music-current-time');
+    const totalTimeEl = document.getElementById('music-total-time');
+
+    // 更新进度条和时间的函数
+    function updateProgress() {
+        if (!audio || !audio.duration) return;
+        const percent = (audio.currentTime / audio.duration) * 100;
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+        if (totalTimeEl && audio.duration) totalTimeEl.textContent = formatTime(audio.duration);
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // 监听播放进度
+    if (audio) {
+        audio.addEventListener('timeupdate', updateProgress);
+        audio.addEventListener('loadedmetadata', updateProgress);
+        audio.addEventListener('ended', function() {
+            // 播放结束后重置图标状态
+            const btn = document.getElementById('play-pause-btn');
+            if (btn) btn.classList.remove('playing');
+            if (progressFill) progressFill.style.width = '0%';
+            if (currentTimeEl) currentTimeEl.textContent = '0:00';
+        });
+        
+        // 点击进度条跳转
+        if (progressTrack) {
+            progressTrack.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = x / rect.width;
+                if (audio.duration) {
+                    audio.currentTime = percent * audio.duration;
+                    updateProgress();
+                }
+            });
+        }
+    }
+});
+</script>
