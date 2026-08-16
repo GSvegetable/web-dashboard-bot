@@ -109,7 +109,7 @@
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <!-- ✅ 修复：右上角独立的 Agent 按钮，加入防弹重试逻辑 -->
+        <!-- ✅ 右上角独立 Agent 按钮，带双重防弹重试 -->
         <button class="top-btn" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">Agent</button>
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
@@ -214,5 +214,39 @@
         });
     </script>
     {% include 'components/plan_detail_modal.html' %}
+
+    <!-- ============================================================== -->
+    <!--  ⚠️ 核心备份：如果 include 中的脚本没加载，这个也能100%控制面板  -->
+    <!-- ============================================================== -->
+    <script>
+        (function() {
+            if (typeof window.toggleAgentPanel !== 'function') {
+                console.log('🟢 启用 splashboard 备用 toggleAgentPanel 函数');
+                window.toggleAgentPanel = function() {
+                    console.log('🟢 备用 toggleAgentPanel 被成功触发');
+                    var wrapper = document.getElementById('agentPanelWrapper');
+                    var panel = document.getElementById('agentPanel');
+                    
+                    if (!wrapper || !panel) {
+                        setTimeout(window.toggleAgentPanel, 200);
+                        return;
+                    }
+                    
+                    var isOpen = wrapper.style.display === 'block';
+                    if (isOpen) {
+                        panel.classList.add('translate-y-full');
+                        setTimeout(function() { wrapper.style.display = 'none'; }, 250);
+                    } else {
+                        wrapper.style.width = '320px';
+                        wrapper.style.left = '50%';
+                        wrapper.style.transform = 'translateX(-50%)';
+                        wrapper.style.display = 'block';
+                        setTimeout(function() { panel.classList.remove('translate-y-full'); }, 10);
+                    }
+                };
+            }
+        })();
+    </script>
+
 </body>
 </html>
