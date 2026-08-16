@@ -10,7 +10,8 @@
             <!-- 左上：超巨大价格 -->
             <div class="flex items-baseline gap-1">
                 <span id="modalPlanPrice" class="text-7xl font-black text-gray-800 tracking-tight">15</span>
-                <span class="text-sm font-medium text-gray-500">/月</span>
+                <!-- 单位随价格联动，星光免费时自动隐藏 -->
+                <span id="modalPlanPriceUnit" class="text-sm font-medium text-gray-500">/月</span>
             </div>
 
             <!-- 右上：名称 + 叉号并排 -->
@@ -27,20 +28,29 @@
 </div>
 
 <script>
-    // 价格联动逻辑保持不变
+    // 价格联动逻辑（星光免费，极光15，极光Pro 45）
     window.openPlanModal = function(planName) {
         const modal = document.getElementById('planDetailModal');
         const nameEl = document.getElementById('modalPlanName');
         const priceEl = document.getElementById('modalPlanPrice');
+        const unitEl = document.getElementById('modalPlanPriceUnit');
         
         const priceMap = {
-            '星光': '15',
-            '极光': '40',
-            '极光pro': '310'
+            '星光': '免费',
+            '极光': '15',
+            '极光pro': '45'
         };
 
         nameEl.innerText = planName;
-        priceEl.innerText = priceMap[planName] || '15';
+        const price = priceMap[planName] || '免费';
+        priceEl.innerText = price;
+        
+        // 动态控制 /月 单位显示
+        if (price === '免费') {
+            unitEl.innerText = '';
+        } else {
+            unitEl.innerText = '/月';
+        }
 
         modal.classList.remove('hidden');
         setTimeout(() => {
