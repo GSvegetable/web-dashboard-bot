@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let isPanelOpen = false;
     let isProcessing = false;
 
-    // ✅ 修复：默认将上一次有效的模式设为 'discussion'，防止回退时跳错
+    // ✅ 默认将上一次有效的模式设为 'discussion'，防止回退时跳错
     window._lastValidMode = 'discussion';
 
     function initSessions() {
@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function() {
     radio1.addEventListener('change', function() { if (this.checked) { switchMode('discussion'); } });
     radio2.addEventListener('change', function() { if (this.checked) { switchMode('agent'); } });
     
-    // ✨ 点击“记录”标签：滑块先划过去，再收回
+    // ✨ 点击“记录”标签
     radio3.addEventListener('change', function() {
         if (this.checked) {
             renderHistoryList();
@@ -249,7 +249,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 const count = Object.keys(chatSessions).length;
                 historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
             }
-            // 延时 300ms 后弹回
             setTimeout(() => {
                 let target = radio1; // 默认回讨论
                 if (window._lastValidMode === 'agent') target = radio2;
@@ -258,7 +257,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ✨ 点击“新建”标签：滑块先划过去，执行静默新建，再收回
+    // ✨ 点击“新建”标签
     radio4.addEventListener('change', function() {
         if (this.checked) {
             const current = chatSessions[currentSessionId];
@@ -272,7 +271,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 renderHistoryList();
                 loadCurrentSession();
             }
-            // 延时 300ms 后弹回
             setTimeout(() => {
                 let target = radio1; // 默认回讨论
                 if (window._lastValidMode === 'agent') target = radio2;
@@ -308,7 +306,6 @@ document.addEventListener("DOMContentLoaded", function() {
             panelWrapper.style.display = 'block';
             setTimeout(() => { 
                 panel.classList.remove('translate-y-full'); 
-                // 移除自动聚焦逻辑，防止弹出键盘
             }, 10);
         } else {
             panel.classList.add('translate-y-full');
