@@ -109,8 +109,8 @@
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
         <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <!-- ✅ 新增：为了避开冲突，强行在右上角添加一个新的独立 Agent 按钮 -->
-        <button class="top-btn" onclick="toggleAgentPanel()">Agent</button>
+        <!-- ✅ 修复：右上角独立的 Agent 按钮，加入防弹重试逻辑 -->
+        <button class="top-btn" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">Agent</button>
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
         {% endif %}
