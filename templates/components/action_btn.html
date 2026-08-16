@@ -1,4 +1,3 @@
-<!-- 极光炫彩渐变按钮组件（修复 Agent 按钮点击事件） -->
 <style>
   .action-flex {
     display: flex;
@@ -59,18 +58,12 @@
   }
 </style>
 
-<!-- 外层容器 -->
 <div class="flex flex-row items-center gap-[14px] w-full max-w-[240px]">
-  
-  <!-- 按钮 1：开发作品 -->
   <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
-    <span class="action-flex font-bold">
-      <span>开发作品</span>
-    </span>
+    <span class="action-flex font-bold"><span>开发作品</span></span>
   </div>
-
-  <!-- 按钮 2：Agent（修复点击事件，直接调用全局函数） -->
-  <div class="outer-cont flex-1" onclick="toggleAgentPanel()">
+  <!-- ✅ 终极修复：直接调用全局函数，并加了 fallback 提示 -->
+  <div class="outer-cont flex-1" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{alert('Agent 面板未加载，请刷新页面')}">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
@@ -81,5 +74,4 @@
       <span>Agent</span>
     </span>
   </div>
-
 </div>
