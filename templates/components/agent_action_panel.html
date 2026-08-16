@@ -1,4 +1,3 @@
-<!-- Agent 玻璃质感底部面板组件（修复宽度计算，保证能弹出来） -->
 <style>
   .agent-panel-transition { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
   .agent-tabs-wrapper .tabs { display: flex; position: relative; background: rgba(255, 255, 255, 0.08); box-shadow: none; padding: 0.25rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); width: fit-content; gap: 0; }
@@ -8,30 +7,23 @@
   .agent-tabs-wrapper .notification { display: flex; align-items: center; justify-content: center; width: 3.5rem; height: 0.8rem; position: absolute; top: -0.3rem; left: auto; font-size: 9px; margin-left: 5rem; border-radius: 8px; margin: 0px; background-color: rgba(255, 255, 255, 0.1); transition: 0.15s ease-in; color: rgba(255, 255, 255, 0.5); }
   .agent-tabs-wrapper input[type="radio"]:checked + label { color: #ffffff; }
   .agent-tabs-wrapper input[id="radio-2"]:checked + label > .notification { background-color: #493F36; color: #ffffff; margin: 0px; }
-  
   .agent-tabs-wrapper input[id="radio-1"]:checked ~ .glider { transform: translateX(0); }
   .agent-tabs-wrapper input[id="radio-2"]:checked ~ .glider { transform: translateX(100%); }
   .agent-tabs-wrapper input[id="radio-3"]:checked ~ .glider { transform: translateX(200%); }
   .agent-tabs-wrapper input[id="radio-4"]:checked ~ .glider { transform: translateX(300%); }
-  
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 60px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
-  
   #agentMessageArea { position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; overflow-y: auto; z-index: 10; padding: 0 8px 90px 8px; scrollbar-width: none; -ms-overflow-style: none; mask-image: linear-gradient(to bottom, transparent 0%, black 2%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); }
   #agentMessageArea::-webkit-scrollbar { display: none; }
-  
   .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
   .chat-list.hidden { display: none; }
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
   .ai-text-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; padding: 4px 2px; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: 2px; }
   .ai-thought-msg { align-self: flex-start; color: rgba(255, 255, 255, 0.4); font-size: 0.75rem; font-style: italic; padding: 2px 2px 0; animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; margin-bottom: -2px; }
-  
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-  
   @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
   .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
-
   #historyPanel {
       position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
       width: 85%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(24px);
@@ -55,40 +47,29 @@
 
 <div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
     <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="height: 660px; width: 100%;">
-        
-        <!-- 顶部区域：扩展为四个可滑动标签 -->
         <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
             <div class="agent-tabs-wrapper">
                 <div class="container">
                     <div class="tabs">
                         <input checked="" name="tabs" id="radio-1" type="radio" />
                         <label for="radio-1" class="tab">讨论</label>
-                        
                         <input name="tabs" id="radio-2" type="radio" />
                         <label for="radio-2" class="tab">代理人<span class="notification">Model</span></label>
-                        
                         <input name="tabs" id="radio-3" type="radio" />
                         <label for="radio-3" class="tab">记录</label>
-                        
                         <input name="tabs" id="radio-4" type="radio" />
                         <label for="radio-4" class="tab">新建</label>
-
                         <span class="glider"></span>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- 悬浮历史记录列表面板 -->
         <div id="historyPanel">
             <div class="text-xs text-white/50 font-medium px-1 mb-1">点击切换历史对话</div>
             <div id="historyList" class="flex flex-col gap-1"></div>
             <div id="historyEmpty" class="text-xs text-white/30 text-center py-4">暂无历史记录</div>
         </div>
-
         <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
-        
-        <!-- 底部输入框 -->
         <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
             <div class="flex items-end gap-2 w-full">
                 <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
@@ -100,7 +81,56 @@
 
 {% include 'components/agent_settings_panel.html' %}
 
+<!-- ========================================================== -->
+<!--  ✅ 核心：在脚本最开头立即注册全局函数，不管 DOM 有没有加载  -->
+<!-- ========================================================== -->
 <script>
+(function() {
+    let agentPanelOpen = false;
+    
+    // 立即挂载到 window 上，确保点击时一定能找到
+    window.toggleAgentPanel = function() {
+        console.log('Agent 按钮被点击');
+        const wrapper = document.getElementById('agentPanelWrapper');
+        const panel = document.getElementById('agentPanel');
+        
+        // 如果 DOM 元素还没渲染，延迟重试
+        if (!wrapper || !panel) {
+            setTimeout(window.toggleAgentPanel, 100);
+            return;
+        }
+        
+        agentPanelOpen = !agentPanelOpen;
+        if (agentPanelOpen) {
+            const container = document.getElementById('cardStackContainer');
+            if (container && container.offsetWidth > 0) {
+                const rect = container.getBoundingClientRect();
+                wrapper.style.width = (rect.width * 4 / 3) + 'px';
+                wrapper.style.left = rect.left + (rect.width / 2) + 'px';
+                wrapper.style.transform = 'translateX(-50%)';
+            } else {
+                wrapper.style.width = '320px';
+                wrapper.style.left = '50%';
+                wrapper.style.transform = 'translateX(-50%)';
+            }
+            wrapper.style.display = 'block';
+            setTimeout(() => {
+                panel.classList.remove('translate-y-full');
+                panel.style.opacity = '1';
+                panel.style.visibility = 'visible';
+            }, 10);
+        } else {
+            panel.classList.add('translate-y-full');
+            setTimeout(() => { wrapper.style.display = 'none'; }, 250);
+        }
+    };
+})();
+</script>
+
+<script>
+// ==========================================================
+// 会话与聊天逻辑（和 DOM 相关，放在 DOMContentLoaded 里）
+// ==========================================================
 document.addEventListener("DOMContentLoaded", function() {
     const panelWrapper = document.getElementById('agentPanelWrapper');
     const panel = document.getElementById('agentPanel');
@@ -113,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const radio2 = document.getElementById('radio-2');
     const radio3 = document.getElementById('radio-3');
     const radio4 = document.getElementById('radio-4');
-    
     const historyPanel = document.getElementById('historyPanel');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
@@ -122,21 +151,14 @@ document.addEventListener("DOMContentLoaded", function() {
     let chatSessions = JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {};
     let currentSessionId = null;
     let currentMode = 'discussion';
-    let isPanelOpen = false;
     let isProcessing = false;
-
     window._lastValidMode = 'discussion';
 
     function initSessions() {
         const keys = Object.keys(chatSessions);
         if (keys.length === 0) {
             currentSessionId = 'session_' + Date.now();
-            chatSessions[currentSessionId] = { 
-                discussion: [], 
-                agent: [], 
-                title: '新对话',
-                time: new Date().toLocaleTimeString()
-            };
+            chatSessions[currentSessionId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
         } else {
             currentSessionId = keys[keys.length - 1];
         }
@@ -144,27 +166,17 @@ document.addEventListener("DOMContentLoaded", function() {
         renderHistoryList();
         loadCurrentSession();
     }
-
-    function saveSessions() {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatSessions));
-    }
-
+    function saveSessions() { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(chatSessions)); }
     function generateTitle(messages) {
         if (!messages || messages.length === 0) return '新对话';
-        for (let msg of messages) {
-            if (msg.role === 'user') return msg.content.slice(0, 12) + (msg.content.length > 12 ? '...' : '');
-        }
+        for (let msg of messages) { if (msg.role === 'user') return msg.content.slice(0, 12) + (msg.content.length > 12 ? '...' : ''); }
         return '新对话';
     }
-
     function renderHistoryList() {
         const keys = Object.keys(chatSessions);
         historyList.innerHTML = '';
-        if (keys.length === 0) {
-            historyEmpty.style.display = 'block'; return;
-        }
+        if (keys.length === 0) { historyEmpty.style.display = 'block'; return; }
         historyEmpty.style.display = 'none';
-        
         keys.reverse().forEach(id => {
             const item = document.createElement('div');
             item.className = 'history-item' + (id === currentSessionId ? ' active' : '');
@@ -174,152 +186,63 @@ document.addEventListener("DOMContentLoaded", function() {
             const timeSpan = document.createElement('span');
             timeSpan.className = 'history-time';
             timeSpan.textContent = chatSessions[id].time || '';
-            item.appendChild(titleSpan);
-            item.appendChild(timeSpan);
-            item.addEventListener('click', function() {
-                switchSession(id);
-            });
+            item.appendChild(titleSpan); item.appendChild(timeSpan);
+            item.addEventListener('click', function() { switchSession(id); });
             historyList.appendChild(item);
         });
     }
-
     function switchSession(sessionId) {
-        if (sessionId === currentSessionId) {
-            historyPanel.style.display = 'none';
-            return;
-        }
-        currentSessionId = sessionId;
-        saveSessions();
-        renderHistoryList();
-        loadCurrentSession();
-        historyPanel.style.display = 'none';
+        if (sessionId === currentSessionId) { historyPanel.style.display = 'none'; return; }
+        currentSessionId = sessionId; saveSessions(); renderHistoryList(); loadCurrentSession(); historyPanel.style.display = 'none';
     }
-
     function loadCurrentSession() {
-        discussionList.innerHTML = '';
-        agentList.innerHTML = '';
+        discussionList.innerHTML = ''; agentList.innerHTML = '';
         const session = chatSessions[currentSessionId];
         if (!session) return;
-        const discMsgs = session.discussion || [];
-        const agentMsgs = session.agent || [];
-        discMsgs.forEach(msg => renderMessage(msg, discussionList));
-        agentMsgs.forEach(msg => renderMessage(msg, agentList));
+        (session.discussion || []).forEach(msg => renderMessage(msg, discussionList));
+        (session.agent || []).forEach(msg => renderMessage(msg, agentList));
         setTimeout(() => agentMessageArea.scrollTop = agentMessageArea.scrollHeight, 50);
     }
-
     function renderMessage(msg, targetList) {
         const el = document.createElement('div');
-        if (msg.role === 'user') {
-            el.className = 'chat-bubble user';
-            el.textContent = msg.content;
-        } else if (msg.type === 'thought') {
-            el.className = 'ai-thought-msg';
-            el.textContent = msg.content;
-        } else if (msg.role === 'assistant' || msg.type === 'reply') {
-            el.className = 'ai-text-msg';
-            el.textContent = msg.content;
-        }
+        if (msg.role === 'user') { el.className = 'chat-bubble user'; el.textContent = msg.content; }
+        else if (msg.type === 'thought') { el.className = 'ai-thought-msg'; el.textContent = msg.content; }
+        else if (msg.role === 'assistant' || msg.type === 'reply') { el.className = 'ai-text-msg'; el.textContent = msg.content; }
         targetList.appendChild(el);
     }
-
     function switchMode(mode) {
         if (mode === currentMode) return;
         const currentList = currentMode === 'discussion' ? discussionList : agentList;
         const targetList = mode === 'discussion' ? discussionList : agentList;
-        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode;
-        window._lastValidMode = mode;
+        currentList.classList.add('hidden'); targetList.classList.remove('hidden'); currentMode = mode; window._lastValidMode = mode;
     }
-
-    radio1.addEventListener('change', function() { if (this.checked) { switchMode('discussion'); } });
-    radio2.addEventListener('change', function() { if (this.checked) { switchMode('agent'); } });
-    
+    radio1.addEventListener('change', function() { if (this.checked) switchMode('discussion'); });
+    radio2.addEventListener('change', function() { if (this.checked) switchMode('agent'); });
     radio3.addEventListener('change', function() {
         if (this.checked) {
             renderHistoryList();
             const isHidden = historyPanel.style.display === 'none';
             historyPanel.style.display = isHidden ? 'flex' : 'none';
-            if (isHidden) {
-                const count = Object.keys(chatSessions).length;
-                historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px';
-            }
-            setTimeout(() => {
-                let target = radio1;
-                if (window._lastValidMode === 'agent') target = radio2;
-                target.checked = true;
-            }, 300);
+            if (isHidden) { const count = Object.keys(chatSessions).length; historyPanel.style.maxHeight = count <= 3 ? '140px' : '200px'; }
+            setTimeout(() => { let target = radio1; if (window._lastValidMode === 'agent') target = radio2; target.checked = true; }, 300);
         }
     });
-
     radio4.addEventListener('change', function() {
         if (this.checked) {
             const current = chatSessions[currentSessionId];
-            const hasContent = current && (current.discussion.length > 0 || current.agent.length > 0);
-
-            if (hasContent) {
+            if (current && (current.discussion.length > 0 || current.agent.length > 0)) {
                 const newId = 'session_' + Date.now();
                 chatSessions[newId] = { discussion: [], agent: [], title: '新对话', time: new Date().toLocaleTimeString() };
-                currentSessionId = newId;
-                saveSessions();
-                renderHistoryList();
-                loadCurrentSession();
+                currentSessionId = newId; saveSessions(); renderHistoryList(); loadCurrentSession();
             }
-            setTimeout(() => {
-                let target = radio1;
-                if (window._lastValidMode === 'agent') target = radio2;
-                target.checked = true;
-            }, 300);
+            setTimeout(() => { let target = radio1; if (window._lastValidMode === 'agent') target = radio2; target.checked = true; }, 300);
         }
     });
-
-    function updateAgentPanelPosition() {
-        if (!isPanelOpen) return;
-        const container = document.getElementById('cardStackContainer');
-        if (container) {
-            const rect = container.getBoundingClientRect();
-            panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
-            panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-            panelWrapper.style.transform = 'translateX(-50%)';
-        }
-    }
-
-    // ==========================================
-    // ✅ 核心修复：toggleAgentPanel 全局函数
-    // ==========================================
-    window.toggleAgentPanel = function() {
-        isPanelOpen = !isPanelOpen;
-        if (isPanelOpen) {
-            const container = document.getElementById('cardStackContainer');
-            // ✅ 重要：只有容器可见且宽度 > 0 时才使用它，否则用固定 320px
-            if (container && container.offsetWidth > 0) {
-                const rect = container.getBoundingClientRect();
-                panelWrapper.style.width = (rect.width * 4 / 3) + 'px';
-                panelWrapper.style.left = rect.left + (rect.width / 2) + 'px';
-                panelWrapper.style.transform = 'translateX(-50%)';
-            } else {
-                panelWrapper.style.width = '320px';
-                panelWrapper.style.left = '50%';
-                panelWrapper.style.transform = 'translateX(-50%)';
-            }
-            panelWrapper.style.display = 'block';
-            setTimeout(() => { 
-                panel.classList.remove('translate-y-full'); 
-            }, 10);
-        } else {
-            panel.classList.add('translate-y-full');
-            setTimeout(() => { panelWrapper.style.display = 'none'; }, 250);
-        }
-    };
-
-    window.addEventListener('resize', updateAgentPanelPosition);
-
     function getCurrentConfig() {
         const saved = localStorage.getItem('gsbot_agent_config');
-        if (saved) {
-            try { return JSON.parse(saved); } catch(e) { /* ignore */ }
-        }
+        if (saved) { try { return JSON.parse(saved); } catch(e) {} }
         return { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
     }
-
     function sendMessageInternal() {
         if (isProcessing) return;
         const text = agentInput.value.trim();
@@ -336,81 +259,42 @@ document.addEventListener("DOMContentLoaded", function() {
             chatSessions[currentSessionId].title = generateTitle(chatSessions[currentSessionId][currentMode]);
             chatSessions[currentSessionId].time = new Date().toLocaleTimeString();
         }
-        saveSessions();
-        renderHistoryList();
-
-        let thoughtBubble = null;
-        let replyBubble = null;
+        saveSessions(); renderHistoryList();
+        let thoughtBubble = null, replyBubble = null;
         const payloadConfig = getCurrentConfig();
-
-        fetch('/api/agent/chat', { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ 
-                message: text, 
-                mode: currentMode,
-                config: payloadConfig
-            }) 
-        })
+        fetch('/api/agent/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, mode: currentMode, config: payloadConfig }) })
         .then(response => {
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let finalReplyContent = '';
-
+            const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '', finalReplyContent = '';
             function readStream() {
                 return reader.read().then(({done, value}) => {
-                    if (done) { 
-                        if (finalReplyContent) {
-                            chatSessions[currentSessionId][currentMode].push({ role: 'assistant', content: finalReplyContent });
-                            saveSessions();
-                            renderHistoryList();
-                        }
-                        isProcessing = false; 
-                        return; 
+                    if (done) {
+                        if (finalReplyContent) { chatSessions[currentSessionId][currentMode].push({ role: 'assistant', content: finalReplyContent }); saveSessions(); renderHistoryList(); }
+                        isProcessing = false; return;
                     }
                     buffer += decoder.decode(value, {stream: true});
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop();
-
+                    const lines = buffer.split('\n'); buffer = lines.pop();
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const jsonStr = line.slice(6).trim();
                             if (jsonStr === '[DONE]') { isProcessing = false; return; }
                             try {
                                 const data = JSON.parse(jsonStr);
-                                const type = data.type;
-                                const content = data.content;
-                                if (type === 'reasoning') {
-                                    if (!thoughtBubble) {
-                                        thoughtBubble = document.createElement('div');
-                                        thoughtBubble.className = 'ai-thought-msg';
-                                        targetList.appendChild(thoughtBubble);
-                                    }
-                                    thoughtBubble.textContent += typeof content === 'string' ? content : '';
+                                if (data.type === 'reasoning') {
+                                    if (!thoughtBubble) { thoughtBubble = document.createElement('div'); thoughtBubble.className = 'ai-thought-msg'; targetList.appendChild(thoughtBubble); }
+                                    thoughtBubble.textContent += typeof data.content === 'string' ? data.content : '';
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                                } else if (type === 'content') {
-                                    if (!replyBubble) {
-                                        replyBubble = document.createElement('div');
-                                        replyBubble.className = 'ai-text-msg';
-                                        targetList.appendChild(replyBubble);
-                                    }
-                                    const textContent = typeof content === 'string' ? content : '';
-                                    replyBubble.textContent += textContent;
-                                    finalReplyContent += textContent;
+                                } else if (data.type === 'content') {
+                                    if (!replyBubble) { replyBubble = document.createElement('div'); replyBubble.className = 'ai-text-msg'; targetList.appendChild(replyBubble); }
+                                    const textContent = typeof data.content === 'string' ? data.content : '';
+                                    replyBubble.textContent += textContent; finalReplyContent += textContent;
                                     agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                                } else if (type === 'done') { isProcessing = false; } 
-                                else if (type === 'error') {
-                                    if (!replyBubble) {
-                                        replyBubble = document.createElement('div');
-                                        replyBubble.className = 'ai-text-msg';
-                                        targetList.appendChild(replyBubble);
-                                    }
-                                    replyBubble.textContent = content || '网络异常或 Key 未配置。';
-                                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-                                    isProcessing = false;
+                                } else if (data.type === 'done') { isProcessing = false; }
+                                else if (data.type === 'error') {
+                                    if (!replyBubble) { replyBubble = document.createElement('div'); replyBubble.className = 'ai-text-msg'; targetList.appendChild(replyBubble); }
+                                    replyBubble.textContent = data.content || '网络异常或 Key 未配置。';
+                                    agentMessageArea.scrollTop = agentMessageArea.scrollHeight; isProcessing = false;
                                 }
-                            } catch (e) {}
+                            } catch(e) {}
                         }
                     }
                     return readStream();
@@ -420,16 +304,12 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .catch(() => {
             const errMsg = document.createElement('div'); errMsg.className = 'ai-text-msg text-red-400/80';
-            errMsg.textContent = '网络异常或 Key 未配置。';
-            targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight;
-            isProcessing = false;
+            errMsg.textContent = '网络异常或 Key 未配置。'; targetList.appendChild(errMsg); agentMessageArea.scrollTop = agentMessageArea.scrollHeight; isProcessing = false;
         });
     }
-
     agentSendBtn.addEventListener('click', sendMessageInternal);
     agentInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; if (this.value.length > 40 && this.scrollHeight < 108) { this.style.height = '108px'; } });
     agentInput.addEventListener('keypress', function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); agentSendBtn.click(); } });
-
     initSessions();
 });
 </script>
