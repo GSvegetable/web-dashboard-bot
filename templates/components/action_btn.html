@@ -58,19 +58,19 @@
   }
 </style>
 
-<!-- 外层容器：间距从 gap-3 改为 gap-[14px]（增加 2 像素） -->
+<!-- 外层容器：间距 gap-[14px] -->
 <div class="flex flex-row items-center gap-[14px] w-full max-w-[240px]">
   
-  <!-- 按钮 1：开发作品（移到左边） -->
+  <!-- 按钮 1：开发作品 -->
   <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold">
       <span>开发作品</span>
     </span>
   </div>
 
-  <!-- 按钮 2：Agent（移到右边） -->
-  <!-- ✅ 核心修改：加上 window. 前缀，强制找到全局函数，点击绝对有反应 -->
-  <div class="outer-cont flex-1" onclick="window.toggleAgentPanel()">
+  <!-- 按钮 2：Agent -->
+  <!-- ✅ 核心修复：改用 HTML 的 ID 绑定，并在 JS 中直接接管点击事件，绝对不被吞 -->
+  <div id="homeAgentBtn" class="outer-cont flex-1">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
@@ -83,3 +83,26 @@
   </div>
 
 </div>
+
+<!-- ✅ 核心修复：通过脚本强制把这个按钮和面板打开功能绑死 -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const homeBtn = document.getElementById('homeAgentBtn');
+    if (homeBtn) {
+        homeBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // 阻止事件冒泡被外层吞掉
+            // 直接调用你在工作台验证过好用的全局函数
+            if (typeof window.toggleAgentPanel === 'function') {
+                window.toggleAgentPanel();
+            } else {
+                // 如果加载顺序太快函数还没准备好，就等 200 毫秒再试一次
+                setTimeout(() => {
+                    if (typeof window.toggleAgentPanel === 'function') {
+                        window.toggleAgentPanel();
+                    }
+                }, 200);
+            }
+        });
+    }
+});
+</script>
