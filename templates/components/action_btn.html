@@ -62,8 +62,8 @@
   <div class="outer-cont flex-1" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold"><span>开发作品</span></span>
   </div>
-  <!-- ✅ 终极修复：直接调用全局函数，并加了 fallback 提示 -->
-  <div class="outer-cont flex-1" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{alert('Agent 面板未加载，请刷新页面')}">
+  <!-- ✅ 终极修复：去掉弹窗，改用静默重试机制 -->
+  <div class="outer-cont flex-1" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
