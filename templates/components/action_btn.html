@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（彻底重构点击逻辑，修复吞事件问题） -->
+<!-- 极光炫彩渐变按钮组件（修复 Agent 按钮点击事件） -->
 <style>
   .action-flex {
     display: flex;
@@ -24,7 +24,6 @@
       inset 0px 35px 30px rgba(0, 0, 0, 0.8),
       0px 5px 10px rgba(0, 0, 0, 0.7);
     text-shadow: 1px 1px 1px #000;
-    /* 确保点击事件穿透到元素本身 */
     pointer-events: auto !important;
   }
   .outer-cont::before {
@@ -70,9 +69,8 @@
     </span>
   </div>
 
-  <!-- 按钮 2：Agent（终极修复版） -->
-  <!-- ✅ 使用 onmousedown 替代 onclick，或者延迟 100ms 触发，保证函数已经加载完毕 -->
-  <div class="outer-cont flex-1" onmousedown="setTimeout(() => { if(window.toggleAgentPanel) window.toggleAgentPanel(); }, 100)">
+  <!-- 按钮 2：Agent（修复点击事件，直接调用全局函数） -->
+  <div class="outer-cont flex-1" onclick="toggleAgentPanel()">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
         <g fill="none">
