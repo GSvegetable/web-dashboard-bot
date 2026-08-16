@@ -237,9 +237,10 @@
                         panel.classList.add('translate-y-full');
                         setTimeout(function() { wrapper.style.display = 'none'; }, 250);
                     } else {
-                        wrapper.style.width = '320px';
-                        wrapper.style.left = '50%';
-                        wrapper.style.transform = 'translateX(-50%)';
+                        // ✅ 定位改回：贴近左边，留一条小缝隙
+                        wrapper.style.width = '340px';
+                        wrapper.style.left = '24px';
+                        wrapper.style.transform = 'none';
                         wrapper.style.display = 'block';
                         setTimeout(function() { panel.classList.remove('translate-y-full'); }, 10);
                     }
