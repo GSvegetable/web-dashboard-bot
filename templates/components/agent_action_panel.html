@@ -13,45 +13,26 @@
   .agent-tabs-wrapper input[id="radio-4"]:checked ~ .glider { transform: translateX(300%); }
   .agent-tabs-wrapper input[type="radio"]:checked ~ .glider { background-color: black; border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 0 12px rgba(255, 255, 255, 0.1); }
   .agent-tabs-wrapper .glider { position: absolute; display: flex; height: 30px; width: 60px; background-color: #93965F; z-index: 1; border-radius: 8px; transition: 0.15s ease-out; border: 1px solid transparent; }
-
-  /* ==========================================
-     ✅ 完美自适应定位（分三层精准控制）
-     ========================================== */
-  #agentPanelWrapper {
-    position: fixed; bottom: 0; z-index: 50; display: none;
-  }
   
-  #agentPanel {
-    width: 100%; display: flex; flex-direction: column; overflow: hidden;
-    background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08);
-    border-bottom: none; box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
-    border-radius: 24px 24px 0 0;
+  #agentMessageArea { 
+      position: absolute; top: 70px; left: 4px; right: 4px; bottom: 0; 
+      overflow-y: auto; z-index: 10; padding: 0 8px 100px 8px; 
+      scrollbar-width: none; -ms-overflow-style: none; 
+      mask-image: linear-gradient(to bottom, transparent 0%, black 2%); 
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 2%); 
   }
-  
-  /* ----- 层级1：电脑桌面 ----- */
-  @media (min-width: 1025px) {
-    #agentPanelWrapper { right: 24px; left: auto; transform: none; width: clamp(340px, 40vw, 580px); max-width: 95vw; }
-    #agentPanel { max-height: clamp(350px, 65vh, 750px); }
-  }
-
-  /* ----- 层级2：平板横/竖屏 ----- */
-  @media (min-width: 481px) and (max-width: 1024px) {
-    #agentPanelWrapper { left: 50%; right: auto; transform: translateX(-50%); width: 80vw; max-width: 650px; bottom: 0px; }
-    #agentPanel { max-height: 72vh; border-radius: 20px 20px 0 0; }
-  }
-
-  /* ----- 层级3：手机小屏 ----- */
-  @media (max-width: 480px) {
-    #agentPanelWrapper { left: 50%; right: auto; transform: translateX(-50%); width: 96vw; bottom: 0px; }
-    #agentPanel { max-height: 65vh; border-radius: 20px 20px 0 0; }
-  }
-
-  /* -------------------- 内部布局 -------------------- */
-  #agentMessageArea { flex: 1; overflow-y: auto; padding: 0 8px 8px 8px; scrollbar-width: none; -ms-overflow-style: none; }
   #agentMessageArea::-webkit-scrollbar { display: none; }
-
-  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; padding-top: 8px; }
+  
+  /* ==========================================
+     ✅ 核心修复：面板高度自适应任何屏幕
+     ========================================== */
+  #agentPanel {
+      height: calc(100vh - 40px) !important; /* 动态计算：满屏高减去上下边距 */
+      max-height: 700px !important;          /* 超大屏幕限制最高 700px */
+      width: 100% !important;
+      /* 保留原有的内联样式不干扰 */
+  }
+  .chat-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
   .chat-list.hidden { display: none; }
   .chat-bubble.user { align-self: flex-end; background: rgba(40, 40, 40, 0.95); color: #f0f0f0; border-radius: 18px 18px 4px 18px; padding: 10px 16px; max-width: 85%; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: msgSlideUp 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; position: relative; margin-bottom: 4px; }
   .chat-bubble.user::after { content: ''; position: absolute; bottom: 0; right: -6px; width: 10px; height: 10px; background: inherit; border-bottom-right-radius: 4px; transform: rotate(45deg) translateY(4px); box-shadow: 2px 2px 4px rgba(0,0,0,0.15); }
@@ -60,7 +41,7 @@
   
   @keyframes msgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
-
+  .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
   #historyPanel {
       position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
       width: 85%; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(24px);
@@ -76,14 +57,17 @@
       padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.04);
       cursor: pointer; transition: background 0.2s; border: 1px solid transparent;
   }
+  .history-item:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+  .history-item.active { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+  .history-title { font-size: 13px; color: #e0e0e0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+  .history-time { font-size: 11px; color: #888; flex-shrink: 0; margin-left: 8px; }
 </style>
 
-<!-- 结构主体 -->
-<div id="agentPanelWrapper">
-    <div id="agentPanel" class="agent-panel-transition translate-y-full">
+<div id="agentPanelWrapper" class="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 hidden" style="width: 0;">
+    <!-- 注意：这里内联的 height 样式会被上面的 CSS !important 覆盖，无需手动调整 -->
+    <div id="agentPanel" class="bg-white/10 backdrop-blur-[12px] border-t border-white/20 rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.3)] agent-panel-transition translate-y-full relative" style="width: 100%;">
         
-        <!-- 顶部标签 -->
-        <div class="flex-shrink-0 flex items-center gap-2 p-4 pb-2 relative z-20">
+        <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
             <div class="agent-tabs-wrapper">
                 <div class="container">
                     <div class="tabs">
@@ -100,22 +84,13 @@
                 </div>
             </div>
         </div>
-
-        <!-- 历史记录 -->
-        <div id="historyPanel" class="absolute top-[56px] left-1/2 -translate-x-1/2">
+        <div id="historyPanel">
             <div class="text-xs text-white/50 font-medium px-1 mb-1">点击切换历史对话</div>
             <div id="historyList" class="flex flex-col gap-1"></div>
             <div id="historyEmpty" class="text-xs text-white/30 text-center py-4">暂无历史记录</div>
         </div>
-
-        <!-- 消息区 -->
-        <div id="agentMessageArea">
-            <div id="discussionList" class="chat-list"></div>
-            <div id="agentList" class="chat-list hidden"></div>
-        </div>
-        
-        <!-- 底部输入框 -->
-        <div class="flex-shrink-0 flex flex-col gap-2 p-4 pb-6 relative z-20">
+        <div id="agentMessageArea"><div id="discussionList" class="chat-list"></div><div id="agentList" class="chat-list hidden"></div></div>
+        <div class="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-2">
             <div class="flex items-end gap-2 w-full">
                 <textarea id="agentInput" rows="1" placeholder="输入消息" class="flex-1 bg-black/30 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-white/50 transition-all resize-none overflow-hidden max-h-[120px] leading-relaxed"></textarea>
                 <button id="agentSendBtn" class="bg-[#493F36] hover:bg-[#3a322c] text-white rounded-2xl px-3 py-1.5 flex items-center justify-center transition active:scale-95 shadow-lg text-xl leading-none" style="transform: translateY(-8px);">+</button>
@@ -127,7 +102,6 @@
 {% include 'components/agent_settings_panel.html' %}
 
 <script>
-// ✅ JS 只负责开关，并强制重绘，确保从不卡在底部
 (function() {
     let agentPanelOpen = false;
     window.toggleAgentPanel = function() {
@@ -135,17 +109,29 @@
         const wrapper = document.getElementById('agentPanelWrapper');
         const panel = document.getElementById('agentPanel');
         if (!wrapper || !panel) {
-            setTimeout(window.toggleAgentPanel, 200);
+            setTimeout(window.toggleAgentPanel, 100);
             return;
         }
         agentPanelOpen = !agentPanelOpen;
         if (agentPanelOpen) {
+            const container = document.getElementById('cardStackContainer');
+            if (container && container.offsetWidth > 0) {
+                const rect = container.getBoundingClientRect();
+                wrapper.style.width = (rect.width * 4 / 3) + 'px';
+                wrapper.style.left = rect.left + (rect.width / 2) + 'px';
+                wrapper.style.transform = 'translateX(-50%)';
+            } else {
+                wrapper.style.width = '340px';
+                wrapper.style.left = 'auto';
+                wrapper.style.right = '24px';
+                wrapper.style.transform = 'none';
+            }
             wrapper.style.display = 'block';
-            // ⚠️ 强制浏览器刷新重绘，再移除 translate-y-full，保证丝滑弹出！
-            void panel.offsetHeight; 
             setTimeout(() => {
                 panel.classList.remove('translate-y-full');
-            }, 20);
+                panel.style.opacity = '1';
+                panel.style.visibility = 'visible';
+            }, 10);
         } else {
             panel.classList.add('translate-y-full');
             setTimeout(() => { wrapper.style.display = 'none'; }, 250);
@@ -155,10 +141,9 @@
 </script>
 
 <script>
-// ==========================================
-// 聊天历史与逻辑（照旧无需动）
-// ==========================================
 document.addEventListener("DOMContentLoaded", function() {
+    const panelWrapper = document.getElementById('agentPanelWrapper');
+    const panel = document.getElementById('agentPanel');
     const agentInput = document.getElementById('agentInput');
     const agentSendBtn = document.getElementById('agentSendBtn');
     const agentMessageArea = document.getElementById('agentMessageArea');
