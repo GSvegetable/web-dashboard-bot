@@ -25,6 +25,15 @@ main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
+# ==========================================
+# ✨ 新增：模型名称映射（根据星火API平台可用的模型调整）
+# ==========================================
+DS_MODEL_MAP = {
+    'discussion': 'deepseek-chat',  # 对应 DeepSeek-V3（标准对话）
+    'agent': 'deepseek-chat'        # 如果你平台支持，也可改为 'deepseek-reasoner' (对应 R1)
+}
+DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"  # 修改为此平台接口
+
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
@@ -93,7 +102,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 核心接口（修复无缓存/实时流式、联网问题）
+# DeepSeek 核心接口（已修改 API 地址与模型名）
 # ==========================================
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
@@ -121,7 +130,7 @@ def agent_chat():
             {"role": "system", "content": SUMMARY_PROMPT},
             {"role": "user", "content": f"历史概要：{chat_summary}\n新对话内容：{chat_history}"}
         ]
-        summary_res, err = call_deepseek_core(summary_messages, 'deepseek-v4-flash')
+        summary_res, err = call_deepseek_core(summary_messages, 'deepseek-chat')
         if summary_res:
             chat_summary = summary_res['choices'][0]['message']['content']
             chat_history = []
@@ -136,7 +145,8 @@ def agent_chat():
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
 
-    model_name = "deepseek-v4-pro" if mode == 'agent' else "deepseek-v4-flash"
+    # ✨ 修改点：从映射表读取模型名
+    model_name = DS_MODEL_MAP.get(mode, 'deepseek-chat')
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
 
@@ -146,7 +156,6 @@ def agent_chat():
     if search_enabled:
         tools = TOOLS
     else:
-        # 关闭时，剔除搜索工具，但保留其他常规工具（如绑定）
         tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
@@ -164,7 +173,8 @@ def agent_chat():
         initial_payload['tool_choice'] = 'auto'
     
     try:
-        initial_resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=initial_payload, timeout=60)
+        # ✨ 修改点：API_BASE 替换为星火API地址
+        initial_resp = requests.post(DS_API_BASE, headers=headers, json=initial_payload, timeout=60)
         if initial_resp.status_code != 200:
             return jsonify({'reply': f'DeepSeek 初始请求失败 (状态码: {initial_resp.status_code})'})
         
@@ -197,7 +207,7 @@ def agent_chat():
                     "content": json.dumps(result_content)
                 })
 
-            # 3. 工具执行完后，发起流式输出（立刻一句句往外吐）
+            # 3. 工具执行完后，发起流式输出
             final_payload = {
                 "model": model_name,
                 "messages": messages,
@@ -211,7 +221,8 @@ def agent_chat():
 
             def generate_final():
                 try:
-                    final_resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=final_payload, stream=True, timeout=90)
+                    # ✨ 修改点：DS_API_BASE
+                    final_resp = requests.post(DS_API_BASE, headers=headers, json=final_payload, stream=True, timeout=90)
                     for line in final_resp.iter_lines():
                         if line:
                             line = line.decode('utf-8')
@@ -234,17 +245,12 @@ def agent_chat():
             return Response(stream_with_context(generate_final()), mimetype='text/event-stream')
 
         else:
-            # 4. 如果 AI 没有调用工具，直接流式输出文字（不再囤积）
+            # 4. 如果 AI 没有调用工具，直接流式输出文字
             final_reply = ai_message['content']
             def generate_normal():
-                # 先流式输出思考过程
                 if reasoning_content:
                     yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
-                # 再流式输出文字
                 if final_reply:
-                    # 这里为了极端测试，我们也可以直接把 final_reply 全部产出，但流式更好。
-                    # 为了确保它是流的，我们假设后端如果不分段，Chat Completions 有可能直接给一个长字符串。
-                    # 但是正常流式返回都是分的。
                     yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 yield "data: [DONE]\n\n"
@@ -256,13 +262,14 @@ def agent_chat():
         print(f"Agent Error: {e}")
         return jsonify({'reply': '请求异常，请稍后重试。'})
 
-def call_deepseek_core(messages, model='deepseek-v4-flash'):
+def call_deepseek_core(messages, model='deepseek-chat'):
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return None, "未配置 Key"
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     payload = {"model": model, "messages": messages, "stream": False}
     try:
-        resp = requests.post("https://api.deepseek.com/chat/completions", headers=headers, json=payload, timeout=30)
+        # ✨ 修改点：DS_API_BASE
+        resp = requests.post(DS_API_BASE, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200: return resp.json(), None
         return None, f"错误: {resp.status_code}"
     except Exception as e: return None, str(e)
