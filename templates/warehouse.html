@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>机器人仓库 - gsbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/warehouse.css') }}">
+    <style>
+        /* 复用原有的 top-btn 样式，使新按钮保持统一 */
+        .top-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 8px;
+            padding: 6px 14px;
+            color: #ffffff;
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s;
+            user-select: none; outline: none; -webkit-tap-highlight-color: transparent;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
+    </style>
+</head>
+<body>
+    
+    <div class="left-panel-wrapper">
+        
+        <!-- ================== 顶部细长条（已清空按钮，仅保留标题） ================== -->
+        <div class="top-box">
+            <div class="flex justify-start items-center w-full h-full pl-2">
+                <span class="text-white text-sm font-medium tracking-wider">仓库管理</span>
+            </div>
+        </div>
+
+        <!-- ================== 底部主面板（仓库容器） ================== -->
+        <div class="bottom-box" id="mainBox">
+            
+            <!-- ✅【新增】左上角：添加仓库按钮 -->
+            <button id="addWarehouseBtn" onclick="addWarehouse()" class="absolute top-4 left-4 z-10 top-btn bg-[#238636] border-[#238636] hover:bg-[#2ea043] text-white px-4 py-2 rounded-lg shadow-md">
+                + 添加仓库
+            </button>
+
+            <!-- ✅【移动】右下角：返回主页按钮（原在右上角，现移至此处） -->
+            <button onclick="window.location.href='/'" class="absolute bottom-4 right-4 z-10 top-btn bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] text-white hover:bg-[rgba(255,255,255,0.15)] shadow-md">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                返回主页
+            </button>
+
+            <!-- ------------------ 原有内容区域 ------------------ -->
+            
+            <!-- 空状态提示 -->
+            <div class="empty-state" id="emptyState">
+                <div class="text-center flex flex-col items-center gap-2">
+                    <span class="text-4xl mb-1">🏚️</span>
+                    <span class="text-gray-500 text-base">仓库空空如也</span>
+                    <span class="text-gray-400 text-xs">点击左上角「添加仓库」开始创建</span>
+                </div>
+            </div>
+
+            <!-- 树形菜单容器（如有数据则显示） -->
+            <div id="treeContainer" class="tree-container hidden w-full h-full overflow-auto">
+                <div class="file-tree-accordion open">
+                    <div class="file-tree-content">
+                        <!-- 示例：这里以后会被 JS 动态填充 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 登录表单容器 -->
+            <div class="login-form-container" id="loginFormContainer">
+                <div class="form_container">
+                    <div class="logo_container">
+                        <svg class="w-full h-full p-2" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="title_container">
+                        <p class="title">绑定 Telegram 账号</p>
+                        <span class="subtitle">扫码登录 / 发送验证码</span>
+                    </div>
+                    <div class="input_container">
+                        <label class="input_label">Telegram ID / 邮箱</label>
+                        <input placeholder="输入 ID 或邮箱" name="account" class="input_field" type="text">
+                    </div>
+                    <div class="input_container">
+                        <label class="input_label">验证码</label>
+                        <input placeholder="输入 6 位验证码" name="code" class="input_field" type="text">
+                    </div>
+                    <button class="sign-in_btn">绑定账号</button>
+                    <div class="separator"><hr class="line"><span>或</span><hr class="line"></div>
+                    <button class="sign-in_ggl">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.013-1.133 8.027-3.24 2.053-2.053 2.627-4.96 2.627-7.24 0-.52-.053-1.027-.16-1.48h-10.49z"/></svg>
+                        <span>扫码登录</span>
+                    </button>
+                    <p class="note">已有账号？直接扫码或点击绑定。</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================== 核心 JavaScript 逻辑 ================== -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log('仓库页面已加载');
+        });
+
+        // ✅【新增】添加仓库按钮的点击事件
+        function addWarehouse() {
+            const name = prompt("请输入新仓库的名称：");
+            if (name && name.trim() !== "") {
+                alert(`即将创建仓库：「${name}」\n（此功能需对接后端 API）`);
+            } else if (name !== null) {
+                alert("仓库名称不能为空！");
+            }
+        }
+    </script>
+</body>
+</html>
