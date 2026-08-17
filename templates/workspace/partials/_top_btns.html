@@ -1,25 +1,84 @@
-<!-- 工作台顶部按钮：只保留添加项目和返回主页 -->
-<div class="fixed top-4 right-4 z-50 flex items-center gap-2 w-auto max-w-[360px]">
-    <!-- 按钮 1：添加项目 -->
-    <button onclick="addProject()" class="flex-1 px-3 py-2 text-nowrap bg-[#238636] border border-[#2ea043] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[#2ea043] active:scale-95 shadow-md">
-        + 添加项目
-    </button>
-    
-    <!-- 按钮 2：返回主页 -->
-    <button onclick="window.location.href='/'" class="flex-1 px-3 py-2 text-nowrap bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] backdrop-blur-[6px] text-[13px] font-medium text-white rounded-[30px] transition hover:bg-[rgba(255,255,255,0.15)] active:scale-95">
-        返回主页
-    </button>
+<!-- 工作台顶部按钮：只保留一个炫彩渐变“添加项目”按钮 -->
+<style>
+  /* 完全复用首页 action_btn 的样式 */
+  .action-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+  }
+  .outer-cont {
+    padding: 10px 16px;
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    position: relative;
+    background: linear-gradient(90deg, rgba(147, 150, 95, 0.8), rgba(73, 63, 54, 0.8), rgba(245, 230, 207, 0.8));
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 12px;
+    color: #fff;
+    transition: all 0.3s ease;
+    box-shadow:
+      inset 0px 0px 5px rgba(255, 255, 255, 0.6),
+      inset 0px 35px 30px rgba(0, 0, 0, 0.8),
+      0px 5px 10px rgba(0, 0, 0, 0.7);
+    text-shadow: 1px 1px 1px #000;
+    pointer-events: auto !important;
+    display: inline-flex;
+  }
+  .outer-cont::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    border-radius: 12px;
+    filter: blur(0);
+    z-index: -1;
+    box-shadow: none;
+    background: conic-gradient(
+      rgba(0,0,0,0) 80deg,
+      #93965F,
+      #493F36,
+      #F5E6CF,
+      rgba(0,0,0,0) 280deg
+    );
+    transition: all 0.3s ease;
+  }
+  .outer-cont:hover::before {
+    filter: blur(15px);
+  }
+  .outer-cont:active::before {
+    filter: blur(5px);
+    transform: translateY(1px);
+  }
+  .outer-cont:active {
+    box-shadow:
+      inset 0px 0px 5px rgba(255, 255, 255, 0.6),
+      inset 0px 35px 30px rgba(0, 0, 0, 0.8);
+    margin-top: 3px;
+  }
+</style>
+
+<!-- 固定在右上角 -->
+<div class="fixed top-4 right-4 z-50">
+    <div class="outer-cont" onclick="addProject()">
+        <span class="action-flex font-bold whitespace-nowrap">
+            <span>+ 添加项目</span>
+        </span>
+    </div>
 </div>
 
-<!-- 添加一个通用的 JS 函数，让你后续对接实际的后台创建项目逻辑 -->
+<!-- 点击按钮后的交互逻辑（可自行替换为真实 API 请求） -->
 <script>
 function addProject() {
-    // 🟢 你可以在这里修改成你想要的弹出框或者跳转页面逻辑
-    // 比如弹窗让用户输入项目名称，或者直接跳转到新建页面
+    // 示例：弹窗让用户输入项目名称
     const projectName = prompt("请输入新项目的名称：");
     if (projectName && projectName.trim() !== "") {
-        alert("正在创建项目：" + projectName + "\n（请在 addProject() 函数中替换为你的真实后端 API 请求）");
-        // 示例：调用后端创建项目接口
+        // 这里未来可以改成 fetch 请求后端创建项目
+        alert(`准备创建项目：「${projectName}」`);
+        // 示例接口调用：
         // fetch('/api/create_project', { method: 'POST', body: JSON.stringify({name: projectName}) })
     } else if (projectName !== null) {
         alert("项目名称不能为空！");
