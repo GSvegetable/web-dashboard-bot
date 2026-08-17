@@ -7,7 +7,7 @@
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 右上角添加面板按钮（加上 id，方便 JS 控制拉扯动画） -->
+    <!-- ✅ 右上角添加面板按钮 -->
     <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
         <div id="addPanelBtn" class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
@@ -18,37 +18,36 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【位置：直接在按钮正下方，动画从上往下带拉扯感】 -->
+    <!-- ✅ 下拉弹窗区域 -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none">
         <div id="modalWrapper" class="pointer-events-auto w-[360px] origin-top">
-            <!-- ✅ 毛玻璃卡片，内部已添加输入表单 -->
+            <!-- 毛玻璃卡片 + 表单 -->
             <div class="glass-card p-6">
                 
-                <!-- 表单区域 -->
                 <div class="w-full flex flex-col gap-4">
                     
                     <!-- 字段 1：你的ID -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
-                        <input type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        <input id="addPanelIdInput" type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
                     <!-- 字段 2：机器人名称 -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人名称</label>
-                        <input type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
                     <!-- 字段 3：机器人Token -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
-                        <input type="password" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
-                    <!-- 底部：保存按钮 -->
+                    <!-- 底部：创建按钮 -->
                     <div class="mt-2 pt-2 border-t border-white/5">
-                        <button onclick="closeAddPanel(); alert('保存成功！')" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
-                            保存
+                        <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
+                            创建
                         </button>
                     </div>
 
@@ -276,7 +275,7 @@
             }, 220);
         }
 
-        // ✅ 核心功能：点击按钮，拉扯变形，从上往下弹出
+        // ✅ 打开面板功能
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
@@ -288,21 +287,62 @@
                 return;
             }
 
-            // 1. 让按钮产生“被拉扯”的收缩回弹效果
             btn.classList.remove('pulling');
             void btn.offsetHeight;
             btn.classList.add('pulling');
 
-            // 2. 准备打开卡片
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
             wrapper.style.opacity = '0';
 
-            // 3. 延迟让按钮动画启动，再让卡片从上往下“拉”出
             setTimeout(() => {
                 wrapper.style.opacity = '';
                 wrapper.classList.add('animate-in');
             }, 40);
         };
+
+        // ✅【核心功能】创建面板：自动读取剪贴板并填入ID/Token
+        window.createPanel = function() {
+            const idInput = document.getElementById('addPanelIdInput');
+            const nameInput = document.getElementById('addPanelNameInput');
+            const tokenInput = document.getElementById('addPanelTokenInput');
+            
+            // 异步读取剪贴板
+            if (navigator.clipboard) {
+                navigator.clipboard.readText().then(text => {
+                    if (text) {
+                        const lines = text.split(/\r?\n/);
+                        lines.forEach(line => {
+                            const trimmed = line.trim();
+                            if (!trimmed) return;
+                            
+                            // 自动识别 Token (数字:字符)
+                            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                                if (!tokenInput.value) tokenInput.value = trimmed;
+                            }
+                            // 自动识别 ID (纯数字，5-15位)
+                            else if (/^\d{5,15}$/.test(trimmed)) {
+                                if (!idInput.value) idInput.value = trimmed;
+                            }
+                        });
+                    }
+                }).catch(() => {
+                    // 没有读取权限或剪贴板为空，忽略
+                }).finally(() => {
+                    finishCreate();
+                });
+            } else {
+                finishCreate();
+            }
+        };
+
+        function finishCreate() {
+            // 关闭面板并提示成功（你可以替换成真实 fetch 提交）
+            closeAddPanel();
+            // 这里的提示可以保留，或者后续改成真实接口
+            setTimeout(() => {
+                alert('面板创建成功！');
+            }, 300);
+        }
     </script>
 </div>
