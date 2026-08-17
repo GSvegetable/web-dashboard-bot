@@ -63,8 +63,8 @@
   }
 </style>
 
-<!-- ✅ 位置调整：top-20 (往下移一点), right-6 (往左移一点) -->
-<div class="fixed top-20 right-6 z-50">
+<!-- ✅ 位置调整：top-6 让它和顶部标题栏/文字在水平线上对齐 -->
+<div class="fixed top-6 right-6 z-50">
     <div class="outer-cont" onclick="addProject()">
         <span class="action-flex font-bold whitespace-nowrap">
             <span>+ 添加项目</span>
@@ -72,14 +72,13 @@
     </div>
 </div>
 
-<!-- 点击按钮后的交互逻辑（可自行替换为真实 API 请求） -->
+<!-- 点击按钮后的交互逻辑 -->
 <script>
 function addProject() {
-    // 弹窗让用户输入项目名称
     const projectName = prompt("请输入新项目的名称：");
     if (projectName && projectName.trim() !== "") {
         alert(`准备创建项目：「${projectName}」`);
-        // 未来可以替换为后端接口：
+        // 未来可替换为后端接口：
         // fetch('/api/create_project', { method: 'POST', body: JSON.stringify({name: projectName}) })
     } else if (projectName !== null) {
         alert("项目名称不能为空！");
