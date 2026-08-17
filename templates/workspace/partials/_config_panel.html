@@ -1,13 +1,13 @@
-<!-- 🟢 外层：控制四边边距、外角圆润，绝对不会贴边！ -->
+<!-- 🟢 外层：已去掉背景毛玻璃，只剩纯粹的定位容器 -->
 <div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
-    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润，绝对不会消失！ -->
+    <!-- 🔵 内层：不再有剪裁和玻璃材质，干干净净 -->
     <div class="panel-inner">
         {% include 'workspace/partials/_config_home.html' %}
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 右上角添加面板按钮（加上 id，方便 JS 控制拉扯动画） -->
+    <!-- ✅ 右上角添加面板按钮 -->
     <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
         <div id="addPanelBtn" class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
@@ -18,18 +18,15 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【位置：直接在按钮正下方，动画从上往下带拉扯感】 -->
+    <!-- ✅ 下拉毛玻璃小卡片（之前做的拉扯/涟漪动画） -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none">
         <div id="modalWrapper" class="pointer-events-auto w-[320px] origin-top">
-            <!-- 纯净毛玻璃卡片 -->
-            <div class="glass-card min-h-[160px] p-6">
-                <!-- 里面没有任何文字，彻底干净 -->
-            </div>
+            <div class="glass-card min-h-[160px] p-6"></div>
         </div>
     </div>
 
     <style>
-        /* ================== 全屏模式（机器人仓库） ================== */
+        /* ================== 全屏模式（文字与按钮模式，无背景） ================== */
         .panel-fullscreen {
             top: 20px !important;        
             left: 32px !important;       
@@ -37,29 +34,22 @@
             bottom: 32px !important;     
             width: auto !important;
             height: auto !important;
-            border-radius: 28px !important;
-            
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(24px) !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+            /* 绝对干净！去掉了背景、模糊、阴影、边框和圆角 */
+            background: transparent !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
         }
 
         .panel-fullscreen .panel-inner {
             width: 100% !important;
             height: 100% !important;
-            border-radius: 28px !important;
-
-            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
+            /* 同样去掉了任何剪裁、遮罩、圆角 */
+            border-radius: 0 !important;
+            clip-path: none !important;
             mask-image: none !important;
             -webkit-mask-image: none !important;
-        }
-        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
-        @media (min-width: 768px) {
-            .panel-fullscreen .panel-inner {
-                clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
-                mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
-                -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
-            }
         }
 
         /* ================== 缩回模式（机器人配置） ================== */
@@ -80,6 +70,7 @@
         }
         
         .panel-collapsed .panel-inner {
+            border-radius: 28px !important;
             clip-path: none !important;
             mask-image: none !important;
             -webkit-mask-image: none !important;
@@ -113,7 +104,7 @@
             text-shadow: 1px 1px 1px #000;
             pointer-events: auto !important;
             display: inline-flex;
-            transform-origin: center bottom; /* 拉伸方向从底部起始 */
+            transform-origin: center bottom;
         }
         #addPanelBtn.outer-cont::before {
             content: "";
@@ -128,41 +119,26 @@
             transition: all 0.3s ease;
         }
         #addPanelBtn.outer-cont:hover::before { filter: blur(15px); }
-        /* 按钮被点击时的收缩拉扯感 */
         #addPanelBtn.outer-cont:active::before {
             filter: blur(5px);
             transform: scale(0.95) translateY(2px);
         }
 
-        /* ✅ 按钮拉扯动画（点击时回弹） */
+        /* 按钮拉扯动画 */
         @keyframes btnPull {
             0% { transform: scale(1); }
             30% { transform: scale(0.92); }
             60% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        #addPanelBtn.pulling {
-            animation: btnPull 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
+        #addPanelBtn.pulling { animation: btnPull 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
-        /* ✅ 卡片从上往下拉扯溢出动画（带涟漪感） */
+        /* 卡片从上往下拉扯溢出动画 */
         @keyframes pullFromAbove {
-            0% {
-                transform: scale(0.7) translateY(-30px) rotate(-0.5deg);
-                opacity: 0;
-            }
-            40% {
-                transform: scale(1.05) translateY(8px) rotate(0.5deg);
-                opacity: 1;
-            }
-            70% {
-                transform: scale(0.96) translateY(-4px) rotate(-0.2deg);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1) translateY(0px) rotate(0deg);
-                opacity: 1;
-            }
+            0% { transform: scale(0.7) translateY(-30px) rotate(-0.5deg); opacity: 0; }
+            40% { transform: scale(1.05) translateY(8px) rotate(0.5deg); opacity: 1; }
+            70% { transform: scale(0.96) translateY(-4px) rotate(-0.2deg); opacity: 1; }
+            100% { transform: scale(1) translateY(0px) rotate(0deg); opacity: 1; }
         }
         #modalWrapper.animate-in {
             animation: pullFromAbove 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -174,7 +150,7 @@
             opacity: 0;
         }
 
-        /* ✅ 纯正毛玻璃卡片，无白边包裹 */
+        /* ✅ 纯正毛玻璃小卡片（拉扯出来的卡片） */
         .glass-card {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(24px);
@@ -195,7 +171,7 @@
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
 
-            // ✅ 点击卡片外部关闭
+            // 点击卡片外部关闭
             const modal = document.getElementById('customAddPanelModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
@@ -241,7 +217,7 @@
             }, 220);
         }
 
-        // ✅ 核心功能：点击按钮，拉扯变形，从上往下弹出
+        // 核心功能：点击按钮，拉扯变形，从上往下弹出
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
@@ -253,21 +229,18 @@
                 return;
             }
 
-            // 1. 让按钮产生“被拉扯”的收缩回弹效果
             btn.classList.remove('pulling');
-            void btn.offsetHeight; // 强制重绘以便重新触发动画
+            void btn.offsetHeight;
             btn.classList.add('pulling');
 
-            // 2. 准备打开卡片
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
-            wrapper.style.opacity = '0'; // 先隐藏
+            wrapper.style.opacity = '0';
 
-            // 3. 延迟几毫秒让按钮动画启动，再让卡片从上往下“拉”出
             setTimeout(() => {
                 wrapper.style.opacity = '';
                 wrapper.classList.add('animate-in');
-            }, 40); // 40ms 刚好能跟按钮收缩感产生连贯的拉扯效果
+            }, 40);
         };
     </script>
 </div>
