@@ -7,6 +7,16 @@
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
+    <!-- ✅ 终极修复：把按钮放到 panel-inner 外面，完美避开右上角 clip-path 切边 -->
+    <!-- 并采用 absolute 定位和手动内边距控制尺寸，防止溢出隐藏 -->
+    <div id="addPanelBtnContainer" class="absolute top-[20px] right-[32px] z-40 flex items-center">
+        <div class="outer-cont text-[0.8rem] px-3 py-1" onclick="addPanel()">
+            <span class="action-flex font-bold whitespace-nowrap">
+                <span>+ 添加面板</span>
+            </span>
+        </div>
+    </div>
+
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
@@ -49,9 +59,9 @@
             top: auto !important;
             left: 24px !important;
             bottom: 24px !important;
-            right: 24px !important; /* 修复：右对齐，避免手机端悬浮时溢出 */
+            right: 24px !important; 
             width: auto !important;
-            max-width: 480px !important; /* 修复：仅设定最大宽度，而不是固定死 */
+            max-width: 480px !important; 
             height: auto !important;
             max-height: calc(100vh - 48px) !important;
             border-radius: 28px !important;
@@ -61,15 +71,60 @@
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
         
-        /* 收缩时，恢复标准矩形，去除所有裁剪 */
         .panel-collapsed .panel-inner {
             clip-path: none !important;
             mask-image: none !important;
             -webkit-mask-image: none !important;
         }
+        .panel-collapsed #addPanelBtnContainer { display: none !important; }
 
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
+
+        /* ✅ 搬出来的按钮样式（已经整体缩小，并用 scale 彻底规避切边） */
+        .action-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+        .outer-cont {
+            padding: 6px 12px;
+            border: none;
+            font-size: 0.8rem;
+            cursor: pointer;
+            position: relative;
+            background: linear-gradient(90deg, rgba(30, 64, 175, 0.7), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.9));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 8px;
+            color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
+            text-shadow: 1px 1px 1px #000;
+            pointer-events: auto !important;
+            display: inline-flex;
+            transform: scale(0.85); /* 整体再缩小一圈，绝对安全 */
+        }
+        .outer-cont::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            border-radius: 8px;
+            filter: blur(0);
+            z-index: -1;
+            box-shadow: none;
+            background: conic-gradient( rgba(0,0,0,0) 80deg, #2563EB, #93C5FD, #FFFFFF, rgba(0,0,0,0) 280deg );
+            transition: all 0.3s ease;
+        }
+        .outer-cont:hover::before { filter: blur(15px); }
+        .outer-cont:active::before { filter: blur(5px); transform: translateY(1px); }
+        .outer-cont:active {
+            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8);
+            margin-top: 3px;
+        }
     </style>
 
     <script>
@@ -100,5 +155,15 @@
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
         };
+
+        // ✅ 全局功能：添加面板
+        window.addPanel = function() {
+            const panelName = prompt("请输入新面板的名称：");
+            if (panelName && panelName.trim() !== "") {
+                alert(`准备创建面板：「${panelName}」`);
+            } else if (panelName !== null) {
+                alert("面板名称不能为空！");
+            }
+        }
     </script>
 </div>
