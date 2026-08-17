@@ -1,44 +1,366 @@
-<!-- ✅ 下拉弹窗区域（已修复响应式宽度，适配所有设备） -->
-<div id="customAddPanelModal" class="fixed top-[85px] right-4 md:right-[32px] z-[9999] hidden pointer-events-none">
-    <div id="modalWrapper" class="pointer-events-auto w-[calc(100vw-32px)] max-w-[360px] origin-top">
-        <!-- 毛玻璃卡片 + 表单 -->
-        <div class="glass-card p-6">
-            
-            <div class="w-full flex flex-col gap-4">
+<!-- 🟢 外层：控制四边边距、外角圆润，绝对不会贴边！ -->
+<div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
+    
+    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润，绝对不会消失！ -->
+    <div class="panel-inner">
+        {% include 'workspace/partials/_config_home.html' %}
+        {% include 'workspace/partials/_config_form.html' %}
+    </div>
+
+    <!-- ✅ 右上角添加面板按钮 -->
+    <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
+        <div id="addPanelBtn" class="outer-cont" onclick="addPanel()">
+            <span class="action-flex font-bold whitespace-nowrap">
+                <span>+ 添加面板</span>
+            </span>
+        </div>
+    </div>
+
+    <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
+
+    <!-- ✅【关键修复：宽度响应式 + 手机安全边距】 -->
+    <div id="customAddPanelModal" class="fixed top-[85px] right-[16px] left-[16px] sm:left-auto sm:right-[32px] z-[9999] hidden pointer-events-none">
+        <!-- 宽度改成 w-full max-w-[360px]：手机自动拉伸填满，大屏限宽 360 -->
+        <div id="modalWrapper" class="pointer-events-auto w-full max-w-[360px] ml-auto origin-top">
+            <!-- 毛玻璃卡片 + 表单 -->
+            <div class="glass-card p-6">
                 
-                <!-- 字段 1：你的ID -->
-                <div class="flex flex-col gap-1">
-                    <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
-                    <input id="addPanelIdInput" type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                </div>
-
-                <!-- 字段 2：机器人名称 -->
-                <div class="flex flex-col gap-1">
-                    <label class="text-white/70 text-sm font-medium tracking-wide">机器人名称</label>
-                    <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                </div>
-
-                <!-- 字段 3：机器人Token -->
-                <div class="flex flex-col gap-1">
-                    <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
-                    <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                </div>
-
-                <!-- 底部：双按钮布局 -->
-                <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                <div class="w-full flex flex-col gap-4">
                     
-                    <!-- 自动补齐按钮 -->
-                    <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
-                        自动补齐
-                    </button>
+                    <!-- 字段 1：你的ID -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
+                        <input id="addPanelIdInput" type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
 
-                    <!-- 创建按钮 -->
-                    <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
-                        创建
-                    </button>
+                    <!-- 字段 2：机器人名称 -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">机器人名称</label>
+                        <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
+
+                    <!-- 字段 3：机器人Token -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
+                        <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
+
+                    <!-- 底部：双按钮布局 -->
+                    <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                        
+                        <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
+                            自动补齐
+                        </button>
+                        <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
+                            创建
+                        </button>
+                    </div>
+
                 </div>
-
             </div>
         </div>
     </div>
+
+    <style>
+        /* ================== 全屏模式（机器人仓库） ================== */
+        .panel-fullscreen {
+            top: 20px !important;        
+            left: 32px !important;       
+            right: 32px !important;      
+            bottom: 32px !important;     
+            width: auto !important;
+            height: auto !important;
+            border-radius: 28px !important;
+            
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .panel-fullscreen .panel-inner {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 28px !important;
+
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
+        }
+        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
+        @media (min-width: 768px) {
+            .panel-fullscreen .panel-inner {
+                clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
+                mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+                -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+            }
+        }
+
+        /* ================== 缩回模式（机器人配置） ================== */
+        .panel-collapsed {
+            top: auto !important;
+            left: 24px !important;
+            bottom: 24px !important;
+            right: 24px !important; 
+            width: auto !important;
+            max-width: 480px !important; 
+            height: auto !important;
+            max-height: calc(100vh - 48px) !important;
+            border-radius: 28px !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        
+        .panel-collapsed .panel-inner {
+            clip-path: none !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
+        }
+        .panel-collapsed #addPanelBtnContainer { display: none !important; }
+
+        .panel-fullscreen #configHome { display: flex !important; }
+        .panel-fullscreen #configForm { display: none !important; }
+
+        /* ✅ 按钮样式（蓝白渐变） */
+        .action-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+        }
+        #addPanelBtn.outer-cont {
+            padding: 10px 18px;
+            border: none;
+            font-size: 0.95rem;
+            cursor: pointer;
+            position: relative;
+            background: linear-gradient(90deg, rgba(30, 64, 175, 0.7), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.9));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 10px;
+            color: #fff;
+            transition: all 0.2s ease;
+            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
+            text-shadow: 1px 1px 1px #000;
+            pointer-events: auto !important;
+            display: inline-flex;
+            transform-origin: center bottom;
+        }
+        #addPanelBtn.outer-cont::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            border-radius: 10px;
+            filter: blur(0);
+            z-index: -1;
+            box-shadow: none;
+            background: conic-gradient( rgba(0,0,0,0) 80deg, #2563EB, #93C5FD, #FFFFFF, rgba(0,0,0,0) 280deg );
+            transition: all 0.3s ease;
+        }
+        #addPanelBtn.outer-cont:hover::before { filter: blur(15px); }
+        #addPanelBtn.outer-cont:active::before {
+            filter: blur(5px);
+            transform: scale(0.95) translateY(2px);
+        }
+
+        /* ✅ 按钮拉扯动画（点击时回弹） */
+        @keyframes btnPull {
+            0% { transform: scale(1); }
+            30% { transform: scale(0.92); }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #addPanelBtn.pulling {
+            animation: btnPull 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ✅ 卡片从上往下拉扯溢出动画（带涟漪感） */
+        @keyframes pullFromAbove {
+            0% {
+                transform: scale(0.7) translateY(-30px) rotate(-0.5deg);
+                opacity: 0;
+            }
+            40% {
+                transform: scale(1.05) translateY(8px) rotate(0.5deg);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(0.96) translateY(-4px) rotate(-0.2deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateY(0px) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        #modalWrapper.animate-in {
+            animation: pullFromAbove 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        #modalWrapper.animate-out {
+            animation: none;
+            transition: all 0.2s ease-in;
+            transform: scale(0.9) translateY(-20px);
+            opacity: 0;
+        }
+
+        /* ✅ 纯正毛玻璃卡片，无白边包裹 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 1.2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bec4cf;
+        }
+
+        /* ✅ 输入框聚焦发光效果 */
+        .glass-card input:focus {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
+
+            // ✅ 点击卡片外部关闭
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAddPanel();
+                    }
+                });
+            }
+        });
+
+        window.switchToConfig = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            panel.classList.remove('panel-fullscreen');
+            panel.classList.add('panel-collapsed');
+            setTimeout(() => {
+                home.classList.add('hidden');
+                form.classList.remove('hidden');
+            }, 50);
+        };
+
+        window.switchToHome = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            form.classList.add('hidden');
+            home.classList.remove('hidden');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
+        };
+
+        function closeAddPanel() {
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!modal || !wrapper) return;
+            
+            wrapper.classList.remove('animate-in');
+            wrapper.classList.add('animate-out');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                wrapper.classList.remove('animate-out');
+            }, 220);
+        }
+
+        // ✅ 打开面板功能
+        window.addPanel = function() {
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            const btn = document.getElementById('addPanelBtn');
+            if (!modal || !wrapper || !btn) return;
+            
+            if (!modal.classList.contains('hidden')) {
+                closeAddPanel();
+                return;
+            }
+
+            btn.classList.remove('pulling');
+            void btn.offsetHeight;
+            btn.classList.add('pulling');
+
+            modal.classList.remove('hidden');
+            wrapper.classList.remove('animate-in', 'animate-out');
+            wrapper.style.opacity = '0';
+
+            setTimeout(() => {
+                wrapper.style.opacity = '';
+                wrapper.classList.add('animate-in');
+            }, 40);
+        };
+
+        // ✅【新功能】自动补齐
+        window.autoFillClipboard = function() {
+            const idInput = document.getElementById('addPanelIdInput');
+            const tokenInput = document.getElementById('addPanelTokenInput');
+            
+            if (!navigator.clipboard) {
+                alert("您的浏览器不支持读取剪贴板，请手动复制粘贴。");
+                return;
+            }
+
+            navigator.clipboard.readText().then(text => {
+                if (text) {
+                    const lines = text.split(/\r?\n/);
+                    let matched = false;
+                    lines.forEach(line => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return;
+                        if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                            if (!tokenInput.value) tokenInput.value = trimmed;
+                            matched = true;
+                        }
+                        else if (/^\d{5,15}$/.test(trimmed)) {
+                            if (!idInput.value) idInput.value = trimmed;
+                            matched = true;
+                        }
+                    });
+                    if (!matched) {
+                        alert("未在剪贴板中识别到有效的 Telegram ID 或 Token 格式。");
+                    }
+                } else {
+                    alert("剪贴板为空。");
+                }
+            }).catch(() => {
+                alert("读取剪贴板失败，请确保已授予网页读取剪贴板的权限，或手动输入。");
+            });
+        };
+
+        // ✅【创建功能】
+        window.createPanel = function() {
+            const idInput = document.getElementById('addPanelIdInput');
+            const nameInput = document.getElementById('addPanelNameInput');
+            const tokenInput = document.getElementById('addPanelTokenInput');
+            
+            if (!tokenInput.value || !idInput.value) {
+                alert("请先填写 ID 和 Token，或者点击「自动补齐」从剪贴板读取。");
+                return;
+            }
+
+            // TODO: 替换为真实的 API 提交逻辑
+            // fetch('/api/create_panel', ...)
+
+            closeAddPanel();
+            setTimeout(() => {
+                alert('面板创建成功！');
+            }, 300);
+        };
+    </script>
 </div>
