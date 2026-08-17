@@ -7,9 +7,9 @@
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 右上角添加面板按钮 -->
+    <!-- ✅ 右上角添加面板按钮（加上 id，方便 JS 控制拉扯动画） -->
     <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
-        <div class="outer-cont" onclick="addPanel()">
+        <div id="addPanelBtn" class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
                 <span>+ 添加面板</span>
             </span>
@@ -18,11 +18,11 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【去掉白色细边，增加玻璃质感】 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
-        <div id="modalWrapper" class="pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-[40px] opacity-0">
-            <!-- 完全去掉了外层的 bgblue，只用一层卡片实现毛玻璃 -->
-            <div class="glass-card min-w-[320px] min-h-[200px]">
+    <!-- ✅【位置：直接在按钮正下方，动画从上往下带拉扯感】 -->
+    <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none">
+        <div id="modalWrapper" class="pointer-events-auto w-[320px] origin-top">
+            <!-- 纯净毛玻璃卡片 -->
+            <div class="glass-card min-h-[160px] p-6">
                 <!-- 里面没有任何文字，彻底干净 -->
             </div>
         </div>
@@ -97,7 +97,7 @@
             gap: 5px;
             width: 100%;
         }
-        .outer-cont {
+        #addPanelBtn.outer-cont {
             padding: 10px 18px;
             border: none;
             font-size: 0.95rem;
@@ -108,13 +108,14 @@
             -webkit-backdrop-filter: blur(6px);
             border-radius: 10px;
             color: #fff;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
             text-shadow: 1px 1px 1px #000;
             pointer-events: auto !important;
             display: inline-flex;
+            transform-origin: center bottom; /* 拉伸方向从底部起始 */
         }
-        .outer-cont::before {
+        #addPanelBtn.outer-cont::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -126,35 +127,66 @@
             background: conic-gradient( rgba(0,0,0,0) 80deg, #2563EB, #93C5FD, #FFFFFF, rgba(0,0,0,0) 280deg );
             transition: all 0.3s ease;
         }
-        .outer-cont:hover::before { filter: blur(15px); }
-        .outer-cont:active::before { filter: blur(5px); transform: translateY(1px); }
-        .outer-cont:active {
-            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8);
-            margin-top: 3px;
+        #addPanelBtn.outer-cont:hover::before { filter: blur(15px); }
+        /* 按钮被点击时的收缩拉扯感 */
+        #addPanelBtn.outer-cont:active::before {
+            filter: blur(5px);
+            transform: scale(0.95) translateY(2px);
         }
 
-        /* ========================================================== */
-        /* ✅ 核心：全新的纯正毛玻璃卡片，0硬边框，高透明度          */
-        /* ========================================================== */
+        /* ✅ 按钮拉扯动画（点击时回弹） */
+        @keyframes btnPull {
+            0% { transform: scale(1); }
+            30% { transform: scale(0.92); }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #addPanelBtn.pulling {
+            animation: btnPull 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ✅ 卡片从上往下拉扯溢出动画（带涟漪感） */
+        @keyframes pullFromAbove {
+            0% {
+                transform: scale(0.7) translateY(-30px) rotate(-0.5deg);
+                opacity: 0;
+            }
+            40% {
+                transform: scale(1.05) translateY(8px) rotate(0.5deg);
+                opacity: 1;
+            }
+            70% {
+                transform: scale(0.96) translateY(-4px) rotate(-0.2deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateY(0px) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        #modalWrapper.animate-in {
+            animation: pullFromAbove 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        #modalWrapper.animate-out {
+            animation: none;
+            transition: all 0.2s ease-in;
+            transform: scale(0.9) translateY(-20px);
+            opacity: 0;
+        }
+
+        /* ✅ 纯正毛玻璃卡片，无白边包裹 */
         .glass-card {
-            /* 极淡的透明蓝白色底，可以透过它看到后面的背景 */
             background: rgba(255, 255, 255, 0.08);
-            /* 重点：高斯模糊，实现真正的玻璃质感 */
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
-            /* 边框改为极细的半透明白色光晕，不是实线，不会有“包裹感” */
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 1.2rem;
-            /* 软阴影，让它浮起来 */
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            min-width: 320px;
-            min-height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #bec4cf;
         }
-        /* ========================================================== */
     </style>
 
     <script>
@@ -163,7 +195,7 @@
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
 
-            // ✅【关闭逻辑】点击卡片外部（透明背景），卡片滑出消失
+            // ✅ 点击卡片外部关闭
             const modal = document.getElementById('customAddPanelModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
@@ -196,37 +228,46 @@
             panel.classList.add('panel-fullscreen');
         };
 
-        // 关闭卡片函数
         function closeAddPanel() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
             if (!modal || !wrapper) return;
             
-            wrapper.classList.remove('translate-y-0', 'opacity-100');
-            wrapper.classList.add('translate-y-[40px]', 'opacity-0');
+            wrapper.classList.remove('animate-in');
+            wrapper.classList.add('animate-out');
             setTimeout(() => {
                 modal.classList.add('hidden');
-            }, 500);
+                wrapper.classList.remove('animate-out');
+            }, 220);
         }
 
-        // ✅【点击按钮后，卡片从"底下一点点位置"滑上来】
+        // ✅ 核心功能：点击按钮，拉扯变形，从上往下弹出
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
+            const btn = document.getElementById('addPanelBtn');
+            if (!modal || !wrapper || !btn) return;
             
             if (!modal.classList.contains('hidden')) {
                 closeAddPanel();
                 return;
             }
 
+            // 1. 让按钮产生“被拉扯”的收缩回弹效果
+            btn.classList.remove('pulling');
+            void btn.offsetHeight; // 强制重绘以便重新触发动画
+            btn.classList.add('pulling');
+
+            // 2. 准备打开卡片
             modal.classList.remove('hidden');
-            wrapper.classList.remove('translate-y-0', 'opacity-100');
-            wrapper.classList.add('translate-y-[40px]', 'opacity-0');
-            
-            void modal.offsetHeight;
-            wrapper.classList.remove('translate-y-[40px]', 'opacity-0');
-            wrapper.classList.add('translate-y-0', 'opacity-100');
+            wrapper.classList.remove('animate-in', 'animate-out');
+            wrapper.style.opacity = '0'; // 先隐藏
+
+            // 3. 延迟几毫秒让按钮动画启动，再让卡片从上往下“拉”出
+            setTimeout(() => {
+                wrapper.style.opacity = '';
+                wrapper.classList.add('animate-in');
+            }, 40); // 40ms 刚好能跟按钮收缩感产生连贯的拉扯效果
         };
     </script>
 </div>
