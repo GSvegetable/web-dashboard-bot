@@ -1,11 +1,7 @@
 <div id="configHome" class="flex flex-col items-start justify-start h-full w-full p-6 relative">
     
-    <!-- ✅ 核心修复：用 Flex 布局，彻底解决定位溢出和边缘被切的问题 -->
-    <div class="flex flex-row justify-between items-center w-full relative z-10">
-        <!-- 左侧标题 -->
-        <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md">机器人仓库</h2>
-        
-        <!-- 右侧按钮 -->
+    <!-- ✅ 将“添加面板”按钮直接放进这个模糊大盒子内部，靠右对齐 -->
+    <div class="absolute top-6 right-6 z-10">
         <div class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
                 <span>+ 添加面板</span>
@@ -13,6 +9,8 @@
         </div>
     </div>
 
+    <!-- 标题文字 -->
+    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md">机器人仓库</h2>
     <!-- 其他所有说明、状态卡、按钮全部删除了 -->
 </div>
 
