@@ -7,9 +7,9 @@
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 顶部“添加面板”按钮（不会被切边） -->
+    <!-- ✅ 完美避让裁剪区域：位置下移到 32px，尺寸恢复正常大小 -->
     <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
-        <div class="outer-cont" onclick="openAddPanelModal()">
+        <div class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
                 <span>+ 添加面板</span>
             </span>
@@ -18,22 +18,11 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ============================================================== -->
-    <!-- ✅ 新增：纯黑底部滑出菜单框（直角边框）                      -->
-    <!-- ============================================================== -->
-    <div id="addPanelModal" class="fixed bottom-0 left-0 w-full bg-black z-[99999] transform translate-y-full transition-transform duration-300 ease-out border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.9)]">
-        <div class="max-w-md mx-auto p-6 flex flex-col gap-4">
-            <!-- 标题 -->
-            <div class="text-white text-lg font-medium">添加新面板</div>
-            
-            <!-- 输入框：纯黑背景，白边框，直角 -->
-            <input id="newPanelNameInput" type="text" placeholder="请输入面板名称" class="w-full bg-[#111] text-white border border-gray-600 p-3 rounded-none focus:outline-none focus:border-blue-500 transition placeholder-gray-500">
-            
-            <!-- 操作按钮区 -->
-            <div class="flex justify-end gap-3 mt-2">
-                <button onclick="closeAddPanelModal()" class="px-4 py-2 text-gray-400 hover:text-white transition font-medium">取消</button>
-                <button onclick="confirmAddPanel()" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-medium hover:opacity-90 transition rounded-none">创建</button>
-            </div>
+    <!-- ✅【新增】纯黑底部滑入框（没有任何文字） -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
+        <!-- 纯黑圆角框，宽度 420px，高度 280px，带软阴影 -->
+        <div id="modalBlackBox" class="w-[420px] h-[280px] bg-black rounded-[28px] shadow-[0_30px_80px_rgba(0,0,0,0.95)] pointer-events-auto translate-y-[calc(100%+100px)] opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
+            <!-- 空无一物，只有黑框 -->
         </div>
     </div>
 
@@ -98,7 +87,7 @@
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
 
-        /* ✅ 顶部按钮样式 */
+        /* ✅ 按钮样式 */
         .action-flex {
             display: flex;
             align-items: center;
@@ -148,6 +137,19 @@
             const panel = document.getElementById('configPanel');
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
+
+            // ✅【新增】点击黑框外部（背景透明处）自动关闭黑框
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        const box = document.getElementById('modalBlackBox');
+                        box.classList.remove('translate-y-0', 'opacity-100');
+                        box.classList.add('translate-y-[calc(100%+100px)]', 'opacity-0');
+                        setTimeout(() => { modal.classList.add('hidden'); }, 500);
+                    }
+                });
+            }
         });
 
         window.switchToConfig = function() {
@@ -172,50 +174,31 @@
             panel.classList.add('panel-fullscreen');
         };
 
-        // ==============================================================
-        // ✅ 新增逻辑：控制纯黑底部滑出菜单
-        // ==============================================================
-        function openAddPanelModal() {
-            const modal = document.getElementById('addPanelModal');
-            const input = document.getElementById('newPanelNameInput');
-            if (modal) {
-                modal.classList.remove('translate-y-full');
-                // 聚焦到输入框
-                setTimeout(() => { if(input) input.focus(); }, 350);
-            }
-        }
-
-        function closeAddPanelModal() {
-            const modal = document.getElementById('addPanelModal');
-            const input = document.getElementById('newPanelNameInput');
-            if (modal) {
-                modal.classList.add('translate-y-full');
-                if(input) input.value = ''; // 关闭时清空
-            }
-        }
-
-        function confirmAddPanel() {
-            const input = document.getElementById('newPanelNameInput');
-            const panelName = input ? input.value.trim() : '';
-
-            if (!panelName) {
-                alert("面板名称不能为空！"); // 这里的错误提醒可以保持原生，因为不常用
+        // ✅【核心改法】点击按钮后，黑框从底部滑入屏幕中间，无任何文字
+        window.addPanel = function() {
+            const modal = document.getElementById('customAddPanelModal');
+            const box = document.getElementById('modalBlackBox');
+            if (!modal || !box) return;
+            
+            // 如果黑框已经显示，就关闭它（按一次开，再按一次关）
+            if (!modal.classList.contains('hidden')) {
+                box.classList.remove('translate-y-0', 'opacity-100');
+                box.classList.add('translate-y-[calc(100%+100px)]', 'opacity-0');
+                setTimeout(() => { modal.classList.add('hidden'); }, 500);
                 return;
             }
 
-            // 替换你的真实后端创建接口
-            console.log(`准备创建面板：「${panelName}」`);
-            // fetch('/api/create_panel', { method: 'POST', body: JSON.stringify({name: panelName}) })
-
-            // 成功创建后关闭菜单
-            closeAddPanelModal();
-            // 可以加个提示条，或者刷新列表
-            // alert("创建成功！");
-        }
-
-        // 暴露全局，允许 HTML 中的 onclick 调用
-        window.openAddPanelModal = openAddPanelModal;
-        window.closeAddPanelModal = closeAddPanelModal;
-        window.confirmAddPanel = confirmAddPanel;
+            // 打开黑框
+            modal.classList.remove('hidden');
+            
+            // 先强制重置到初始状态（屏幕外）
+            box.classList.remove('translate-y-0', 'opacity-100');
+            box.classList.add('translate-y-[calc(100%+100px)]', 'opacity-0');
+            
+            // 触发重绘，再执行滑入动画
+            void modal.offsetHeight;
+            box.classList.remove('translate-y-[calc(100%+100px)]', 'opacity-0');
+            box.classList.add('translate-y-0', 'opacity-100');
+        };
     </script>
 </div>
