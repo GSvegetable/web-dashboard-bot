@@ -166,115 +166,138 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const panel = document.getElementById('agentSettingsPanel');
-    const content = document.getElementById('settingsModalContent');
-    const configKey = 'gsbot_agent_config';
+    var panel = document.getElementById('agentSettingsPanel');
+    var content = document.getElementById('settingsModalContent');
+    var configKey = 'gsbot_agent_config';
 
-    let config = JSON.parse(localStorage.getItem(configKey));
-    if (!config) {
-        config = { 
-            discussion: { think: true, search: false, strength: 'low', jailbreak: false }, 
-            agent: { think: true, search: false, strength: 'low' } 
-        };
-    } else {
-        if (!config.discussion) config.discussion = {};
-        if (!config.agent) config.agent = {};
-        config.discussion.think = true;
-        config.agent.think = true;
-        if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
-        if (typeof config.agent.search !== 'boolean') config.agent.search = false;
-        if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
-        if (!config.discussion.strength) config.discussion.strength = 'low';
-        if (!config.agent.strength) config.agent.strength = 'low';
+    // 读取配置（带默认值）
+    function loadConfig() {
+        var c = JSON.parse(localStorage.getItem(configKey));
+        if (!c) {
+            c = {
+                discussion: { think: true, search: false, strength: 'low', jailbreak: false },
+                agent: { think: true, search: false, strength: 'high' }
+            };
+        } else {
+            if (!c.discussion) c.discussion = {};
+            if (!c.agent) c.agent = {};
+            c.discussion.think = true;
+            c.agent.think = true;
+            if (typeof c.discussion.search !== 'boolean') c.discussion.search = false;
+            if (typeof c.agent.search !== 'boolean') c.agent.search = false;
+            if (typeof c.discussion.jailbreak !== 'boolean') c.discussion.jailbreak = false;
+            if (!c.discussion.strength) c.discussion.strength = 'low';
+            if (!c.agent.strength) c.agent.strength = 'high';
+        }
+        return c;
     }
 
-    // ✅ 强制锁死深度思考
+    var config = loadConfig();
+
+    // 安全设置某个 radio 的选中状态
+    function setChecked(id, checked) {
+        var el = document.getElementById(id);
+        if (el) el.checked = !!checked;
+    }
+
+    // 强制锁死"深度思考"（不允许关闭）
     function setupThinkLock() {
-        const flashGroup = document.getElementById('thinkFlashGroup');
-        const proGroup = document.getElementById('thinkProGroup');
-        [flashGroup, proGroup].forEach((group) => {
+        var groups = [document.getElementById('thinkFlashGroup'), document.getElementById('thinkProGroup')];
+        groups.forEach(function(group) {
             if (!group) return;
-            const offRadio = group.querySelector('input[id$="-off"]');
-            const onRadio = group.querySelector('input[id$="-on"]');
+            var offRadio = group.querySelector('input[id$="-off"]');
+            var onRadio = group.querySelector('input[id$="-on"]');
+            if (!offRadio || !onRadio) return;
             onRadio.checked = true;
             offRadio.checked = false;
             offRadio.addEventListener('click', function(e) {
-                e.preventDefault(); e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
                 group.classList.add('shake-toggle');
-                setTimeout(() => { group.classList.remove('shake-toggle');                 }, 500);
-                offRadio.checked = false; onRadio.checked = true;
-                            });
-            offRadio.addEventListener('change', function(e) {
-                if (offRadio.checked) { offRadio.checked = false; onRadio.checked = true;                 }
-                            });
-                        });
-                    }
+                setTimeout(function() { group.classList.remove('shake-toggle'); }, 500);
+                offRadio.checked = false;
+                onRadio.checked = true;
+            });
+            offRadio.addEventListener('change', function() {
+                if (offRadio.checked) { offRadio.checked = false; onRadio.checked = true; }
+            });
+        });
+    }
 
-    功能 applyStoredConfig() {
-        document.getElementById('think-flash-on').checked = true;
-        document.getElementById('think-pro-on').checked = true;
-        document.getElementById('search-flash-off').checked = !config.discussion.search;
-        document.getElementById('search-flash-on').checked = config.discussion.search;
-        document.getElementById('search-pro-off').checked = !config.agent.search;
-        document.getElementById('search-pro-on').checked = config.agent.search;
-        document.getElementById('jailbreak-flash-off').checked = !config.discussion.jailbreak;
-        document.getElementById('jailbreak-flash-on').checked = config.discussion.jailbreak;
-        document.getElementById('strength-flash-low').checked = config.discussion.strength === 'low';
-        document.getElementById('strength-flash-mid').checked = config.discussion.strength === 'mid';
-        document.getElementById('strength-flash-max').checked = config.discussion.strength === 'max';
-        document.getElementById('strength-pro-high').checked = config.agent.strength === 'high';
-        document.getElementById('strength-pro-max').checked = config.agent.strength === 'max';
-                    }
+    // 把已保存的配置回填到界面控件
+    function applyStoredConfig() {
+        setChecked('think-flash-on', true);
+        setChecked('think-pro-on', true);
+        setChecked('search-flash-off', !config.discussion.search);
+        setChecked('search-flash-on', config.discussion.search);
+        // search-pro 控件在 HTML 中不存在，做兼容处理（若未来添加则生效）
+        setChecked('search-pro-off', !config.agent.search);
+        setChecked('search-pro-on', config.agent.search);
+        setChecked('jailbreak-flash-off', !config.discussion.jailbreak);
+        setChecked('jailbreak-flash-on', config.discussion.jailbreak);
+        // flash 强度：合法值 low / mid / max
+        var fs = ['low', 'mid', 'max'].indexOf(config.discussion.strength) >= 0 ? config.discussion.strength : 'low';
+        setChecked('strength-flash-low', fs === 'low');
+        setChecked('strength-flash-mid', fs === 'mid');
+        setChecked('strength-flash-max', fs === 'max');
+        // pro 强度：只有 high / max，确保始终有选中项
+        var ps = config.agent.strength === 'max' ? 'max' : 'high';
+        setChecked('strength-pro-high', ps === 'high');
+        setChecked('strength-pro-max', ps === 'max');
+    }
 
-函数bindEvents({功能 bindEvents() {
-        document.querySelectorAll('input[type="radio"]').forEach(input => {document.querySelectorAll('input[type="radio"]').forEach(input => {
-input.addEventListener('change'，function(){input.addEventListener('change', function() {
-常量名称 = this.name；const name = this.name;
-常量值 = this.ID；常量 value = this.id;
-让模式 = 'discussion'；让模式 = 'discussion';
-让key = null；let钥匙 = void;
-设val = null；letVal = void;
+    // 绑定所有单选框的变更事件，保存配置
+    function bindEvents() {
+        document.querySelectorAll('input[type="radio"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                var name = this.name;
+                var value = this.id;
+                var mode = 'discussion';
+                var key = null;
+                var val = null;
 
-if(name.startsWith('search-')){key = 'search'；val = value.endsWith('-on')；                }if (name.startsWith('search-')) { key = 'search'; val = value.endsWith('-on');                 }
-其他 if(name.startsWith('jailbreak-')){key = 'jailbreak'；val = value.endsWith('-on')；                }其他 if (name.startsWith('jailbreak-')) { key = 'jailbreak'; val = value.endsWith('-on');                 }
-其他 if(name.startsWith('strength-')){key = 'strength'；val = value.replace('strength-', ").replace('flash-'，").replace('pro-', ")；}else if(name.startsWith('强度-')){key='强度'；val=value.replace('强度-'，").replace('flash-', ").replace('pro-'，")；                }
-
-if(name.includes('-flash'))mode = 'discussion'；if (name.includes('-flash')) mode = 'discussion';
-其他 if(name.includes('-pro'))mode = 'agent'；否则如果 (name.includes('-pro')) mode = 'agent';
-
-if(mode&&key&&val！==void){if (mode && key && val !== void) {
-if(key === 'think')返回；if (key === 'think') return;
-config[mode][key] = val；config[mode][key] = val;
-localStorage.setItem(configKey，JSON.stringify(config))；localStorage.setItem(configKey, JSON.stringify(config));
-window.currentAgentConfig = config；window.currentAgentConfig = config;
+                if (name.indexOf('search-') === 0) { key = 'search'; val = value.indexOf('-on') >= 0; }
+                else if (name.indexOf('jailbreak-') === 0) { key = 'jailbreak'; val = value.indexOf('-on') >= 0; }
+                else if (name.indexOf('strength-') === 0) {
+                    key = 'strength';
+                    val = value.replace('strength-', '').replace('flash-', '').replace('pro-', '');
                 }
-                            });
-                        });
-                    }
 
-window.openAgentSettings = 函数(){window.openAgentSettings = function() {
-config = JSON.parse(localStorage.getItem(configKey))；config = JSON.parse(localStorage.getItem(configKey));
-if(！config)config = {讨论：{认为:true，search:false，strength：'low'，jailbreak:false                }，代理：{think:true，search:false，strength：'low'                }                }；if (!config) config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false                 }, agent: { think: true, search: false, strength: 'low'                 }                 };
-window.currentAgentConfig = config；window.currentAgentConfig = config;
-applyStoredConfig()；applyStoredConfig();
-        setupThinkLock();setupThinkLock();
+                if (name.indexOf('-flash') >= 0) mode = 'discussion';
+                else if (name.indexOf('-pro') >= 0) mode = 'agent';
 
-        // 🔄 如果通过程序调用，同样执行横向滑入// 🔄 如果通过程序调用，同样执行横向滑入
-panel.classList.remove('hidden')；panel.classList.remove('hidden');
-空洞含量.offsetHeight；//强制重绘，避免浏览器偷懒void content.offsetHeight; // 强制重绘，避免浏览器偷懒
-requestAnimationFrame(() => {requestAnimationFrame(() => {
-content.classList.remove('opacity-0', '-translate-x-full')；content.classList.remove('opacity-0', '-translate-x-full')；classList.remove</剧本>'不透明度-0'，'-translate-x-full');
-content.classList.add('opacity-100', 'translate-x-0')；content.classList.add('opacity-100', 'translate-x-0');
-                        });
-                    };
+                if (mode && key && val !== null) {
+                    if (key === 'think') return; // 深度思考始终锁定开启
+                    if (!config[mode]) config[mode] = {};
+                    config[mode][key] = val;
+                    localStorage.setItem(configKey, JSON.stringify(config));
+                    window.currentAgentConfig = config;
+                }
+            });
+        });
+    }
 
-window.closeAgentSettings = 函数(){window.closeAgentSettings = function() {
-// 🔄 如果通过程序调用，同样执行横向滑出// 🔄 如果通过程序调用，同样执行横向滑出
-content.classList.remove('opacity-100', 'translate-x-0')；content.classList.remove('opacity-100', 'translate-x-0');
-content.classList.add('opacity-0', '-translate-x-full')；content.classList.add('opacity-0', '-translate-x-full');
-setTimeout(() => {panel.classList.add('hidden')；                }，500)；setTimeout(() => { panel.classList.add('hidden');                 }, 500);
-                    };
+    // 打开设置面板（横向滑入）
+    window.openAgentSettings = function() {
+        config = loadConfig();
+        window.currentAgentConfig = config;
+        applyStoredConfig();
+        setupThinkLock();
+        panel.classList.remove('hidden');
+        void content.offsetHeight; // 强制重绘，避免浏览器偷懒
+        requestAnimationFrame(function() {
+            content.classList.remove('opacity-0', '-translate-x-full');
+            content.classList.add('opacity-100', 'translate-x-0');
+        });
+    };
 
-bindEvents()；bindEvents();
-                });
-</脚本>
+    // 关闭设置面板（横向滑出）
+    window.closeAgentSettings = function() {
+        content.classList.remove('opacity-100', 'translate-x-0');
+        content.classList.add('opacity-0', '-translate-x-full');
+        setTimeout(function() { panel.classList.add('hidden'); }, 500);
+    };
+
+    bindEvents();
+});
+</script>
