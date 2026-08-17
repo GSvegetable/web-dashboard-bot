@@ -1,4 +1,4 @@
-<!-- 工作台顶部按钮：只保留一个蓝色渐变“添加项目”按钮 -->
+<!-- 工作台顶部按钮：只保留一个蓝色渐变“添加面板”按钮 -->
 <style>
   /* 保留原尺寸与外观 */
   .action-flex {
@@ -63,25 +63,25 @@
   }
 </style>
 
-<!-- ✅ 位置调整：top-6 让它和顶部标题栏/文字在水平线上对齐 -->
-<div class="fixed top-6 right-6 z-50">
-    <div class="outer-cont" onclick="addProject()">
+<!-- ✅ 位置修复：top-5 与左侧面板的 20px 顶部边距保持绝对水平对齐 -->
+<div class="fixed top-5 right-6 z-50">
+    <div class="outer-cont" onclick="addPanel()">
         <span class="action-flex font-bold whitespace-nowrap">
-            <span>+ 添加项目</span>
+            <span>+ 添加面板</span>
         </span>
     </div>
 </div>
 
 <!-- 点击按钮后的交互逻辑 -->
 <script>
-function addProject() {
-    const projectName = prompt("请输入新项目的名称：");
-    if (projectName && projectName.trim() !== "") {
-        alert(`准备创建项目：「${projectName}」`);
+function addPanel() {
+    const panelName = prompt("请输入新面板的名称：");
+    if (panelName && panelName.trim() !== "") {
+        alert(`准备创建面板：「${panelName}」`);
         // 未来可替换为后端接口：
-        // fetch('/api/create_project', { method: 'POST', body: JSON.stringify({name: projectName}) })
-    } else if (projectName !== null) {
-        alert("项目名称不能为空！");
+        // fetch('/api/create_panel', { method: 'POST', body: JSON.stringify({name: panelName}) })
+    } else if (panelName !== null) {
+        alert("面板名称不能为空！");
     }
 }
 </script>
