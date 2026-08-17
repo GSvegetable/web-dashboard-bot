@@ -344,25 +344,73 @@
             });
         };
 
-        // ✅【创建功能】纯提交，内部不再包含剪贴板读取逻辑
+        // ✅ 高亮某个输入框为错误状态
+        function markInvalid(input) {
+            if (!input) return;
+            input.style.borderColor = 'rgba(239, 68, 68, 0.8)';
+            input.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.3)';
+            input.focus();
+        }
+        function clearInvalid(input) {
+            if (!input) return;
+            input.style.borderColor = '';
+            input.style.boxShadow = '';
+        }
+
+        // ✅【创建功能】三个输入必须全部填写且格式正确，通过后在机器人仓库生成卡片
         window.createPanel = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
-            
-            // 简单校验（可选）
-            if (!tokenInput.value || !idInput.value) {
-                alert("请先填写 ID 和 Token，或者点击「自动补齐」从剪贴板读取。");
+
+            const idVal = idInput.value.trim();
+            const nameVal = nameInput.value.trim();
+            const tokenVal = tokenInput.value.trim();
+
+            // 名称：必填
+            if (!nameVal) {
+                markInvalid(nameInput);
+                alert('请填写机器人名称。');
                 return;
             }
+            clearInvalid(nameInput);
 
-            // TODO: 在这里替换为真实的 API 提交逻辑
-            // fetch('/api/create_panel', ...)
+            // ID：必填，格式为纯数字（5~15位）
+            if (!idVal) {
+                markInvalid(idInput);
+                alert('请填写你的 ID（纯数字）。');
+                return;
+            }
+            if (!/^\d{5,15}$/.test(idVal)) {
+                markInvalid(idInput);
+                alert('ID 格式不正确：应为 5~15 位纯数字。');
+                return;
+            }
+            clearInvalid(idInput);
 
+            // Token：必填，格式为 数字:字符
+            if (!tokenVal) {
+                markInvalid(tokenInput);
+                alert('请填写机器人 Token。');
+                return;
+            }
+            if (!/^\d+:[A-Za-z0-9_-]+$/.test(tokenVal)) {
+                markInvalid(tokenInput);
+                alert('Token 格式不正确：应为「数字:字母数字」组合（如 123456:ABCdfg）。');
+                return;
+            }
+            clearInvalid(tokenInput);
+
+            // 校验通过：读取已有卡片，追加后保存并重新渲染
+            let cards = [];
+            try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
+            cards.push({ id: idVal, name: nameVal, token: tokenVal });
+            localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
+
+            // 清空输入框
+            idInput.value = ''; nameInput.value = ''; tokenInput.value = '';
             closeAddPanel();
-            setTimeout(() => {
-                alert('面板创建成功！');
-            }, 300);
+            if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
         };
     </script>
 </div>
