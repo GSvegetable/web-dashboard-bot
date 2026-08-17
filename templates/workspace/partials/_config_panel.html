@@ -7,10 +7,9 @@
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 终极修复：把按钮放到 panel-inner 外面，完美避开右上角 clip-path 切边 -->
-    <!-- 并采用 absolute 定位和手动内边距控制尺寸，防止溢出隐藏 -->
-    <div id="addPanelBtnContainer" class="absolute top-[20px] right-[32px] z-40 flex items-center">
-        <div class="outer-cont text-[0.8rem] px-3 py-1" onclick="addPanel()">
+    <!-- ✅ 完美避让裁剪区域：位置下移到 32px，尺寸恢复正常大小 -->
+    <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
+        <div class="outer-cont" onclick="addPanel()">
             <span class="action-flex font-bold whitespace-nowrap">
                 <span>+ 添加面板</span>
             </span>
@@ -40,7 +39,6 @@
             height: 100% !important;
             border-radius: 28px !important;
 
-            /* ✨ 边角裁剪，加上了手机适配 (手机端去掉复杂的凹凸裁剪，防止错位) */
             clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
             mask-image: none !important;
             -webkit-mask-image: none !important;
@@ -81,7 +79,7 @@
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
 
-        /* ✅ 搬出来的按钮样式（已经整体缩小，并用 scale 彻底规避切边） */
+        /* ✅ 恢复正常大小，不再缩放进 */
         .action-flex {
             display: flex;
             align-items: center;
@@ -90,29 +88,29 @@
             width: 100%;
         }
         .outer-cont {
-            padding: 6px 12px;
+            padding: 10px 18px;        /* 增大内边距，更舒适 */
             border: none;
-            font-size: 0.8rem;
+            font-size: 0.95rem;        /* 字体调回正常大小 */
             cursor: pointer;
             position: relative;
             background: linear-gradient(90deg, rgba(30, 64, 175, 0.7), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.9));
             backdrop-filter: blur(6px);
             -webkit-backdrop-filter: blur(6px);
-            border-radius: 8px;
+            border-radius: 10px;       /* 圆角也稍微变大 */
             color: #fff;
             transition: all 0.3s ease;
             box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
             text-shadow: 1px 1px 1px #000;
             pointer-events: auto !important;
             display: inline-flex;
-            transform: scale(0.85); /* 整体再缩小一圈，绝对安全 */
+            /* 移除了 transform: scale(0.85) */
         }
         .outer-cont::before {
             content: "";
             position: absolute;
             inset: 0;
             margin: auto;
-            border-radius: 8px;
+            border-radius: 10px;
             filter: blur(0);
             z-index: -1;
             box-shadow: none;
