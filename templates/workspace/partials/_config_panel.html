@@ -18,10 +18,15 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【核心反差感】纯黑、直角、无动画、瞬间直出 -->
+    <!-- ✅【核心替换】Uiverse 渐变幻彩卡片弹窗（无文字，从底部滑入） -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
-        <div id="modalBlackBox" class="w-[420px] h-[280px] bg-black pointer-events-auto">
-            <!-- 绝对干净的纯黑直角方块，里面什么都不放 -->
+        <div id="modalWrapper" class="pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-[40px] opacity-0">
+            <!-- 原样复刻你的 Uiverse 代码 -->
+            <div class="bgblue">
+                <div class="card min-w-[320px] min-h-[200px]">
+                    <!-- 里面没有任何文字，彻底干净 -->
+                </div>
+            </div>
         </div>
     </div>
 
@@ -129,6 +134,31 @@
             box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8);
             margin-top: 3px;
         }
+
+        /* ========================================================== */
+        /* ✅ 新增：Uiverse 卡片原版样式完全复刻 */
+        /* ========================================================== */
+        .bgblue {
+            background: linear-gradient(135deg, #fffffff5, #3a4b8a, #ffffff98);
+            padding: 1px;
+            border-radius: 1.2rem;
+            box-shadow: 0px 1rem 1.5rem -0.9rem #000000e1;
+            max-width: 400px; /* 稍微加宽了一点点 */
+            margin: 0 auto;
+        }
+        .card {
+            font-size: 1rem;
+            color: #bec4cf;
+            background: linear-gradient(135deg, #0d1120 0%, #3a4b8a 43%, #0d1120 100%);
+            padding: 1.5rem;
+            border-radius: 1.2rem;
+            min-width: 320px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* ========================================================== */
     </style>
 
     <script>
@@ -137,12 +167,12 @@
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
 
-            // ✅【关闭逻辑】点击纯黑框外面（即遮罩），直接消失
+            // ✅【关闭逻辑】点击卡片外部（透明背景），卡片滑出消失
             const modal = document.getElementById('customAddPanelModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
                     if (e.target === modal) {
-                        modal.classList.add('hidden');
+                        closeAddPanel();
                     }
                 });
             }
@@ -170,13 +200,42 @@
             panel.classList.add('panel-fullscreen');
         };
 
-        // ✅【核心改法】点击按钮后，黑框瞬间出现在屏幕中间，干脆有力
+        // 关闭卡片函数
+        function closeAddPanel() {
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!modal || !wrapper) return;
+            
+            wrapper.classList.remove('translate-y-0', 'opacity-100');
+            wrapper.classList.add('translate-y-[40px]', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 500);
+        }
+
+        // ✅【核心改法】点击按钮后，卡片从"底下一点点位置"滑上来，伴随透明度变化
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
-            if (!modal) return;
+            const wrapper = document.getElementById('modalWrapper');
+            if (!modal || !wrapper) return;
             
-            // 直接切换显隐（完全不带动画，瞬间弹出/消失）
-            modal.classList.toggle('hidden');
+            // 如果已经显示，就触发关闭
+            if (!modal.classList.contains('hidden')) {
+                closeAddPanel();
+                return;
+            }
+
+            // 打开卡片
+            modal.classList.remove('hidden');
+            
+            // 重置到初始状态（底下一点点位置，透明度0）
+            wrapper.classList.remove('translate-y-0', 'opacity-100');
+            wrapper.classList.add('translate-y-[40px]', 'opacity-0');
+            
+            // 触发重绘，确保动画生效
+            void modal.offsetHeight;
+            wrapper.classList.remove('translate-y-[40px]', 'opacity-0');
+            wrapper.classList.add('translate-y-0', 'opacity-100');
         };
     </script>
 </div>
