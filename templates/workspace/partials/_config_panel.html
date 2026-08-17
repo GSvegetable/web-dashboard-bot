@@ -44,8 +44,15 @@
                         <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
-                    <!-- 底部：创建按钮 -->
-                    <div class="mt-2 pt-2 border-t border-white/5">
+                    <!-- 底部：双按钮布局 -->
+                    <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                        
+                        <!-- ✅【新增】自动补齐按钮：只负责读取剪贴板 -->
+                        <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
+                            自动补齐
+                        </button>
+
+                        <!-- 创建按钮：只负责提交数据 -->
                         <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
                             创建
                         </button>
@@ -301,48 +308,66 @@
             }, 40);
         };
 
-        // ✅【核心功能】创建面板：自动读取剪贴板并填入ID/Token
+        // ✅【新功能】自动补齐：只读取剪贴板，填入框内，不提交
+        window.autoFillClipboard = function() {
+            const idInput = document.getElementById('addPanelIdInput');
+            const tokenInput = document.getElementById('addPanelTokenInput');
+            
+            if (!navigator.clipboard) {
+                alert("您的浏览器不支持读取剪贴板，请手动复制粘贴。");
+                return;
+            }
+
+            navigator.clipboard.readText().then(text => {
+                if (text) {
+                    const lines = text.split(/\r?\n/);
+                    let matched = false;
+                    lines.forEach(line => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return;
+                        // 识别 Token (数字:字符组合)
+                        if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
+                            if (!tokenInput.value) tokenInput.value = trimmed;
+                            matched = true;
+                        }
+                        // 识别 ID (纯数字，5-15位)
+                        else if (/^\d{5,15}$/.test(trimmed)) {
+                            if (!idInput.value) idInput.value = trimmed;
+                            matched = true;
+                        }
+                    });
+                    if (!matched) {
+                        alert("未在剪贴板中识别到有效的 Telegram ID 或 Token 格式。");
+                    } else {
+                        // 可以在这里轻轻闪烁一下输入框提示用户填好了
+                    }
+                } else {
+                    alert("剪贴板为空。");
+                }
+            }).catch(() => {
+                alert("读取剪贴板失败，请确保已授予网页读取剪贴板的权限，或手动输入。");
+            });
+        };
+
+        // ✅【创建功能】纯提交，内部不再包含剪贴板读取逻辑
         window.createPanel = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
             
-            // 异步读取剪贴板
-            if (navigator.clipboard) {
-                navigator.clipboard.readText().then(text => {
-                    if (text) {
-                        const lines = text.split(/\r?\n/);
-                        lines.forEach(line => {
-                            const trimmed = line.trim();
-                            if (!trimmed) return;
-                            
-                            // 自动识别 Token (数字:字符)
-                            if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-                                if (!tokenInput.value) tokenInput.value = trimmed;
-                            }
-                            // 自动识别 ID (纯数字，5-15位)
-                            else if (/^\d{5,15}$/.test(trimmed)) {
-                                if (!idInput.value) idInput.value = trimmed;
-                            }
-                        });
-                    }
-                }).catch(() => {
-                    // 没有读取权限或剪贴板为空，忽略
-                }).finally(() => {
-                    finishCreate();
-                });
-            } else {
-                finishCreate();
+            // 简单校验（可选）
+            if (!tokenInput.value || !idInput.value) {
+                alert("请先填写 ID 和 Token，或者点击「自动补齐」从剪贴板读取。");
+                return;
             }
-        };
 
-        function finishCreate() {
-            // 关闭面板并提示成功（你可以替换成真实 fetch 提交）
+            // TODO: 在这里替换为真实的 API 提交逻辑
+            // fetch('/api/create_panel', ...)
+
             closeAddPanel();
-            // 这里的提示可以保留，或者后续改成真实接口
             setTimeout(() => {
                 alert('面板创建成功！');
             }, 300);
-        }
+        };
     </script>
 </div>
