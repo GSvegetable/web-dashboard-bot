@@ -1,5 +1,157 @@
-<div id="configHome" class="flex flex-col items-start justify-start h-full w-full p-6 relative">
+<div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <!-- 标题文字 -->
-    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md">机器人仓库</h2>
-    <!-- 其他所有说明、状态卡、按钮全部删除了 -->
+    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
+
+    <!-- 空状态提示 -->
+    <div id="botRepoEmpty" class="text-center text-gray-500 text-sm py-10 flex-shrink-0">仓库空空如也，点击右上角「+ 添加面板」创建机器人</div>
+
+    <!-- 机器人卡片网格：一排5个 -->
+    <div id="botRepoGrid" class="grid gap-4" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+    </div>
 </div>
+
+<style>
+    /* 机器人卡片：长方形、圆角、等距 */
+    .bot-repo-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 120px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+        overflow: hidden;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
+    .bot-repo-card:active { transform: scale(0.98); }
+
+    /* 机器人名称（最大） */
+    .bot-repo-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #ffffff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: 0.3px;
+    }
+
+    /* ID / Token 行：标签 + 值 */
+    .bot-repo-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 12px;
+    }
+    .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
+
+    /* 跑马灯容器：Token 过长时左右滚动 */
+    .bot-repo-marquee {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        height: 18px;
+        line-height: 18px;
+    }
+    .bot-repo-marquee .bot-repo-track {
+        display: inline-block;
+        white-space: nowrap;
+        padding-right: 2rem;
+        color: rgba(255, 255, 255, 0.8);
+        will-change: transform;
+    }
+    /* 内容超出容器宽度时才滚动 */
+    .bot-repo-track.marquee-run {
+        animation: botMarquee 8s linear infinite;
+    }
+    .bot-repo-card:hover .bot-repo-track.marquee-run { animation-play-state: paused; }
+    @keyframes botMarquee {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(calc(-100% + 2rem)); }
+    }
+
+    /* 小屏适配：一排5个 → 自动降为少列 */
+    @media (max-width: 1400px) { #botRepoGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 720px)  { #botRepoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 卡片数据持久化在 localStorage
+    window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
+    window.renderBotRepo = function() {
+        var grid = document.getElementById('botRepoGrid');
+        var empty = document.getElementById('botRepoEmpty');
+        if (!grid) return;
+        var cards = [];
+        try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
+        if (cards.length === 0) {
+            if (empty) empty.style.display = 'block';
+            grid.innerHTML = '';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = '';
+        cards.forEach(function(c) {
+            var card = document.createElement('div');
+            card.className = 'bot-repo-card';
+
+            var name = document.createElement('div');
+            name.className = 'bot-repo-name';
+            name.textContent = c.name || '未命名';
+
+            var idLine = document.createElement('div');
+            idLine.className = 'bot-repo-line';
+            var idLabel = document.createElement('span');
+            idLabel.className = 'bot-repo-label';
+            idLabel.textContent = 'ID';
+            idLine.appendChild(idLabel);
+            var idVal = document.createElement('span');
+            idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            idVal.textContent = c.id || '';
+            idLine.appendChild(idVal);
+
+            var tokenLine = document.createElement('div');
+            tokenLine.className = 'bot-repo-line';
+            var tokenLabel = document.createElement('span');
+            tokenLabel.className = 'bot-repo-label';
+            tokenLabel.textContent = 'Token';
+            tokenLine.appendChild(tokenLabel);
+
+            var marquee = document.createElement('div');
+            marquee.className = 'bot-repo-marquee';
+            var track = document.createElement('span');
+            track.className = 'bot-repo-track';
+            track.textContent = c.token || '';
+            marquee.appendChild(track);
+            tokenLine.appendChild(marquee);
+
+            card.appendChild(name);
+            card.appendChild(idLine);
+            card.appendChild(tokenLine);
+            grid.appendChild(card);
+
+            // Token 过长时启用跑马灯
+            requestAnimationFrame(function() {
+                if (track.scrollWidth > marquee.clientWidth + 1) {
+                    track.classList.add('marquee-run');
+                }
+            });
+        });
+    };
+    // 首次进入时渲染
+    window.renderBotRepo();
+});
+</script>
