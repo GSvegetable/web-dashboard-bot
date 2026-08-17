@@ -18,10 +18,9 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【关键修复：宽度响应式 + 手机安全边距】 -->
-    <div id="customAddPanelModal" class="fixed top-[85px] right-[16px] left-[16px] sm:left-auto sm:right-[32px] z-[9999] hidden pointer-events-none">
-        <!-- 宽度改成 w-full max-w-[360px]：手机自动拉伸填满，大屏限宽 360 -->
-        <div id="modalWrapper" class="pointer-events-auto w-full max-w-[360px] ml-auto origin-top">
+    <!-- ✅ 恢复固定宽度 w-[360px] 和右对齐 -->
+    <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none">
+        <div id="modalWrapper" class="pointer-events-auto w-[360px] origin-top">
             <!-- 毛玻璃卡片 + 表单 -->
             <div class="glass-card p-6">
                 
@@ -306,7 +305,7 @@
             }, 40);
         };
 
-        // ✅【新功能】自动补齐
+        // ✅【新功能】自动补齐：只读取剪贴板，填入框内，不提交
         window.autoFillClipboard = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
@@ -323,10 +322,12 @@
                     lines.forEach(line => {
                         const trimmed = line.trim();
                         if (!trimmed) return;
+                        // 识别 Token (数字:字符组合)
                         if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
                             if (!tokenInput.value) tokenInput.value = trimmed;
                             matched = true;
                         }
+                        // 识别 ID (纯数字，5-15位)
                         else if (/^\d{5,15}$/.test(trimmed)) {
                             if (!idInput.value) idInput.value = trimmed;
                             matched = true;
@@ -334,6 +335,8 @@
                     });
                     if (!matched) {
                         alert("未在剪贴板中识别到有效的 Telegram ID 或 Token 格式。");
+                    } else {
+                        // 可以在这里轻轻闪烁一下输入框提示用户填好了
                     }
                 } else {
                     alert("剪贴板为空。");
@@ -343,18 +346,19 @@
             });
         };
 
-        // ✅【创建功能】
+        // ✅【创建功能】纯提交，内部不再包含剪贴板读取逻辑
         window.createPanel = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
             
+            // 简单校验（可选）
             if (!tokenInput.value || !idInput.value) {
                 alert("请先填写 ID 和 Token，或者点击「自动补齐」从剪贴板读取。");
                 return;
             }
 
-            // TODO: 替换为真实的 API 提交逻辑
+            // TODO: 在这里替换为真实的 API 提交逻辑
             // fetch('/api/create_panel', ...)
 
             closeAddPanel();
