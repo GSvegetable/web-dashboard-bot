@@ -20,7 +20,7 @@
 
     <!-- ✅ 恢复固定宽度 w-[360px] 和右对齐 -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none">
-        <div id="modalWrapper" class="pointer-events-auto w-[360px] origin-top">
+        <div id="modalWrapper" class="pointer-events-auto w-[360px] max-w-[calc(100vw-48px)] origin-top">
             <!-- 毛玻璃卡片 + 表单 -->
             <div class="glass-card p-6">
                 
@@ -216,6 +216,12 @@
             border-color: rgba(255, 255, 255, 0.4) !important;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
             background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* ✅ 小屏适配：添加面板卡片贴边不超界 */
+        @media (max-width: 480px) {
+            #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; }
+            #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; }
         }
     </style>
 
