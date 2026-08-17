@@ -1,6 +1,6 @@
-<!-- 工作台顶部按钮：只保留一个炫彩渐变“添加项目”按钮 -->
+<!-- 工作台顶部按钮：只保留一个蓝色渐变“添加项目”按钮 -->
 <style>
-  /* 完全复用首页 action_btn 的样式 */
+  /* 保留原尺寸与外观 */
   .action-flex {
     display: flex;
     align-items: center;
@@ -14,7 +14,8 @@
     font-size: 0.95rem;
     cursor: pointer;
     position: relative;
-    background: linear-gradient(90deg, rgba(147, 150, 95, 0.8), rgba(73, 63, 54, 0.8), rgba(245, 230, 207, 0.8));
+    /* ✅ 颜色修改：改成蓝白渐变 */
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0.7), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.9));
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border-radius: 12px;
@@ -37,11 +38,12 @@
     filter: blur(0);
     z-index: -1;
     box-shadow: none;
+    /* ✅ 光晕颜色跟着改成蓝白 */
     background: conic-gradient(
       rgba(0,0,0,0) 80deg,
-      #93965F,
-      #493F36,
-      #F5E6CF,
+      #2563EB,
+      #93C5FD,
+      #FFFFFF,
       rgba(0,0,0,0) 280deg
     );
     transition: all 0.3s ease;
@@ -61,8 +63,8 @@
   }
 </style>
 
-<!-- 固定在右上角 -->
-<div class="fixed top-4 right-4 z-50">
+<!-- ✅ 位置调整：top-20 (往下移一点), right-6 (往左移一点) -->
+<div class="fixed top-20 right-6 z-50">
     <div class="outer-cont" onclick="addProject()">
         <span class="action-flex font-bold whitespace-nowrap">
             <span>+ 添加项目</span>
@@ -73,12 +75,11 @@
 <!-- 点击按钮后的交互逻辑（可自行替换为真实 API 请求） -->
 <script>
 function addProject() {
-    // 示例：弹窗让用户输入项目名称
+    // 弹窗让用户输入项目名称
     const projectName = prompt("请输入新项目的名称：");
     if (projectName && projectName.trim() !== "") {
-        // 这里未来可以改成 fetch 请求后端创建项目
         alert(`准备创建项目：「${projectName}」`);
-        // 示例接口调用：
+        // 未来可以替换为后端接口：
         // fetch('/api/create_project', { method: 'POST', body: JSON.stringify({name: projectName}) })
     } else if (projectName !== null) {
         alert("项目名称不能为空！");
