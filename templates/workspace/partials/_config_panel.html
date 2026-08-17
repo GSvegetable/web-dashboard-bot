@@ -18,9 +18,10 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ Uiverse 渐变幻彩卡片（淡蓝+白色偏多） -->
+    <!-- ✅【核心替换】Uiverse 渐变幻彩卡片弹窗（无文字，从底部滑入） -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
         <div id="modalWrapper" class="pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-[40px] opacity-0">
+            <!-- 原样复刻你的 Uiverse 代码 -->
             <div class="bgblue">
                 <div class="card min-w-[320px] min-h-[200px]">
                     <!-- 里面没有任何文字，彻底干净 -->
@@ -54,6 +55,7 @@
             mask-image: none !important;
             -webkit-mask-image: none !important;
         }
+        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
         @media (min-width: 768px) {
             .panel-fullscreen .panel-inner {
                 clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
@@ -134,22 +136,20 @@
         }
 
         /* ========================================================== */
-        /* ✅ 新版卡片：淡蓝 + 大量白色，清爽透亮 */
+        /* ✅ 颜色微调：增加白色占比，深蓝换淡蓝，渐变骨架完全没变 */
         /* ========================================================== */
         .bgblue {
-            /* 外边框渐变：白色为主，中间穿插淡淡的清透蓝 */
-            background: linear-gradient(135deg, #ffffff, #a8d4ff, #ffffff);
+            background: linear-gradient(135deg, #ffffff 0%, #d1e1ff 40%, #ffffff 100%);
             padding: 1px;
             border-radius: 1.2rem;
-            box-shadow: 0px 1rem 1.5rem -0.9rem rgba(0, 0, 0, 0.2);
-            max-width: 400px;
+            box-shadow: 0px 1rem 1.5rem -0.9rem #000000e1;
+            max-width: 400px; 
             margin: 0 auto;
         }
         .card {
             font-size: 1rem;
-            color: #ffffff; /* 如果你后续要加字，这里会很好看 */
-            /* 内部卡片：大量白色和淡蓝色，去掉了深蓝黑底 */
-            background: linear-gradient(135deg, #f4faff 0%, #d3eaff 50%, #ffffff 100%);
+            color: #bec4cf;
+            background: linear-gradient(135deg, #1a2240 0%, #7da0ff 45%, #1a2240 100%);
             padding: 1.5rem;
             border-radius: 1.2rem;
             min-width: 320px;
@@ -167,6 +167,7 @@
             panel.classList.remove('panel-collapsed');
             panel.classList.add('panel-fullscreen');
 
+            // ✅【关闭逻辑】点击卡片外部（透明背景），卡片滑出消失
             const modal = document.getElementById('customAddPanelModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
@@ -199,6 +200,7 @@
             panel.classList.add('panel-fullscreen');
         };
 
+        // 关闭卡片函数
         function closeAddPanel() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
@@ -211,6 +213,7 @@
             }, 500);
         }
 
+        // ✅【核心改法】点击按钮后，卡片从"底下一点点位置"滑上来
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
