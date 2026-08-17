@@ -18,14 +18,12 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅【核心替换】Uiverse 渐变幻彩卡片弹窗（无文字，从底部滑入） -->
+    <!-- ✅【去掉白色细边，增加玻璃质感】 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center pointer-events-none">
         <div id="modalWrapper" class="pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-y-[40px] opacity-0">
-            <!-- 原样复刻你的 Uiverse 代码 -->
-            <div class="bgblue">
-                <div class="card min-w-[320px] min-h-[200px]">
-                    <!-- 里面没有任何文字，彻底干净 -->
-                </div>
+            <!-- 完全去掉了外层的 bgblue，只用一层卡片实现毛玻璃 -->
+            <div class="glass-card min-w-[320px] min-h-[200px]">
+                <!-- 里面没有任何文字，彻底干净 -->
             </div>
         </div>
     </div>
@@ -136,27 +134,25 @@
         }
 
         /* ========================================================== */
-        /* ✅ 颜色微调：增加白色占比，深蓝换淡蓝，渐变骨架完全没变 */
+        /* ✅ 核心：全新的纯正毛玻璃卡片，0硬边框，高透明度          */
         /* ========================================================== */
-        .bgblue {
-            background: linear-gradient(135deg, #ffffff 0%, #d1e1ff 40%, #ffffff 100%);
-            padding: 1px;
+        .glass-card {
+            /* 极淡的透明蓝白色底，可以透过它看到后面的背景 */
+            background: rgba(255, 255, 255, 0.08);
+            /* 重点：高斯模糊，实现真正的玻璃质感 */
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            /* 边框改为极细的半透明白色光晕，不是实线，不会有“包裹感” */
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 1.2rem;
-            box-shadow: 0px 1rem 1.5rem -0.9rem #000000e1;
-            max-width: 400px; 
-            margin: 0 auto;
-        }
-        .card {
-            font-size: 1rem;
-            color: #bec4cf;
-            background: linear-gradient(135deg, #1a2240 0%, #7da0ff 45%, #1a2240 100%);
-            padding: 1.5rem;
-            border-radius: 1.2rem;
+            /* 软阴影，让它浮起来 */
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             min-width: 320px;
             min-height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #bec4cf;
         }
         /* ========================================================== */
     </style>
@@ -213,7 +209,7 @@
             }, 500);
         }
 
-        // ✅【核心改法】点击按钮后，卡片从"底下一点点位置"滑上来
+        // ✅【点击按钮后，卡片从"底下一点点位置"滑上来】
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
