@@ -83,7 +83,7 @@ window.showTopToast = function (message) {
 
     // 2. 展开胶囊
     toastExpandTimer = setTimeout(() => {
-        // ✨ 核心修改：宽度改为自适应内容，内边距保证文字和边框留白
+        // 宽度改为自适应内容，内边距保证文字和边框留白
         toast.style.width = 'fit-content';
         toast.style.padding = '0 20px';
         msgSpan.style.opacity = '1'; // 文字显现
