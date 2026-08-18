@@ -23,11 +23,11 @@
     box-sizing: border-box;
 
     transition:
-        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        border-radius 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        height 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-radius 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 </style>
 
@@ -54,14 +54,14 @@ window.showTopToast = function () {
     toast.style.transform = 'translateX(-50%) translateY(24px)';
     toast.style.opacity = '1';
 
-    // 2. 更快展开，长度更长
+    // 2. 快速展开，长度翻倍（240px）
     toastExpandTimer = setTimeout(() => {
-        toast.style.width = '120px';   // 长度调长，想更长就继续加大
+        toast.style.width = '240px';
         toast.style.height = '38px';
         toast.style.borderRadius = '999px';
-    }, 600);
+    }, 300);
 
-    // 3. 更快收起并退场
+    // 3. 快速收起并退场
     toastHideTimer = setTimeout(() => {
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
@@ -71,7 +71,7 @@ window.showTopToast = function () {
 
         toastTimer = setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 400);
-    }, 2500);
+        }, 200);
+    }, 1250);
 };
 </script>
