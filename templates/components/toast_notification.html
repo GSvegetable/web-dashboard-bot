@@ -1,78 +1,77 @@
-<!-- 独立玻璃圆球 原地直接拉长组件 -->
 <style>
-    #topToast {
-        position: fixed;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100%);
-        z-index: 99999;
-        
-        /* 纯玻璃材质 */
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        
-        border-radius: 50%;
-        width: 0px; height: 0px;
-        opacity: 0;
-        pointer-events: none;
-        padding: 0;
+#topToast {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    z-index: 99999;
 
-        /* ⭐ 核心：使用过渡动画，而不是关键帧动画 */
-        transition: 
-            transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            height 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-            border-radius 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+    /* 重点：一开始就是完整的小圆 */
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+
+    opacity: 0;
+    pointer-events: none;
+    padding: 0;
+    box-sizing: border-box;
+
+    transition:
+        transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        height 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-radius 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
 </style>
 
 <script>
-    let toastTimer = null;
-    let toastExpandTimer = null;
-    let toastHideTimer = null;
+let toastTimer = null;
+let toastExpandTimer = null;
+let toastHideTimer = null;
 
-    window.showTopToast = function() {
-        // 如果连续点击，先清理残留元素和计时器
-        const existing = document.getElementById('topToast');
-        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
-        if (toastTimer) clearTimeout(toastTimer);
-        if (toastExpandTimer) clearTimeout(toastExpandTimer);
-        if (toastHideTimer) clearTimeout(toastHideTimer);
+window.showTopToast = function () {
+    const existing = document.getElementById('topToast');
+    if (existing) existing.parentNode.removeChild(existing);
 
-        const toast = document.createElement('div');
-        toast.id = 'topToast';
-        document.body.appendChild(toast);
-        void toast.offsetWidth; // 强制浏览器渲染初始状态
+    if (toastTimer) clearTimeout(toastTimer);
+    if (toastExpandTimer) clearTimeout(toastExpandTimer);
+    if (toastHideTimer) clearTimeout(toastHideTimer);
 
-        // 1. 第一阶段：小球慢慢滑下来
-        toast.style.transform = 'translateX(-50%) translateY(24px)';
-        toast.style.opacity = '1';
+    const toast = document.createElement('div');
+    toast.id = 'topToast';
+    document.body.appendChild(toast);
+
+    void toast.offsetWidth; // 强制浏览器渲染初始状态
+
+    // 1. 小圆圈完整滑下来
+    toast.style.transform = 'translateX(-50%) translateY(24px)';
+    toast.style.opacity = '1';
+
+    // 2. 原位左右展开成胶囊
+    toastExpandTimer = setTimeout(() => {
+        toast.style.width = '80px';
+        toast.style.height = '38px';
+        toast.style.borderRadius = '999px';
+    }, 1000);
+
+    // 3. 收起并退回顶部消失
+    toastHideTimer = setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(-100%)';
+        toast.style.opacity = '0';
         toast.style.width = '38px';
         toast.style.height = '38px';
+        toast.style.borderRadius = '999px';
 
-        // 2. 第二阶段（1秒后）：原地点，直接向右拉长（不闪回、不缩回去）
-        toastExpandTimer = setTimeout(() => {
-            toast.style.width = '80px';
-            toast.style.height = '38px';
-            toast.style.borderRadius = '999px';
-        }, 1000);
-
-        // 3. 第三阶段（4秒后）：缩回小球，退回顶部消失
-        toastHideTimer = setTimeout(() => {
-            toast.style.transform = 'translateX(-50%) translateY(-100%)';
-            toast.style.opacity = '0';
-            toast.style.width = '38px';
-            toast.style.height = '38px';
-            toast.style.borderRadius = '50%';
-
-            // 0.6秒后彻底移除 DOM
-            toastTimer = setTimeout(() => {
-                if (toast.parentNode) toast.parentNode.removeChild(toast);
-            }, 600);
-        }, 4000);
-    };
+        toastTimer = setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 600);
+    }, 4000);
+};
 </script>
