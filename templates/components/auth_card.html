@@ -85,68 +85,6 @@
     flex-direction: column; 
     gap: 14px; 
 }
-
-/* ✨ 胶囊容器初始状态 */
-#topToast {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100%); /* 从屏幕外开始 */
-    z-index: 99999;
-    
-    /* 纯玻璃材质 */
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-    border-radius: 50%; /* 初始是圆 */
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    font-size: 14px;
-    font-weight: 500;
-    pointer-events: none;
-    white-space: nowrap;
-    display: flex; justify-content: center; align-items: center;
-    
-    /* 初始大小为0 */
-    width: 0px; height: 0px;
-    padding: 0;
-    opacity: 0;
-}
-
-/* 第一阶段：垂直下落 + 变成圆 */
-@keyframes fallDownFromTop {
-    0%   { width: 0px; height: 0px; opacity: 0; transform: translateX(-50%) translateY(-100%); padding: 0; }
-    100% { width: 52px; height: 52px; opacity: 1; transform: translateX(-50%) translateY(24px); padding: 0; border-radius: 50%; }
-}
-.c-toast-fall {
-    animation: fallDownFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* 第二阶段：左右拉伸变胶囊 + 文字淡入 */
-@keyframes expandToCapsule {
-    0%   { width: 52px; height: 52px; padding: 0; border-radius: 50%; }
-    100% { width: auto; height: auto; padding: 12px 24px; border-radius: 999px; }
-}
-.c-toast-expand {
-    animation: expandToCapsule 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-.c-toast-expand .toast-content {
-    animation: textFadeIn 0.5s ease-in forwards;
-}
-@keyframes textFadeIn {
-    0%   { opacity: 0; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1); }
-}
-
-/* 第三阶段：消失退场 */
-@keyframes hideAndShrink {
-    0%   { width: auto; height: auto; padding: 12px 24px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 999px; }
-    100% { width: 0px; height: 0px; padding: 0; opacity: 0; transform: translateX(-50%) translateY(-100%); border-radius: 50%; }
-}
-.c-toast-hide {
-    animation: hideAndShrink 0.4s ease-in forwards;
-}
 </style>
 
 <script>
@@ -293,84 +231,26 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 核心修复：防止动画抽风崩溃的队列逻辑
+    // ✨ 修正：触发纯圆球，不再带任何文字参数
     // ==========================================================
-    let toastAnimTimer = null;
-    function showTopToast(message) {
-        const existing = document.getElementById('topToast');
-
-        // 如果存在旧气泡，强制执行退场动画，然后在新气泡入场前彻底销毁
-        if (existing) {
-            // 清除之前的定时器，防止复用
-            if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-            
-            existing.className = 'c-toast-hide';
-            // 等待退场动画的 400ms 结束后再创建新的气泡
-            setTimeout(() => {
-                if (existing.parentNode) existing.parentNode.removeChild(existing);
-                createNewToast(message);
-            }, 400);
-        } else {
-            createNewToast(message);
-        }
-    }
-
-    function createNewToast(message) {
-        if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-
-        const toast = document.createElement('div');
-        toast.id = 'topToast';
-        
-        const contentSpan = document.createElement('span');
-        contentSpan.className = 'toast-content';
-        contentSpan.textContent = message;
-        contentSpan.style.cssText = 'opacity: 0; display: inline-block;'; 
-        toast.appendChild(contentSpan);
-        document.body.appendChild(toast);
-
-        // 强制回流 -> 第一帧：下落成圆
-        void toast.offsetWidth; 
-        toast.className = 'c-toast-fall';
-
-        // 600ms 后 -> 第二帧：拉伸变胶囊
-        toastAnimTimer = setTimeout(() => {
-            if (toast.parentNode) {
-                toast.className = 'c-toast-expand';
-            }
-        }, 600);
-
-        // 3500ms 后 -> 自动隐藏消失
-        const hideTimer = setTimeout(() => {
-            if (toast.parentNode) {
-                toast.className = 'c-toast-hide';
-                setTimeout(() => {
-                    if (toast.parentNode) toast.parentNode.removeChild(toast);
-                }, 400);
-            }
-        }, 3500);
-        
-        // 保存所有定时器以便后续清理
-        toast._hideTimer = hideTimer;
-    }
-
-    // ✅【前端秒级校验，不浪费时间】
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim();
         const btn = this;
         
-        // 一秒判定非法格式：直接拦截，绝不发往后端！
+        // 1秒判定非法格式
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         const isTgId = /^\d{5,15}$/.test(email);
 
         if (!email || (!isEmail && !isTgId)) {
-            showTopToast('格式错误 请输入有效邮箱或Telegram ID');
+            if (typeof window.showTopToast === 'function') {
+                window.showTopToast(); // 触发纯圆球
+            }
             btn.innerText = '验证';
             btn.disabled = false;
             return; 
         }
 
-        // 格式正确才往后端发请求
         btn.innerText = '已发送';
         btn.disabled = true;
         
@@ -385,12 +265,16 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(!data.ok) {
-                showTopToast('发送失败 查看输入信息是否正确');
+                if (typeof window.showTopToast === 'function') {
+                    window.showTopToast(); // 触发纯圆球
+                }
                 btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
-            showTopToast('发送失败 查看输入信息是否正确');
+            if (typeof window.showTopToast === 'function') {
+                window.showTopToast(); // 触发纯圆球
+            }
             btn.innerText = '验证';
             btn.disabled = false;
         }
