@@ -69,7 +69,7 @@
 </div>
 
 <style>
-/* 单独提取 login-card 的 CSS */
+/* 登录卡片样式 */
 .login-card { 
     position: relative; 
     width: 100%; 
@@ -86,56 +86,69 @@
     gap: 14px; 
 }
 
-/* ✨ 新增：自定义顶部胶囊提示气泡 */
+/* ✨ 玻璃胶囊纯动画框架 */
 #topToast {
     position: fixed;
     top: 0;
     left: 50%;
-    transform: translateX(-50%) translateY(-100%); /* 初始状态在屏幕外上方 */
+    transform: translateX(-50%) translateY(-100%) scale(0.8);
     z-index: 99999;
-    background: rgba(40, 40, 40, 0.9);
+    
+    /* 纯玻璃材质 */
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     color: #ffffff;
-    padding: 12px 28px;
-    border-radius: 999px; /* 胶囊形状 */
+    border-radius: 999px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     font-size: 14px;
     font-weight: 500;
     pointer-events: none;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    display: flex; justify-content: center; align-items: center;
+    
+    /* 初始圆圈状态 0 */
+    width: 0px; height: 0px;
+    padding: 0;
     opacity: 0;
 }
 
-/* 滑入并放大动画 */
-@keyframes slideDownAndExpand {
-    0% {
-        transform: translateX(-50%) translateY(-100%);
-        opacity: 0;
-        scale: 0.8;
-    }
-    60% {
-        transform: translateX(-50%) translateY(24px); /* 距离顶部约一指宽 */
-        opacity: 1;
-        scale: 1.1; /* 瞬间放大 */
-    }
-    100% {
-        transform: translateX(-50%) translateY(24px);
-        opacity: 1;
-        scale: 1; /* 缩回正常大小 */
-    }
+/* 第一步：垂直下落成圆圈 */
+@keyframes fallDownFromTop {
+    0%   { width: 0px; height: 0px; opacity: 0; transform: translateX(-50%) translateY(-100%); border-radius: 50%; padding: 0; }
+    80%  { width: 52px; height: 52px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 50%; padding: 0; }
+    100% { width: 52px; height: 52px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 50%; padding: 0; }
 }
-.top-toast-enter {
-    animation: slideDownAndExpand 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.c-toast-fall {
+    animation: fallDownFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* 滑出并缩小动画 */
-@keyframes slideUpAndShrink {
-    0% { transform: translateX(-50%) translateY(24px) scale(1); opacity: 1; }
-    100% { transform: translateX(-50%) translateY(-100%) scale(0.8); opacity: 0; }
+/* 第二步：左右拉开变胶囊，文字淡入 */
+@keyframes expandToCapsule {
+    0%   { width: 52px; height: 52px; border-radius: 50%; padding: 0; }
+    100% { width: auto; height: auto; padding: 12px 24px; border-radius: 999px; }
 }
-.top-toast-hide {
-    animation: slideUpAndShrink 0.4s ease-in forwards;
+.c-toast-expand {
+    animation: expandToCapsule 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* 第三步：文字浮现 */
+.c-toast-expand .toast-content {
+    animation: textFadeIn 0.5s ease-in forwards;
+}
+@keyframes textFadeIn {
+    0%   { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* 第四步：滑出消失 */
+@keyframes hideAndShrink {
+    0%   { width: auto; height: auto; padding: 12px 24px; opacity: 1; transform: translateX(-50%) translateY(24px) scale(1); border-radius: 999px; }
+    100% { width: 0px; height: 0px; padding: 0; opacity: 0; transform: translateX(-50%) translateY(-100%) scale(0.8); border-radius: 50%; }
+}
+.c-toast-hide {
+    animation: hideAndShrink 0.4s ease-in forwards;
 }
 </style>
 
@@ -283,31 +296,42 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 核心修改：发送验证码逻辑 + 顶部气泡UI
+    // ✨ 核心：纯玻璃两段式气泡 + 前端秒级格式校验
     // ==========================================================
     function showTopToast(message) {
-        // 如果已经存在提示气泡，先移除旧的
+        // 1. 移除旧的残留
         const existing = document.getElementById('topToast');
-        if (existing) {
-            existing.className = 'top-toast-hide';
-            setTimeout(() => {
-                if(existing.parentNode) existing.parentNode.removeChild(existing);
-            }, 400);
+        if (existing && existing.parentNode) {
+            existing.className = 'c-toast-hide';
+            setTimeout(() => { if(existing.parentNode) existing.parentNode.removeChild(existing); }, 400);
         }
 
+        // 2. 创建新气泡，隐藏文字，设为初始圆圈大小
         const toast = document.createElement('div');
         toast.id = 'topToast';
-        toast.textContent = message;
+        // 内部文字包裹器，用于控制文字浮现
+        const contentSpan = document.createElement('span');
+        contentSpan.className = 'toast-content';
+        contentSpan.textContent = message;
+        contentSpan.style.cssText = 'opacity: 0; display: inline-block;'; 
+        toast.appendChild(contentSpan);
         document.body.appendChild(toast);
 
-        // 触发布局重绘，然后触发动画
-        void toast.offsetWidth;
-        toast.className = 'top-toast-enter';
+        // 3. 触发第一阶段：垂直下落成圆圈 (0.6s)
+        void toast.offsetWidth; // 强制重绘
+        toast.className = 'c-toast-fall';
 
-        // 3.5秒后自动消失
+        // 4. 第一段动画结束后 (600ms 后)，触发第二段：展开成玻璃胶囊，同时文字浮现 (0.6s)
         setTimeout(() => {
             if (toast.parentNode) {
-                toast.className = 'top-toast-hide';
+                toast.className = 'c-toast-expand';
+            }
+        }, 600);
+
+        // 5. 停留 3 秒后整体消失 (滑出去)
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.className = 'c-toast-hide';
                 setTimeout(() => {
                     if (toast.parentNode) toast.parentNode.removeChild(toast);
                 }, 400);
@@ -315,15 +339,25 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 3500);
     }
 
+    // ✅【关键修复】点击发送验证码按钮
     document.getElementById('send-code-btn').addEventListener('click', async function() {
-        const email = document.getElementById('reg-email').value;
-        if(!email) {
-            // 未输入邮箱时，触发顶部气泡
-            showTopToast('发送失败 查看输入信息是否正确');
-            return;
-        }
+        const emailInput = document.getElementById('reg-email');
+        const email = emailInput.value.trim();
         const btn = this;
-        // ✅ 1. 直接变为“已发送”，隐藏“发送中...”
+        
+        // 1️⃣ 前端瞬间判断：如果是无效格式，立刻弹气泡，完全不发给后端！
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const isTgId = /^\d{5,15}$/.test(email);
+
+        if (!email || (!isEmail && !isTgId)) {
+            // 字体直接显示报错
+            showTopToast('格式错误 请输入有效邮箱或Telegram ID');
+            btn.innerText = '验证';
+            btn.disabled = false;
+            return; // 直接拦截，一秒也不浪费！
+        }
+
+        // 2️⃣ 格式正确，才把按钮改成已发送，请求后端
         btn.innerText = '已发送';
         btn.disabled = true;
         
@@ -340,16 +374,13 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(data.ok) {
-                // 发送成功，保持“已发送”状态
                 return;
             } else {
-                // ✅ 2. 发送失败，弹出顶部气泡，并将按钮还原
                 showTopToast('发送失败 查看输入信息是否正确');
                 btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
-            // ✅ 3. 网络请求异常，同样触发顶部气泡和按钮还原
             showTopToast('发送失败 查看输入信息是否正确');
             btn.innerText = '验证';
             btn.disabled = false;
