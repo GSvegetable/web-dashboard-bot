@@ -19,73 +19,57 @@
         font-weight: 500;
         pointer-events: none;
         white-space: nowrap;
-        display: flex; justify-content: center; align-items: center;
-        width: 0px; height: 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 36px;
+        height: 36px;
         padding: 0;
         opacity: 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        /* 展开/隐藏时使用的过渡 */
+        transition: width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    padding 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    border-radius 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    transform 0.4s ease-in,
+                    opacity 0.4s ease-in;
     }
 
-    /* 第一步：垂直下落变成圆 */
+    /* 第一步：小球从顶部落下 */
     @keyframes fallDownFromTop {
-        0%   { width: 0px; height: 0px; opacity: 0; transform: translateX(-50%) translateY(-100%); padding: 0; }
-        100% { width: 52px; height: 52px; opacity: 1; transform: translateX(-50%) translateY(24px); padding: 0; border-radius: 50%; }
+        0%   { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+        100% { transform: translateX(-50%) translateY(24px); opacity: 1; }
     }
-    .c-toast-fall { animation: fallDownFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-
-    /* 第二步：左右拉伸变胶囊 + 文字淡入（已修复） */
-    @keyframes expandToCapsule {
-        0%   { 
-            width: 52px; 
-            height: 52px; 
-            padding: 0; 
-            border-radius: 50%;
-            transform: translateX(-50%) translateY(24px); /* 关键：固定位置 */
-            opacity: 1;                                   /* 关键：保持可见 */
-        }
-        100% { 
-            width: auto; 
-            height: auto; 
-            padding: 12px 24px; 
-            border-radius: 999px;
-            transform: translateX(-50%) translateY(24px); /* 位置不变 */
-            opacity: 1;                                   /* 持续可见 */
-        }
-    }
-    .c-toast-expand { animation: expandToCapsule 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-    .c-toast-expand .toast-content { animation: textFadeIn 0.5s ease-in forwards; }
-    @keyframes textFadeIn {
-        0%   { opacity: 0; transform: scale(0.8); }
-        100% { opacity: 1; transform: scale(1); }
+    .c-toast-fall {
+        animation: fallDownFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    /* 第三步：消失退场 */
-    @keyframes hideAndShrink {
-        0%   { width: auto; height: auto; padding: 12px 24px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 999px; }
-        100% { width: 0px; height: 0px; padding: 0; opacity: 0; transform: translateX(-50%) translateY(-100%); border-radius: 50%; }
+    /* 文字淡入 */
+    .toast-content {
+        opacity: 0;
+        transition: opacity 0.5s ease-in;
     }
-    .c-toast-hide { animation: hideAndShrink 0.4s ease-in forwards; }
 </style>
 
 <script>
-    // 全局通知触发函数（动画防冲突版）
     let toastAnimTimer = null;
+    const TOAST_HEIGHT = 36; // 小球直径 = 胶囊高度
 
     window.showTopToast = function(message) {
         const existing = document.getElementById('topToast');
 
         if (existing) {
+            // 如果已有 toast，先隐藏再创建新的
             if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-            existing.className = 'c-toast-hide';
-            setTimeout(() => {
-                if (existing.parentNode) existing.parentNode.removeChild(existing);
-                createNewToast(message);
-            }, 400);
+            hideToast(existing, () => createNewToast(message));
         } else {
             createNewToast(message);
         }
-    }
+    };
 
     function createNewToast(message) {
+        // 清理之前的定时器
         if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
 
         const toast = document.createElement('div');
@@ -94,30 +78,76 @@
         const contentSpan = document.createElement('span');
         contentSpan.className = 'toast-content';
         contentSpan.textContent = message;
-        contentSpan.style.cssText = 'opacity: 0; display: inline-block;'; 
+        contentSpan.style.cssText = 'opacity: 0; display: inline-block; white-space: nowrap;';
         toast.appendChild(contentSpan);
         document.body.appendChild(toast);
 
-        void toast.offsetWidth; 
-        toast.className = 'c-toast-fall';
+        // 初始状态：小球（圆形），位于顶部外
+        toast.style.width = TOAST_HEIGHT + 'px';
+        toast.style.height = TOAST_HEIGHT + 'px';
+        toast.style.padding = '0';
+        toast.style.borderRadius = '50%';
+        toast.style.transform = 'translateX(-50%) translateY(-100%)';
+        toast.style.opacity = '0';
+        toast.style.transition = 'none'; // 落下阶段不用 transition
 
-        // 600ms 后展开
+        // 强制重排，然后触发落下动画
+        void toast.offsetWidth;
+        toast.classList.add('c-toast-fall');
+
+        // 落下动画结束后，开始展开
         toastAnimTimer = setTimeout(() => {
-            if (toast.parentNode) {
-                toast.className = 'c-toast-expand';
-            }
+            if (!toast.parentNode) return;
+
+            // 移除落下动画，保持落下结束状态
+            toast.classList.remove('c-toast-fall');
+            toast.style.transform = 'translateX(-50%) translateY(24px)';
+            toast.style.opacity = '1';
+
+            // 测量文字宽度
+            const contentWidth = contentSpan.offsetWidth;
+            const targetWidth = contentWidth + 24 + 2; // 左右 padding 12*2 + 边框 1*2
+
+            // 启用 transition 用于展开
+            toast.style.transition = 'width 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), padding 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-radius 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            contentSpan.style.transition = 'opacity 0.5s ease-in';
+
+            // 设置目标状态：宽度拉长，左右加内边距，圆角变成胶囊
+            toast.style.width = targetWidth + 'px';
+            toast.style.padding = '0 12px';
+            toast.style.borderRadius = (TOAST_HEIGHT / 2) + 'px';
+            contentSpan.style.opacity = '1';
         }, 600);
 
-        // 3500ms 后自动隐藏
+        // 自动隐藏
         const hideTimer = setTimeout(() => {
             if (toast.parentNode) {
-                toast.className = 'c-toast-hide';
-                setTimeout(() => {
-                    if (toast.parentNode) toast.parentNode.removeChild(toast);
-                }, 400);
+                hideToast(toast);
             }
         }, 3500);
-        
         toast._hideTimer = hideTimer;
+    }
+
+    function hideToast(toast, callback) {
+        if (toast._hideTimer) { clearTimeout(toast._hideTimer); toast._hideTimer = null; }
+        const contentSpan = toast.querySelector('.toast-content');
+        
+        // 收缩 + 上移的过渡
+        toast.style.transition = 'width 0.4s ease-in, padding 0.4s ease-in, border-radius 0.4s ease-in, transform 0.4s ease-in, opacity 0.4s ease-in';
+        if (contentSpan) contentSpan.style.transition = 'opacity 0.3s ease-in';
+
+        // 目标状态：缩回小球并移出顶部
+        toast.style.width = TOAST_HEIGHT + 'px';
+        toast.style.padding = '0';
+        toast.style.borderRadius = '50%';
+        toast.style.transform = 'translateX(-50%) translateY(-100%)';
+        toast.style.opacity = '0';
+        if (contentSpan) contentSpan.style.opacity = '0';
+
+        // 过渡结束后移除元素
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+            if (callback) callback();
+        }, 400);
     }
 </script>
