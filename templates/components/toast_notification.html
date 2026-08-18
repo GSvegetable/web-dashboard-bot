@@ -12,7 +12,7 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 
-    /* 重点：一开始就是完整的小圆 */
+    /* 初始就是完整小圆 */
     width: 38px;
     height: 38px;
     border-radius: 999px;
@@ -23,11 +23,11 @@
     box-sizing: border-box;
 
     transition:
-        transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        height 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        border-radius 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        height 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-radius 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 </style>
 
@@ -50,18 +50,18 @@ window.showTopToast = function () {
 
     void toast.offsetWidth; // 强制浏览器渲染初始状态
 
-    // 1. 小圆圈完整滑下来
+    // 1. 小圆快速滑下来
     toast.style.transform = 'translateX(-50%) translateY(24px)';
     toast.style.opacity = '1';
 
-    // 2. 原位左右展开成胶囊
+    // 2. 更快展开，长度更长
     toastExpandTimer = setTimeout(() => {
-        toast.style.width = '80px';
+        toast.style.width = '120px';   // 长度调长，想更长就继续加大
         toast.style.height = '38px';
         toast.style.borderRadius = '999px';
-    }, 1000);
+    }, 600);
 
-    // 3. 收起并退回顶部消失
+    // 3. 更快收起并退场
     toastHideTimer = setTimeout(() => {
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
@@ -71,7 +71,7 @@ window.showTopToast = function () {
 
         toastTimer = setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 600);
-    }, 4000);
+        }, 400);
+    }, 2500);
 };
 </script>
