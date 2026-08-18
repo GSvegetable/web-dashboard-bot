@@ -31,9 +31,7 @@
                             <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                         </div>
                         <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
-                            <!-- ✅ 修复 1：添加了 name="email" 属性 -->
                             <input type="text" id="reg-email" name="email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
-                            <!-- ✅ 修复 2：确保按钮 ID 与 JS 对应 -->
                             <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
                         </div>
                         <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
@@ -57,7 +55,6 @@
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
                 <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">保存</button>
                 
-                <!-- ✨ 容器保持 200px，无底框 -->
                 <div id="qrCodeImageContainer" class="w-[200px] h-[200px] flex items-center justify-center mt-6 mb-2 transition-all">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
@@ -72,12 +69,12 @@
 </div>
 
 <style>
-/* 单独提取 login-card 的 CSS，修复手机端宽度问题 */
+/* 单独提取 login-card 的 CSS */
 .login-card { 
     position: relative; 
     width: 100%; 
-    max-width: 320px; /* ✅ 修复：最大320px，不是固定320px */
-    margin: 0 12px;   /* ✅ 修复：左右强制保留 12px 的安全间距，防止贴边 */
+    max-width: 320px;
+    margin: 0 12px;
     padding: 24px; 
     background: rgba(255, 255, 255, 0.05); 
     border: 1px solid rgba(255, 255, 255, 0.35); 
@@ -87,6 +84,58 @@
     display: flex; 
     flex-direction: column; 
     gap: 14px; 
+}
+
+/* ✨ 新增：自定义顶部胶囊提示气泡 */
+#topToast {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%); /* 初始状态在屏幕外上方 */
+    z-index: 99999;
+    background: rgba(40, 40, 40, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 12px 28px;
+    border-radius: 999px; /* 胶囊形状 */
+    font-size: 14px;
+    font-weight: 500;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    opacity: 0;
+}
+
+/* 滑入并放大动画 */
+@keyframes slideDownAndExpand {
+    0% {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+        scale: 0.8;
+    }
+    60% {
+        transform: translateX(-50%) translateY(24px); /* 距离顶部约一指宽 */
+        opacity: 1;
+        scale: 1.1; /* 瞬间放大 */
+    }
+    100% {
+        transform: translateX(-50%) translateY(24px);
+        opacity: 1;
+        scale: 1; /* 缩回正常大小 */
+    }
+}
+.top-toast-enter {
+    animation: slideDownAndExpand 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 滑出并缩小动画 */
+@keyframes slideUpAndShrink {
+    0% { transform: translateX(-50%) translateY(24px) scale(1); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-100%) scale(0.8); opacity: 0; }
+}
+.top-toast-hide {
+    animation: slideUpAndShrink 0.4s ease-in forwards;
 }
 </style>
 
@@ -165,10 +214,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(data => {
             if (data.success && data.token && data.url) {
                 currentQrToken = data.token;
-                
-                // ✨ 核心改动：直接渲染后端返回的 Base64 图片数据
                 qrImgContainer.innerHTML = `<img src="${data.img_base64}" alt="QR Code" class="w-full h-full object-contain rounded-2xl block">`;
-                
                 startQrPolling(data.token);
             } else {
                 qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
@@ -213,7 +259,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     saveQrBtn.addEventListener('click', function() {
-        // 保存功能适配 Base64
         const img = document.querySelector('#qrCodeImageContainer img');
         if (!img) {
             alert('暂无二维码可保存，请等待二维码生成');
@@ -237,13 +282,49 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    // ✅ 修复 3：确保 JS 监听的是正确的 ID，并且正确获取邮箱输入框的值
+    // ==========================================================
+    // ✨ 核心修改：发送验证码逻辑 + 顶部气泡UI
+    // ==========================================================
+    function showTopToast(message) {
+        // 如果已经存在提示气泡，先移除旧的
+        const existing = document.getElementById('topToast');
+        if (existing) {
+            existing.className = 'top-toast-hide';
+            setTimeout(() => {
+                if(existing.parentNode) existing.parentNode.removeChild(existing);
+            }, 400);
+        }
+
+        const toast = document.createElement('div');
+        toast.id = 'topToast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // 触发布局重绘，然后触发动画
+        void toast.offsetWidth;
+        toast.className = 'top-toast-enter';
+
+        // 3.5秒后自动消失
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.className = 'top-toast-hide';
+                setTimeout(() => {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                }, 400);
+            }
+        }, 3500);
+    }
+
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const email = document.getElementById('reg-email').value;
-        if(!email) { alert('请输入邮箱'); return; }
+        if(!email) {
+            // 未输入邮箱时，触发顶部气泡
+            showTopToast('发送失败 查看输入信息是否正确');
+            return;
+        }
         const btn = this;
-        const originalText = btn.innerText;
-        btn.innerText = '发送中...';
+        // ✅ 1. 直接变为“已发送”，隐藏“发送中...”
+        btn.innerText = '已发送';
         btn.disabled = true;
         
         try {
@@ -259,16 +340,18 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(data.ok) {
-                alert(data.msg);
-                btn.innerText = '已发送';
+                // 发送成功，保持“已发送”状态
+                return;
             } else {
-                alert('发送失败: ' + data.msg);
-                btn.innerText = '重新发送';
+                // ✅ 2. 发送失败，弹出顶部气泡，并将按钮还原
+                showTopToast('发送失败 查看输入信息是否正确');
+                btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
-            alert('系统请求异常: ' + e.message);
-            btn.innerText = '重新发送';
+            // ✅ 3. 网络请求异常，同样触发顶部气泡和按钮还原
+            showTopToast('发送失败 查看输入信息是否正确');
+            btn.innerText = '验证';
             btn.disabled = false;
         }
     });
