@@ -27,35 +27,77 @@
         opacity: 0;
         box-sizing: border-box;
         overflow: hidden;
-        /* 所有过渡统一管理，具体属性在 JS 中动态切换 */
-        transition: none;
+
+        /* 动画参数：时长 5s，缓动可定制 */
+        --target-width: 200px; /* 由 JS 动态设置 */
     }
 
+    /* 一个动画完成：下落 -> 展开 -> 停留 -> 收缩 -> 消失 */
+    @keyframes toastLifecycle {
+        0% {
+            transform: translateX(-50%) translateY(-100%);
+            opacity: 0;
+            width: 36px;
+            padding: 0;
+            border-radius: 50%;
+        }
+        12% { /* 下落完成，小球停在顶部下方 24px */
+            transform: translateX(-50%) translateY(24px);
+            opacity: 1;
+            width: 36px;
+            padding: 0;
+            border-radius: 50%;
+        }
+        36% { /* 展开完成，宽度达到目标值，成为胶囊 */
+            transform: translateX(-50%) translateY(24px);
+            opacity: 1;
+            width: var(--target-width);
+            padding: 0 12px;
+            border-radius: 18px;
+        }
+        80% { /* 停留，保持胶囊状态 */
+            transform: translateX(-50%) translateY(24px);
+            opacity: 1;
+            width: var(--target-width);
+            padding: 0 12px;
+            border-radius: 18px;
+        }
+        100% { /* 收缩并向上移出 */
+            transform: translateX(-50%) translateY(-100%);
+            opacity: 0;
+            width: 36px;
+            padding: 0;
+            border-radius: 50%;
+        }
+    }
+
+    .c-toast-run {
+        animation: toastLifecycle 5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* 文字淡入：在展开阶段（动画 12%~36% 之间）出现 */
     .toast-content {
         opacity: 0;
         display: inline-block;
         white-space: nowrap;
-        transition: none;
+    }
+    .c-toast-run .toast-content {
+        animation: textFadeIn 0.8s ease-in 0.6s forwards;
+    }
+    @keyframes textFadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 </style>
 
 <script>
-    let toastAnimTimer = null;
-    const TOAST_HEIGHT = 36; // 小球直径 = 胶囊高度
+    let toastElement = null;
 
     window.showTopToast = function(message) {
-        const existing = document.getElementById('topToast');
-        if (existing) {
-            // 已有 toast，快速隐藏后创建新的
-            if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-            hideToast(existing, () => createNewToast(message));
-        } else {
-            createNewToast(message);
+        // 如果已有 toast，先移除（或直接替换，这里简单移除旧的）
+        if (toastElement && toastElement.parentNode) {
+            toastElement.parentNode.removeChild(toastElement);
         }
-    };
-
-    function createNewToast(message) {
-        if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
 
         const toast = document.createElement('div');
         toast.id = 'topToast';
@@ -66,82 +108,38 @@
         toast.appendChild(contentSpan);
         document.body.appendChild(toast);
 
-        // 初始状态：小球（圆形），顶部外
-        toast.style.width = TOAST_HEIGHT + 'px';
-        toast.style.height = TOAST_HEIGHT + 'px';
+        // 先不添加动画类，测量文字宽度
+        toast.style.transition = 'none';
+        toast.style.width = '36px';
+        toast.style.height = '36px';
         toast.style.padding = '0';
         toast.style.borderRadius = '50%';
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
-        toast.style.transition = 'none';
         contentSpan.style.opacity = '0';
-        contentSpan.style.transition = 'none';
 
-        // 强制 reflow
+        // 强制 reflow，确保样式生效
         void toast.offsetWidth;
 
-        // 第一阶段：小球落下（过渡 transform 和 opacity）
-        toast.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease-in';
-        toast.style.transform = 'translateX(-50%) translateY(24px)';
-        toast.style.opacity = '1';
+        // 测量文字实际宽度
+        const contentWidth = contentSpan.offsetWidth;
+        // 目标宽度 = 文字宽度 + 左右 padding (12*2) + 边框 (1*2)
+        const targetWidth = contentWidth + 24 + 2;
 
-        // 落下结束后，开始展开（600ms 后）
-        toastAnimTimer = setTimeout(() => {
-            if (!toast.parentNode) return;
+        // 设置 CSS 变量，供动画使用
+        toast.style.setProperty('--target-width', targetWidth + 'px');
 
-            // 测量文字宽度（此时文字不可见但占据布局）
-            const contentWidth = contentSpan.offsetWidth;
-            const targetWidth = contentWidth + 24 + 2; // 左右 padding 12*2 + 边框 1*2
+        // 添加动画类，触发整个生命周期
+        toast.classList.add('c-toast-run');
 
-            // 切换到展开过渡：只过渡宽度、内边距、圆角
-            toast.style.transition = `
-                width 1s cubic-bezier(0.22, 1, 0.36, 1),
-                padding 1s cubic-bezier(0.22, 1, 0.36, 1),
-                border-radius 1s cubic-bezier(0.22, 1, 0.36, 1)
-            `;
-            // 文字延迟淡入（0.2s 延迟，0.4s 淡入）
-            contentSpan.style.transition = 'opacity 0.4s ease-in 0.2s';
-
-            // 设置目标：拉长宽度，左右加内边距，圆角变胶囊
-            toast.style.width = targetWidth + 'px';
-            toast.style.padding = '0 12px';
-            toast.style.borderRadius = (TOAST_HEIGHT / 2) + 'px';
-            contentSpan.style.opacity = '1';
-        }, 600);
-
-        // 自动隐藏（4 秒后）
-        const hideTimer = setTimeout(() => {
-            if (toast.parentNode) hideToast(toast);
-        }, 4000);
-        toast._hideTimer = hideTimer;
-    }
-
-    function hideToast(toast, callback) {
-        if (toast._hideTimer) { clearTimeout(toast._hideTimer); toast._hideTimer = null; }
-        const contentSpan = toast.querySelector('.toast-content');
-
-        // 收缩 + 上移过渡（快速）
-        toast.style.transition = `
-            width 0.4s ease-in,
-            padding 0.4s ease-in,
-            border-radius 0.4s ease-in,
-            transform 0.4s ease-in,
-            opacity 0.4s ease-in
-        `;
-        if (contentSpan) contentSpan.style.transition = 'opacity 0.2s ease-in';
-
-        // 目标：缩回小球并移出顶部
-        toast.style.width = TOAST_HEIGHT + 'px';
-        toast.style.padding = '0';
-        toast.style.borderRadius = '50%';
-        toast.style.transform = 'translateX(-50%) translateY(-100%)';
-        toast.style.opacity = '0';
-        if (contentSpan) contentSpan.style.opacity = '0';
-
-        // 过渡结束后移除元素
-        setTimeout(() => {
+        // 动画结束后移除元素（5秒后）
+        toast.addEventListener('animationend', function handler() {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
-            if (callback) callback();
-        }, 400);
+            toastElement = null;
+            toast.removeEventListener('animationend', handler);
+        });
+
+        // 保存引用
+        toastElement = toast;
     }
 </script>
