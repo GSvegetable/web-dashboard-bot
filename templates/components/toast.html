@@ -38,7 +38,7 @@
         border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 文字始终可见，通过容器裁剪实现逐渐显示 */
+/* 文字始终可见，不透明度为1，通过容器裁剪实现逐渐显示 */
 #topToast span {
     display: inline-block;
     white-space: nowrap;
@@ -46,10 +46,10 @@
     font-size: 15px;
     font-weight: 500;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-    line-height: 44px;
+    line-height: 44px;         /* 与容器高度一致，垂直居中 */
     position: relative;
-    top: 2px;
-    flex-shrink: 0;
+    top: 2px;                  /* 轻微下移，符合你的要求 */
+    flex-shrink: 0;            /* 防止被压缩 */
 }
 </style>
 
@@ -75,22 +75,26 @@ window.showTopToast = function (message) {
     toast.style.padding = '0';
 
     document.body.appendChild(toast);
-    void toast.offsetWidth;
+    void toast.offsetWidth; // 强制重绘
 
     // 1. 下落停稳
     toast.style.transform = 'translateX(-50%) translateY(40px)';
     toast.style.opacity = '1';
 
-    // 2. 展开胶囊
+    // 2. 展开胶囊：使用具体像素宽度
     setTimeout(() => {
+        // 测量文字真实宽度（span 已经存在，且未被压缩）
         const textWidth = msgSpan.scrollWidth;
+        // 左右各留 20px 内边距
         const targetWidth = textWidth + 40;
         toast.style.width = targetWidth + 'px';
         toast.style.padding = '0 20px';
+        // 文字本身已经可见，通过 overflow:hidden 的裁剪，会随着宽度增加逐渐露出
     }, 250);
 
     // 3. 收拢并退场
     toastTimer = setTimeout(() => {
+        // 动态统一过渡，避免偏移
         toast.style.transition = 
             'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
             'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
