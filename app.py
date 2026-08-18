@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_mail import Mail  # ✅ 新增导入
+from flask_mail import Mail  # ✅ 发邮件需要的配置
 from models import db, User
 from routes import main_bp
 
@@ -11,16 +11,15 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================== ✅ 新增：邮件配置 ==================
-# ✅ 修复：把默认的 smtp.qq.com 改成了 smtp.163.com，防止环境变量读取失败时连错服务器。
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.163.com')
+# ================== 邮件配置（恢复为 QQ 邮箱配置） ==================
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 mail = Mail(app)
-# =======================================================
+# ================================================================
 
 db.init_app(app)
 login_manager = LoginManager()
