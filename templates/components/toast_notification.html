@@ -1,4 +1,4 @@
-<!-- 独立玻璃圆球 拉长空胶囊组件 -->
+<!-- 独立玻璃圆球 原地拉长空胶囊组件 -->
 <style>
     #topToast {
         position: fixed;
@@ -30,16 +30,16 @@
         animation: fallDownAndStop 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
     }
 
-    /* 第二步：拉长成胶囊 (0.8秒) */
+    /* 第二步：原地直接拉长成胶囊 (0.8秒) —— ✅ 强制锁定位置，不会缩回顶部 */
     @keyframes expandToBar {
-        0%   { width: 38px; height: 38px; border-radius: 50%; }
-        100% { width: 80px; height: 38px; border-radius: 999px; }
+        0%   { width: 38px; height: 38px; border-radius: 50%; transform: translateX(-50%) translateY(24px); }
+        100% { width: 80px; height: 38px; border-radius: 999px; transform: translateX(-50%) translateY(24px); }
     }
     .c-toast-expand { 
         animation: expandToBar 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
     }
 
-    /* 第三步：消失退回顶部 (0.5秒) */
+    /* 第三步：消失退回顶部 (0.5秒) —— ✅ 从原地直接缩回上方 */
     @keyframes hideUp {
         0%   { opacity: 1; transform: translateX(-50%) translateY(24px); width: 80px; height: 38px; border-radius: 999px; }
         100% { opacity: 0; transform: translateX(-50%) translateY(-100%); width: 38px; height: 38px; border-radius: 50%; }
@@ -55,7 +55,6 @@
     window.showTopToast = function() {
         if (isAnimating) return;
 
-        // 清除残留气泡
         const existing = document.getElementById('topToast');
         if (existing && existing.parentNode) {
             existing.parentNode.removeChild(existing);
@@ -71,7 +70,7 @@
         void toast.offsetWidth; 
         toast.className = 'c-toast-fall';
 
-        // 1秒后 -> 触发第二阶段：拉长成胶囊 (0.8s)
+        // 1秒后 -> 触发第二阶段：原地拉长成胶囊 (0.8s)
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.className = 'c-toast-expand';
