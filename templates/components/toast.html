@@ -9,10 +9,9 @@
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 
-    /* 初始圆球 */
     width: 44px;
     height: 44px;
     border-radius: 999px;
@@ -21,10 +20,9 @@
     opacity: 0;
     pointer-events: none;
     box-sizing: border-box;
-
-    /* 关键：裁剪内容，让文字随宽度展开逐渐显示 */
     overflow: hidden;
     white-space: nowrap;
+
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -38,23 +36,40 @@
         border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 文字始终可见，不透明度为1，通过容器裁剪实现逐渐显示 */
 #topToast span {
     display: inline-block;
     white-space: nowrap;
-    color: #ffffff;
+    color: #fff;
     font-size: 15px;
     font-weight: 500;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-    line-height: 44px;         /* 与容器高度一致，垂直居中 */
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+    line-height: 44px;
     position: relative;
-    top: 2px;                  /* 轻微下移，符合你的要求 */
-    flex-shrink: 0;            /* 防止被压缩 */
+    top: 2px;
+    flex-shrink: 0;
+    /* 不设置 opacity，文字始终可见，由父容器裁剪实现逐渐显示 */
 }
 </style>
 
 <script>
 let toastTimer = null;
+
+// 辅助函数：精确测量文字宽度
+function measureTextWidth(text, fontSize, fontWeight) {
+    const span = document.createElement('span');
+    span.style.cssText = `
+        position: absolute;
+        visibility: hidden;
+        white-space: nowrap;
+        font-size: ${fontSize}px;
+        font-weight: ${fontWeight};
+    `;
+    span.textContent = text;
+    document.body.appendChild(span);
+    const width = span.offsetWidth;
+    document.body.removeChild(span);
+    return width;
+}
 
 window.showTopToast = function (message) {
     const existing = document.getElementById('topToast');
@@ -68,33 +83,36 @@ window.showTopToast = function (message) {
     msgSpan.innerText = message || '测试提示';
     toast.appendChild(msgSpan);
 
-    // 初始状态：屏幕外的小球
+    // 初始状态：屏幕外 + 轻微拉伸（保留边缘拉扯效果）
     toast.style.transform = 'translateX(-50%) translateY(-100%)';
     toast.style.opacity = '0';
     toast.style.width = '44px';
+    toast.style.height = '54px';
+    toast.style.borderRadius = '50% 50% 45% 45% / 65% 65% 45% 45%';
     toast.style.padding = '0';
 
     document.body.appendChild(toast);
     void toast.offsetWidth; // 强制重绘
 
-    // 1. 下落停稳
+    // 1. 下滑到 40px，恢复圆形
     toast.style.transform = 'translateX(-50%) translateY(40px)';
     toast.style.opacity = '1';
+    toast.style.height = '44px';
+    toast.style.borderRadius = '999px';
 
-    // 2. 展开胶囊：使用具体像素宽度
+    // 2. 展开胶囊（250ms 后）
     setTimeout(() => {
-        // 测量文字真实宽度（span 已经存在，且未被压缩）
-        const textWidth = msgSpan.scrollWidth;
-        // 左右各留 20px 内边距
-        const targetWidth = textWidth + 40;
+        // 精确测量文字宽度（字体大小和字重与 span 样式一致）
+        const textWidth = measureTextWidth(msgSpan.innerText, 15, 500);
+        const targetWidth = textWidth + 40; // 左右各 20px 内边距
         toast.style.width = targetWidth + 'px';
         toast.style.padding = '0 20px';
-        // 文字本身已经可见，通过 overflow:hidden 的裁剪，会随着宽度增加逐渐露出
+        // 文字已经可见，通过 overflow:hidden 裁剪，会随宽度增加逐渐显示
     }, 250);
 
     // 3. 收拢并退场
     toastTimer = setTimeout(() => {
-        // 动态统一过渡，避免偏移
+        // 统一过渡时间和缓动，避免偏移
         toast.style.transition = 
             'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
             'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
@@ -106,6 +124,8 @@ window.showTopToast = function (message) {
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
         toast.style.width = '44px';
+        toast.style.height = '44px';
+        toast.style.borderRadius = '999px';
         toast.style.padding = '0';
 
         setTimeout(() => {
