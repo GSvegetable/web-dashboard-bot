@@ -11,6 +11,7 @@ import json
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, Response, stream_with_context
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Message  # ✅ 新增导入
 
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
@@ -21,18 +22,12 @@ from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
+# ✅ 获取当前 app 里的 mail 实例
+from app import mail
+
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-
-# ==========================================
-# ✨ 新增：模型名称映射（根据星火API平台可用的模型调整）
-# ==========================================
-DS_MODEL_MAP = {
-    'discussion': 'deepseek-chat',  # 对应 DeepSeek-V3（标准对话）
-    'agent': 'deepseek-chat'        # 如果你平台支持，也可改为 'deepseek-reasoner' (对应 R1)
-}
-DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"  # 修改为此平台接口
 
 @main_bp.route('/')
 def splash():
@@ -102,126 +97,73 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek 核心接口（已修改 API 地址与模型名）
+# DeepSeek / AI 接口（保持不变）
 # ==========================================
+DS_MODEL_MAP = {
+    'discussion': 'deepseek-chat',
+    'agent': 'deepseek-chat'
+}
+DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
+
 @main_bp.route('/api/agent/chat', methods=['POST'])
 def agent_chat():
     data = request.get_json()
     user_message = data.get('message', '')
     mode = data.get('mode', 'discussion')
-    
     if not user_message: return jsonify({'reply': '请先输入消息。'})
-
     user_config = data.get('config', {})
     mode_config = user_config.get(mode, {})
-
-    # 提示词选择
     if mode == 'discussion':
         system_prompt = SANDBOX_PROMPT if mode_config.get('jailbreak') else DEFAULT_PROMPT
     else:
         system_prompt = AGENT_PROMPT
-
     chat_summary = session.get('chat_summary', '')
     chat_history = session.get('chat_history', [])
-
-    # 15句记忆压缩
     if len(chat_history) >= 15:
-        summary_messages = [
-            {"role": "system", "content": SUMMARY_PROMPT},
-            {"role": "user", "content": f"历史概要：{chat_summary}\n新对话内容：{chat_history}"}
-        ]
+        summary_messages = [{"role": "system", "content": SUMMARY_PROMPT}, {"role": "user", "content": f"历史概要：{chat_summary}\n新对话内容：{chat_history}"}]
         summary_res, err = call_deepseek_core(summary_messages, 'deepseek-chat')
         if summary_res:
             chat_summary = summary_res['choices'][0]['message']['content']
             chat_history = []
             session['chat_summary'] = chat_summary
             session['chat_history'] = chat_history
-
     messages = [{"role": "system", "content": system_prompt}]
     if chat_summary: messages.append({"role": "system", "content": f"对话历史摘要：{chat_summary}"})
     for msg in chat_history: messages.append(msg)
     messages.append({"role": "user", "content": user_message})
-
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
     if not DEEPSEEK_API_KEY: return jsonify({'reply': '未配置 DeepSeek API Key。'})
-
-    # ✨ 修改点：从映射表读取模型名
     model_name = DS_MODEL_MAP.get(mode, 'deepseek-chat')
     raw_strength = mode_config.get('strength', 'low')
     reasoning_effort = 'high' if (model_name == "deepseek-v4-pro" and raw_strength == 'low') else raw_strength
-
-    # 联网开关对应工具挂载
     search_enabled = mode_config.get('search', False)
     tools = None
-    if search_enabled:
-        tools = TOOLS
-    else:
-        tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
-
+    if search_enabled: tools = TOOLS
+    else: tools = [t for t in TOOLS if t['function']['name'] != 'web_search']
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
-    
-    # 1. 第一阶段：非流式，先问 AI 要不要用工具
-    initial_payload = {
-        "model": model_name,
-        "messages": messages,
-        "temperature": 0.3,
-        "stream": False,
-        "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
-    }
-    if tools:
-        initial_payload['tools'] = tools
-        initial_payload['tool_choice'] = 'auto'
-    
+    initial_payload = {"model": model_name, "messages": messages, "temperature": 0.3, "stream": False, "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}}
+    if tools: initial_payload['tools'] = tools; initial_payload['tool_choice'] = 'auto'
     try:
-        # ✨ 修改点：API_BASE 替换为星火API地址
         initial_resp = requests.post(DS_API_BASE, headers=headers, json=initial_payload, timeout=60)
-        if initial_resp.status_code != 200:
-            return jsonify({'reply': f'DeepSeek 初始请求失败 (状态码: {initial_resp.status_code})'})
-        
+        if initial_resp.status_code != 200: return jsonify({'reply': f'DeepSeek 初始请求失败 (状态码: {initial_resp.status_code})'})
         initial_result = initial_resp.json()
         ai_message = initial_result['choices'][0]['message']
         reasoning_content = ai_message.get('reasoning_content')
-
-        # 2. 如果 AI 决定调用工具
         if ai_message.get('tool_calls'):
             for tool_call in ai_message['tool_calls']:
                 func_name = tool_call['function']['name']
                 args = json.loads(tool_call['function']['arguments'])
                 result_content = {}
-                
-                if func_name == 'bind_bot':
-                    result_content = execute_bind_bot(args['token'], args['telegram_id'], args.get('name'))
-                elif func_name == 'add_bot_node':
-                    result_content = {"status": "success", "action": "add_bot_node", "params": args}
-                elif func_name == 'read_webpage':
-                    page_data = read_webpage(args['url'])
-                    result_content = page_data
-                elif func_name == 'web_search':
-                    search_data = web_search(args['query'])
-                    result_content = search_data
-                
+                if func_name == 'bind_bot': result_content = execute_bind_bot(args['token'], args['telegram_id'], args.get('name'))
+                elif func_name == 'add_bot_node': result_content = {"status": "success", "action": "add_bot_node", "params": args}
+                elif func_name == 'read_webpage': result_content = read_webpage(args['url'])
+                elif func_name == 'web_search': result_content = web_search(args['query'])
                 messages.append(ai_message)
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call['id'],
-                    "content": json.dumps(result_content)
-                })
-
-            # 3. 工具执行完后，发起流式输出
-            final_payload = {
-                "model": model_name,
-                "messages": messages,
-                "temperature": 0.3,
-                "stream": True,
-                "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}
-            }
-            if tools:
-                final_payload['tools'] = tools
-                final_payload['tool_choice'] = 'auto'
-
+                messages.append({"role": "tool", "tool_call_id": tool_call['id'], "content": json.dumps(result_content)})
+            final_payload = {"model": model_name, "messages": messages, "temperature": 0.3, "stream": True, "extra_body": {"thinking": {"type": "enabled", "reasoning_effort": reasoning_effort}}}
+            if tools: final_payload['tools'] = tools; final_payload['tool_choice'] = 'auto'
             def generate_final():
                 try:
-                    # ✨ 修改点：DS_API_BASE
                     final_resp = requests.post(DS_API_BASE, headers=headers, json=final_payload, stream=True, timeout=90)
                     for line in final_resp.iter_lines():
                         if line:
@@ -236,31 +178,20 @@ def agent_chat():
                                     if delta.get('content'): yield f"data: {json.dumps({'type': 'content', 'content': delta['content']})}\n\n"
                                     if chunk['choices'][0].get('finish_reason'): yield f"data: {json.dumps({'type': 'done'})}\n\n"
                                 except: pass
-                except Exception as e:
-                    yield f"data: {json.dumps({'type': 'error', 'content': '流式输出异常'})}\n\n"
-                finally:
-                    yield "data: [DONE]\n\n"
-
+                except Exception as e: yield f"data: {json.dumps({'type': 'error', 'content': '流式输出异常'})}\n\n"
+                finally: yield "data: [DONE]\n\n"
             session['chat_history'] = messages
             return Response(stream_with_context(generate_final()), mimetype='text/event-stream')
-
         else:
-            # 4. 如果 AI 没有调用工具，直接流式输出文字
             final_reply = ai_message['content']
             def generate_normal():
-                if reasoning_content:
-                    yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
-                if final_reply:
-                    yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
+                if reasoning_content: yield f"data: {json.dumps({'type': 'reasoning', 'content': reasoning_content})}\n\n"
+                if final_reply: yield f"data: {json.dumps({'type': 'content', 'content': final_reply})}\n\n"
                 yield f"data: {json.dumps({'type': 'done'})}\n\n"
                 yield "data: [DONE]\n\n"
-
             session['chat_history'] = messages
             return Response(stream_with_context(generate_normal()), mimetype='text/event-stream')
-
-    except Exception as e:
-        print(f"Agent Error: {e}")
-        return jsonify({'reply': '请求异常，请稍后重试。'})
+    except Exception as e: print(f"Agent Error: {e}"); return jsonify({'reply': '请求异常，请稍后重试。'})
 
 def call_deepseek_core(messages, model='deepseek-chat'):
     DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
@@ -268,36 +199,61 @@ def call_deepseek_core(messages, model='deepseek-chat'):
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
     payload = {"model": model, "messages": messages, "stream": False}
     try:
-        # ✨ 修改点：DS_API_BASE
         resp = requests.post(DS_API_BASE, headers=headers, json=payload, timeout=30)
         if resp.status_code == 200: return resp.json(), None
         return None, f"错误: {resp.status_code}"
     except Exception as e: return None, str(e)
 
-# ================= 清空与原有路由 =================
 @main_bp.route('/api/agent/clear', methods=['POST'])
 def clear_agent_history():
-    session.pop('chat_history', None)
-    session.pop('chat_summary', None)
+    session.pop('chat_history', None); session.pop('chat_summary', None)
     return jsonify({'status': 'ok', 'msg': '记忆已清空。'})
+
+# ================== ✅ 核心修改：真实发送邮件 ==================
+@main_bp.route('/api/send_code', methods=['POST'])
+def send_code():
+    data = request.get_json()
+    account = data.get('email')
+    if not account: return jsonify({'ok': False, 'msg': '请输入邮箱或电报ID'})
+    code = str(random.randint(100000, 999999))
+    
+    # 如果是邮箱
+    if re.match(r"[^@]+@[^@]+\.[^@]+", account):
+        record = EmailCode.query.filter_by(email=account).first()
+        if record: record.code = code; record.created_at = datetime.utcnow()
+        else: db.session.add(EmailCode(email=account, code=code))
+        db.session.commit()
+
+        try:
+            # ✅ 真正调用发邮件逻辑
+            msg = Message('【宫水编辑器】登录/注册验证码', recipients=[account])
+            msg.body = f'您的验证码是：{code}，有效期为5分钟。请勿泄露给他人。'
+            mail.send(msg)
+            return jsonify({'ok': True, 'msg': '验证码已发送至邮箱，请查收。'})
+        except Exception as e:
+            print(f"邮件发送失败: {e}")
+            return jsonify({'ok': False, 'msg': '邮件发送失败，请检查QQ邮箱授权码配置是否正确。'})
+    
+    # 如果是 Telegram ID
+    else:
+        success, _ = send_verification_code(account, code)
+        return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'}) if success else jsonify({'ok': False, 'msg': 'Telegram ID无效'})
+# =============================================================
 
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
     token = uuid.uuid4().hex[:16]
     deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}" if 'telegram' in request.headers.get('User-Agent', '').lower() else f"https://t.me/gsdsjbot?start=qr_{token}"
-    db.session.add(QrLoginSession(token=token, status='pending'))
-    db.session.commit()
+    db.session.add(QrLoginSession(token=token, status='pending')); db.session.commit()
     try:
-        qr = qrcode.QRCode(box_size=10, border=2)
-        qr.add_data(deep_link)
+        qr = qrcode.QRCode(box_size=10, border=2); qr.add_data(deep_link)
         img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
         d = ImageDraw.Draw(img)
         try: font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
         except: font = ImageFont.load_default()
         bbox = d.textbbox((0, 0), "GS", font=font)
         d.text(((img.width - (bbox[2]-bbox[0]))/2, (img.height - (bbox[3]-bbox[1]))/2), "GS", fill=(0,0,0), font=font)
-        buffered = io.BytesIO()
-        img.save(buffered, format="PNG")
+        buffered = io.BytesIO(); img.save(buffered, format="PNG")
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode()}"})
     except: return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"})
 
@@ -317,23 +273,8 @@ def check_qr_login(token):
 def process_qr_token():
     data = request.get_json()
     s = QrLoginSession.query.filter_by(token=data.get('token')).first()
-    if s and s.status == 'pending':
-        s.status = 'success'; s.telegram_id = data.get('chat_id'); db.session.commit(); return jsonify({'ok': True})
+    if s and s.status == 'pending': s.status = 'success'; s.telegram_id = data.get('chat_id'); db.session.commit(); return jsonify({'ok': True})
     return jsonify({'ok': False})
-
-@main_bp.route('/api/send_code', methods=['POST'])
-def send_code():
-    data, account = request.get_json(), data.get('email')
-    if not account: return jsonify({'ok': False, 'msg': '请输入账号或电报ID'})
-    code = str(random.randint(100000, 999999))
-    if re.match(r"[^@]+@[^@]+\.[^@]+", account):
-        record = EmailCode.query.filter_by(email=account).first()
-        if record: record.code = code; record.created_at = datetime.utcnow()
-        else: db.session.add(EmailCode(email=account, code=code))
-        db.session.commit(); return jsonify({'ok': True, 'msg': '验证码已发送至邮箱'})
-    else:
-        success, _ = send_verification_code(account, code)
-        return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'}) if success else jsonify({'ok': False, 'msg': 'ID无效'})
 
 @main_bp.route('/register', methods=['POST'])
 def register():
