@@ -12,7 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///loc
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # ================== ✅ 新增：邮件配置 ==================
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
+# ✅ 修复：把默认的 smtp.qq.com 改成了 smtp.163.com，防止环境变量读取失败时连错服务器。
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.163.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
