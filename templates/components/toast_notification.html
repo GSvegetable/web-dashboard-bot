@@ -1,4 +1,4 @@
-<!-- 独立玻璃胶囊通知组件 (绝对防抽风慢动作丝滑版) -->
+<!-- 独立纯圆球下落组件 -->
 <style>
     #topToast {
         position: fixed;
@@ -7,69 +7,51 @@
         transform: translateX(-50%) translateY(-100%);
         z-index: 99999;
         
-        /* 纯玻璃材质 */
+        /* 纯玻璃圆球材质 */
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-        border-radius: 50%;
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        font-size: 14px;
-        font-weight: 500;
-        pointer-events: none;
-        white-space: nowrap;
-        display: flex; justify-content: center; align-items: center;
         
-        width: 0px; height: 0px;
-        padding: 0;
+        /* 固定为标准的圆球大小 */
+        width: 52px; height: 52px;
+        border-radius: 50%;
         opacity: 0;
+        pointer-events: none;
+        
+        /* 里面什么文字都没有 */
+        padding: 0;
     }
 
-    /* 第一阶段：缓慢下落变成圆 (1.5秒) */
-    @keyframes fallDownFromTop {
-        0%   { width: 0px; height: 0px; opacity: 0; transform: translateX(-50%) translateY(-100%); padding: 0; }
-        100% { width: 52px; height: 52px; opacity: 1; transform: translateX(-50%) translateY(24px); padding: 0; border-radius: 50%; }
+    /* 唯一动画：极其缓慢地滑下来停住 */
+    @keyframes fallDownAndStop {
+        0%   { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+        100% { opacity: 1; transform: translateX(-50%) translateY(24px); }
     }
     .c-toast-fall { 
-        animation: fallDownFromTop 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
+        animation: fallDownAndStop 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
     }
 
-    /* 第二阶段：缓慢向两侧拉伸变胶囊 + 文字淡入 (1.2秒) */
-    @keyframes expandToCapsule {
-        0%   { width: 52px; height: 52px; padding: 0; border-radius: 50%; }
-        100% { width: auto; height: auto; padding: 12px 24px; border-radius: 999px; }
-    }
-    .c-toast-expand { 
-        animation: expandToCapsule 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
-    }
-    .c-toast-expand .toast-content { 
-        animation: textFadeIn 1s ease-in forwards; 
-    }
-    @keyframes textFadeIn {
-        0%   { opacity: 0; transform: scale(0.9); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-
-    /* 第三阶段：缓慢消失退回顶部 (0.6秒) */
-    @keyframes hideAndShrink {
-        0%   { width: auto; height: auto; padding: 12px 24px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 999px; }
-        100% { width: 0px; height: 0px; padding: 0; opacity: 0; transform: translateX(-50%) translateY(-100%); border-radius: 50%; }
+    /* 退场动画：原路缩回去 */
+    @keyframes hideUp {
+        0%   { opacity: 1; transform: translateX(-50%) translateY(24px); }
+        100% { opacity: 0; transform: translateX(-50%) translateY(-100%); }
     }
     .c-toast-hide { 
-        animation: hideAndShrink 0.6s ease-in forwards; 
+        animation: hideUp 0.6s ease-in forwards; 
     }
 </style>
 
 <script>
-    let isAnimating = false; // ✅ 防抽风锁：气泡正在播放时，不接受新动画
-    let hideTimer = null;
+    let isAnimating = false;
 
-    window.showTopToast = function(message) {
-        // 如果当前正在播放，直接忽略新请求，防止抽风
+    // 直接调用这个方法，小球就会掉下来。
+    window.showTopToast = function() {
+        // 如果正在动，忽略新请求，防止抽风
         if (isAnimating) return;
 
-        // 清空残留的旧气泡
+        // 清除残留的旧元素
         const existing = document.getElementById('topToast');
         if (existing && existing.parentNode) {
             existing.parentNode.removeChild(existing);
@@ -77,37 +59,24 @@
 
         isAnimating = true;
 
-        // 1. 创建新气泡
+        // 1. 创建纯圆球元素
         const toast = document.createElement('div');
         toast.id = 'topToast';
-        const contentSpan = document.createElement('span');
-        contentSpan.className = 'toast-content';
-        contentSpan.textContent = message;
-        contentSpan.style.cssText = 'opacity: 0; display: inline-block;'; 
-        toast.appendChild(contentSpan);
         document.body.appendChild(toast);
 
-        // 2. 触发第一阶段：缓慢下落变成圆 (1.5秒)
+        // 2. 触发缓慢下落
         void toast.offsetWidth; 
         toast.className = 'c-toast-fall';
 
-        // 3. 1.5秒后触发第二阶段：缓慢拉伸变成胶囊 (1.2秒)
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.className = 'c-toast-expand';
-            }
-        }, 1500);
-
-        // 4. 总共经过 3.5 秒 (1.5秒下落 + 1.2秒展开 + 0.8秒停留) 后，开始消失
+        // 3. 停留 3 秒后，原路消失缩回顶部
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.className = 'c-toast-hide';
-                // 0.6秒后彻底移除DOM，并解锁
                 setTimeout(() => {
                     if (toast.parentNode) toast.parentNode.removeChild(toast);
-                    isAnimating = false; // ✅ 解锁
+                    isAnimating = false; // 解锁
                 }, 600);
             }
-        }, 3500);
+        }, 3000);
     };
 </script>
