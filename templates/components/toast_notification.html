@@ -3,79 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小球落下停住 + 点击缩回</title>
+<title>小球落下停住</title>
 <style>
     body {
         margin: 0;
-        min-height: 100vh;
-        background: #1a1a2e; /* 深色背景便于看清玻璃球 */
-        font-family: sans-serif;
+        height: 100vh;
+        background: #1a1a2e; /* 深色背景，便于看清玻璃球 */
+        overflow: hidden;
     }
 
-    #ball {
+    .ball {
         position: fixed;
         top: 0;
         left: 50%;
-        /* 初始在屏幕外上方 */
-        transform: translateX(-50%) translateY(-100%);
-        
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        
+
         /* 玻璃材质 */
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        
+
+        /* 初始在屏幕外上方，透明度 0 */
+        transform: translateX(-50%) translateY(-100%);
         opacity: 0;
-        pointer-events: none; /* 小球不拦截点击，点击事件交给 document */
-        
-        /* 过渡：用于落下和缩回 */
-        transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
-                    opacity 0.6s ease-in;
+
+        /* 动画：掉下来停住，forwards 保持结束状态 */
+        animation: dropDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes dropDown {
+        0% {
+            transform: translateX(-50%) translateY(-100%);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(-50%) translateY(24px); /* 停在距顶部 24px */
+            opacity: 1;
+        }
     }
 </style>
 </head>
 <body>
-
-<div id="ball"></div>
-
-<script>
-    const ball = document.getElementById('ball');
-    let isVisible = false; // 当前是否已落下停住
-
-    // 页面加载后，让小球落下
-    window.addEventListener('load', () => {
-        // 强制 reflow 确保初始样式生效
-        void ball.offsetWidth;
-        
-        // 落下：改变 transform 和 opacity
-        ball.style.transform = 'translateX(-50%) translateY(24px)';
-        ball.style.opacity = '1';
-        isVisible = true;
-    });
-
-    // 点击屏幕任意位置：缩回小球（仅当小球可见时）
-    document.addEventListener('click', () => {
-        if (!isVisible) return; // 已经缩回或正在缩回中，忽略点击
-
-        // 缩回：回到屏幕外上方，透明度降低
-        ball.style.transform = 'translateX(-50%) translateY(-100%)';
-        ball.style.opacity = '0';
-        isVisible = false;
-
-        // 可选：过渡结束后移除小球（避免占用 DOM）
-        // 如果不需要移除，可注释掉以下代码
-        ball.addEventListener('transitionend', function handler(e) {
-            if (e.propertyName === 'transform' && !isVisible) {
-                ball.remove();
-                ball.removeEventListener('transitionend', handler);
-            }
-        });
-    });
-</script>
+    <div class="ball"></div>
 </body>
 </html>
