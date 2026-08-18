@@ -1,4 +1,4 @@
-<!-- 独立纯圆球下落组件 -->
+<!-- 独立玻璃胶囊通知组件（下落 + 拉长 + 文字浮现） -->
 <style>
     #topToast {
         position: fixed;
@@ -7,44 +7,68 @@
         transform: translateX(-50%) translateY(-100%);
         z-index: 99999;
         
-        /* 纯玻璃圆球材质 */
+        /* 纯玻璃材质 */
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        
-        /* ✨ 尺寸缩小为 38px */
-        width: 38px; height: 38px;
-        border-radius: 50%;
-        opacity: 0;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
         pointer-events: none;
+        white-space: nowrap;
+        display: flex; justify-content: center; align-items: center;
+        
+        /* 初始为隐藏的透明圆球 */
+        width: 0px; height: 0px;
+        border-radius: 50%;
         padding: 0;
+        opacity: 0;
     }
 
-    /* 加速下落动画：改为 1s */
+    /* 第一阶段：下落成圆 (1秒) */
     @keyframes fallDownAndStop {
-        0%   { opacity: 0; transform: translateX(-50%) translateY(-100%); }
-        100% { opacity: 1; transform: translateX(-50%) translateY(24px); }
+        0%   { width: 0px; height: 0px; opacity: 0; transform: translateX(-50%) translateY(-100%); padding: 0; }
+        100% { width: 38px; height: 38px; opacity: 1; transform: translateX(-50%) translateY(24px); padding: 0; border-radius: 50%; }
     }
     .c-toast-fall { 
         animation: fallDownAndStop 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
     }
 
-    /* 退场动画：原路缩回去 */
-    @keyframes hideUp {
-        0%   { opacity: 1; transform: translateX(-50%) translateY(24px); }
-        100% { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+    /* 第二阶段：向左右拉长变胶囊 + 文字浮现 (1秒) */
+    @keyframes expandToCapsule {
+        0%   { width: 38px; height: 38px; padding: 0; border-radius: 50%; }
+        100% { width: auto; height: auto; padding: 10px 22px; border-radius: 999px; }
+    }
+    .c-toast-expand { 
+        animation: expandToCapsule 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
+    }
+    .c-toast-expand .toast-content {
+        /* 文字随着拉伸逐渐出现 */
+        animation: textFadeIn 0.6s ease-in forwards;
+    }
+    @keyframes textFadeIn {
+        0%   { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* 第三阶段：优雅退场 (0.5秒) */
+    @keyframes hideToTop {
+        0%   { width: auto; height: auto; padding: 10px 22px; opacity: 1; transform: translateX(-50%) translateY(24px); border-radius: 999px; }
+        100% { width: 0px; height: 0px; padding: 0; opacity: 0; transform: translateX(-50%) translateY(-100%); border-radius: 50%; }
     }
     .c-toast-hide { 
-        animation: hideUp 0.5s ease-in forwards; 
+        animation: hideToTop 0.5s ease-in forwards; 
     }
 </style>
 
 <script>
     let isAnimating = false;
+    let hideTimer = null;
 
-    window.showTopToast = function() {
+    // 现在需要传入 message 来展示文字
+    window.showTopToast = function(message) {
         if (isAnimating) return;
 
         const existing = document.getElementById('topToast');
@@ -54,22 +78,39 @@
 
         isAnimating = true;
 
+        // 1. 创建元素，并把文字塞进内部的 span
         const toast = document.createElement('div');
         toast.id = 'topToast';
+        
+        const contentSpan = document.createElement('span');
+        contentSpan.className = 'toast-content';
+        contentSpan.textContent = message || ''; // 放入提示文字
+        contentSpan.style.cssText = 'opacity: 0; display: inline-block;'; // 初始隐藏
+        toast.appendChild(contentSpan);
+        
         document.body.appendChild(toast);
 
+        // 2. 第一阶段：圆球下落 (1秒)
         void toast.offsetWidth; 
         toast.className = 'c-toast-fall';
 
-        // 停留 3 秒后消失
-        setTimeout(() => {
+        // 3. 第二阶段：落定后，拉长变胶囊并浮现文字 (1秒)
+        const expandTimer = setTimeout(() => {
+            if (toast.parentNode) {
+                toast.className = 'c-toast-expand';
+            }
+        }, 1000);
+
+        // 4. 总时长 (1秒下落 + 1秒展开 + 2秒停留) 后，缩回消失 (0.5秒)
+        const hideTimer = setTimeout(() => {
             if (toast.parentNode) {
                 toast.className = 'c-toast-hide';
+                // 等待缩回动画执行完毕再移除 DOM
                 setTimeout(() => {
                     if (toast.parentNode) toast.parentNode.removeChild(toast);
                     isAnimating = false;
                 }, 500);
             }
-        }, 3000);
+        }, 4000);
     };
 </script>
