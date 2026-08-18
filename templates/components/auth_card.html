@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 修正：触发纯圆球，不再带任何文字参数
+    // ✨ 验证逻辑
     // ==========================================================
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (!email || (!isEmail && !isTgId)) {
             if (typeof window.showTopToast === 'function') {
-                window.showTopToast(); // 触发纯圆球
+                window.showTopToast('格式错误 请输入有效邮箱或Telegram ID');
             }
             btn.innerText = '验证';
             btn.disabled = false;
@@ -266,14 +266,14 @@ document.addEventListener("DOMContentLoaded", function() {
             const data = await res.json();
             if(!data.ok) {
                 if (typeof window.showTopToast === 'function') {
-                    window.showTopToast(); // 触发纯圆球
+                    window.showTopToast('发送失败 查看输入信息是否正确');
                 }
                 btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
             if (typeof window.showTopToast === 'function') {
-                window.showTopToast(); // 触发纯圆球
+                window.showTopToast('发送失败 查看输入信息是否正确');
             }
             btn.innerText = '验证';
             btn.disabled = false;
