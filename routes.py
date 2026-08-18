@@ -22,8 +22,7 @@ from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
-# ✅ 获取当前 app 里的 mail 实例
-from app import mail
+# ✅ 删除了容易引起循环报错的 from app import mail，已转移到下文的函数内部
 
 main_bp = Blueprint('main', __name__)
 
@@ -225,7 +224,9 @@ def send_code():
         db.session.commit()
 
         try:
-            # ✅ 真正调用发邮件逻辑
+            # ✅ 在函数内部导入 mail 实例，彻底解决循环引用报错！
+            from app import mail
+            
             msg = Message('【宫水编辑器】登录/注册验证码', recipients=[account])
             msg.body = f'您的验证码是：{code}，有效期为5分钟。请勿泄露给他人。'
             mail.send(msg)
