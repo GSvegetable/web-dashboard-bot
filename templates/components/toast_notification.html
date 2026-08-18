@@ -1,145 +1,53 @@
-<!-- 独立玻璃胶囊通知组件 (Toast Notification) -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小球落下停住</title>
 <style>
-    #topToast {
+    body {
+        margin: 0;
+        height: 100vh;
+        background: #1a1a2e; /* 深色背景，便于看清玻璃球 */
+        overflow: hidden;
+    }
+
+    .ball {
         position: fixed;
         top: 0;
         left: 50%;
-        transform: translateX(-50%) translateY(-100%);
-        z-index: 99999;
-        
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+
+        /* 玻璃材质 */
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
-        color: #ffffff;
-        border-radius: 50%;
         box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        font-size: 14px;
-        font-weight: 500;
-        pointer-events: none;
-        white-space: nowrap;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 36px;
-        height: 36px;
-        padding: 0;
+
+        /* 初始在屏幕外上方，透明度 0 */
+        transform: translateX(-50%) translateY(-100%);
         opacity: 0;
-        box-sizing: border-box;
-        overflow: hidden;
-        transition: width 1s cubic-bezier(0.22, 1, 0.36, 1),
-                    padding 1s cubic-bezier(0.22, 1, 0.36, 1),
-                    border-radius 1s cubic-bezier(0.22, 1, 0.36, 1),
-                    transform 0.6s ease-in,
-                    opacity 0.6s ease-in;
+
+        /* 动画：掉下来停住，forwards 保持结束状态 */
+        animation: dropDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
-    @keyframes fallDownFromTop {
-        0%   { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-        100% { transform: translateX(-50%) translateY(24px); opacity: 1; }
-    }
-    .c-toast-fall {
-        animation: fallDownFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
-    .toast-content {
-        opacity: 0;
-        transition: opacity 0.4s ease-in 0.2s;
+    @keyframes dropDown {
+        0% {
+            transform: translateX(-50%) translateY(-100%);
+            opacity: 0;
+        }
+        100% {
+            transform: translateX(-50%) translateY(24px); /* 停在距顶部 24px */
+            opacity: 1;
+        }
     }
 </style>
-
-<script>
-    let toastAnimTimer = null;
-    const TOAST_HEIGHT = 36;
-
-    window.showTopToast = function(message) {
-        const existing = document.getElementById('topToast');
-        if (existing) {
-            if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-            hideToast(existing, () => createNewToast(message));
-        } else {
-            createNewToast(message);
-        }
-    };
-
-    function createNewToast(message) {
-        if (toastAnimTimer) { clearTimeout(toastAnimTimer); toastAnimTimer = null; }
-
-        const toast = document.createElement('div');
-        toast.id = 'topToast';
-        
-        const contentSpan = document.createElement('span');
-        contentSpan.className = 'toast-content';
-        contentSpan.textContent = message;
-        contentSpan.style.cssText = 'opacity: 0; display: inline-block; white-space: nowrap;';
-        toast.appendChild(contentSpan);
-        document.body.appendChild(toast);
-
-        // 初始状态：小球（圆形），位于顶部外
-        toast.style.width = TOAST_HEIGHT + 'px';
-        toast.style.height = TOAST_HEIGHT + 'px';
-        toast.style.padding = '0';
-        toast.style.borderRadius = '50%';
-        toast.style.transform = 'translateX(-50%) translateY(-100%)';
-        toast.style.opacity = '0';
-        toast.style.transition = 'none'; // 落下阶段不用 transition
-
-        void toast.offsetWidth;
-        toast.classList.add('c-toast-fall');
-
-        // 落下动画结束后，开始展开
-        toastAnimTimer = setTimeout(() => {
-            if (!toast.parentNode) return;
-
-            toast.classList.remove('c-toast-fall');
-            toast.style.transform = 'translateX(-50%) translateY(24px)';
-            toast.style.opacity = '1';
-
-            const contentWidth = contentSpan.offsetWidth;
-            const targetWidth = contentWidth + 24 + 2;
-
-            toast.style.transition = `
-                width 1s cubic-bezier(0.22, 1, 0.36, 1),
-                padding 1s cubic-bezier(0.22, 1, 0.36, 1),
-                border-radius 1s cubic-bezier(0.22, 1, 0.36, 1)
-            `;
-            contentSpan.style.transition = 'opacity 0.4s ease-in 0.2s';
-
-            toast.style.width = targetWidth + 'px';
-            toast.style.padding = '0 12px';
-            toast.style.borderRadius = (TOAST_HEIGHT / 2) + 'px';
-            contentSpan.style.opacity = '1';
-        }, 600);
-
-        const hideTimer = setTimeout(() => {
-            if (toast.parentNode) hideToast(toast);
-        }, 4000);
-        toast._hideTimer = hideTimer;
-    }
-
-    function hideToast(toast, callback) {
-        if (toast._hideTimer) { clearTimeout(toast._hideTimer); toast._hideTimer = null; }
-        const contentSpan = toast.querySelector('.toast-content');
-        
-        toast.style.transition = `
-            width 0.6s ease-in,
-            padding 0.6s ease-in,
-            border-radius 0.6s ease-in,
-            transform 0.6s ease-in,
-            opacity 0.6s ease-in
-        `;
-        if (contentSpan) contentSpan.style.transition = 'opacity 0.3s ease-in';
-
-        toast.style.width = TOAST_HEIGHT + 'px';
-        toast.style.padding = '0';
-        toast.style.borderRadius = '50%';
-        toast.style.transform = 'translateX(-50%) translateY(-100%)';
-        toast.style.opacity = '0';
-        if (contentSpan) contentSpan.style.opacity = '0';
-
-        setTimeout(() => {
-            if (toast.parentNode) toast.parentNode.removeChild(toast);
-            if (callback) callback();
-        }, 600);
-    }
-</script>
+</head>
+<body>
+    <div class="ball"></div>
+</body>
+</html>
