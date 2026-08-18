@@ -3,14 +3,14 @@
     <div class="modal-box">
         <div class="music-card-glass">
             <!-- 专辑封面图片预加载 -->
-            <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" style="display: none;" crossorigin="anonymous">
+            <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076_compressed.jpg') }}" style="display: none;" crossorigin="anonymous">
             
             <!-- 音频播放器 -->
             <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
             
             <!-- 内容区 -->
             <div class="music-track-info">
-                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>
+                <div class="album-art" id="album-art-display" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076_compressed.jpg') }}'); background-size: cover; background-position: center; flex-shrink: 0;"></div>
                 
                 <div class="track-details">
                     <div class="music-track-title">你的名字</div>
