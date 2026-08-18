@@ -23,11 +23,11 @@
     box-sizing: border-box;
 
     transition:
-        transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        height 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        border-radius 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        border-radius 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 </style>
 
@@ -50,18 +50,18 @@ window.showTopToast = function () {
 
     void toast.offsetWidth; // 强制浏览器渲染初始状态
 
-    // 1. 小圆快速滑下来
-    toast.style.transform = 'translateX(-50%) translateY(24px)';
+    // 1. 小圆下滑到更低的位置（40px）
+    toast.style.transform = 'translateX(-50%) translateY(40px)';
     toast.style.opacity = '1';
 
-    // 2. 提前 0.1 秒开始展开（下滑总时长 0.2s）
+    // 2. 提前 0.05s 开始展开（下滑 0.3s 结束，250ms 时触发）
     toastExpandTimer = setTimeout(() => {
         toast.style.width = '240px';
         toast.style.height = '38px';
         toast.style.borderRadius = '999px';
-    }, 100); // 100ms = 0.1s，比下滑结束提前 0.1s 开始展开
+    }, 250);
 
-    // 3. 停留一段时间后收起并退场
+    // 3. 停留后收起并退场
     toastHideTimer = setTimeout(() => {
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
@@ -71,7 +71,7 @@ window.showTopToast = function () {
 
         toastTimer = setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 200);
-    }, 1250);
+        }, 400);
+    }, 1300);
 };
 </script>
