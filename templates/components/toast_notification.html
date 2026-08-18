@@ -33,7 +33,6 @@
 
 <script>
 let toastTimer = null;
-let toastExpandTimer = null;
 let toastHideTimer = null;
 
 window.showTopToast = function () {
@@ -41,7 +40,6 @@ window.showTopToast = function () {
     if (existing) existing.parentNode.removeChild(existing);
 
     if (toastTimer) clearTimeout(toastTimer);
-    if (toastExpandTimer) clearTimeout(toastExpandTimer);
     if (toastHideTimer) clearTimeout(toastHideTimer);
 
     const toast = document.createElement('div');
@@ -50,18 +48,24 @@ window.showTopToast = function () {
 
     void toast.offsetWidth; // 强制浏览器渲染初始状态
 
+    // 下滑动画结束后的处理：立即展开
+    const handleSlideDownEnd = (event) => {
+        if (event.propertyName !== 'transform') return; // 只监听 transform 结束
+        toast.removeEventListener('transitionend', handleSlideDownEnd);
+
+        // 立即展开成长胶囊
+        toast.style.width = '240px';
+        toast.style.height = '38px';
+        toast.style.borderRadius = '999px';
+    };
+
+    toast.addEventListener('transitionend', handleSlideDownEnd);
+
     // 1. 小圆快速滑下来
     toast.style.transform = 'translateX(-50%) translateY(24px)';
     toast.style.opacity = '1';
 
-    // 2. 快速展开，长度翻倍（240px）
-    toastExpandTimer = setTimeout(() => {
-        toast.style.width = '240px';
-        toast.style.height = '38px';
-        toast.style.borderRadius = '999px';
-    }, 300);
-
-    // 3. 快速收起并退场
+    // 2. 停留一段时间后收起并退场
     toastHideTimer = setTimeout(() => {
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
