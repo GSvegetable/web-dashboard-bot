@@ -11,7 +11,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================== 邮件配置（恢复为 QQ 邮箱配置） ==================
+# ================== 邮件配置（恢复为 QQ 邮箱） ==================
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
