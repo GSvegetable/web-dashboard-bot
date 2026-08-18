@@ -31,7 +31,9 @@
                             <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
                         </div>
                         <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
-                            <input type="text" id="reg-email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                            <!-- ✅ 修复 1：添加了 name="email" 属性 -->
+                            <input type="text" id="reg-email" name="email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                            <!-- ✅ 修复 2：确保按钮 ID 与 JS 对应 -->
                             <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
                         </div>
                         <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
@@ -234,5 +236,41 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
+
+    // ✅ 修复 3：确保 JS 监听的是正确的 ID，并且正确获取邮箱输入框的值
+    document.getElementById('send-code-btn').addEventListener('click', async function() {
+        const email = document.getElementById('reg-email').value;
+        if(!email) { alert('请输入邮箱'); return; }
+        const btn = this;
+        const originalText = btn.innerText;
+        btn.innerText = '发送中...';
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/send_code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: email})
+            });
+            
+            if (!res.ok) {
+                throw new Error(`服务器返回错误: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            if(data.ok) {
+                alert(data.msg);
+                btn.innerText = '已发送';
+            } else {
+                alert('发送失败: ' + data.msg);
+                btn.innerText = '重新发送';
+                btn.disabled = false;
+            }
+        } catch (e) {
+            alert('系统请求异常: ' + e.message);
+            btn.innerText = '重新发送';
+            btn.disabled = false;
+        }
+    });
 });
-               </script>
+</script>
