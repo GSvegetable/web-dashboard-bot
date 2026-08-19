@@ -1,0 +1,50 @@
+<!-- 3D 悬浮横条卡片组件 -->
+<style>
+  .cards-3d {
+    perspective: 500px;
+    display: inline-block;
+  }
+
+  .card-3d-horizontal {
+    width: 200px; /* 宽度比高度大，形成横条 */
+    height: 64px; 
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px; /* 圆角矩形 */
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    padding-left: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .card-3d-horizontal:hover {
+    transform: translateZ(10px) rotateX(10deg) rotateY(-15deg);
+  }
+
+  .card-3d-title {
+    color: #ffffff;
+    font: 600 1rem 'monospace', sans-serif;
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.8),  
+                  1px -1px 0 rgba(0,0,0,0.8),
+                  -1px 1px 0 rgba(0,0,0,0.8),
+                   1px 1px 0 rgba(0,0,0,0.8);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    letter-spacing: 0.5px;
+  }
+
+  .card-3d-horizontal:hover .card-3d-title {
+    transform: translateZ(30px);
+  }
+</style>
+
+<div class="cards-3d">
+    <div class="card-3d-horizontal">
+        <span class="card-3d-title">✨ 宫水极光</span>
+    </div>
+</div>
