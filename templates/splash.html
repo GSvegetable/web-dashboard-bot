@@ -142,8 +142,6 @@
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
-        <a href="javascript:void(0)" onclick="toggleFullScreen()" class="top-btn">全屏显示</a>
-        <button class="top-btn" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">Agent</button>
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
         {% endif %}
