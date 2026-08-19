@@ -1,4 +1,4 @@
-<!-- 纯触屏优化版：卡片固定不动，文字点击即走，绝不回缩 -->
+<!-- 点击切换版：点击卡片开启，点击背景关闭 -->
 <style>
     .cards {
         perspective: 500px;
@@ -20,16 +20,14 @@
         position: relative;
         transform-style: preserve-3d;
         backface-visibility: hidden;
-        /* 卡片本身的过渡完全保留，但不做翻转 */
-        transition: box-shadow 0.2s ease;
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
         cursor: pointer;
     }
 
-    /* ✅ 底下的卡片，在平板和鼠标下都绝对不动！ */
-    .card:hover,
-    .card:active {
-        transform: none !important;
+    /* ✅ 形态一：点击卡片后的「开启状态」 */
+    .card.is-active {
+        transform: translateZ(10px) rotateX(8deg) rotateY(12deg);
     }
 
     .card_title {
@@ -43,23 +41,38 @@
         text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         backface-visibility: hidden;
         transform-style: preserve-3d;
+        /* 默认位置 */
+        transform: translateY(-50%);
     }
 
-    /* ✅ 电脑鼠标悬停时：文字依然大幅度飞出 350px */
-    .card:hover .card_title {
-        transform: translateY(-50%) translateZ(350px) translateX(30px);
-    }
-
-    /* ✅ 平板/手机点击时：更改缓动曲线，消除回缩，彻底钉在右上角 */
-    .card:active .card_title {
-        /* 换成平直的 ease 动画，绝不回弹！ */
-        transition: transform 0.2s ease;
+    /* ✅ 形态一：点击卡片后，文字飞向右上角并停住！ */
+    .card.is-active .card_title {
         transform: translateY(-50%) translateZ(350px) translateX(40px) translateY(-10px);
     }
 </style>
 
 <div class="cards">
-    <figure class="card">
+    <figure class="card" id="toggleCard">
         <figcaption class="card_title">3D Hover</figcaption>
     </figure>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const card = document.getElementById('toggleCard');
+    
+    // ✅ 点击卡片：切换开启状态
+    card.addEventListener('click', function(e) {
+        e.stopPropagation(); // 阻止点击冒泡到 document 触发关闭
+        this.classList.toggle('is-active');
+    });
+
+    // ✅ 点击页面空白处：强制关闭卡片
+    document.addEventListener('click', function(e) {
+        // 如果点击的不是卡片本身，并且卡片正处于开启状态，就关闭它
+        if (!card.contains(e.target) && card.classList.contains('is-active')) {
+            card.classList.remove('is-active');
+        }
+    });
+});
+</script>
