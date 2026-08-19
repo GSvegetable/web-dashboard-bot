@@ -36,7 +36,6 @@
                             <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                         </div>
                         
-                        <!-- ✅ 核心：注册/登录按钮 -->
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
                         <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
@@ -144,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    // ✅ 核心修复1：发送验证码（保持不变）
+    // ✅ 发送验证码
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim(); const btn = this;
@@ -172,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ✅ 核心修复2：点击“注册/登录”按钮，完整逻辑！
+    // ✅ 注册/登录按钮（现在不仅能点，还能真正注册成功）
     document.getElementById('submit-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const codeInput = document.getElementById('reg-code');
@@ -189,44 +188,28 @@ document.addEventListener("DOMContentLoaded", function() {
         btn.innerText = '处理中...';
         btn.disabled = true;
 
-        // 使用 FormData 发送普通表单格式，因为后端 routes.py 里用的是 request.form
         const formData = new FormData();
         formData.append('email', email);
         formData.append('code', code);
 
         try {
-            const res = await fetch('/register', {
-                method: 'POST',
-                body: formData
-            });
+            const res = await fetch('/register', { method: 'POST', body: formData });
             const text = await res.text();
             if (text.includes('成功') || res.ok) {
-                if (typeof window.showTopToast === 'function') {
-                    window.showTopToast('注册/登录成功！');
-                } else {
-                    alert('注册/登录成功，即将刷新页面');
-                }
+                if (typeof window.showTopToast === 'function') window.showTopToast('注册/登录成功！');
+                else alert('注册/登录成功，即将刷新页面');
                 setTimeout(() => { window.location.reload(); }, 1000);
             } else {
-                // 如果后端返回错误信息（可能是验证码错误）
                 emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
                 setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
-                btn.innerText = '注册/登录';
-                btn.disabled = false;
-                if (typeof window.showTopToast === 'function') {
-                    window.showTopToast(text || '注册失败，请重试');
-                } else {
-                    alert(text || '注册失败，请重试');
-                }
+                btn.innerText = '注册/登录'; btn.disabled = false;
+                if (typeof window.showTopToast === 'function') window.showTopToast(text || '注册失败，请重试');
+                else alert(text || '注册失败，请重试');
             }
         } catch (e) {
-            btn.innerText = '注册/登录';
-            btn.disabled = false;
-            if (typeof window.showTopToast === 'function') {
-                window.showTopToast('网络错误，请重试');
-            } else {
-                alert('网络错误，请重试');
-            }
+            btn.innerText = '注册/登录'; btn.disabled = false;
+            if (typeof window.showTopToast === 'function') window.showTopToast('网络错误，请重试');
+            else alert('网络错误，请重试');
         }
     });
 });
