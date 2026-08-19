@@ -1,4 +1,4 @@
-<!-- 最终版：卡片固定姿态，文字极限夸张飞出 -->
+<!-- 纯触屏优化版：卡片固定不动，文字点击即走，绝不回缩 -->
 <style>
     .cards {
         perspective: 500px;
@@ -20,15 +20,16 @@
         position: relative;
         transform-style: preserve-3d;
         backface-visibility: hidden;
-        will-change: transform;
-        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* 卡片本身的过渡完全保留，但不做翻转 */
+        transition: box-shadow 0.2s ease;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
         cursor: pointer;
     }
 
-    /* ✅ 卡片姿态绝对固定，丝毫不改！ */
-    .card:hover {
-        transform: translateZ(10px) rotateX(8deg) rotateY(12deg);
+    /* ✅ 底下的卡片，在平板和鼠标下都绝对不动！ */
+    .card:hover,
+    .card:active {
+        transform: none !important;
     }
 
     .card_title {
@@ -44,13 +45,15 @@
         transform-style: preserve-3d;
     }
 
-    /* ✅ 文字疯狂向前飞出 350px，并向右平移 30px */
+    /* ✅ 电脑鼠标悬停时：文字依然大幅度飞出 350px */
     .card:hover .card_title {
         transform: translateY(-50%) translateZ(350px) translateX(30px);
     }
 
-    /* ✅ 点击按下时：文字再往右上角大幅度冲一下 */
+    /* ✅ 平板/手机点击时：更改缓动曲线，消除回缩，彻底钉在右上角 */
     .card:active .card_title {
+        /* 换成平直的 ease 动画，绝不回弹！ */
+        transition: transform 0.2s ease;
         transform: translateY(-50%) translateZ(350px) translateX(40px) translateY(-10px);
     }
 </style>
