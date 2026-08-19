@@ -1,4 +1,4 @@
-<!-- 原版 3D 悬浮卡片（改成横向长方形，其余一字不差） -->
+<!-- 原版 3D 悬浮卡片（改成横向长方形，替换纯黑为玻璃质感） -->
 <style>
     /* From Uiverse.io by Cornerstone-04 */ 
     .cards {
@@ -10,17 +10,20 @@
         pointer-events: auto;
     }
 
-    /* ✅ 修改点：宽度拉长，高度压扁，变成横着的长方形 */
+    /* ✅ 唯一改动：把纯黑的 background 改成玻璃底色，并把边框调亮 */
     .card {
-        width: 240px;   /* 原来是 200px */
-        height: 80px;   /* 原来是 250px */
-        background: #16161d;
-        border: 2px solid #555555;
-        border-radius: 4px;
+        width: 240px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 4px; /* 严格保持原版的 4px */
         position: relative;
         transform-style: preserve-3d;
         will-change: transform;
         transition: transform .5s;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
     /* ✅ 完全保留原版的 3D 往右前方凸出动作 */
