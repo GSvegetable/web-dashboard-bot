@@ -14,39 +14,8 @@
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
         :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
-        
-        /* ✅ 核心修改：去掉 overflow: hidden，让网页能正常上下滑动 */
-        body { 
-            width: 100vw; 
-            min-height: 100vh; 
-            overflow-x: hidden; 
-            overflow-y: auto; 
-            background-color: #000000; 
-            display: flex; 
-            flex-direction: column; 
-            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
-        }
-        
-        /* ✅ 改为 min-height: 100vh，保证能延展出黑屏 */
-        .content-area { 
-            position: relative; 
-            width: 100%; 
-            min-height: 100vh; 
-            background-image: var(--bg-img); 
-            background-size: cover; 
-            background-position: center; 
-            background-repeat: no-repeat; 
-            padding-top: 15vh; 
-            padding-left: 12%; 
-            padding-bottom: 15vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: flex-start; 
-            justify-content: flex-start; 
-            z-index: 1; 
-            overflow: hidden; 
-        }
-        
+        body { width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
+        .content-area { position: relative; width: 100%; min-height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
@@ -98,30 +67,11 @@
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card, .music-card-glass { max-width: 320px; }
         }
-        .hamburger { cursor: pointer; }
-        body:has(#profileContainer) #menu-btn-wrapper { top: 112px; }
-        body:has(#profileContainer) #menu-btn-wrapper svg { height: 30px; width: 30px; }
-        .hamburger input { display: none; }
-        .hamburger svg { height: 100%; width: 100%; transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1); }
-        .line { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1), stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1); }
-        .line-top-bottom { stroke-dasharray: 12 63; }
-        .hamburger input:checked + svg { transform: rotate(-45deg); }
-        .hamburger input:checked + svg .line-top-bottom { stroke-dasharray: 20 300; stroke-dashoffset: -32.42; }
     </style>
 </head>
 <body>
     
     {% include 'components/user_profile.html' %}
-
-    <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
-        <label class="hamburger w-full h-full flex items-center justify-center">
-            <input type="checkbox" id="hamburger-toggle">
-            <svg viewBox="0 0 32 32">
-                <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
-                <path class="line" d="M7 16 27 16"></path>
-            </svg>
-        </label>
-    </div>
 
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
@@ -145,6 +95,7 @@
         {% endif %}
         <button class="top-btn" onclick="openBecomeFanModal()">开发者</button>
         {% if not current_user.is_authenticated %}
+        <!-- ✅ 登录后自动隐藏 -->
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="toggleMusicModal()">
@@ -158,7 +109,6 @@
     {% include 'components/contact_card.html' %}
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
-    {% include 'components/agent_action_panel.html' %}
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
 
     <script>
@@ -215,30 +165,15 @@
                     else if (modalId === 'becomeFanModal' && typeof window.closeBecomeFanModal === 'function') window.closeBecomeFanModal();
                 }
             });
-        });
 
-        document.getElementById('menu-btn-wrapper').addEventListener('click', function(e) {
-            e.preventDefault(); 
-            const checkbox = document.getElementById('hamburger-toggle');
-            const panel = document.getElementById('agentSettingsPanel');
-            const content = document.getElementById('settingsModalContent');
-            if (!checkbox || !panel || !content) return;
-
-            const isOpen = !panel.classList.contains('hidden');
-            if (!isOpen) {
-                checkbox.checked = true;
-                panel.classList.remove('hidden');
-                void content.offsetHeight; 
-                requestAnimationFrame(() => {
-                    content.classList.remove('opacity-0', '-translate-x-full');
-                    content.classList.add('opacity-100', 'translate-x-0');
-                });
-            } else {
-                checkbox.checked = false;
-                void checkbox.offsetHeight;
-                content.classList.remove('opacity-100', 'translate-x-0');
-                content.classList.add('opacity-0', '-translate-x-full');
-                setTimeout(() => { panel.classList.add('hidden'); }, 500);
+            // ✅ 自动修复 GitHub 登录后必须手动刷新的痛点
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auth') === 'github_success') {
+                // 清除 URL 中的参数，防止无限循环
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+                // 强制重载页面，让 Flask 的登录态生效
+                window.location.reload();
             }
         });
 
