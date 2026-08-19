@@ -35,7 +35,6 @@
         @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
         .shake-field { animation: shakeField 0.2s ease-in-out 2; }
         
-        /* ✅ 核心修复：确保定位在右上角，绝对不要居中 */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { opacity: 0; transform: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -72,8 +71,6 @@
 </head>
 <body>
     
-    <!-- ✅ 已删掉 user_profile.html，这里不显示带退出按钮的卡片 -->
-
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
         <div class="title-row">
@@ -99,7 +96,6 @@
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
         
-        <!-- ✅ 齿轮设置按钮跳转设置页面 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="window.location.href='/settings'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1 2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -190,5 +186,153 @@
         })();
     </script>
     {% include 'components/plan_detail_modal.html' %}{% include 'components/3d_card.html' %}
+    
+    <!-- ================================================================ -->
+    <!-- ✅ 新增：语音唤醒 “嘿宫水” 智能体（核心功能） -->
+    <!-- ================================================================ -->
+    <script>
+    (function() {
+        let recognition = null;
+        let isListening = false;
+        let isInitializing = false;
+
+        // 语音合成（TTS）功能：让智能体开口说话
+        function speakText(text) {
+            if (!window.speechSynthesis) return;
+            // 如果当前正在说话，取消之前的
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 唤醒并打开 Agent 面板
+        function wakeUpAgent() {
+            if (typeof window.toggleAgentPanel === 'function') {
+                const wrapper = document.getElementById('agentPanelWrapper');
+                if (wrapper && wrapper.style.display !== 'block') {
+                    window.toggleAgentPanel();
+                }
+                // 打开后，通过语音回应用户
+                setTimeout(() => {
+                    const input = document.getElementById('agentInput');
+                    if (input) {
+                        input.value = '我在，请问有什么可以帮您？';
+                        speakText('我在，请问有什么可以帮您？');
+                        // 模拟自动发送消息给 AI（如果是你在 agent 逻辑里想让 AI 回复，可以触发发送）
+                        // 这里只做一个语音回应 + 输入框预填充的演示
+                        setTimeout(() => {
+                            input.value = '';
+                            input.focus();
+                        }, 2500);
+                    } else {
+                        // 如果输入框还没加载出来，至少用语音回应
+                        speakText('我在，请问有什么可以帮您？');
+                    }
+                }, 400);
+            } else {
+                speakText('我在，请问有什么可以帮您？');
+            }
+        }
+
+        function initVoiceAssistant() {
+            if (isInitializing) return;
+            isInitializing = true;
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                console.log('当前浏览器不支持语音识别');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+
+            recognition.onstart = function() {
+                console.log('🎤 语音助手已启动，请说 “嘿宫水”');
+                isListening = true;
+            };
+
+            recognition.onerror = function(event) {
+                console.warn('语音识别错误:', event.error);
+                if (event.error === 'not-allowed') {
+                    // 用户拒绝麦克风权限，不再反复弹窗
+                    isListening = false;
+                    return;
+                }
+                // 其他错误（如网络中断）尝试自动重启
+                if (isListening && event.error !== 'aborted') {
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(e) {}
+                    }, 1000);
+                }
+            };
+
+            recognition.onend = function() {
+                // 如果权限允许，并且不是主动停止的，自动重新连接
+                if (isListening) {
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(e) {}
+                    }, 500);
+                }
+            };
+
+            recognition.onresult = function(event) {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        // 识别到包含 “嘿宫水” 或 “嘿 宫水”（考虑中间可能有空格）
+                        if (transcript.includes('嘿宫水') || transcript.includes('嘿 宫水')) {
+                            console.log('✅ 唤醒词触发:', transcript);
+                            wakeUpAgent();
+                        }
+                    }
+                }
+            };
+
+            // 核心机制：自动请求权限并启动
+            // 如果不授权，可以配合页面第一次点击来启动（提升首访体验）
+            function tryStart() {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // 如果因为缺少用户手势被拒绝，尝试用 getUserMedia 预热
+                    console.log('尝试通过 getUserMedia 请求麦克风权限...');
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(function(stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                            // 预热成功后再次启动
+                            setTimeout(() => {
+                                try { recognition.start(); } catch(e) {}
+                            }, 100);
+                        })
+                        .catch(function(err) {
+                            console.log('用户未授权麦克风，请点击页面任意位置授权。');
+                            // 如果用户没点过页面，挂载一个一次性监听器
+                            const clickHandler = function() {
+                                document.removeEventListener('click', clickHandler);
+                                try { recognition.start(); } catch(e) {}
+                            };
+                            document.addEventListener('click', clickHandler);
+                        });
+                }
+            }
+
+            // 页面加载后立即尝试
+            tryStart();
+        }
+
+        // 等页面完全加载后执行
+        if (document.readyState === 'complete') {
+            initVoiceAssistant();
+        } else {
+            window.addEventListener('load', initVoiceAssistant);
+        }
+    })();
+    </script>
 </body>
 </html>
