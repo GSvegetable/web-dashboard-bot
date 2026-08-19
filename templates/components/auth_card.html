@@ -42,14 +42,21 @@
                         </div>
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
+                        <!-- ✅ 原有：扫码登录 -->
                         <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
                             扫码登录
+                        </button>
+
+                        <!-- ✅ 新增：GitHub 登录（点击直接跳转后端授权） -->
+                        <button type="button" onclick="window.location.href='/login/github'" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2 flex items-center justify-center gap-2">
+                            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                            <span>GitHub 登录</span>
                         </button>
                     </form>
                 {% endif %}
             </div>
 
-            <!-- ---------------- 模式2：扫码登录区域 ---------------- -->
+            <!-- ---------------- 模式2：扫码登录区域（保持不变） ---------------- -->
             <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
                 
                 <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
@@ -86,7 +93,7 @@
     gap: 14px; 
 }
 
-/* ✨ 核心修改：全程平均、丝滑过渡、中间不停顿的高频抖动 */
+/* 输入框抖动样式 */
 @keyframes shakeError {
     0%   { transform: translateX(0); }
     12.5% { transform: translateX(-4px); }
@@ -99,7 +106,6 @@
     100% { transform: translateX(0); }
 }
 .input-shake {
-    /* 0.35秒完成一次完整的连续振动 */
     animation: shakeError 0.35s ease-in-out 1;
     border-color: #ef4444 !important;
 }
@@ -248,9 +254,6 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    // ==========================================================
-    // ✨ 核心修改：触发完全连续丝滑的抖动
-    // ==========================================================
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim();
