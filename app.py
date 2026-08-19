@@ -2,8 +2,8 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_mail import Mail
-from authlib.integrations.flask_client import OAuth  # ✅ 在此初始化 OAuth
+# ✅ 从此处引入单独剥离出来的 mail 和 oauth
+from extensions import mail, oauth
 from models import db, User
 from routes import main_bp
 
@@ -19,11 +19,10 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-mail = Mail(app)
 
-# ================== ✅ GitHub OAuth 初始化 ==================
-oauth = OAuth(app)
-# ==========================================================
+# ✅ 在这里用 init_app 把实例绑定到 app 上
+mail.init_app(app)
+oauth.init_app(app)
 
 db.init_app(app)
 login_manager = LoginManager()
