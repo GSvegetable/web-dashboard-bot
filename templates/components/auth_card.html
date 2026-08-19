@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ✅ 注册/登录按钮（现在不仅能点，还能真正注册成功）
+    // ✅ 注册/登录按钮（删除了弹窗气泡）
     document.getElementById('submit-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const codeInput = document.getElementById('reg-code');
@@ -196,20 +196,17 @@ document.addEventListener("DOMContentLoaded", function() {
             const res = await fetch('/register', { method: 'POST', body: formData });
             const text = await res.text();
             if (text.includes('成功') || res.ok) {
-                if (typeof window.showTopToast === 'function') window.showTopToast('注册/登录成功！');
-                else alert('注册/登录成功，即将刷新页面');
-                setTimeout(() => { window.location.reload(); }, 1000);
+                // 直接刷新，移除任何弹窗气泡通知
+                setTimeout(() => { window.location.reload(); }, 500);
             } else {
                 emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
                 setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
                 btn.innerText = '注册/登录'; btn.disabled = false;
-                if (typeof window.showTopToast === 'function') window.showTopToast(text || '注册失败，请重试');
-                else alert(text || '注册失败，请重试');
+                alert(text || '注册失败，请重试');
             }
         } catch (e) {
             btn.innerText = '注册/登录'; btn.disabled = false;
-            if (typeof window.showTopToast === 'function') window.showTopToast('网络错误，请重试');
-            else alert('网络错误，请重试');
+            alert('网络错误，请重试');
         }
     });
 });
