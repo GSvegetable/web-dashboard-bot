@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +7,9 @@ from flask_login import LoginManager
 from extensions import mail, oauth
 from models import db, User
 from routes import main_bp
+
+# 设置日志，方便在宝塔里查错误
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
@@ -35,9 +39,14 @@ mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
-# ================== 🚨 核心修复：全局建表（Gunicorn 友好） ==================
-with app.app_context():
-    db.create_all()
+# ================== 🚨 核心修复：用 try/except 规避启动时多进程死锁崩溃 ==================
+try:
+    with app.app_context():
+        db.create_all()
+        app.logger.info("✅ 数据库表结构检查/创建成功！")
+except Exception as e:
+    # 如果发生死锁或权限错误，这里会在宝塔的日志里打印真实原因，不会崩掉500
+    app.logger.error(f"❌ 数据库初始化失败 (大概率是多进程并发锁死，请确保 -w 1): {e}")
 
 # ================== 登录管理器 ==================
 login_manager = LoginManager()
