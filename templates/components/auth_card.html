@@ -1,81 +1,65 @@
-<!-- 登录/注册卡片组件（解决递归死循环，DOM切换扫码版） -->
+<!-- 登录/注册卡片组件 -->
 <div class="modal-overlay" id="loginModal">
     <div class="modal-box">
         <div id="loginCardWrapper" class="login-card relative overflow-hidden">
             
-            <!-- 3D 翻转容器（默认显示） -->
-            <div class="flip-container w-full" id="flipContainer">
-                <div class="flip-inner relative transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] transform-gpu" id="flipInner">
-                    
-                    <!-- ==================== 🟢 正面：注册页面 ==================== -->
-                    <div class="flip-front backface-hidden w-full flex flex-col gap-3">
-                        <div class="flex flex-col gap-1 mb-1 relative">
-                            <span class="font-extrabold text-xl text-white anim-item">注册宫水大世界账号</span>
-                            <p class="text-gray-400 text-xs leading-tight anim-item">获取社区完整功能</p>
-                            <button onclick="toggleFlipCard(event)" class="absolute top-0 right-0 text-xs text-blue-400 hover:text-blue-300 transition">登录</button>
+            <!-- ---------------- 模式1：普通登录/注册表单 ---------------- -->
+            <div id="loginFormGroup">
+                {% if current_user.is_authenticated %}
+                    <div class="flex flex-col items-center gap-4 w-full py-4">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/30 to-blue-500/30 flex items-center justify-center text-2xl">
+                            {{ current_user.email[0]|upper if current_user.email else (current_user.telegram_id[0]|upper if current_user.telegram_id else 'U') }}
                         </div>
-
-                        <div class="flex gap-2 w-full anim-item">
-                            <input type="text" id="reg-email" name="email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱" required />
-                            <button id="reg-send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">获取</button>
+                        <div class="text-center">
+                            <p class="text-white font-medium text-lg">欢迎回来</p>
+                            <p class="text-gray-400 text-sm">
+                                {% if current_user.email %}
+                                    {{ current_user.email }}
+                                {% elif current_user.telegram_id %}
+                                    {{ current_user.telegram_id }}
+                                {% else %}
+                                    用户
+                                {% endif %}
+                            </p>
                         </div>
-                        <div class="anim-item">
+                        <a href="/logout" class="w-full mt-2 px-4 py-2.5 text-center bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium rounded-lg transition">退出登录</a>
+                    </div>
+                {% else %}
+                    <form id="authForm" onsubmit="return false;" novalidate>
+                        <div class="flex flex-col gap-1 mb-3">
+                            <span class="font-extrabold text-xl text-white anim-item">获取自己的GsBot账号</span>
+                            <p class="text-gray-400 text-xs leading-tight anim-item">绑定邮箱 更快获得最新功能</p>
+                        </div>
+                        <div class="flex gap-2 w-full anim-item" id="email-wrapper" style="margin-bottom: 3px;">
+                            <input type="text" id="reg-email" name="email" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
+                            <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
+                        </div>
+                        <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
                             <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                         </div>
-                        <div class="anim-item">
-                            <input type="password" id="reg-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="设置密码" required />
-                        </div>
-                        <div class="anim-item">
-                            <input type="password" id="reg-confirm-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="确认密码" required />
-                        </div>
+                        <!-- ✅ 密码框已彻底移除 -->
+                        <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
                         
-                        <button id="reg-submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-1">注册</button>
-                        
-                        <button type="button" onclick="window.location.href='/login/github'" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-1 flex items-center justify-center gap-2">
-                            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-                            <span>GitHub 注册</span>
-                        </button>
-                    </div>
-
-                    <!-- ==================== 🔵 反面：登录页面 ==================== -->
-                    <div class="flip-back backface-hidden w-full flex flex-col gap-3" style="transform: rotateY(180deg);">
-                        <div class="flex flex-col gap-1 mb-1 relative">
-                            <span class="font-extrabold text-xl text-white anim-item">登录宫水大世界</span>
-                            <p class="text-gray-400 text-xs leading-tight anim-item">欢迎回来</p>
-                            <button onclick="toggleFlipCard(event)" class="absolute top-0 right-0 text-xs text-blue-400 hover:text-blue-300 transition">注册</button>
-                        </div>
-
-                        <div class="flex gap-2 w-full anim-item">
-                            <input type="text" id="login-account" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="邮箱或Telegram ID" required />
-                            <button id="login-send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">获取</button>
-                        </div>
-                        <div class="anim-item">
-                            <input type="text" id="login-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
-                        </div>
-                        <div class="anim-item">
-                            <input type="password" id="login-password" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="密码" required />
-                        </div>
-                        
-                        <button id="login-submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-1">登录</button>
-
-                        <!-- 登录页专属扫码入口 -->
-                        <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-1 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
+                        <button type="button" id="switchToQrBtn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2">
                             扫码登录
                         </button>
-                    </div>
-
-                </div>
+                        <button type="button" onclick="window.location.href='/login/github'" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item mt-2 flex items-center justify-center gap-2">
+                            <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                            <span>GitHub 登录</span>
+                        </button>
+                    </form>
+                {% endif %}
             </div>
 
-            <!-- ==================== 🔵 扫码登录独立模块（默认隐藏，无递归问题） ==================== -->
-            <div id="qrLoginView" class="w-full hidden flex flex-col items-center justify-center py-4 relative" style="min-height: 340px;">
-                <button type="button" onclick="closeQrView()" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
-                <button type="button" onclick="saveQrCode()" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">保存</button>
+            <div id="qrLoginGroup" class="hidden flex flex-col items-center justify-center w-full py-4 relative">
+                <button type="button" id="switchBackBtn" class="absolute top-0 left-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">返回</button>
+                <button type="button" id="saveQrBtn" class="absolute top-0 right-0 text-white/50 hover:text-white text-sm px-3 py-2 rounded transition">保存</button>
                 <div id="qrCodeImageContainer" class="w-[200px] h-[200px] flex items-center justify-center mt-6 mb-2 transition-all">
                     <span class="text-gray-500 text-xs">加载二维码中...</span>
                 </div>
-                <p class="text-gray-400 text-xs mt-1 text-center leading-relaxed" id="qrStatusText">请扫描二维码<br>或将二维码直接发送给宫水机器人</p>
+                <p class="text-gray-400 text-xs mt-1 text-center leading-relaxed" id="qrStatusText">
+                    请扫描二维码<br>或将二维码直接发送给宫水机器人
+                </p>
             </div>
 
         </div>
@@ -83,164 +67,109 @@
 </div>
 
 <style>
-.login-card { position: relative; width: 100%; max-width: 320px; margin: 0 12px; padding: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
-.flip-container { perspective: 1000px; width: 100%; min-height: 340px; }
-.flip-inner { position: relative; width: 100%; min-height: 340px; transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); transform-style: preserve-3d; }
-.flip-inner.is-flipped { transform: rotateY(180deg); }
-.flip-front, .flip-back { position: absolute; top: 0; left: 0; width: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.login-card { position: relative; width: 100%; max-width: 320px; margin: 0 12px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
 @keyframes shakeError { 0% { transform: translateX(0); } 12.5% { transform: translateX(-4px); } 25% { transform: translateX(4px); } 37.5% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 62.5% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 87.5% { transform: translateX(-1px); } 100% { transform: translateX(0); } }
 .input-shake { animation: shakeError 0.35s ease-in-out 1; border-color: #ef4444 !important; }
 </style>
 
 <script>
-let currentQrToken = null;
-let qrPollTimer = null;
-
-// ================== 3D翻转逻辑 ==================
-function toggleFlipCard(e) {
-    if(e) e.stopPropagation();
-    const inner = document.getElementById('flipInner');
-    inner.classList.toggle('is-flipped');
-}
-
-// ================== 扫码登录逻辑（彻底移除递归） ==================
-function startQrPolling(token) {
-    stopQrPolling();
-    let attempts = 0;
-    qrPollTimer = setInterval(() => {
-        attempts++;
-        if (attempts > 30) {
-            stopQrPolling();
-            document.getElementById('qrStatusText').innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>';
-            return;
-        }
-        fetch(`/api/check_qr_login/${token}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                stopQrPolling();
-                document.getElementById('qrStatusText').innerText = '登录成功';
-                setTimeout(() => { window.location.reload(); }, 1000);
-            } else if (data.status === 'expired') {
-                stopQrPolling();
-                document.getElementById('qrStatusText').innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>';
-            }
-        })
-        .catch(e => {});
-    }, 2000);
-}
-function stopQrPolling() { if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; } }
-
-window.fetchQrLoginToken = function() {
-    const qrImgContainer = document.getElementById('qrCodeImageContainer');
-    const qrStatusText = document.getElementById('qrStatusText');
-    stopQrPolling();
-    qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
-    qrStatusText.innerHTML = '请扫描二维码<br>或将二维码直接发送给宫水机器人';
-    
-    fetch('/api/get_qr_login')
-    .then(res => res.json())
-    .then(data => {
-        if (data.success && data.token && data.url) {
-            currentQrToken = data.token;
-            qrImgContainer.innerHTML = `<img src="${data.img_base64}" alt="QR Code" class="w-full h-full object-contain rounded-2xl block">`;
-            startQrPolling(data.token);
-        } else {
-            qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`;
-        }
-    })
-    .catch(() => {
-        qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">网络错误</span>`;
-    });
-};
-
-function closeQrView() {
-    stopQrPolling();
-    document.getElementById('qrLoginView').classList.add('hidden');
-    document.getElementById('flipContainer').style.display = 'block';
-}
-function saveQrCode() {
-    const img = document.querySelector('#qrCodeImageContainer img');
-    if (!img) { alert('暂无二维码可保存，请等待二维码生成'); return; }
-    fetch(img.src).then(res => res.blob()).then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `gsbot_qrcode_${Date.now()}.png`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
-    }).catch(() => alert('保存失败，请检查网络后重试'));
-}
-
 document.addEventListener("DOMContentLoaded", function() {
-    // ================== 全局模态框控制 ==================
     window.openLoginModal = function() {
         const musicModal = document.getElementById('musicModal');
         if (musicModal && musicModal.classList.contains('active')) window.closeMusicModal();
         const modal = document.getElementById('loginModal');
-        if (!modal) return;
-        modal.classList.add('active');
-        // 每次打开强制重置为翻转卡片视图，隐藏扫码视图
-        document.getElementById('qrLoginView').classList.add('hidden');
-        document.getElementById('flipContainer').style.display = 'block';
-        // 默认为注册面
-        document.getElementById('flipInner').classList.remove('is-flipped');
-        
+        if (!modal) return; modal.classList.add('active'); resetToFormMode();
         const items = document.querySelectorAll('#loginModal .anim-item');
-        if (typeof gsap !== 'undefined') {
-            gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" });
-        }
+        if (typeof gsap !== 'undefined') { gsap.fromTo(items, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: "power2.out" }); }
     };
-    window.closeLoginModal = function() {
-        const modal = document.getElementById('loginModal');
-        if (modal) modal.classList.remove('active');
-        stopQrPolling();
-    };
+    window.closeLoginModal = function() { const modal = document.getElementById('loginModal'); if (modal) modal.classList.remove('active'); stopQrPolling(); };
+    const loginFormGroup = document.getElementById('loginFormGroup');
+    const qrLoginGroup = document.getElementById('qrLoginGroup');
+    const switchToQrBtn = document.getElementById('switchToQrBtn');
+    const switchBackBtn = document.getElementById('switchBackBtn');
+    const saveQrBtn = document.getElementById('saveQrBtn');
+    const qrImgContainer = document.getElementById('qrCodeImageContainer');
+    const qrStatusText = document.getElementById('qrStatusText');
+    let qrPollTimer = null; let currentQrToken = null;
 
-    // ================== 扫码切换逻辑 ==================
-    document.getElementById('switchToQrBtn').addEventListener('click', function() {
-        document.getElementById('flipContainer').style.display = 'none';
-        document.getElementById('qrLoginView').classList.remove('hidden');
-        window.fetchQrLoginToken();
-    });
-
-    // ================== 发送验证码与抖动逻辑 ==================
-    function shakeInput(inputElement) {
-        if(!inputElement) return;
-        inputElement.classList.remove('input-shake');
-        void inputElement.offsetWidth;
-        inputElement.classList.add('input-shake');
-        setTimeout(() => {
-            inputElement.classList.remove('input-shake');
-            inputElement.style.borderColor = '';
-        }, 350);
+    function switchToQrMode() {
+        if (!loginFormGroup || !qrLoginGroup || typeof gsap === 'undefined') return;
+        qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
+        qrStatusText.innerHTML = '请扫描二维码<br>或将二维码直接发送给宫水机器人';
+        gsap.to(loginFormGroup, { opacity: 0, y: -20, duration: 0.2, ease: "power1.in", onComplete: () => {
+            loginFormGroup.style.display = 'none'; qrLoginGroup.classList.remove('hidden');
+            gsap.fromTo(qrLoginGroup, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" });
+        }});
+        fetchQrLoginToken();
     }
+    function resetToFormMode() {
+        stopQrPolling(); currentQrToken = null;
+        if (qrLoginGroup.classList.contains('hidden')) {
+            loginFormGroup.style.display = 'block'; gsap.set(loginFormGroup, { opacity: 1, y: 0 }); return;
+        }
+        gsap.to(qrLoginGroup, { opacity: 0, y: 30, duration: 0.25, ease: "power1.in", onComplete: () => {
+            qrLoginGroup.classList.add('hidden'); loginFormGroup.style.display = 'block';
+            gsap.fromTo(loginFormGroup, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" });
+        }});
+    }
+    window.fetchQrLoginToken = function() {
+        stopQrPolling(); qrImgContainer.innerHTML = '<span class="text-gray-500 text-xs">生成二维码中...</span>';
+        qrStatusText.innerHTML = '请扫描二维码<br>或将二维码直接发送给宫水机器人';
+        fetch('/api/get_qr_login').then(res => res.json()).then(data => {
+            if (data.success && data.token && data.url) {
+                currentQrToken = data.token; qrImgContainer.innerHTML = `<img src="${data.img_base64}" alt="QR Code" class="w-full h-full object-contain rounded-2xl block">`;
+                startQrPolling(data.token);
+            } else { qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`; }
+        }).catch(() => { qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">网络错误</span>`; });
+    }
+    function startQrPolling(token) {
+        stopQrPolling(); let attempts = 0;
+        qrPollTimer = setInterval(() => {
+            attempts++;
+            if (attempts > 30) { stopQrPolling(); qrStatusText.innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>'; return; }
+            fetch(`/api/check_qr_login/${token}`).then(res => res.json()).then(data => {
+                if (data.status === 'success') { stopQrPolling(); qrStatusText.innerText = '登录成功'; setTimeout(() => { window.location.reload(); }, 1000); }
+                else if (data.status === 'expired') { stopQrPolling(); qrStatusText.innerHTML = '已过期 <span class="text-red-400 cursor-pointer hover:underline" onclick="window.fetchQrLoginToken()">点击刷新</span>'; }
+            }).catch(e => { });
+        }, 2000);
+    }
+    function stopQrPolling() { if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; } }
+    saveQrBtn.addEventListener('click', function() {
+        const img = document.querySelector('#qrCodeImageContainer img');
+        if (!img) { alert('暂无二维码可保存，请等待二维码生成'); return; }
+        fetch(img.src).then(res => res.blob()).then(blob => {
+            const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `gsbot_qrcode_${Date.now()}.png`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
+        }).catch(() => alert('保存失败，请检查网络后重试'));
+    });
+    if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
+    if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    document.getElementById('reg-send-code-btn').addEventListener('click', async function() {
+    document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim(); const btn = this;
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        if (!email || !isEmail) { shakeInput(emailInput); btn.innerText = '获取'; btn.disabled = false; return; }
-        btn.innerText = '发送中...'; btn.disabled = true;
+        const isTgId = /^\d{5,15}$/.test(email);
+        if (!email || (!isEmail && !isTgId)) {
+            emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
+            setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+            btn.innerText = '验证'; btn.disabled = false; return;
+        }
+        btn.innerText = '已发送'; btn.disabled = true;
         try {
             const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-            if (!res.ok) throw new Error(`错误: ${res.status}`);
+            if (!res.ok) throw new Error(`服务器返回错误: ${res.status}`);
             const data = await res.json();
-            if(data.ok) btn.innerText = '已发送'; else { btn.innerText = '获取'; btn.disabled = false; }
-        } catch (e) { btn.innerText = '获取'; btn.disabled = false; }
+            if(!data.ok) {
+                emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
+                setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+                btn.innerText = '验证'; btn.disabled = false;
+            }
+        } catch (e) {
+            emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
+            setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+            btn.innerText = '验证'; btn.disabled = false;
+        }
     });
-
-    document.getElementById('login-send-code-btn').addEventListener('click', async function() {
-        const accountInput = document.getElementById('login-account');
-        const account = accountInput.value.trim(); const btn = this;
-        if (!account) { shakeInput(accountInput); return; }
-        btn.innerText = '发送中...'; btn.disabled = true;
-        try {
-            const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: account}) });
-            if (!res.ok) throw new Error(`错误: ${res.status}`);
-            const data = await res.json();
-            if(data.ok) btn.innerText = '已发送'; else { btn.innerText = '获取'; btn.disabled = false; }
-        } catch (e) { btn.innerText = '获取'; btn.disabled = false; }
-    });
-
-    document.getElementById('reg-submit-btn').addEventListener('click', function() { alert('注册提交逻辑待后端支持'); });
-    document.getElementById('login-submit-btn').addEventListener('click', function() { alert('登录提交逻辑待后端支持'); });
 });
 </script>
