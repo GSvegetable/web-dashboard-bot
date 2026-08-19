@@ -31,9 +31,9 @@
         cursor: pointer;
     }
 
-    /* 鼠标悬浮时的 3D 立体翻转 */
+    /* ✅ 修改1：加大空间拉伸力度，调整旋转方向 */
     .card-3d:hover {
-        transform: translateZ(15px) rotateX(5deg) rotateY(-8deg);
+        transform: translateZ(35px) rotateX(8deg) rotateY(15deg);
     }
 
     /* 标题文字样式 */
@@ -53,9 +53,9 @@
              1px  1px 0 #000;
     }
 
-    /* 文字在悬浮时向外凸起 */
+    /* ✅ 修改2：文字向外凸出的幅度明显加大 */
     .card-3d:hover .card-3d-title {
-        transform: translateZ(50px);
+        transform: translateZ(80px);
     }
 </style>
 
