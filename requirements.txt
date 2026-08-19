@@ -9,3 +9,4 @@ pyzbar
 qrcode[pil]
 beautifulsoup4
 flask-mail
+authlib
