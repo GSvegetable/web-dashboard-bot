@@ -22,12 +22,16 @@ from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
-# ✅ 核心修复：这里的导入改成了 extensions.py
 from extensions import mail, oauth
 
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+
+# ✅ 新增：设置页面路由
+@main_bp.route('/settings')
+def settings():
+    return render_template('settings.html')
 
 # ==========================================
 # ✅ GitHub OAuth 登录
@@ -106,7 +110,8 @@ def github_callback():
         user.last_login = datetime.utcnow()
         db.session.commit()
         
-        return redirect(url_for('main.splash'))
+        # ✅ 修改：返回首页时带上参数 auth=github_success，触发自动刷新
+        return redirect(url_for('main.splash', auth='github_success'))
     except Exception as e:
         print(f"GitHub 登录失败: {e}")
         return redirect(url_for('main.splash'))
