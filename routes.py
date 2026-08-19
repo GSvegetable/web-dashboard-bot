@@ -29,12 +29,28 @@ main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
+# ✅ 你给的 24 个名字列表
+FIRST_NAMES = [
+    '仆', '恶魔用户0323', '天使用户0323', '灰调雪', 'Rely', 
+    '该用户名为天使、', '涩骨痣', 'みゃ、？', '活着为了火鸡面', '露水情缘', 
+    '我心自有凜冬', '天真流尽泪', '缘如弦断难续', '循环的圆', '泪糸痛', 
+    '世間於我無关', '一万篇坏心事', '虚假郁片', '归属哪颗流星', '浅色泪、', 
+    '此用户很忧郁', '一滴名为白水', '鉴心永远是多远、', 'github'
+]
+
+# ✅ 生成独一无二的 6 位 ID
+def generate_unique_display_id():
+    while True:
+        new_id = str(random.randint(100000, 999999))
+        if not User.query.filter_by(display_id=new_id).first():
+            return new_id
+
 @main_bp.route('/settings')
 def settings():
     return render_template('settings.html')
 
 # ==========================================
-# ✅ GitHub OAuth 登录（已硬编码修复跳转）
+# ✅ GitHub OAuth 登录
 # ==========================================
 oauth.register(
     name='github',
@@ -373,10 +389,24 @@ def register():
     if user: login_user(user); user.last_login = datetime.utcnow()
     else:
         hashed_password = generate_password_hash(password)
-        if is_email: new_user = User(email=account, password_hash=hashed_password)
+        if is_email:
+            # ✅ 邮箱注册：随机分配名字 + 独一无二的 6 位 ID
+            new_user = User(
+                email=account,
+                password_hash=hashed_password,
+                first_name=random.choice(FIRST_NAMES),
+                display_id=generate_unique_display_id()
+            )
         else:
             tg_info = fetch_telegram_user_info(account)
-            new_user = User(telegram_id=account, password_hash=hashed_password, first_name=tg_info['first_name'] if tg_info else '', last_name=tg_info['last_name'] if tg_info else '', telegram_username=tg_info['username'] if tg_info else '', avatar_url=tg_info['avatar_url'] if tg_info else None)
+            new_user = User(
+                telegram_id=account,
+                password_hash=hashed_password,
+                first_name=tg_info['first_name'] if tg_info else '',
+                last_name=tg_info['last_name'] if tg_info else '',
+                telegram_username=tg_info['username'] if tg_info else '',
+                avatar_url=tg_info['avatar_url'] if tg_info else None
+            )
         db.session.add(new_user); db.session.commit(); login_user(new_user)
     return "登录成功" if user else "注册成功"
 
