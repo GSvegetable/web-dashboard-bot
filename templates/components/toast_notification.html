@@ -6,102 +6,109 @@
     transform: translateX(-50%) translateY(-100%);
     z-index: 99999;
 
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 
-    /* 正常小球尺寸：44x44 */
+    /* 初始圆球，设置为 flex center 让文字正好在正中间 */
     width: 44px;
     height: 44px;
     border-radius: 999px;
-    
-    /* 默认无内边距 */
     padding: 0;
 
     opacity: 0;
     pointer-events: none;
     box-sizing: border-box;
-
-    /* 核心动画过渡 */
+    
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 文字绝对居中 */
+    
+    /* 不再裁剪内容，让文字自然展开 */
     transition:
         transform 0.3s cubic-bezier(0.34, 1.08, 0.64, 1),
         opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        width 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),   
+        width 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
         padding 0.5s cubic-bezier(0.34, 1.3, 0.64, 1),
         height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
         border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 内部文字容器：随胶囊展开淡入 */
+/* 文字初始完全透明 */
 #topToast span {
     display: inline-block;
     white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease-in 0.2s; /* 延迟0.2s，等胶囊拉长一点再显示文字 */
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 500;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+    opacity: 0; /* ✅ 强制隐藏 */
+    transition: opacity 0.1s ease-in; /* 出现得快一点，根据你的要求 */
 }
 </style>
 
 <script>
 let toastTimer = null;
-let toastExpandTimer = null;
-let toastHideTimer = null;
 
 window.showTopToast = function (message) {
     const existing = document.getElementById('topToast');
     if (existing) existing.parentNode.removeChild(existing);
-
     if (toastTimer) clearTimeout(toastTimer);
-    if (toastExpandTimer) clearTimeout(toastExpandTimer);
-    if (toastHideTimer) clearTimeout(toastHideTimer);
 
     const toast = document.createElement('div');
     toast.id = 'topToast';
 
-    // 创建文字节点
     const msgSpan = document.createElement('span');
-    msgSpan.innerText = message || ''; 
+    msgSpan.innerText = message || '测试提示';
     toast.appendChild(msgSpan);
 
-    // 初始状态：屏幕外
+    // 初始状态
     toast.style.transform = 'translateX(-50%) translateY(-100%)';
     toast.style.opacity = '0';
     toast.style.width = '44px';
-    toast.style.height = '54px';              // 拉长 10px
-    toast.style.borderRadius = '50% 50% 45% 45% / 65% 65% 45% 45%';
     toast.style.padding = '0';
 
     document.body.appendChild(toast);
-    void toast.offsetWidth; // 强制重绘
+    void toast.offsetWidth; 
 
-    // 1. 下滑到 40px
+    // 1. 小球下落
     toast.style.transform = 'translateX(-50%) translateY(40px)';
     toast.style.opacity = '1';
-    toast.style.height = '44px';
-    toast.style.borderRadius = '999px';
 
-    // 2. 展开胶囊
-    toastExpandTimer = setTimeout(() => {
-        // 宽度改为自适应内容，内边距保证文字和边框留白
-        toast.style.width = 'fit-content';
+    // 2. 250ms 后展开胶囊，并让文字淡入
+    setTimeout(() => {
+        const textWidth = msgSpan.scrollWidth;
+        const targetWidth = textWidth + 40; 
+        toast.style.width = targetWidth + 'px';
         toast.style.padding = '0 20px';
-        msgSpan.style.opacity = '1'; // 文字显现
+        
+        // ✅ 胶囊展开的同时，立刻让文字显现出来
+        msgSpan.style.opacity = '1'; 
     }, 250);
 
     // 3. 收拢并退场
-    toastHideTimer = setTimeout(() => {
+    toastTimer = setTimeout(() => {
+        // 退场时统一把文字隐藏
+        msgSpan.style.opacity = '0'; 
+
+        toast.style.transition = 
+            'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
+            'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
+            'width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
+            'padding 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
+            'height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), ' +
+            'border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
         toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
         toast.style.width = '44px';
-        toast.style.height = '44px';
-        toast.style.borderRadius = '999px';
         toast.style.padding = '0';
-        msgSpan.style.opacity = '0';
 
-        toastTimer = setTimeout(() => {
+        setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
-        }, 500);
+        }, 300);
     }, 3300);
 };
 </script>
