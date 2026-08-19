@@ -1,4 +1,4 @@
-<!-- 点击切换版：左侧头像 + 右侧文字，点击时两者同时向右上飞出 -->
+<!-- 点击切换版：左侧大圆头像 + 右侧两行文字，一起向右飞出 -->
 <style>
     .cards {
         perspective: 500px;
@@ -10,7 +10,7 @@
     }
 
     .card {
-        width: 230px; /* 宽度稍微加宽一点，放得下左右元素 */
+        width: 230px;
         height: 80px;
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
@@ -23,10 +23,11 @@
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
         cursor: pointer;
-        display: flex; /* 内部使用 flex 辅助定位 */
+        display: flex;
         align-items: center;
-        padding: 0 20px;
+        padding: 0 16px; /* 左右留出一点余地 */
         box-sizing: border-box;
+        gap: 14px; /* 头像和文字区域的距离 */
     }
 
     /* 点击开启后的底座倾斜 */
@@ -34,11 +35,10 @@
         transform: translateZ(10px) rotateX(8deg) rotateY(12deg);
     }
 
-    /* ✅ 头像：放在最左侧，并具备独立 3D 能力 */
+    /* ✅ 头像：加大尺寸到 56px */
     .card-avatar {
-        position: relative; /* 改为相对定位，让 flex 自动排版 */
-        width: 44px;
-        height: 44px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.1);
         border: 2px solid rgba(255, 255, 255, 0.2);
@@ -46,7 +46,7 @@
         align-items: center;
         justify-content: center;
         color: #fff;
-        font-size: 20px;
+        font-size: 24px;
         font-weight: bold;
         overflow: hidden;
         backdrop-filter: blur(6px);
@@ -54,7 +54,7 @@
         pointer-events: none;
         flex-shrink: 0;
         
-        /* ✅ 关键：开启头像的独立 3D 空间，与卡片解绑 */
+        /* ✅ 开启头像的独立 3D 空间 */
         transform-style: preserve-3d;
         backface-visibility: hidden;
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -66,39 +66,79 @@
         object-fit: cover;
     }
 
-    /* ✅ 文字：放在右侧 */
-    .card_title {
-        color: #fff;
-        position: relative; /* 改为相对定位 */
-        margin-left: auto; /* 自动推至最右侧 */
-        transform: translateY(0);
-        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        font: 700 1.5rem monospace;
-        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        backface-visibility: hidden;
+    /* ✅ 右侧文字容器（两行） */
+    .card-text-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1; /* 占据剩余空间 */
+        min-width: 0; /* 防止文字过长撑破卡片 */
+        pointer-events: none;
+        
         transform-style: preserve-3d;
+        backface-visibility: hidden;
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    /* ✅ 形态一：点击后，文字和头像同时向右上方飞出 */
-    .card.is-active .card_title {
-        transform: translateZ(350px) translateX(40px) translateY(-10px);
+    /* ✅ 第一行：名字（较大） */
+    .card-name {
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
+    /* ✅ 第二行：ID（较小，灰色） */
+    .card-id {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    /* ✅ 形态一：点击后，卡片内所有元素一起向右上方飞出 */
     .card.is-active .card-avatar {
-        transform: translateZ(350px) translateX(20px) translateY(-10px);
+        transform: translateZ(350px) translateX(20px) translateY(-8px);
+    }
+    .card.is-active .card-text-container {
+        transform: translateZ(350px) translateX(40px) translateY(-8px);
     }
 </style>
 
 <div class="cards">
     <figure class="card" id="toggleCard">
-        <!-- ✅ 左侧头像占位 -->
+        <!-- ✅ 左侧圆形头像 -->
         <div class="card-avatar">
-            <!-- 你可以把这里换成真实的 img 标签 -->
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <!-- 目前用 SVG 占位，后续你可以换成真实用户的 img -->
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         </div>
         
-        <!-- ✅ 右侧文字 -->
-        <figcaption class="card_title">3D Hover</figcaption>
+        <!-- ✅ 右侧文字两行 -->
+        <div class="card-text-container">
+            <div class="card-name">
+                <!-- Jinja2 模板逻辑：登录了显示名字，没登录显示某某某 -->
+                {% if current_user.is_authenticated and current_user.first_name %}
+                    {{ current_user.first_name }}
+                {% else %}
+                    某某某
+                {% endif %}
+            </div>
+            <div class="card-id">
+                <!-- 登录了显示邮箱/ID，没登录显示六个零 -->
+                {% if current_user.is_authenticated %}
+                    {{ current_user.email or current_user.telegram_id or '用户' }}
+                {% else %}
+                    000000
+                {% endif %}
+            </div>
+        </div>
     </figure>
 </div>
 
