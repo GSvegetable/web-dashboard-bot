@@ -68,7 +68,7 @@
             .login-card, .music-card-glass { max-width: 320px; }
         }
 
-        /* ================== 🟢 新增：可视化水波纹唤醒球 ================== */
+        /* ================== 🟢 水波纹唤醒球 CSS ================== */
         #voiceSphere {
             position: fixed;
             bottom: 40px;
@@ -77,10 +77,10 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.85), rgba(80, 180, 255, 0.4), rgba(255,255,255,0));
+            background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), rgba(80, 180, 255, 0.5), rgba(255,255,255,0));
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 0 40px rgba(50, 150, 255, 0.3), inset 0 -4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 0 40px rgba(50, 150, 255, 0.4), inset 0 -4px 10px rgba(0,0,0,0.2);
             z-index: 99999;
             pointer-events: none;
             transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
@@ -91,10 +91,9 @@
             opacity: 1;
             animation: waterPulse 1.6s ease-in-out 2;
         }
-        /* 水波扩散呼吸动画 */
         @keyframes waterPulse {
             0%   { transform: translateX(-50%) translateY(0px) scale(1); box-shadow: 0 0 20px rgba(50, 150, 255, 0.4); }
-            30%  { transform: translateX(-50%) translateY(0px) scale(1.2); box-shadow: 0 0 60px rgba(50, 150, 255, 0.8); }
+            30%  { transform: translateX(-50%) translateY(0px) scale(1.25); box-shadow: 0 0 60px rgba(50, 150, 255, 0.8); }
             60%  { transform: translateX(-50%) translateY(0px) scale(0.95); box-shadow: 0 0 30px rgba(50, 150, 255, 0.5); }
             90%  { transform: translateX(-50%) translateY(0px) scale(1.1); box-shadow: 0 0 50px rgba(50, 150, 255, 0.7); }
             100% { transform: translateX(-50%) translateY(0px) scale(1); box-shadow: 0 0 20px rgba(50, 150, 255, 0.4); }
@@ -223,64 +222,65 @@
     <div id="voiceSphere"></div>
     
     <!-- ================================================================ -->
-    <!-- ✅ 升级版语音唤醒 “嘿宫水” + 水波纹球视觉反馈                -->
+    <!-- ✅ 终极版语音唤醒：必须配合一次点击才能彻底激活               -->
     <!-- ================================================================ -->
     <script>
     (function() {
+        // 核心状态
         let recognition = null;
         let isListening = false;
         let sphereTimer = null;
-        let firstClickDone = false; // 默认无需点击，但首次必须触发页面交互激活
+        let isActivated = false; // 标记是否已经过用户手势激活
 
         const sphere = document.getElementById('voiceSphere');
 
-        // ✅ 动效：水波纹球弹出 + 震动，持续 3 秒后沉回去
+        // 1. 水波纹球弹出动画
         function triggerVoiceSphere() {
             if (!sphere) return;
-            // 清除之前的定时器
             if (sphereTimer) clearTimeout(sphereTimer);
-            
-            // 激活 + 播放动画
             sphere.classList.remove('active');
-            void sphere.offsetWidth; // 触发重绘
+            void sphere.offsetWidth; // 触发重绘重置动画
             sphere.classList.add('active');
-
-            // 3秒后自动沉入底部
             sphereTimer = setTimeout(() => {
                 sphere.classList.remove('active');
             }, 3200);
         }
 
-        // ✅ 唤醒并打开 Agent 面板（保留声音反馈，但用球体兜底）
+        // 2. 唤起 Agent 面板 + 语音反馈
         function wakeUpAgent() {
-            triggerVoiceSphere(); // 球体立刻弹出来
-
+            triggerVoiceSphere(); // 视觉反馈一定触发
+            
             if (typeof window.toggleAgentPanel === 'function') {
                 const wrapper = document.getElementById('agentPanelWrapper');
-                // 检查面板是否已打开，若没打开则触发展开
                 if (wrapper && wrapper.style.display !== 'block') {
                     window.toggleAgentPanel();
                 }
             }
 
-            // 尝试语音合成（TTS）说“我在”，但不依赖它作为唯一反馈
-            setTimeout(() => {
-                try {
-                    if (window.speechSynthesis) {
-                        const utterance = new SpeechSynthesisUtterance('我在。');
-                        utterance.lang = 'zh-CN';
-                        utterance.rate = 1.0;
-                        window.speechSynthesis.speak(utterance);
-                    }
-                } catch (e) {}
-            }, 300);
+            // 语音回应
+            try {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance('我在。');
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (e) {}
         }
 
-        function initVoiceAssistant() {
+        // 3. 核心：真正启动语音识别（必须由用户手势调用）
+        function startRecognition() {
+            if (isActivated) return; // 已激活则跳过
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                console.log('当前浏览器不支持语音识别');
+                console.error('❌ 浏览器不支持语音识别，请使用最新版 Chrome/Edge');
                 return;
+            }
+
+            if (recognition) {
+                try { recognition.stop(); } catch(e) {}
+                recognition = null;
             }
 
             recognition = new SpeechRecognition();
@@ -289,38 +289,31 @@
             recognition.lang = 'zh-CN';
 
             recognition.onstart = function() {
-                console.log('🎤 语音助手已启动，请说 “嘿宫水”');
+                console.log('🎤 语音助手已成功激活！请说 “嘿宫水”');
                 isListening = true;
+                isActivated = true;
             };
 
             recognition.onerror = function(event) {
-                console.warn('语音识别错误:', event.error);
+                console.warn('🎤 语音出错:', event.error);
                 if (event.error === 'not-allowed') {
-                    // 用户如果没授权，就派发一个“点击网页任意处”触发一次 getusermedia 的逻辑
-                    if (!firstClickDone) {
-                        const clickHandler = function() {
-                            document.removeEventListener('click', clickHandler);
-                            firstClickDone = true;
-                            navigator.mediaDevices.getUserMedia({ audio: true })
-                                .then(function(stream) {
-                                    stream.getTracks().forEach(track => track.stop());
-                                    try { recognition.start(); } catch(e) {}
-                                }).catch(() => {});
-                        };
-                        document.addEventListener('click', clickHandler);
-                        console.log('等待用户点击页面授权麦克风...');
-                    }
+                    // 用户拒绝了权限，死心不再反复弹窗
+                    isListening = false;
                     return;
                 }
-                // 其他错误，自动重启
                 if (isListening && event.error !== 'aborted') {
-                    setTimeout(() => { try { recognition.start(); } catch(e) {} }, 1000);
+                    // 如果网络中断，自动重启
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(e) {}
+                    }, 1000);
                 }
             };
 
             recognition.onend = function() {
                 if (isListening) {
-                    setTimeout(() => { try { recognition.start(); } catch(e) {} }, 500);
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(e) {}
+                    }, 500);
                 }
             };
 
@@ -328,11 +321,9 @@
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
                         const transcript = event.results[i][0].transcript.trim();
-                        // ✅ 灵敏度调高：匹配 嘿/黑/嗨 + 宫水，中间带不带空格都可以
+                        // 支持 嘿/黑/嗨 + 宫水
                         const wakePatterns = ['嘿宫水', '嘿 宫水', '黑宫水', '黑 宫水', '嗨宫水', '嗨 宫水'];
-                        const matched = wakePatterns.some(pattern => transcript.includes(pattern));
-                        
-                        if (matched) {
+                        if (wakePatterns.some(p => transcript.includes(p))) {
                             console.log('✅ 唤醒词触发:', transcript);
                             wakeUpAgent();
                         }
@@ -340,37 +331,54 @@
                 }
             };
 
-            // 一上来就启动识别，同时主动请求权限（但浏览器会拦截，需等待用户第一次点击）
-            try { recognition.start(); } catch(e) {}
+            // 【关键】在用户手势下执行 start()
+            try {
+                recognition.start();
+                console.log('✅ 识别启动命令已执行');
+            } catch (e) {
+                console.error('❌ 启动失败:', e);
+            }
+        }
 
-            // 提前做一次 getUserMedia 请求，如果成功就直接用；如果失败，会抛给 onerror 里的 click 监听
+        // 4. 页面加载后，尝试用 getUserMedia 预热（只会触发浏览器权限弹窗）
+        function attemptAutoStart() {
+            if (isActivated) return;
+            
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function(stream) {
+                    // 预热成功，停止所有轨，然后尝试启动识别
                     stream.getTracks().forEach(track => track.stop());
-                    try { recognition.start(); } catch(e) {}
+                    console.log('✅ 麦克风权限已获得，尝试自动启动识别...');
+                    startRecognition();
                 })
-                .catch(() => {
-                    // 挂载全局点击监听器，一旦用户点击，立刻再试
-                    const globalClick = function() {
-                        document.removeEventListener('click', globalClick);
-                        firstClickDone = true;
+                .catch(function(err) {
+                    console.log('⚠️ 自动获取麦克风失败（需用户点击授权）:', err.name);
+                    // 如果自动获取失败，挂载一个全局点击监听，一旦用户点页面任意处，立即启动
+                    const clickToActivate = function() {
+                        document.removeEventListener('click', clickToActivate);
+                        console.log('🖱️ 检测到用户点击，尝试激活麦克风...');
                         navigator.mediaDevices.getUserMedia({ audio: true })
                             .then(function(stream) {
                                 stream.getTracks().forEach(track => track.stop());
-                                try { recognition.start(); } catch(e) {}
+                                startRecognition();
                             })
-                            .catch(() => {});
+                            .catch(function(e2) {
+                                console.error('❌ 用户点击后依然被拒绝，请检查浏览器权限设置:', e2);
+                            });
                     };
-                    document.addEventListener('click', globalClick);
-                    console.log('⚠️ 麦克风权限需用户点击授权，请在页面任意处点一下。');
+                    document.addEventListener('click', clickToActivate);
                 });
         }
 
+        // 5. 立即执行
         if (document.readyState === 'complete') {
-            initVoiceAssistant();
+            attemptAutoStart();
         } else {
-            window.addEventListener('load', initVoiceAssistant);
+            window.addEventListener('load', attemptAutoStart);
         }
+
+        // 导出给调试用
+        window.__force_activate_voice = startRecognition;
     })();
     </script>
 </body>
