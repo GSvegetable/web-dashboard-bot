@@ -48,7 +48,8 @@ oauth.register(
 
 @main_bp.route('/login/github')
 def login_github():
-    redirect_uri = url_for('main.github_callback', _external=True)
+    # ✅ 修改点：直接写上精确的 Punycode 域名链接，防止动态生成时出现 http/https 匹配错误
+    redirect_uri = 'https://xn--3bts89a.com/auth/github/callback'
     return oauth.github.authorize_redirect(redirect_uri)
 
 @main_bp.route('/auth/github/callback')
@@ -110,7 +111,6 @@ def github_callback():
         user.last_login = datetime.utcnow()
         db.session.commit()
         
-        # ✅ 修改：返回首页时带上参数 auth=github_success，触发自动刷新
         return redirect(url_for('main.splash', auth='github_success'))
     except Exception as e:
         print(f"GitHub 登录失败: {e}")
