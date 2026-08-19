@@ -45,7 +45,6 @@
             overflow: hidden; 
         }
         
-        /* ✅ 修正：液态玻璃感排版，文字本身保持工整 */
         .glass-text-row {
             display: flex;
             width: 100%;
@@ -67,36 +66,33 @@
             letter-spacing: -0.02em;
             transform: scaleY(0.85);
             transition: transform 0.4s ease;
-            /* 让父容器拥有堆叠上下文，但本身不施加扭曲 */
         }
         .glass-text-item:hover {
             transform: scaleY(0.85) scaleX(1.05);
         }
 
-        /* 🎯 核心修正：底层扭曲滤镜层 */
+        /* 底层折射层 */
         .glass-text-item .liquid-bg {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: 1;
-            /* 施加真实的折射偏移滤镜，但不影响上层文字 */
             filter: url(#glass-distortion);
             backdrop-filter: blur(1px);
             -webkit-backdrop-filter: blur(1px);
             opacity: 0.9;
             pointer-events: none;
-            transform: scale(1.05); /* 稍微放大一点，防止裁切 */
+            transform: scale(1.05);
         }
 
-        /* 🎯 核心修正：上层文字保持透明、工整不扭曲 */
+        /* ✨ 彻底去掉了白色描边，字体本身用极度透明的白色，配合极淡投影 */
         .glass-text-item .text-shape {
             position: relative;
             z-index: 2;
-            color: transparent; /* 字体内部透明，透出底层的液态扭曲 */
-            /* 使用白色的半透明描边，展示出完美的字型轮廓 */
-            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);
-            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.7); /* 确保在任何深色背景下都能看清 */
-            filter: none !important; /* 绝对禁止扭曲！保持字体工整！ */
+            color: rgba(255, 255, 255, 0.05); /* 极低的透明度，透出底层的折射 */
+            -webkit-text-stroke: 0 !important; /* 保证没有任何白边 */
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.15); /* 仅用非常柔和的发光让它保有形状 */
+            filter: none !important;
         }
         
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
@@ -164,7 +160,7 @@
 </head>
 <body>
     
-    <!-- 🎨 核心液态玻璃 SVG 滤镜 -->
+    <!-- 🎨 液态玻璃 SVG 滤镜 -->
     <svg style="display: none; position: absolute; width: 0; height: 0;">
         <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
             <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="1" seed="5" result="turbulence">
@@ -209,7 +205,7 @@
             </button>
         </div>
 
-        <!-- ✅ 修正后的液态玻璃排版：文字工整，背景透明折射 -->
+        <!-- ✨ 无白色描边、纯粹透明的果冻玻璃文字 -->
         <div class="glass-text-row">
             <div class="glass-text-item">
                 <div class="liquid-bg"></div>
@@ -255,7 +251,7 @@
         let isExpanded = false;
 
         document.addEventListener("DOMContentLoaded", function() {
-            // 🧊 预热：页面加载时立刻让显卡编译滤镜，确保文字出现时不卡顿
+            // 🧊 预热：刚加载就把液态滤镜编译好
             const dummy = document.createElement('div');
             dummy.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;filter:url(#glass-distortion);backdrop-filter:blur(1px);z-index:-9999;';
             document.body.appendChild(dummy);
