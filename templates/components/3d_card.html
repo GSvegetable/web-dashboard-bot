@@ -1,7 +1,6 @@
-<!-- 最终版：优雅倾斜 + 文字往外飞 + 点击右上移动 -->
+<!-- 最终版：卡片固定姿态，文字极限夸张飞出 -->
 <style>
     .cards {
-        /* 恢复正常的视距，消除夸张畸变 */
         perspective: 500px;
         position: fixed;
         top: 24px;
@@ -19,7 +18,6 @@
         border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 16px;
         position: relative;
-        /* ✅ 强制开启 3D 渲染模式 */
         transform-style: preserve-3d;
         backface-visibility: hidden;
         will-change: transform;
@@ -28,7 +26,7 @@
         cursor: pointer;
     }
 
-    /* 适度的往右前方翻转 */
+    /* ✅ 卡片姿态绝对固定，丝毫不改！ */
     .card:hover {
         transform: translateZ(10px) rotateX(8deg) rotateY(12deg);
     }
@@ -38,26 +36,22 @@
         position: absolute;
         top: 50%;
         right: 20px;
-        /* 初始状态稳稳居中 */
         transform: translateY(-50%);
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         font: 700 1.5rem monospace;
         text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-        /* ✅ 关键：让文字独立于父容器进行 3D 空间计算 */
         backface-visibility: hidden;
         transform-style: preserve-3d;
     }
 
-    /* ✅ 悬停时：文字终于摆脱卡片，向前猛烈飞出，并略微右上平移 */
+    /* ✅ 文字疯狂向前飞出 350px，并向右平移 30px */
     .card:hover .card_title {
-        /* 保持居中 + 向前飞出 160px + 向右平移 15px */
-        transform: translateY(-50%) translateZ(160px) translateX(15px);
+        transform: translateY(-50%) translateZ(350px) translateX(30px);
     }
 
-    /* ✅ 点击时：文字往右上方再移动一点点（激活手感） */
+    /* ✅ 点击按下时：文字再往右上角大幅度冲一下 */
     .card:active .card_title {
-        /* 向前飞出 160px + 向右 20px + 向上 5px */
-        transform: translateY(-50%) translateZ(160px) translateX(20px) translateY(-5px);
+        transform: translateY(-50%) translateZ(350px) translateX(40px) translateY(-10px);
     }
 </style>
 
