@@ -14,9 +14,39 @@
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
         :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
-        body { width: 100vw; height: 100vh; overflow: hidden; background-color: #000000; display: flex; flex-direction: column; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; }
-        body.loaded { opacity: 1; }
-        .content-area { position: relative; width: 100%; height: 100vh; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; margin-top: 0; padding-top: 15vh; padding-left: 12%; padding-bottom: 15vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; z-index: 1; overflow: hidden; }
+        
+        /* ✅ 核心修改：去掉 overflow: hidden，让网页能正常上下滑动 */
+        body { 
+            width: 100vw; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #000000; 
+            display: flex; 
+            flex-direction: column; 
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
+        }
+        
+        /* ✅ 改为 min-height: 100vh，保证能延展出黑屏 */
+        .content-area { 
+            position: relative; 
+            width: 100%; 
+            min-height: 100vh; 
+            background-image: var(--bg-img); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            padding-top: 15vh; 
+            padding-left: 12%; 
+            padding-bottom: 15vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            justify-content: flex-start; 
+            z-index: 1; 
+            overflow: hidden; 
+        }
+        
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
         .title-row { display: flex; flex-direction: row; align-items: flex-start; justify-content: flex-start; gap: 12px; position: relative; z-index: 1; margin-bottom: 4px; margin-top: 0; }
         .text-group { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; opacity: 0; transform: translateY(60px); }
@@ -107,8 +137,7 @@
         </div>
     </div>
 
-    <!-- ✅ 新增：插入高级横向滑动画廊组件 -->
-    {% include 'components/scroll_gallery.html' %}
+    <!-- ✅ 已彻底删除了那个 scroll_gallery 组件的引用 -->
 
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
@@ -217,7 +246,6 @@
             }
         });
 
-        // 备份：防止页面加载太快导致 Agent 函数未定义
         (function() {
             if (typeof window.toggleAgentPanel !== 'function') {
                 window.toggleAgentPanel = function() {
