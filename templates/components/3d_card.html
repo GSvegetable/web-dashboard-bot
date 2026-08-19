@@ -1,8 +1,8 @@
-<!-- 左上角 3D 悬浮横向卡片组件（修正方向与巨大幅度） -->
+<!-- 原版 3D 悬浮卡片（一字不差搬过来） -->
 <style>
-    /* ✅ 修改1：加大透视深度，让角度更夸张 */
-    .card-container-3d {
-        perspective: 300px;
+    /* From Uiverse.io by Cornerstone-04 */ 
+    .cards {
+        perspective: 500px;
         position: fixed;
         top: 24px;
         left: 24px;
@@ -10,42 +10,30 @@
         pointer-events: auto;
     }
 
-    /* 卡片本体：横着的长方形 */
-    .card-3d {
-        width: 260px;
-        height: 80px;
-        background: rgba(22, 22, 29, 0.7);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
+    .card {
+        width: 200px;
+        height: 250px;
+        background: #16161d;
         border: 2px solid #555555;
-        border-radius: 12px;
+        border-radius: 4px;
         position: relative;
         transform-style: preserve-3d;
         will-change: transform;
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        padding-left: 20px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        cursor: pointer;
+        transition: transform .5s;
     }
 
-    /* ✅ 修改2：方向改为往右前方大幅旋转 + 拉出 */
-    .card-3d:hover {
-        /* translateZ 拉得更多，rotateY 改为负数（往右凸出），角度拉到 30度 */
-        transform: translateZ(40px) rotateX(10deg) rotateY(-30deg);
+    .card:hover {
+        transform: translateZ(10px) rotateX(20deg) rotateY(20deg);
     }
 
-    /* 标题文字样式 */
-    .card-3d-title {
-        color: #ffffff;
+    .card_title {
+        color: #fff;
         position: absolute;
         top: 50%;
         right: 20px;
         transform: translateY(-50%);
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        font: 700 1.2rem monospace;
+        transition: transform .5s;
+        font: 700 1.5rem monospace;
         text-shadow: 
             -1px -1px 0 #000,  
              1px -1px 0 #000,
@@ -53,15 +41,14 @@
              1px  1px 0 #000;
     }
 
-    /* ✅ 修改3：文字往右前方大幅度飞出 */
-    .card-3d:hover .card-3d-title {
-        transform: translateZ(90px) translateY(-50%);
+    .card:hover .card_title {
+        transform: translateZ(50px);
     }
 </style>
 
-<!-- 外层包裹容器 -->
-<div class="card-container-3d">
-    <figure class="card-3d">
-        <figcaption class="card-3d-title">宫水大世界</figcaption>
+<!-- From Uiverse.io by Cornerstone-04 --> 
+<div class="cards">
+    <figure class="card">
+        <figcaption class="card_title">3D Hover</figcaption>
     </figure>
 </div>
