@@ -86,15 +86,20 @@
     gap: 14px; 
 }
 
-/* ✨ 修正：单次极快来回，总时长 0.35秒 */
+/* ✨ 核心修改：全程平均、丝滑过渡、中间不停顿的高频抖动 */
 @keyframes shakeError {
-    0% { transform: translateX(0); }
-    30% { transform: translateX(-5px); }
-    70% { transform: translateX(5px); }
+    0%   { transform: translateX(0); }
+    12.5% { transform: translateX(-4px); }
+    25%  { transform: translateX(4px); }
+    37.5% { transform: translateX(-3px); }
+    50%  { transform: translateX(3px); }
+    62.5% { transform: translateX(-2px); }
+    75%  { transform: translateX(2px); }
+    87.5% { transform: translateX(-1px); }
     100% { transform: translateX(0); }
 }
 .input-shake {
-    /* 只执行 1 次，时长 0.35秒，干净利落 */
+    /* 0.35秒完成一次完整的连续振动 */
     animation: shakeError 0.35s ease-in-out 1;
     border-color: #ef4444 !important;
 }
@@ -244,27 +249,24 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 核心修改：用输入框单次高频抖动代替重复动作
+    // ✨ 核心修改：触发完全连续丝滑的抖动
     // ==========================================================
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim();
         const btn = this;
         
-        // 1秒判定非法格式
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         const isTgId = /^\d{5,15}$/.test(email);
 
         if (!email || (!isEmail && !isTgId)) {
-            // ✅ 干净利落的一次快速晃动
             emailInput.classList.remove('input-shake');
-            void emailInput.offsetWidth; // 触发重绘，让动画能重复播放
+            void emailInput.offsetWidth; 
             emailInput.classList.add('input-shake');
             
-            // 0.35秒后移除
             setTimeout(() => {
                 emailInput.classList.remove('input-shake');
-                emailInput.style.borderColor = ''; // 恢复边框颜色
+                emailInput.style.borderColor = ''; 
             }, 350);
 
             btn.innerText = '验证';
@@ -286,7 +288,6 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(!data.ok) {
-                // 发送失败触发同样干净的单次晃动
                 emailInput.classList.remove('input-shake');
                 void emailInput.offsetWidth;
                 emailInput.classList.add('input-shake');
@@ -299,7 +300,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 btn.disabled = false;
             }
         } catch (e) {
-            // 网络错误触发同样干净的单次晃动
             emailInput.classList.remove('input-shake');
             void emailInput.offsetWidth;
             emailInput.classList.add('input-shake');
