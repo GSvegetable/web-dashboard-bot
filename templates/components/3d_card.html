@@ -1,4 +1,5 @@
-<!-- 调试版：强制显示卡片（去除了登录判断） -->
+<!-- 带登录判断版 -->
+{% if current_user.is_authenticated %}
 <style>
     .cards {
         perspective: 500px;
@@ -111,11 +112,10 @@
         
         <div class="card-text-container">
             <div class="card-name">
-                <!-- 强制显示 -->
                 {% if current_user.first_name %}
                     {{ current_user.first_name }}
                 {% else %}
-                    某某某
+                    {{ current_user.email.split('@')[0] if current_user.email else '某某某' }}
                 {% endif %}
             </div>
             <div class="card-id">
@@ -141,3 +141,4 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+{% endif %}
