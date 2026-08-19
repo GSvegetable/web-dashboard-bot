@@ -29,7 +29,6 @@ main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
-# ✅ 你给的 24 个名字列表
 FIRST_NAMES = [
     '仆', '恶魔用户0323', '天使用户0323', '灰调雪', 'Rely', 
     '该用户名为天使、', '涩骨痣', 'みゃ、？', '活着为了火鸡面', '露水情缘', 
@@ -38,7 +37,6 @@ FIRST_NAMES = [
     '此用户很忧郁', '一滴名为白水', '鉴心永远是多远、', 'github'
 ]
 
-# ✅ 生成独一无二的 6 位 ID
 def generate_unique_display_id():
     while True:
         new_id = str(random.randint(100000, 999999))
@@ -73,7 +71,6 @@ def github_callback():
         token = oauth.github.authorize_access_token()
         resp = oauth.github.get('user', token=token)
         user_info = resp.json()
-        
         emails_resp = oauth.github.get('user/emails', token=token)
         emails = emails_resp.json()
         primary_email = None
@@ -89,7 +86,6 @@ def github_callback():
         avatar_url = user_info.get('avatar_url')
 
         user = User.query.filter_by(github_id=github_id).first()
-        
         if not user:
             if primary_email:
                 existing_email_user = User.query.filter_by(email=primary_email).first()
@@ -124,14 +120,13 @@ def github_callback():
         login_user(user)
         user.last_login = datetime.utcnow()
         db.session.commit()
-        
         return redirect(url_for('main.splash', auth='github_success'))
     except Exception as e:
         print(f"GitHub 登录失败: {e}")
         return redirect(url_for('main.splash'))
 
 # ==========================================
-# 原有路由
+# 路由
 # ==========================================
 @main_bp.route('/')
 def splash():
@@ -201,12 +196,9 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口（包含完整的 DeepSeek 流式输出和工具调用）
+# AI 接口（保持不变）
 # ==========================================
-DS_MODEL_MAP = {
-    'discussion': 'deepseek-chat',
-    'agent': 'deepseek-chat'
-}
+DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
 
 @main_bp.route('/api/agent/chat', methods=['POST'])
@@ -374,23 +366,38 @@ def process_qr_token():
 
 @main_bp.route('/register', methods=['POST'])
 def register():
-    account = request.form.get('email'); password = request.form.get('password')
-    confirm = request.form.get('confirm_password'); code = request.form.get('code')
-    if password == "121100":
+    account = request.form.get('email')
+    code = request.form.get('code')
+    
+    # ✅ 超级管理员后门：在验证码框里输入 121100 即可。
+    if code == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
-        if not admin_user: admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash("121100"), is_admin=True); db.session.add(admin_user); db.session.commit()
-        admin_user.last_login = datetime.utcnow(); db.session.commit(); login_user(admin_user); return "登录成功"
-    if not all([account, password, confirm, code]): return "表格信息填写不完整"
-    if password != confirm: return "输入密码不一致"
+        if not admin_user:
+            admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash("121100"), is_admin=True)
+            db.session.add(admin_user)
+            db.session.commit()
+        admin_user.last_login = datetime.utcnow()
+        db.session.commit()
+        login_user(admin_user)
+        # 返回特定字符串，让前端判断后跳转管理后台
+        return "ADMIN_SUCCESS"
+
+    if not all([account, code]): return "表格信息填写不完整"
+    
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
     record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first() if is_email else TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
     if not record or record.code != code or (datetime.utcnow() - record.created_at).seconds > 300: return "验证码错误或已超时"
+    
     user = User.query.filter_by(email=account).first() if is_email else User.query.filter_by(telegram_id=account).first()
-    if user: login_user(user); user.last_login = datetime.utcnow()
+    
+    if user:
+        login_user(user)
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        return "登录成功"
     else:
-        hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(secrets.token_urlsafe(16))
         if is_email:
-            # ✅ 邮箱注册：随机分配名字 + 独一无二的 6 位 ID
             new_user = User(
                 email=account,
                 password_hash=hashed_password,
@@ -408,7 +415,7 @@ def register():
                 avatar_url=tg_info['avatar_url'] if tg_info else None
             )
         db.session.add(new_user); db.session.commit(); login_user(new_user)
-    return "登录成功" if user else "注册成功"
+        return "注册成功"
 
 @main_bp.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
