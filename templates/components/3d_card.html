@@ -1,19 +1,19 @@
-<!-- 左上角 3D 悬浮横向卡片组件 -->
+<!-- 左上角 3D 悬浮横向卡片组件（修正方向与巨大幅度） -->
 <style>
-    /* 3D 视角容器 */
+    /* ✅ 修改1：加大透视深度，让角度更夸张 */
     .card-container-3d {
-        perspective: 500px;
+        perspective: 300px;
         position: fixed;
         top: 24px;
         left: 24px;
-        z-index: 9999; /* 保证在页面最上层 */
+        z-index: 9999;
         pointer-events: auto;
     }
 
     /* 卡片本体：横着的长方形 */
     .card-3d {
-        width: 260px;   /* 较长 */
-        height: 80px;   /* 较扁，长方形 */
+        width: 260px;
+        height: 80px;
         background: rgba(22, 22, 29, 0.7);
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
@@ -31,9 +31,10 @@
         cursor: pointer;
     }
 
-    /* ✅ 修改1：加大空间拉伸力度，调整旋转方向 */
+    /* ✅ 修改2：方向改为往右前方大幅旋转 + 拉出 */
     .card-3d:hover {
-        transform: translateZ(35px) rotateX(8deg) rotateY(15deg);
+        /* translateZ 拉得更多，rotateY 改为负数（往右凸出），角度拉到 30度 */
+        transform: translateZ(40px) rotateX(10deg) rotateY(-30deg);
     }
 
     /* 标题文字样式 */
@@ -45,7 +46,6 @@
         transform: translateY(-50%);
         transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         font: 700 1.2rem monospace;
-        /* 给文字加上黑色描边，保证在任何背景上都清晰 */
         text-shadow: 
             -1px -1px 0 #000,  
              1px -1px 0 #000,
@@ -53,9 +53,9 @@
              1px  1px 0 #000;
     }
 
-    /* ✅ 修改2：文字向外凸出的幅度明显加大 */
+    /* ✅ 修改3：文字往右前方大幅度飞出 */
     .card-3d:hover .card-3d-title {
-        transform: translateZ(80px);
+        transform: translateZ(90px) translateY(-50%);
     }
 </style>
 
