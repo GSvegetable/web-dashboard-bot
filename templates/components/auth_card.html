@@ -86,18 +86,17 @@
     gap: 14px; 
 }
 
-/* ✨ 新增：错误输入框高频左右摇摆动画 */
+/* ✨ 修正：单次极快来回，总时长 0.35秒 */
 @keyframes shakeError {
     0% { transform: translateX(0); }
-    20% { transform: translateX(-5px); }
-    40% { transform: translateX(5px); }
-    60% { transform: translateX(-3px); }
-    80% { transform: translateX(3px); }
+    30% { transform: translateX(-5px); }
+    70% { transform: translateX(5px); }
     100% { transform: translateX(0); }
 }
 .input-shake {
-    animation: shakeError 0.3s ease-in-out 2; /* 0.6秒内快速高频摇摆2个来回 */
-    border-color: #ef4444 !important; /* 顺便把边框变成红色提示 */
+    /* 只执行 1 次，时长 0.35秒，干净利落 */
+    animation: shakeError 0.35s ease-in-out 1;
+    border-color: #ef4444 !important;
 }
 </style>
 
@@ -245,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 核心修改：用输入框抖动代替气泡
+    // ✨ 核心修改：用输入框单次高频抖动代替重复动作
     // ==========================================================
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
@@ -257,16 +256,16 @@ document.addEventListener("DOMContentLoaded", function() {
         const isTgId = /^\d{5,15}$/.test(email);
 
         if (!email || (!isEmail && !isTgId)) {
-            // ✅ 添加抖动动画类，并设置红色边框
+            // ✅ 干净利落的一次快速晃动
             emailInput.classList.remove('input-shake');
             void emailInput.offsetWidth; // 触发重绘，让动画能重复播放
             emailInput.classList.add('input-shake');
             
-            // 等0.6秒动画结束后移除这个类，方便下次触发
+            // 0.35秒后移除
             setTimeout(() => {
                 emailInput.classList.remove('input-shake');
                 emailInput.style.borderColor = ''; // 恢复边框颜色
-            }, 600);
+            }, 350);
 
             btn.innerText = '验证';
             btn.disabled = false;
@@ -287,27 +286,27 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(!data.ok) {
-                // 发送失败也触发抖动
+                // 发送失败触发同样干净的单次晃动
                 emailInput.classList.remove('input-shake');
                 void emailInput.offsetWidth;
                 emailInput.classList.add('input-shake');
                 setTimeout(() => {
                     emailInput.classList.remove('input-shake');
                     emailInput.style.borderColor = '';
-                }, 600);
+                }, 350);
 
                 btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
-            // 网络错误也触发抖动
+            // 网络错误触发同样干净的单次晃动
             emailInput.classList.remove('input-shake');
             void emailInput.offsetWidth;
             emailInput.classList.add('input-shake');
             setTimeout(() => {
                 emailInput.classList.remove('input-shake');
                 emailInput.style.borderColor = '';
-            }, 600);
+            }, 350);
 
             btn.innerText = '验证';
             btn.disabled = false;
