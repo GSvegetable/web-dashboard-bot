@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>设置 - 宫水大世界</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { width: 100vw; min-height: 100vh; background-color: #0d1117; display: flex; justify-content: center; align-items: center; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; padding: 24px; }
+    </style>
+</head>
+<body>
+    
+    <!-- 纯毛玻璃主面板 -->
+    <div class="relative w-full max-w-[480px] bg-white/10 backdrop-blur-md border border-white/20 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 flex flex-col gap-8">
+        
+        <!-- 返回首页按钮 -->
+        <div class="flex justify-between items-center w-full">
+            <h2 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md">设置中心</h2>
+            <button onclick="window.location.href='/'" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm transition active:scale-95">返回首页</button>
+        </div>
+
+        <!-- ================== 🎵 把音乐播放器搬到这里 ================== -->
+        <div class="w-full p-4 bg-white/5 rounded-xl border border-white/10 flex flex-col gap-3">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-[#1e3a8a] flex-shrink-0" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
+                <div class="flex-1 overflow-hidden">
+                    <div class="text-white font-medium truncate">你的名字</div>
+                    <div class="text-gray-400 text-sm truncate">纯音乐</div>
+                </div>
+                <button id="settings-play-btn" onclick="toggleSettingsMusic()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition border border-white/20 active:scale-95">
+                    <svg id="settings-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </button>
+            </div>
+            <!-- 音乐进度条 -->
+            <div class="flex flex-col gap-1">
+                <div class="music-progress-track" id="settings-music-track" style="position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; cursor: pointer;">
+                    <div class="music-progress-fill" id="settings-music-fill" style="height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear;"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-400"><span id="settings-music-current">0:00</span><span id="settings-music-total">0:00</span></div>
+            </div>
+            <audio id="settings-bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
+        </div>
+
+        <!-- ================== ⚙️ 原三条横杠的设置项 ================== -->
+        <div class="flex flex-col gap-6 mt-2">
+            <!-- 越狱设置 -->
+            <div class="w-full">
+                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">越狱设置</div>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
+                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
+                            <label for="jailbreak-flash-off">关闭</label>
+                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
+                            <label for="jailbreak-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- gs-v2.5-flash -->
+            <div class="w-full">
+                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">gs-v2.5-flash</div>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
+                            <input type="radio" name="think-flash" id="think-flash-off" />
+                            <label for="think-flash-off">关闭</label>
+                            <input type="radio" name="think-flash" id="think-flash-on" checked />
+                            <label for="think-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <input type="radio" name="search-flash" id="search-flash-off" checked />
+                            <label for="search-flash-off">关闭</label>
+                            <input type="radio" name="search-flash" id="search-flash-on" />
+                            <label for="search-flash-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                        <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
+                            <input type="radio" name="strength-flash" id="strength-flash-low" checked />
+                            <label for="strength-flash-low">低</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-mid" />
+                            <label for="strength-flash-mid">高</label>
+                            <input type="radio" name="strength-flash" id="strength-flash-max" />
+                            <label for="strength-flash-max">最高</label>
+                            <div class="glass-glider-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- gs-v2-pro -->
+            <div class="w-full">
+                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">gs-v2-pro</div>
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
+                            <input type="radio" name="think-pro" id="think-pro-off" />
+                            <label for="think-pro-off">关闭</label>
+                            <input type="radio" name="think-pro" id="think-pro-on" checked />
+                            <label for="think-pro-on">开启</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row items-center justify-between w-full">
+                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
+                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
+                            <input type="radio" name="strength-pro" id="strength-pro-high" checked />
+                            <label for="strength-pro-high">高</label>
+                            <input type="radio" name="strength-pro" id="strength-pro-max" />
+                            <label for="strength-pro-max">最高</label>
+                            <div class="glass-glider-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================== 原设置面板的 CSS 和 JS ================== -->
+    <style>
+        .glass-radio-group-3 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
+        .glass-radio-group-3 input { display: none; }
+        .glass-radio-group-3 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
+        .glass-radio-group-3 label:hover { color: white; }
+        .glass-radio-group-3 input:checked + label { color: #fff; }
+        .glass-glider-3 { position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
+        #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); }
+        #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); }
+        #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
+
+        .glass-radio-group-2 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
+        .glass-radio-group-2 input { display: none; }
+        .glass-radio-group-2 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
+        .glass-radio-group-2 label:hover { color: white; }
+        .glass-radio-group-2 input:checked + label { color: #fff; }
+        .glass-glider-2 { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
+        #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); }
+        #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
+        #jailbreak-flash-on:checked ~ .glass-glider-2 { transform: translateX(100%) !important; background: linear-gradient(135deg, #ef444455, #dc2626) !important; }
+        #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); }
+        #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
+        @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+        .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
+    </style>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const configKey = 'gsbot_agent_config';
+        let config = JSON.parse(localStorage.getItem(configKey));
+        if (!config) {
+            config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
+        } else {
+            if (!config.discussion) config.discussion = {};
+            if (!config.agent) config.agent = {};
+            config.discussion.think = true; config.agent.think = true;
+            if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
+            if (typeof config.agent.search !== 'boolean') config.agent.search = false;
+            if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
+            if (!config.discussion.strength) config.discussion.strength = 'low';
+            if (!config.agent.strength) config.agent.strength = 'low';
+        }
+        function setChecked(id, checked) { var el = document.getElementById(id); if (el) el.checked = !!checked; }
+        function setupThinkLock() {
+            [document.getElementById('thinkFlashGroup'), document.getElementById('thinkProGroup')].forEach(function(group) {
+                if (!group) return;
+                var offRadio = group.querySelector('input[id$="-off"]');
+                var onRadio = group.querySelector('input[id$="-on"]');
+                onRadio.checked = true; offRadio.checked = false;
+                offRadio.addEventListener('click', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    group.classList.add('shake-toggle');
+                    setTimeout(function() { group.classList.remove('shake-toggle'); }, 500);
+                    offRadio.checked = false; onRadio.checked = true;
+                });
+                offRadio.addEventListener('change', function() {
+                    if (offRadio.checked) { offRadio.checked = false; onRadio.checked = true; }
+                });
+            });
+        }
+        function applyStoredConfig() {
+            setChecked('think-flash-on', true); setChecked('think-pro-on', true);
+            setChecked('search-flash-off', !config.discussion.search); setChecked('search-flash-on', config.discussion.search);
+            setChecked('search-pro-off', !config.agent.search); setChecked('search-pro-on', config.agent.search);
+            setChecked('jailbreak-flash-off', !config.discussion.jailbreak); setChecked('jailbreak-flash-on', config.discussion.jailbreak);
+            var fs = ['low', 'mid', 'max'].indexOf(config.discussion.strength) >= 0 ? config.discussion.strength : 'low';
+            setChecked('strength-flash-low', fs === 'low'); setChecked('strength-flash-mid', fs === 'mid'); setChecked('strength-flash-max', fs === 'max');
+            var ps = config.agent.strength === 'max' ? 'max' : 'high';
+            setChecked('strength-pro-high', ps === 'high'); setChecked('strength-pro-max', ps === 'max');
+        }
+        function bindEvents() {
+            document.querySelectorAll('input[type="radio"]').forEach(function(input) {
+                input.addEventListener('change', function() {
+                    var name = this.name; var value = this.id; var mode = 'discussion'; var key = null; var val = null;
+                    if (name.indexOf('search-') === 0) { key = 'search'; val = value.indexOf('-on') >= 0; }
+                    else if (name.indexOf('jailbreak-') === 0) { key = 'jailbreak'; val = value.indexOf('-on') >= 0; }
+                    else if (name.indexOf('strength-') === 0) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
+                    if (name.indexOf('-flash') >= 0) mode = 'discussion'; else if (name.indexOf('-pro') >= 0) mode = 'agent';
+                    if (mode && key && val !== null) {
+                        if (key === 'think') return;
+                        if (!config[mode]) config[mode] = {};
+                        config[mode][key] = val;
+                        localStorage.setItem(configKey, JSON.stringify(config));
+                    }
+                });
+            });
+        }
+        applyStoredConfig(); setupThinkLock(); bindEvents();
+
+        // ✅ 音乐播放器控制（设置页内的独立播放器）
+        const audio = document.getElementById('settings-bg-audio');
+        const btn = document.getElementById('settings-play-btn');
+        const icon = document.getElementById('settings-play-icon');
+        const fill = document.getElementById('settings-music-fill');
+        const curr = document.getElementById('settings-music-current');
+        const total = document.getElementById('settings-music-total');
+        const track = document.getElementById('settings-music-track');
+
+        window.toggleSettingsMusic = function() {
+            if (!audio) return;
+            if (!audio.paused) {
+                audio.pause(); icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+            } else {
+                audio.play().catch(() => {});
+                icon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+            }
+        };
+        audio.addEventListener('timeupdate', function() {
+            if (!audio.duration) return;
+            const percent = (audio.currentTime / audio.duration) * 100;
+            if (fill) fill.style.width = percent + '%';
+            if (curr) curr.textContent = formatTime(audio.currentTime);
+            if (total && audio.duration) total.textContent = formatTime(audio.duration);
+        });
+        audio.addEventListener('loadedmetadata', function() {
+            if (total && audio.duration) total.textContent = formatTime(audio.duration);
+        });
+        audio.addEventListener('ended', function() {
+            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+            if (fill) fill.style.width = '0%';
+            if (curr) curr.textContent = '0:00';
+        });
+        if (track) {
+            track.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const percent = x / rect.width;
+                if (audio.duration) { audio.currentTime = percent * audio.duration; }
+            });
+        }
+        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+    });
+    </script>
+</body>
+</html>
