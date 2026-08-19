@@ -6,261 +6,209 @@
     <title>设置 - 宫水大世界</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { width: 100vw; min-height: 100vh; background-color: #0d1117; display: flex; justify-content: center; align-items: center; font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; padding: 24px; }
+        /* 复刻 GitHub 深色模式的核心配置 */
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* 输入框、下拉框、文本域统一 GitHub 风格 */
+        .gh-input, .gh-select, .gh-textarea {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            width: 100%;
+            font-size: 14px;
+        }
+        .gh-input:focus, .gh-select:focus, .gh-textarea:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+        .gh-input { padding: 5px 12px; height: 32px; }
+        .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
+        .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
+
+        /* 标签和辅助文字 */
+        .gh-label { display: block; font-size: 14px; font-weight: 600; color: #c9d1d9; margin-bottom: 6px; }
+        .gh-note { display: block; font-size: 12px; color: #8b949e; margin-top: 4px; }
+        
+        /* 左侧菜单按钮 */
+        .gh-sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            width: 100%; padding: 6px 12px; border-radius: 6px;
+            color: #c9d1d9; text-decoration: none; font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .gh-sidebar-item:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .gh-sidebar-item.active { background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
+        .gh-sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; fill: #8b949e; }
+        .gh-sidebar-item:hover svg { fill: #c9d1d9; }
+
+        /* 分割线 */
+        .gh-divider { border: 0; border-top: 1px solid #30363d; margin: 8px 0; }
+
+        /* 头像编辑按钮 */
+        .gh-edit-btn {
+            background-color: #21262d; border: 1px solid #30363d; border-radius: 6px;
+            color: #c9d1d9; padding: 5px 16px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px;
+        }
+        .gh-edit-btn:hover { background-color: #30363d; border-color: #8b949e; }
+
+        /* 自定义滚动条（GitHub 风格） */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
+        
+        @media (max-width: 768px) {
+            .settings-container { flex-direction: column !important; gap: 24px; }
+            .settings-sidebar { width: 100% !important; }
+            .settings-grid { grid-template-columns: 1fr !important; }
+        }
     </style>
 </head>
 <body>
-    
-    <!-- 纯毛玻璃主面板 -->
-    <div class="relative w-full max-w-[480px] bg-white/10 backdrop-blur-md border border-white/20 rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 flex flex-col gap-8">
+    <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12">
         
-        <!-- 返回首页按钮 -->
-        <div class="flex justify-between items-center w-full">
-            <h2 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-md">设置中心</h2>
-            <button onclick="window.location.href='/'" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm transition active:scale-95">返回首页</button>
-        </div>
+        <!-- ==================== 左侧导航栏 ==================== -->
+        <aside class="w-64 flex-shrink-0 settings-sidebar">
+            
+            <!-- 用户头部 -->
+            <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
+                <div class="w-10 h-10 rounded-full bg-[#afb8c1] flex items-center justify-center flex-shrink-0 text-[#0d1117] font-bold text-lg">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                </div>
+                <div>
+                    <div class="text-sm font-semibold text-[#f0f6fc]">GSvegetable (GSvegetable)</div>
+                    <div class="text-xs text-[#8b949e]">你的个人账号</div>
+                </div>
+            </div>
 
-        <!-- ================== 🎵 把音乐播放器搬到这里 ================== -->
-        <div class="w-full p-4 bg-white/5 rounded-xl border border-white/10 flex flex-col gap-3">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-[#1e3a8a] flex-shrink-0" style="background-image: url('{{ url_for('static', filename='mmexport1785973035076.jpg') }}'); background-size: cover; background-position: center;"></div>
-                <div class="flex-1 overflow-hidden">
-                    <div class="text-white font-medium truncate">你的名字</div>
-                    <div class="text-gray-400 text-sm truncate">纯音乐</div>
-                </div>
-                <button id="settings-play-btn" onclick="toggleSettingsMusic()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition border border-white/20 active:scale-95">
-                    <svg id="settings-play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                </button>
-            </div>
-            <!-- 音乐进度条 -->
-            <div class="flex flex-col gap-1">
-                <div class="music-progress-track" id="settings-music-track" style="position: relative; width: 100%; height: 3px; background-color: rgba(255, 255, 255, 0.2); border-radius: 4px; cursor: pointer;">
-                    <div class="music-progress-fill" id="settings-music-fill" style="height: 100%; width: 0%; background-color: #ffffff; border-radius: 4px; transition: width 0.1s linear;"></div>
-                </div>
-                <div class="flex justify-between text-[10px] text-gray-400"><span id="settings-music-current">0:00</span><span id="settings-music-total">0:00</span></div>
-            </div>
-            <audio id="settings-bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
-        </div>
+            <nav class="flex flex-col gap-1">
+                <!-- 公开个人资料 (活跃) -->
+                <a href="#" class="gh-sidebar-item active">
+                    <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    公开个人资料
+                </a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>账号</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
 
-        <!-- ================== ⚙️ 原三条横杠的设置项 ================== -->
-        <div class="flex flex-col gap-6 mt-2">
-            <!-- 越狱设置 -->
-            <div class="w-full">
-                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">越狱设置</div>
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">激进沙盒</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
-                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
-                            <label for="jailbreak-flash-off">关闭</label>
-                            <input type="radio" name="jailbreak-flash" id="jailbreak-flash-on" />
-                            <label for="jailbreak-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
+                <hr class="gh-divider">
+
+                <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">Access</div>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>账单与许可</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>邮箱</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>密码和身份验证</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>会话</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>SSH 和 GPG 密钥</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>凭据</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>组织</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>企业</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>审核</a>
+
+                <hr class="gh-divider">
+
+                <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">代码，规划和自动化</div>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>仓库</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>Codespaces</a>
+                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>软件包</a>
+            </nav>
+        </aside>
+
+        <!-- ==================== 右侧内容区 ==================== -->
+        <main class="flex-1 min-w-0">
+            
+            <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">公开个人资料</h1>
+            
+            <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12">
+                
+                <!-- 左侧：表单信息 -->
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- 名称 -->
+                    <div>
+                        <label class="gh-label" for="name">名称</label>
+                        <input type="text" id="name" class="gh-input" placeholder="输入你的全名" />
+                        <span class="gh-note">你的名字可能会出现在 GitHub 上你贡献或提及的地方。你也可以随时将其移除。</span>
+                    </div>
+
+                    <!-- 公开邮箱 -->
+                    <div>
+                        <label class="gh-label" for="email">公开邮箱</label>
+                        <select id="email" class="gh-select">
+                            <option value="">选择已验证的邮箱进行展示</option>
+                        </select>
+                        <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
+                    </div>
+
+                    <!-- 个人简介 -->
+                    <div>
+                        <label class="gh-label" for="bio">个人简介</label>
+                        <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
+                        <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
+                    </div>
+
+                    <!-- 代词 -->
+                    <div>
+                        <label class="gh-label" for="pronouns">代词</label>
+                        <select id="pronouns" class="gh-select" style="max-width: 240px;">
+                            <option value="">不指定</option>
+                            <option value="he/him">他 / 他 (he/him)</option>
+                            <option value="she/her">她 / 她 (she/her)</option>
+                            <option value="they/them">他们 / 他们 (they/them)</option>
+                        </select>
+                    </div>
+
+                    <!-- 网址 -->
+                    <div>
+                        <label class="gh-label" for="url">网址</label>
+                        <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
+                    </div>
+
+                    <!-- 社交账号 -->
+                    <div>
+                        <label class="gh-label mb-2">社交账号</label>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 1" /></div>
+                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 2" /></div>
+                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 3" /></div>
+                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 4" /></div>
                         </div>
+                    </div>
+
+                    <!-- 公司 -->
+                    <div>
+                        <label class="gh-label" for="company">公司</label>
+                        <input type="text" id="company" class="gh-input" placeholder="输入你所在的公司或组织名称" />
+                        <span class="gh-note">你可以通过 @提及你的公司或组织，链接到他们。</span>
+                    </div>
+
+                </div>
+
+                <!-- 右侧：头像 -->
+                <div class="flex flex-col items-start gap-4">
+                    <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
+                        <label class="gh-label w-full">头像</label>
+                        <div class="relative w-28 h-28 rounded-full bg-[#afb8c1] flex items-center justify-center overflow-hidden border-2 border-[#30363d] shadow-sm text-[#0d1117]">
+                            <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        </div>
+                        <button class="gh-edit-btn">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474L3.522 14.038a.75.75 0 01-.416.197l-2.936.326a.75.75 0 01-.82-.82l.326-2.936a.75.75 0 01.197-.416L11.013 1.427z"/></svg>
+                            编辑
+                        </button>
                     </div>
                 </div>
+
             </div>
-            <!-- gs-v2.5-flash -->
-            <div class="w-full">
-                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">gs-v2.5-flash</div>
-                <div class="flex flex-col gap-3">
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
-                            <input type="radio" name="think-flash" id="think-flash-off" />
-                            <label for="think-flash-off">关闭</label>
-                            <input type="radio" name="think-flash" id="think-flash-on" checked />
-                            <label for="think-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">联网搜索</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="search-flash" id="search-flash-off" checked />
-                            <label for="search-flash-off">关闭</label>
-                            <input type="radio" name="search-flash" id="search-flash-on" />
-                            <label for="search-flash-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
-                            <input type="radio" name="strength-flash" id="strength-flash-low" checked />
-                            <label for="strength-flash-low">低</label>
-                            <input type="radio" name="strength-flash" id="strength-flash-mid" />
-                            <label for="strength-flash-mid">高</label>
-                            <input type="radio" name="strength-flash" id="strength-flash-max" />
-                            <label for="strength-flash-max">最高</label>
-                            <div class="glass-glider-3"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- gs-v2-pro -->
-            <div class="w-full">
-                <div class="text-xl font-extrabold text-white tracking-tight drop-shadow-md mb-3">gs-v2-pro</div>
-                <div class="flex flex-col gap-3">
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">深度思考</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
-                            <input type="radio" name="think-pro" id="think-pro-off" />
-                            <label for="think-pro-off">关闭</label>
-                            <input type="radio" name="think-pro" id="think-pro-on" checked />
-                            <label for="think-pro-on">开启</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-                    <div class="flex flex-row items-center justify-between w-full">
-                        <span class="text-base font-medium text-white/80 flex-shrink-0 whitespace-nowrap">思考强度</span>
-                        <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
-                            <input type="radio" name="strength-pro" id="strength-pro-high" checked />
-                            <label for="strength-pro-high">高</label>
-                            <input type="radio" name="strength-pro" id="strength-pro-max" />
-                            <label for="strength-pro-max">最高</label>
-                            <div class="glass-glider-2"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
-
-    <!-- ================== 原设置面板的 CSS 和 JS ================== -->
-    <style>
-        .glass-radio-group-3 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
-        .glass-radio-group-3 input { display: none; }
-        .glass-radio-group-3 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
-        .glass-radio-group-3 label:hover { color: white; }
-        .glass-radio-group-3 input:checked + label { color: #fff; }
-        .glass-glider-3 { position: absolute; top: 0; bottom: 0; width: calc(100% / 3); border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
-        #strength-flash-low:checked ~ .glass-glider-3 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); }
-        #strength-flash-mid:checked ~ .glass-glider-3 { transform: translateX(100%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); }
-        #strength-flash-max:checked ~ .glass-glider-3 { transform: translateX(200%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
-
-        .glass-radio-group-2 { --bg: rgba(255, 255, 255, 0.06); --text: #e5e5e5; display: flex; position: relative; background: var(--bg); border-radius: 1rem; backdrop-filter: blur(12px); box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.2), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15); overflow: hidden; flex-shrink: 0; }
-        .glass-radio-group-2 input { display: none; }
-        .glass-radio-group-2 label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.6rem 0; font-size: 13px; cursor: pointer; font-weight: 600; letter-spacing: 0.3px; color: var(--text); position: relative; z-index: 2; transition: color 0.3s ease-in-out; }
-        .glass-radio-group-2 label:hover { color: white; }
-        .glass-radio-group-2 input:checked + label { color: #fff; }
-        .glass-glider-2 { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 1rem; z-index: 1; transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56), background 0.4s ease-in-out, box-shadow 0.4s ease-in-out; }
-        #think-flash-off:checked ~ .glass-glider-2, #search-flash-off:checked ~ .glass-glider-2, #think-pro-off:checked ~ .glass-glider-2, #jailbreak-flash-off:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #c0c0c055, #e0e0e0); }
-        #think-flash-on:checked ~ .glass-glider-2, #search-flash-on:checked ~ .glass-glider-2, #think-pro-on:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
-        #jailbreak-flash-on:checked ~ .glass-glider-2 { transform: translateX(100%) !important; background: linear-gradient(135deg, #ef444455, #dc2626) !important; }
-        #strength-pro-high:checked ~ .glass-glider-2 { transform: translateX(0%); background: linear-gradient(135deg, #d0e7ff55, #a0d8ff); }
-        #strength-pro-max:checked ~ .glass-glider-2 { transform: translateX(100%); background: linear-gradient(135deg, #ffd70055, #ffcc00); }
-        @keyframes shakeToggle { 0% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } 100% { transform: translateX(0); } }
-        .shake-toggle { animation: shakeToggle 0.4s ease-in-out 2; }
-    </style>
-
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const configKey = 'gsbot_agent_config';
-        let config = JSON.parse(localStorage.getItem(configKey));
-        if (!config) {
-            config = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'low' } };
-        } else {
-            if (!config.discussion) config.discussion = {};
-            if (!config.agent) config.agent = {};
-            config.discussion.think = true; config.agent.think = true;
-            if (typeof config.discussion.search !== 'boolean') config.discussion.search = false;
-            if (typeof config.agent.search !== 'boolean') config.agent.search = false;
-            if (typeof config.discussion.jailbreak !== 'boolean') config.discussion.jailbreak = false;
-            if (!config.discussion.strength) config.discussion.strength = 'low';
-            if (!config.agent.strength) config.agent.strength = 'low';
-        }
-        function setChecked(id, checked) { var el = document.getElementById(id); if (el) el.checked = !!checked; }
-        function setupThinkLock() {
-            [document.getElementById('thinkFlashGroup'), document.getElementById('thinkProGroup')].forEach(function(group) {
-                if (!group) return;
-                var offRadio = group.querySelector('input[id$="-off"]');
-                var onRadio = group.querySelector('input[id$="-on"]');
-                onRadio.checked = true; offRadio.checked = false;
-                offRadio.addEventListener('click', function(e) {
-                    e.preventDefault(); e.stopPropagation();
-                    group.classList.add('shake-toggle');
-                    setTimeout(function() { group.classList.remove('shake-toggle'); }, 500);
-                    offRadio.checked = false; onRadio.checked = true;
-                });
-                offRadio.addEventListener('change', function() {
-                    if (offRadio.checked) { offRadio.checked = false; onRadio.checked = true; }
-                });
-            });
-        }
-        function applyStoredConfig() {
-            setChecked('think-flash-on', true); setChecked('think-pro-on', true);
-            setChecked('search-flash-off', !config.discussion.search); setChecked('search-flash-on', config.discussion.search);
-            setChecked('search-pro-off', !config.agent.search); setChecked('search-pro-on', config.agent.search);
-            setChecked('jailbreak-flash-off', !config.discussion.jailbreak); setChecked('jailbreak-flash-on', config.discussion.jailbreak);
-            var fs = ['low', 'mid', 'max'].indexOf(config.discussion.strength) >= 0 ? config.discussion.strength : 'low';
-            setChecked('strength-flash-low', fs === 'low'); setChecked('strength-flash-mid', fs === 'mid'); setChecked('strength-flash-max', fs === 'max');
-            var ps = config.agent.strength === 'max' ? 'max' : 'high';
-            setChecked('strength-pro-high', ps === 'high'); setChecked('strength-pro-max', ps === 'max');
-        }
-        function bindEvents() {
-            document.querySelectorAll('input[type="radio"]').forEach(function(input) {
-                input.addEventListener('change', function() {
-                    var name = this.name; var value = this.id; var mode = 'discussion'; var key = null; var val = null;
-                    if (name.indexOf('search-') === 0) { key = 'search'; val = value.indexOf('-on') >= 0; }
-                    else if (name.indexOf('jailbreak-') === 0) { key = 'jailbreak'; val = value.indexOf('-on') >= 0; }
-                    else if (name.indexOf('strength-') === 0) { key = 'strength'; val = value.replace('strength-', '').replace('flash-', '').replace('pro-', ''); }
-                    if (name.indexOf('-flash') >= 0) mode = 'discussion'; else if (name.indexOf('-pro') >= 0) mode = 'agent';
-                    if (mode && key && val !== null) {
-                        if (key === 'think') return;
-                        if (!config[mode]) config[mode] = {};
-                        config[mode][key] = val;
-                        localStorage.setItem(configKey, JSON.stringify(config));
-                    }
-                });
-            });
-        }
-        applyStoredConfig(); setupThinkLock(); bindEvents();
-
-        // ✅ 音乐播放器控制（设置页内的独立播放器）
-        const audio = document.getElementById('settings-bg-audio');
-        const btn = document.getElementById('settings-play-btn');
-        const icon = document.getElementById('settings-play-icon');
-        const fill = document.getElementById('settings-music-fill');
-        const curr = document.getElementById('settings-music-current');
-        const total = document.getElementById('settings-music-total');
-        const track = document.getElementById('settings-music-track');
-
-        window.toggleSettingsMusic = function() {
-            if (!audio) return;
-            if (!audio.paused) {
-                audio.pause(); icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-            } else {
-                audio.play().catch(() => {});
-                icon.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
-            }
-        };
-        audio.addEventListener('timeupdate', function() {
-            if (!audio.duration) return;
-            const percent = (audio.currentTime / audio.duration) * 100;
-            if (fill) fill.style.width = percent + '%';
-            if (curr) curr.textContent = formatTime(audio.currentTime);
-            if (total && audio.duration) total.textContent = formatTime(audio.duration);
-        });
-        audio.addEventListener('loadedmetadata', function() {
-            if (total && audio.duration) total.textContent = formatTime(audio.duration);
-        });
-        audio.addEventListener('ended', function() {
-            icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-            if (fill) fill.style.width = '0%';
-            if (curr) curr.textContent = '0:00';
-        });
-        if (track) {
-            track.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const percent = x / rect.width;
-                if (audio.duration) { audio.currentTime = percent * audio.duration; }
-            });
-        }
-        function formatTime(seconds) { const m = Math.floor(seconds / 60); const s = Math.floor(seconds % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
-    });
-    </script>
 </body>
 </html>
