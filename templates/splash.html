@@ -45,7 +45,7 @@
             overflow: hidden; 
         }
         
-        /* 🎨 新增：液态玻璃折射文字排版容器 */
+        /* ✅ 修正：液态玻璃感排版，文字本身保持工整 */
         .glass-text-row {
             display: flex;
             width: 100%;
@@ -55,27 +55,48 @@
             z-index: 10;
             margin-top: 20px;
             padding-right: 5%;
-            letter-spacing: -0.02em;
             pointer-events: none;
         }
         .glass-text-item {
             position: relative;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 900;
-            color: #ffffff;
-            /* 这个效果的核心：遮挡文字背后产生折射，并给文字加阴影确保清晰可见 */
-            filter: url(#glass-distortion);
-            text-shadow: 0 4px 12px rgba(0,0,0,0.6);
-            /* 使用 backdrop-filter 给文字背后的像素施加模糊前处理 */
-            backdrop-filter: blur(1px);
-            -webkit-backdrop-filter: blur(1px);
             font-size: clamp(3rem, 8vw, 7.5rem);
+            letter-spacing: -0.02em;
             transform: scaleY(0.85);
-            opacity: 0.9;
             transition: transform 0.4s ease;
+            /* 让父容器拥有堆叠上下文，但本身不施加扭曲 */
         }
         .glass-text-item:hover {
             transform: scaleY(0.85) scaleX(1.05);
+        }
+
+        /* 🎯 核心修正：底层扭曲滤镜层 */
+        .glass-text-item .liquid-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            /* 施加真实的折射偏移滤镜，但不影响上层文字 */
+            filter: url(#glass-distortion);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
+            opacity: 0.9;
+            pointer-events: none;
+            transform: scale(1.05); /* 稍微放大一点，防止裁切 */
+        }
+
+        /* 🎯 核心修正：上层文字保持透明、工整不扭曲 */
+        .glass-text-item .text-shape {
+            position: relative;
+            z-index: 2;
+            color: transparent; /* 字体内部透明，透出底层的液态扭曲 */
+            /* 使用白色的半透明描边，展示出完美的字型轮廓 */
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.5);
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.7); /* 确保在任何深色背景下都能看清 */
+            filter: none !important; /* 绝对禁止扭曲！保持字体工整！ */
         }
         
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
@@ -143,10 +164,9 @@
 </head>
 <body>
     
-    <!-- 🎨 核心液态玻璃 SVG 滤镜（放在最顶层） -->
+    <!-- 🎨 核心液态玻璃 SVG 滤镜 -->
     <svg style="display: none; position: absolute; width: 0; height: 0;">
         <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
-            <!-- 让噪点产生缓慢的水波流动，消除静止感 -->
             <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="1" seed="5" result="turbulence">
                 <animate attributeName="baseFrequency" values="0.015 0.012; 0.01 0.01; 0.015 0.012" dur="4s" repeatCount="indefinite" begin="0s" />
             </feTurbulence>
@@ -160,7 +180,6 @@
                 <fePointLight x="-200" y="-200" z="300" />
             </feSpecularLighting>
             <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-            <!-- scale="85" 是之前实测比较舒服的折射拉扯力度 -->
             <feDisplacementMap in="SourceGraphic" in2="softMap" scale="85" xChannelSelector="R" yChannelSelector="G" />
         </filter>
     </svg>
@@ -190,11 +209,20 @@
             </button>
         </div>
 
-        <!-- ✅ 新增：大尺寸液态玻璃折射文字排版 -->
+        <!-- ✅ 修正后的液态玻璃排版：文字工整，背景透明折射 -->
         <div class="glass-text-row">
-            <span class="glass-text-item">@BotFather</span>
-            <span class="glass-text-item">宫水.com</span>
-            <span class="glass-text-item">stars</span>
+            <div class="glass-text-item">
+                <div class="liquid-bg"></div>
+                <span class="text-shape">@BotFather</span>
+            </div>
+            <div class="glass-text-item">
+                <div class="liquid-bg"></div>
+                <span class="text-shape">宫水.com</span>
+            </div>
+            <div class="glass-text-item">
+                <div class="liquid-bg"></div>
+                <span class="text-shape">stars</span>
+            </div>
         </div>
     </div>
 
@@ -227,11 +255,11 @@
         let isExpanded = false;
 
         document.addEventListener("DOMContentLoaded", function() {
-            /* 🧊 液态玻璃终极优化：页面加载时立刻预热 SVG 滤镜 */
+            // 🧊 预热：页面加载时立刻让显卡编译滤镜，确保文字出现时不卡顿
             const dummy = document.createElement('div');
             dummy.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;filter:url(#glass-distortion);backdrop-filter:blur(1px);z-index:-9999;';
             document.body.appendChild(dummy);
-            dummy.offsetHeight; // 触发强制显卡编译
+            dummy.offsetHeight;
             document.body.removeChild(dummy);
 
             const themeRing = document.getElementById('theme-ring');
