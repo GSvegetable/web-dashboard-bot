@@ -1,5 +1,4 @@
-<!-- 点击切换版：左侧大圆头像 + 右侧两行文字，一起向右飞出 -->
-{% if current_user.is_authenticated %}
+<!-- 调试版：强制显示卡片（去除了登录判断） -->
 <style>
     .cards {
         perspective: 500px;
@@ -112,10 +111,11 @@
         
         <div class="card-text-container">
             <div class="card-name">
+                <!-- 强制显示 -->
                 {% if current_user.first_name %}
                     {{ current_user.first_name }}
                 {% else %}
-                    {{ current_user.email.split('@')[0] }}
+                    某某某
                 {% endif %}
             </div>
             <div class="card-id">
@@ -141,4 +141,3 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
-{% endif %}
