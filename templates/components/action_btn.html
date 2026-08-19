@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（垂直布局，3个按钮） -->
+<!-- 极光炫彩渐变按钮组件（网格布局：第一行2个，第二行1个左对齐） -->
 <style>
   .action-flex {
     display: flex;
@@ -60,28 +60,17 @@
   }
 </style>
 
-<!-- 外层容器：改为垂直布局 flex-col，按钮上下排布 -->
-<div class="flex flex-col items-center gap-[14px] w-full max-w-[240px]">
+<!-- ✅ 核心修改：用 grid-cols-2 实现两列网格，第3个自动对齐到左下角 -->
+<div class="grid grid-cols-2 gap-[14px] w-full max-w-[240px]">
   
-  <!-- 按钮 1：开发作品 -->
+  <!-- 按钮 1：开发作品（第一行，第一列） -->
   <div class="outer-cont" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold">
       <span>开发作品</span>
     </span>
   </div>
 
-  <!-- 按钮 2：终端 -->
-  <div class="outer-cont" onclick="window.location.href='/terminal'">
-    <span class="action-flex font-bold">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="4 17 10 11 4 5"></polyline>
-        <line x1="12" y1="19" x2="20" y2="19"></line>
-      </svg>
-      <span>终端</span>
-    </span>
-  </div>
-
-  <!-- 按钮 3：Agent（还原为调用面板功能） -->
+  <!-- 按钮 2：Agent（第一行，第二列） -->
   <div class="outer-cont" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">
     <span class="action-flex font-bold">
       <svg viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -91,6 +80,17 @@
         </g>
       </svg>
       <span>Agent</span>
+    </span>
+  </div>
+
+  <!-- 按钮 3：终端（第二行，第一列，自动对齐到“开发作品”正下方） -->
+  <div class="outer-cont" onclick="window.location.href='/terminal'">
+    <span class="action-flex font-bold">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 17 10 11 4 5"></polyline>
+        <line x1="12" y1="19" x2="20" y2="19"></line>
+      </svg>
+      <span>终端</span>
     </span>
   </div>
 
