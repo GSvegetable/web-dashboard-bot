@@ -45,7 +45,7 @@
             display: flex; align-items: center; gap: 12px;
             width: 100%; padding: 6px 12px; border-radius: 6px;
             color: #c9d1d9; text-decoration: none; font-size: 14px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s; cursor: pointer;
         }
         .gh-sidebar-item:hover { background-color: rgba(255, 255, 255, 0.05); }
         .gh-sidebar-item.active { background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
@@ -78,6 +78,23 @@
         /* 裁剪弹窗定制 */
         #avatarModal .cropper-container { width: 100%; height: 100%; }
         #avatarModal .cropper-view-box { border-radius: 50%; }
+
+        /* 充值卡片/星星面板样式 */
+        .payment-method-btn {
+            background-color: #161b22; border: 1px solid #30363d; border-radius: 8px;
+            padding: 12px 16px; color: #c9d1d9; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 10px;
+        }
+        .payment-method-btn:hover { border-color: #58a6ff; background-color: #21262d; }
+        .payment-method-btn.selected { border-color: #238636; background-color: rgba(35, 134, 54, 0.1); }
+        
+        .stars-amount-btn {
+            background-color: #161b22; border: 1px solid #30363d; border-radius: 8px;
+            padding: 10px 20px; color: #f0f6fc; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stars-amount-btn:hover { border-color: #58a6ff; background-color: #21262d; }
+        .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
     </style>
 </head>
 <body>
@@ -97,13 +114,19 @@
                 </div>
             </div>
 
-            <nav class="flex flex-col gap-1">
-                <!-- 公开个人资料 (活跃) -->
-                <a href="#" class="gh-sidebar-item active">
+            <nav class="flex flex-col gap-1" id="sidebarNav">
+                <!-- 公开个人资料 -->
+                <a href="#" class="gh-sidebar-item active" data-target="profile">
                     <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                     公开个人资料
                 </a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>账号</a>
+                
+                <!-- ✅ 修改：账号改成 星星 -->
+                <a href="#" class="gh-sidebar-item" data-target="stars">
+                    <svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>
+                    星星
+                </a>
+
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
@@ -133,111 +156,143 @@
         <!-- ==================== 右侧内容区 ==================== -->
         <main class="flex-1 min-w-0">
             
-            <!-- ✅ 修改：标题改为“个人账号与资料” -->
-            <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人账号与资料</h1>
-            
-            <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12">
+            <!-- ==================== 面板1：公开个人资料 ==================== -->
+            <div id="panel-profile" class="panel-content">
+                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人账号与资料</h1>
                 
-                <!-- 左侧：表单信息 -->
-                <div class="flex flex-col gap-6">
-                    
-                    <!-- 名称 -->
-                    <div>
-                        <label class="gh-label" for="name">名称</label>
-                        <!-- ✅ 修改：填入登录用户的名字（或邮箱前缀） -->
-                        <input type="text" id="name" class="gh-input" 
-                               value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
-                        <!-- ✅ 修改：提示语换成新的 -->
-                        <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
+                <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12">
+                    <!-- 左侧：表单信息 -->
+                    <div class="flex flex-col gap-6">
+                        
+                        <!-- 名称 -->
+                        <div>
+                            <label class="gh-label" for="name">名称</label>
+                            <input type="text" id="name" class="gh-input" 
+                                   value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
+                            <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
+                        </div>
+
+                        <!-- ✅ 新增：在名称和邮箱中间加一个 ID -->
+                        <div>
+                            <label class="gh-label" for="display_id">ID</label>
+                            <input type="text" id="display_id" class="gh-input" 
+                                   value="{{ current_user.display_id or '000000' }}" readonly />
+                            <span class="gh-note">你的 6 位唯一公开身份标识</span>
+                        </div>
+
+                        <!-- 邮箱 -->
+                        <div>
+                            <label class="gh-label" for="email">邮箱</label>
+                            <input type="text" id="email" class="gh-input" 
+                                   value="{{ current_user.email if current_user.email else '' }}" 
+                                   placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" 
+                                   {% if current_user.email %}readonly{% endif %} />
+                            <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
+                        </div>
+
+                        <!-- 个人简介 -->
+                        <div>
+                            <label class="gh-label" for="bio">个人简介</label>
+                            <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
+                            <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
+                        </div>
+
+                        <!-- ✅ 已删除：代词 -->
+                        <!-- ✅ 已删除：网址（根据习惯保留网址，也可以保留） -->
+                        <!-- ✅ 已删除：社交账号 -->
+                        <!-- ✅ 已删除：公司 -->
+
+                        <div>
+                            <label class="gh-label" for="url">网址</label>
+                            <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
+                        </div>
+
                     </div>
 
-                    <!-- 邮箱 -->
-                    <div>
-                        <!-- ✅ 修改：标签改为“邮箱” -->
-                        <label class="gh-label" for="email">邮箱</label>
-                        <!-- ✅ 修改：去掉下拉框，改用只读输入框 -->
-                        <input type="text" id="email" class="gh-input" 
-                               value="{{ current_user.email if current_user.email else '' }}" 
-                               placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" 
-                               {% if current_user.email %}readonly{% endif %} />
-                        <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
-                    </div>
-
-                    <!-- 个人简介 -->
-                    <div>
-                        <label class="gh-label" for="bio">个人简介</label>
-                        <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
-                        <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
-                    </div>
-
-                    <!-- 代词 -->
-                    <div>
-                        <label class="gh-label" for="pronouns">代词</label>
-                        <select id="pronouns" class="gh-select" style="max-width: 240px;">
-                            <option value="">不指定</option>
-                            <option value="he/him">他 / 他 (he/him)</option>
-                            <option value="she/her">她 / 她 (she/her)</option>
-                            <option value="they/them">他们 / 他们 (they/them)</option>
-                        </select>
-                    </div>
-
-                    <!-- 网址 -->
-                    <div>
-                        <label class="gh-label" for="url">网址</label>
-                        <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
-                    </div>
-
-                    <!-- 社交账号 -->
-                    <div>
-                        <label class="gh-label mb-2">社交账号</label>
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 1" /></div>
-                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 2" /></div>
-                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 3" /></div>
-                            <div class="flex items-center gap-2"><div class="text-[#8b949e] text-sm w-5 flex justify-center"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div><input type="text" class="gh-input" placeholder="社交资料链接 4" /></div>
+                    <!-- 右侧：头像 -->
+                    <div class="flex flex-col items-start gap-4">
+                        <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
+                            <label class="gh-label w-full">头像</label>
+                            
+                            <div class="relative w-28 h-28 rounded-full bg-[#afb8c1] flex items-center justify-center overflow-hidden border-2 border-[#30363d] shadow-sm text-[#0d1117]">
+                                <img id="profileAvatarImg" src="{{ current_user.avatar_url if current_user.avatar_url else '' }}" 
+                                     class="w-full h-full object-cover" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                <svg id="avatarPlaceholder" viewBox="0 0 24 24" width="64" height="64" fill="currentColor" style="display: none;">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                            
+                            <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+                            <button class="gh-edit-btn" id="editAvatarBtn">
+                                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474L3.522 14.038a.75.75 0 01-.416.197l-2.936.326a.75.75 0 01-.82-.82l.326-2.936a.75.75 0 01.197-.416L11.013 1.427z"/></svg>
+                                编辑
+                            </button>
                         </div>
                     </div>
-
-                    <!-- 公司 -->
-                    <div>
-                        <label class="gh-label" for="company">公司</label>
-                        <input type="text" id="company" class="gh-input" placeholder="输入你所在的公司或组织名称" />
-                        <span class="gh-note">你可以通过 @提及你的公司或组织，链接到他们。</span>
-                    </div>
-
                 </div>
-
-                <!-- 右侧：头像 -->
-                <div class="flex flex-col items-start gap-4">
-                    <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
-                        <label class="gh-label w-full">头像</label>
-                        
-                        <!-- ✅ 修改：头像展示容器，支持显示用户上传的图片 -->
-                        <div class="relative w-28 h-28 rounded-full bg-[#afb8c1] flex items-center justify-center overflow-hidden border-2 border-[#30363d] shadow-sm text-[#0d1117]">
-                            <img id="profileAvatarImg" src="{{ current_user.avatar_url if current_user.avatar_url else '' }}" 
-                                 class="w-full h-full object-cover" 
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                            <svg id="avatarPlaceholder" viewBox="0 0 24 24" width="64" height="64" fill="currentColor" style="display: none;">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                            </svg>
-                        </div>
-                        
-                        <!-- 隐藏的文件选择器 -->
-                        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
-
-                        <!-- ✅ 修改：编辑按钮绑定点击事件 -->
-                        <button class="gh-edit-btn" id="editAvatarBtn">
-                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474L3.522 14.038a.75.75 0 01-.416.197l-2.936.326a.75.75 0 01-.82-.82l.326-2.936a.75.75 0 01.197-.416L11.013 1.427z"/></svg>
-                            编辑
-                        </button>
-                    </div>
-                </div>
-
             </div>
+
+            <!-- ==================== 面板2：星星（充值中心） ==================== -->
+            <div id="panel-stars" class="panel-content hidden">
+                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1 flex items-center gap-2">⭐ 我的星星</h1>
+                
+                <div class="mt-6">
+                    <!-- 余额展示 -->
+                    <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6 flex flex-col sm:flex-row justify-between items-center">
+                        <div>
+                            <div class="text-sm text-[#8b949e]">当前余额</div>
+                            <div class="text-4xl font-bold text-white mt-1 flex items-center gap-2">
+                                {{ current_user.stars or 0 }} <span class="text-xl text-[#8b949e] font-normal">颗星星</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-[#8b949e] mt-4 sm:mt-0 border-t sm:border-t-0 sm:border-l border-[#30363d] pl-0 sm:pl-6 pt-2 sm:pt-0">
+                            星星可用于兑换高级对话额度<br>和扩展机器人功能。
+                        </div>
+                    </div>
+
+                    <!-- 选择充值金额 -->
+                    <div class="mb-6">
+                        <label class="gh-label">选择充值金额</label>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
+                            <button class="stars-amount-btn" data-amount="50">50 颗</button>
+                            <button class="stars-amount-btn" data-amount="100">100 颗</button>
+                            <button class="stars-amount-btn" data-amount="500">500 颗</button>
+                        </div>
+                    </div>
+
+                    <!-- 支付方式 -->
+                    <div class="mb-6">
+                        <label class="gh-label">选择支付方式</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <button class="payment-method-btn selected">
+                                <span class="text-2xl">💳</span> <span>OKpay</span>
+                            </button>
+                            <button class="payment-method-btn">
+                                <span class="text-2xl">💚</span> <span>微信</span>
+                            </button>
+                            <button class="payment-method-btn">
+                                <span class="text-2xl">💙</span> <span>支付宝</span>
+                            </button>
+                            <button class="payment-method-btn">
+                                <span class="text-2xl">₮</span> <span>USDT</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 立即充值按钮 -->
+                    <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md">
+                        立即充值
+                    </button>
+                    <p class="text-xs text-[#8b949e] text-center mt-2">充值后星星将自动到账，如有问题请联系客服</p>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- ✅ 新增：头像裁剪弹窗 -->
+    <!-- 头像裁剪弹窗 -->
     <div id="avatarModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center">
         <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 w-full max-w-lg shadow-2xl">
             <h3 class="text-lg font-semibold text-white mb-4">编辑头像</h3>
@@ -251,9 +306,34 @@
         </div>
     </div>
 
-    <!-- ✅ 头像上传和裁剪逻辑 JS -->
+    <!-- JS 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // ==================== 侧边栏切换逻辑 ====================
+            const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
+            const panels = {
+                profile: document.getElementById('panel-profile'),
+                stars: document.getElementById('panel-stars')
+            };
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = this.dataset.target;
+                    if (!target || !panels[target]) return;
+
+                    // 切换菜单高亮
+                    menuItems.forEach(m => m.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // 切换面板显示
+                    Object.keys(panels).forEach(key => {
+                        panels[key].classList.toggle('hidden', key !== target);
+                    });
+                });
+            });
+
+            // ==================== 头像上传/裁剪逻辑 ====================
             const editBtn = document.getElementById('editAvatarBtn');
             const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal');
@@ -265,19 +345,17 @@
             
             let cropper = null;
 
-            // 点击编辑按钮 -> 触发文件选择
             editBtn.addEventListener('click', function() {
                 avatarInput.click();
             });
 
-            // 文件选择后处理
             avatarInput.addEventListener('change', function(e) {
                 const file = this.files[0];
                 if (!file) return;
 
                 const img = new Image();
                 img.onload = function() {
-                    // ✅ 分辨率检查：超过 2000x2000 禁止上传
+                    // 分辨率检查：超过 2000x2000 禁止上传
                     if (this.naturalWidth > 2000 || this.naturalHeight > 2000) {
                         alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。');
                         avatarInput.value = '';
@@ -289,7 +367,6 @@
                         cropperImg.src = e.target.result;
                         modal.classList.remove('hidden');
                         
-                        // 销毁旧实例，创建新实例
                         if (cropper) cropper.destroy();
                         cropper = new Cropper(cropperImg, {
                             aspectRatio: 1,
@@ -303,41 +380,49 @@
                 img.src = URL.createObjectURL(file);
             });
 
-            // 取消裁剪
             cancelBtn.addEventListener('click', function() {
                 modal.classList.add('hidden');
                 if (cropper) cropper.destroy();
                 avatarInput.value = '';
             });
 
-            // 确认上传
             confirmBtn.addEventListener('click', function() {
                 if (!cropper) return;
-                
                 const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
-                    
-                    // 替换头像显示
                     profileImg.src = url;
                     profileImg.style.display = 'block';
                     placeholder.style.display = 'none';
-
-                    // 关闭弹窗并清理
                     modal.classList.add('hidden');
                     cropper.destroy();
                     avatarInput.value = '';
-                    
-                    // 弹窗提示（前端预览，刷新后重置）
                     alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
                 });
             });
 
-            // 点击模态框背景关闭
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     cancelBtn.click();
                 }
+            });
+
+            // ==================== 星星充值金额选择 ====================
+            const amountBtns = document.querySelectorAll('.stars-amount-btn');
+            amountBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    amountBtns.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // ==================== 支付方式选择 ====================
+            const payBtns = document.querySelectorAll('.payment-method-btn');
+            payBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    payBtns.forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
             });
         });
     </script>
