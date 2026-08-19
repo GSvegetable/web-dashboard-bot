@@ -1,4 +1,4 @@
-<!-- 原版 3D 悬浮卡片（一字不差搬过来） -->
+<!-- 原版 3D 悬浮卡片（改成横向长方形，其余一字不差） -->
 <style>
     /* From Uiverse.io by Cornerstone-04 */ 
     .cards {
@@ -10,9 +10,10 @@
         pointer-events: auto;
     }
 
+    /* ✅ 修改点：宽度拉长，高度压扁，变成横着的长方形 */
     .card {
-        width: 200px;
-        height: 250px;
+        width: 240px;   /* 原来是 200px */
+        height: 80px;   /* 原来是 250px */
         background: #16161d;
         border: 2px solid #555555;
         border-radius: 4px;
@@ -22,6 +23,7 @@
         transition: transform .5s;
     }
 
+    /* ✅ 完全保留原版的 3D 往右前方凸出动作 */
     .card:hover {
         transform: translateZ(10px) rotateX(20deg) rotateY(20deg);
     }
@@ -41,6 +43,7 @@
              1px  1px 0 #000;
     }
 
+    /* ✅ 文字依然原版大幅往右前方飞出 */
     .card:hover .card_title {
         transform: translateZ(50px);
     }
