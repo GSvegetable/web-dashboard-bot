@@ -85,6 +85,20 @@
     flex-direction: column; 
     gap: 14px; 
 }
+
+/* ✨ 新增：错误输入框高频左右摇摆动画 */
+@keyframes shakeError {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+    100% { transform: translateX(0); }
+}
+.input-shake {
+    animation: shakeError 0.3s ease-in-out 2; /* 0.6秒内快速高频摇摆2个来回 */
+    border-color: #ef4444 !important; /* 顺便把边框变成红色提示 */
+}
 </style>
 
 <script>
@@ -231,7 +245,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
     // ==========================================================
-    // ✨ 验证逻辑
+    // ✨ 核心修改：用输入框抖动代替气泡
     // ==========================================================
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
@@ -243,9 +257,17 @@ document.addEventListener("DOMContentLoaded", function() {
         const isTgId = /^\d{5,15}$/.test(email);
 
         if (!email || (!isEmail && !isTgId)) {
-            if (typeof window.showTopToast === 'function') {
-                window.showTopToast('格式错误 请输入有效邮箱或Telegram ID');
-            }
+            // ✅ 添加抖动动画类，并设置红色边框
+            emailInput.classList.remove('input-shake');
+            void emailInput.offsetWidth; // 触发重绘，让动画能重复播放
+            emailInput.classList.add('input-shake');
+            
+            // 等0.6秒动画结束后移除这个类，方便下次触发
+            setTimeout(() => {
+                emailInput.classList.remove('input-shake');
+                emailInput.style.borderColor = ''; // 恢复边框颜色
+            }, 600);
+
             btn.innerText = '验证';
             btn.disabled = false;
             return; 
@@ -265,16 +287,28 @@ document.addEventListener("DOMContentLoaded", function() {
             
             const data = await res.json();
             if(!data.ok) {
-                if (typeof window.showTopToast === 'function') {
-                    window.showTopToast('发送失败 查看输入信息是否正确');
-                }
+                // 发送失败也触发抖动
+                emailInput.classList.remove('input-shake');
+                void emailInput.offsetWidth;
+                emailInput.classList.add('input-shake');
+                setTimeout(() => {
+                    emailInput.classList.remove('input-shake');
+                    emailInput.style.borderColor = '';
+                }, 600);
+
                 btn.innerText = '验证';
                 btn.disabled = false;
             }
         } catch (e) {
-            if (typeof window.showTopToast === 'function') {
-                window.showTopToast('发送失败 查看输入信息是否正确');
-            }
+            // 网络错误也触发抖动
+            emailInput.classList.remove('input-shake');
+            void emailInput.offsetWidth;
+            emailInput.classList.add('input-shake');
+            setTimeout(() => {
+                emailInput.classList.remove('input-shake');
+                emailInput.style.borderColor = '';
+            }, 600);
+
             btn.innerText = '验证';
             btn.disabled = false;
         }
