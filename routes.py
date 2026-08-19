@@ -11,23 +11,120 @@ import json
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, Response, stream_with_context
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Message  # ✅ 新增导入
+from flask_mail import Message
+from authlib.integrations.flask_client import OAuth  # ✅ 新增 GitHub 登录库
 
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
-from models import db, User, EmailCode, QrLoginSession, TelegramCode
+from models import db, User, EmailCode, QrLoginSession, TelegramCode, Transaction, CardKey
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
-# ✅ 删除了容易引起循环报错的 from app import mail，已转移到下文的函数内部
+# ✅ 获取当前 app 里的 mail 实例
+from app import mail, app
 
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
+# ==========================================
+# ✅ 新增：GitHub OAuth 配置
+# ==========================================
+oauth = OAuth(app)
+oauth.register(
+    name='github',
+    client_id=os.getenv('GITHUB_CLIENT_ID'),
+    client_secret=os.getenv('GITHUB_CLIENT_SECRET'),
+    access_token_url='https://github.com/login/oauth/access_token',
+    authorize_url='https://github.com/login/oauth/authorize',
+    api_base_url='https://api.github.com/',
+    client_kwargs={'scope': 'user:email'},
+)
+
+# 1. 跳转到 GitHub 授权
+@main_bp.route('/login/github')
+def login_github():
+    redirect_uri = url_for('main.github_callback', _external=True)
+    return oauth.github.authorize_redirect(redirect_uri)
+
+# 2. GitHub 回调
+@main_bp.route('/auth/github/callback')
+def github_callback():
+    try:
+        token = oauth.github.authorize_access_token()
+        resp = oauth.github.get('user', token=token)
+        user_info = resp.json()
+        
+        # 获取 GitHub 的邮箱
+        emails_resp = oauth.github.get('user/emails', token=token)
+        emails = emails_resp.json()
+        primary_email = None
+        for e in emails:
+            if e.get('primary') and e.get('verified'):
+                primary_email = e.get('email')
+                break
+        if not primary_email and emails:
+            primary_email = emails[0].get('email')
+
+        github_id = str(user_info.get('id'))
+        username = user_info.get('login')
+        avatar_url = user_info.get('avatar_url')
+
+        # 查询数据库是否存在该 GitHub ID
+        user = User.query.filter_by(github_id=github_id).first()
+        
+        if not user:
+            # 如果没有，自动注册（防刷号策略：只要能通过 GitHub 授权，说明是真人）
+            # 如果担心刷号，可在此处加一个判断：如果 email 在数据库存在，提示绑定，否则自动创建
+            if primary_email:
+                existing_email_user = User.query.filter_by(email=primary_email).first()
+                if existing_email_user:
+                    # 如果邮箱已存在但没绑定 GitHub，则自动绑定
+                    existing_email_user.github_id = github_id
+                    existing_email_user.avatar_url = avatar_url
+                    db.session.commit()
+                    user = existing_email_user
+                else:
+                    # 全新用户，创建新账号
+                    hashed_pw = generate_password_hash(os.urandom(24).hex())
+                    user = User(
+                        email=primary_email,
+                        github_id=github_id,
+                        password_hash=hashed_pw,
+                        first_name=username,
+                        avatar_url=avatar_url
+                    )
+                    db.session.add(user)
+                    db.session.commit()
+            else:
+                # 极端情况：没有获取到邮箱，用 GitHub ID 和用户名创建
+                hashed_pw = generate_password_hash(os.urandom(24).hex())
+                user = User(
+                    email=f"{github_id}@github.local",
+                    github_id=github_id,
+                    password_hash=hashed_pw,
+                    first_name=username,
+                    avatar_url=avatar_url
+                )
+                db.session.add(user)
+                db.session.commit()
+
+        # 执行登录
+        login_user(user)
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        return redirect(url_for('main.splash'))
+    except Exception as e:
+        print(f"GitHub 登录失败: {e}")
+        return redirect(url_for('main.splash'))
+
+# ==========================================
+# 原有路由（保持不变）
+# ==========================================
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
@@ -96,7 +193,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# DeepSeek / AI 接口（保持不变）
+# AI 接口（保持不变）
 # ==========================================
 DS_MODEL_MAP = {
     'discussion': 'deepseek-chat',
@@ -208,25 +305,19 @@ def clear_agent_history():
     session.pop('chat_history', None); session.pop('chat_summary', None)
     return jsonify({'status': 'ok', 'msg': '记忆已清空。'})
 
-# ================== ✅ 核心修改：真实发送邮件 ==================
 @main_bp.route('/api/send_code', methods=['POST'])
 def send_code():
     data = request.get_json()
     account = data.get('email')
     if not account: return jsonify({'ok': False, 'msg': '请输入邮箱或电报ID'})
     code = str(random.randint(100000, 999999))
-    
-    # 如果是邮箱
     if re.match(r"[^@]+@[^@]+\.[^@]+", account):
         record = EmailCode.query.filter_by(email=account).first()
         if record: record.code = code; record.created_at = datetime.utcnow()
         else: db.session.add(EmailCode(email=account, code=code))
         db.session.commit()
-
         try:
-            # ✅ 在函数内部导入 mail 实例，彻底解决循环引用报错！
             from app import mail
-            
             msg = Message('【宫水编辑器】登录/注册验证码', recipients=[account])
             msg.body = f'您的验证码是：{code}，有效期为5分钟。请勿泄露给他人。'
             mail.send(msg)
@@ -234,12 +325,9 @@ def send_code():
         except Exception as e:
             print(f"邮件发送失败: {e}")
             return jsonify({'ok': False, 'msg': '邮件发送失败，请检查QQ邮箱授权码配置是否正确。'})
-    
-    # 如果是 Telegram ID
     else:
         success, _ = send_verification_code(account, code)
         return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'}) if success else jsonify({'ok': False, 'msg': 'Telegram ID无效'})
-# =============================================================
 
 @main_bp.route('/api/get_qr_login', methods=['GET'])
 def get_qr_login():
