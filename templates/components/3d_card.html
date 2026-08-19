@@ -1,4 +1,4 @@
-<!-- 原版 3D 悬浮卡片（改成横向长方形，替换纯黑为玻璃质感） -->
+<!-- 原版 3D 悬浮卡片（横向长方形，玻璃质感，修复文字弹出） -->
 <style>
     /* From Uiverse.io by Cornerstone-04 */ 
     .cards {
@@ -10,7 +10,6 @@
         pointer-events: auto;
     }
 
-    /* ✅ 唯一改动：把纯黑的 background 改成玻璃底色，并把边框调亮 */
     .card {
         width: 240px;
         height: 80px;
@@ -18,7 +17,8 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
-        border-radius: 4px; /* 严格保持原版的 4px */
+        /* ✅ 修改点 1：圆角改为 16px，更符合玻璃边缘的质感 */
+        border-radius: 16px;
         position: relative;
         transform-style: preserve-3d;
         will-change: transform;
@@ -36,6 +36,7 @@
         position: absolute;
         top: 50%;
         right: 20px;
+        /* 初始状态：垂直居中 */
         transform: translateY(-50%);
         transition: transform .5s;
         font: 700 1.5rem monospace;
@@ -46,9 +47,9 @@
              1px  1px 0 #000;
     }
 
-    /* ✅ 文字依然原版大幅往右前方飞出 */
+    /* ✅ 修改点 2：修复文字飞出错误。先垂直居中，再往外冲 */
     .card:hover .card_title {
-        transform: translateZ(50px);
+        transform: translateY(-50%) translateZ(50px);
     }
 </style>
 
