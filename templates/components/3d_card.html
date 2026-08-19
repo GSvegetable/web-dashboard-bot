@@ -1,50 +1,67 @@
-<!-- 3D 悬浮横条卡片组件 -->
+<!-- 左上角 3D 悬浮横向卡片组件 -->
 <style>
-  .cards-3d {
-    perspective: 500px;
-    display: inline-block;
-  }
+    /* 3D 视角容器 */
+    .card-container-3d {
+        perspective: 500px;
+        position: fixed;
+        top: 24px;
+        left: 24px;
+        z-index: 9999; /* 保证在页面最上层 */
+        pointer-events: auto;
+    }
 
-  .card-3d-horizontal {
-    width: 200px; /* 宽度比高度大，形成横条 */
-    height: 64px; 
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px; /* 圆角矩形 */
-    position: relative;
-    transform-style: preserve-3d;
-    will-change: transform;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    display: flex;
-    align-items: center;
-    padding-left: 24px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  }
+    /* 卡片本体：横着的长方形 */
+    .card-3d {
+        width: 260px;   /* 较长 */
+        height: 80px;   /* 较扁，长方形 */
+        background: rgba(22, 22, 29, 0.7);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 2px solid #555555;
+        border-radius: 12px;
+        position: relative;
+        transform-style: preserve-3d;
+        will-change: transform;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        cursor: pointer;
+    }
 
-  .card-3d-horizontal:hover {
-    transform: translateZ(10px) rotateX(10deg) rotateY(-15deg);
-  }
+    /* 鼠标悬浮时的 3D 立体翻转 */
+    .card-3d:hover {
+        transform: translateZ(15px) rotateX(5deg) rotateY(-8deg);
+    }
 
-  .card-3d-title {
-    color: #ffffff;
-    font: 600 1rem 'monospace', sans-serif;
-    text-shadow: -1px -1px 0 rgba(0,0,0,0.8),  
-                  1px -1px 0 rgba(0,0,0,0.8),
-                  -1px 1px 0 rgba(0,0,0,0.8),
-                   1px 1px 0 rgba(0,0,0,0.8);
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    letter-spacing: 0.5px;
-  }
+    /* 标题文字样式 */
+    .card-3d-title {
+        color: #ffffff;
+        position: absolute;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        font: 700 1.2rem monospace;
+        /* 给文字加上黑色描边，保证在任何背景上都清晰 */
+        text-shadow: 
+            -1px -1px 0 #000,  
+             1px -1px 0 #000,
+            -1px  1px 0 #000,
+             1px  1px 0 #000;
+    }
 
-  .card-3d-horizontal:hover .card-3d-title {
-    transform: translateZ(30px);
-  }
+    /* 文字在悬浮时向外凸起 */
+    .card-3d:hover .card-3d-title {
+        transform: translateZ(50px);
+    }
 </style>
 
-<div class="cards-3d">
-    <div class="card-3d-horizontal">
-        <span class="card-3d-title">✨ 宫水极光</span>
-    </div>
+<!-- 外层包裹容器 -->
+<div class="card-container-3d">
+    <figure class="card-3d">
+        <figcaption class="card-3d-title">宫水大世界</figcaption>
+    </figure>
 </div>
