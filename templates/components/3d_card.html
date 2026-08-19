@@ -1,8 +1,8 @@
-<!-- 原版 3D 悬浮卡片（横向长方形，玻璃质感，修复文字弹出） -->
+<!-- 原版 3D 悬浮卡片（横向长方形，玻璃质感，猛烈向外飞出） -->
 <style>
-    /* From Uiverse.io by Cornerstone-04 */ 
+    /* ✅ 核心修改1：透视从 500px 拉到 220px，让 3D 空间视角更近、爆发力更强 */
     .cards {
-        perspective: 500px;
+        perspective: 220px;
         position: fixed;
         top: 24px;
         left: 24px;
@@ -17,7 +17,7 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
-        /* ✅ 修改点 1：圆角改为 16px，更符合玻璃边缘的质感 */
+        /* ✅ 圆润边缘 */
         border-radius: 16px;
         position: relative;
         transform-style: preserve-3d;
@@ -26,9 +26,9 @@
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
-    /* ✅ 完全保留原版的 3D 往右前方凸出动作 */
+    /* 保持原有的右侧翻转角度，向外拉出强度略微增加 */
     .card:hover {
-        transform: translateZ(10px) rotateX(20deg) rotateY(20deg);
+        transform: translateZ(15px) rotateX(20deg) rotateY(20deg);
     }
 
     .card_title {
@@ -36,7 +36,7 @@
         position: absolute;
         top: 50%;
         right: 20px;
-        /* 初始状态：垂直居中 */
+        /* 保持垂直居中 */
         transform: translateY(-50%);
         transition: transform .5s;
         font: 700 1.5rem monospace;
@@ -47,9 +47,9 @@
              1px  1px 0 #000;
     }
 
-    /* ✅ 修改点 2：修复文字飞出错误。先垂直居中，再往外冲 */
+    /* ✅ 核心修改2：文字向外飞出的力度直接拉高到 180px，远超卡片自身厚度 */
     .card:hover .card_title {
-        transform: translateY(-50%) translateZ(50px);
+        transform: translateY(-50%) translateZ(180px);
     }
 </style>
 
