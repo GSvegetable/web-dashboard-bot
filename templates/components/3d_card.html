@@ -1,4 +1,4 @@
-<!-- 点击切换版：点击卡片开启，点击背景关闭 -->
+<!-- 点击切换版：增加右侧圆形头像位，缩短卡片宽度 -->
 <style>
     .cards {
         perspective: 500px;
@@ -9,8 +9,9 @@
         pointer-events: auto;
     }
 
+    /* ✅ 卡片宽度稍微缩短了一点 */
     .card {
-        width: 240px;
+        width: 220px; /* 之前是 240px */
         height: 80px;
         background: rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(12px);
@@ -25,34 +26,70 @@
         cursor: pointer;
     }
 
-    /* ✅ 形态一：点击卡片后的「开启状态」 */
+    /* 形态一：点击开启状态 */
     .card.is-active {
         transform: translateZ(10px) rotateX(8deg) rotateY(12deg);
     }
 
+    /* ✅ 文字位置往左移，给右侧头像腾出空间 */
     .card_title {
         color: #fff;
         position: absolute;
         top: 50%;
-        right: 20px;
+        right: 80px; /* 之前是 20px */
         transform: translateY(-50%);
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         font: 700 1.5rem monospace;
         text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         backface-visibility: hidden;
         transform-style: preserve-3d;
-        /* 默认位置 */
-        transform: translateY(-50%);
     }
 
-    /* ✅ 形态一：点击卡片后，文字飞向右上角并停住！ */
+    /* 形态一：文字飞向右上角 */
     .card.is-active .card_title {
         transform: translateY(-50%) translateZ(350px) translateX(40px) translateY(-10px);
+    }
+
+    /* ✅ 新增：右侧圆形头像占位 */
+    .card-avatar {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1); /* 玻璃底色占位 */
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 20px;
+        font-weight: bold;
+        overflow: hidden;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        pointer-events: none; /* 防止干扰点击 */
+    }
+    
+    /* 如果你以后放真实的 img 图片，这个样式能让它完美填充圆形 */
+    .card-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 </style>
 
 <div class="cards">
     <figure class="card" id="toggleCard">
+        <!-- 右侧头像区域 -->
+        <div class="card-avatar">
+            <!-- ⭐ 这里是头像占位符，稍后你可以换成真实的用户图片标签 -->
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        
+        <!-- 弹出的文字 -->
         <figcaption class="card_title">3D Hover</figcaption>
     </figure>
 </div>
@@ -61,15 +98,12 @@
 document.addEventListener("DOMContentLoaded", function() {
     const card = document.getElementById('toggleCard');
     
-    // ✅ 点击卡片：切换开启状态
     card.addEventListener('click', function(e) {
-        e.stopPropagation(); // 阻止点击冒泡到 document 触发关闭
+        e.stopPropagation();
         this.classList.toggle('is-active');
     });
 
-    // ✅ 点击页面空白处：强制关闭卡片
     document.addEventListener('click', function(e) {
-        // 如果点击的不是卡片本身，并且卡片正处于开启状态，就关闭它
         if (!card.contains(e.target) && card.classList.contains('is-active')) {
             card.classList.remove('is-active');
         }
