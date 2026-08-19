@@ -22,8 +22,8 @@ from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
-# ✅ 修复：只从 app 导入 mail 和 oauth，删掉会导致死循环的 app
-from app import mail, oauth
+# ✅ 核心修复：这里的导入改成了 extensions.py
+from extensions import mail, oauth
 
 main_bp = Blueprint('main', __name__)
 
@@ -69,7 +69,6 @@ def github_callback():
         username = user_info.get('login')
         avatar_url = user_info.get('avatar_url')
 
-        # 查询数据库是否存在该 GitHub ID
         user = User.query.filter_by(github_id=github_id).first()
         
         if not user:
