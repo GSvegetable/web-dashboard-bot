@@ -12,7 +12,6 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Message
-from authlib.integrations.flask_client import OAuth  # ✅ 新增 GitHub 登录库
 
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
@@ -23,17 +22,16 @@ from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
 
-# ✅ 获取当前 app 里的 mail 实例
-from app import mail, app
+# ✅ 修复：只从 app 导入 mail 和 oauth，删掉会导致死循环的 app
+from app import mail, oauth
 
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
 # ==========================================
-# ✅ 新增：GitHub OAuth 配置
+# ✅ GitHub OAuth 登录
 # ==========================================
-oauth = OAuth(app)
 oauth.register(
     name='github',
     client_id=os.getenv('GITHUB_CLIENT_ID'),
@@ -44,13 +42,11 @@ oauth.register(
     client_kwargs={'scope': 'user:email'},
 )
 
-# 1. 跳转到 GitHub 授权
 @main_bp.route('/login/github')
 def login_github():
     redirect_uri = url_for('main.github_callback', _external=True)
     return oauth.github.authorize_redirect(redirect_uri)
 
-# 2. GitHub 回调
 @main_bp.route('/auth/github/callback')
 def github_callback():
     try:
@@ -77,18 +73,14 @@ def github_callback():
         user = User.query.filter_by(github_id=github_id).first()
         
         if not user:
-            # 如果没有，自动注册（防刷号策略：只要能通过 GitHub 授权，说明是真人）
-            # 如果担心刷号，可在此处加一个判断：如果 email 在数据库存在，提示绑定，否则自动创建
             if primary_email:
                 existing_email_user = User.query.filter_by(email=primary_email).first()
                 if existing_email_user:
-                    # 如果邮箱已存在但没绑定 GitHub，则自动绑定
                     existing_email_user.github_id = github_id
                     existing_email_user.avatar_url = avatar_url
                     db.session.commit()
                     user = existing_email_user
                 else:
-                    # 全新用户，创建新账号
                     hashed_pw = generate_password_hash(os.urandom(24).hex())
                     user = User(
                         email=primary_email,
@@ -100,7 +92,6 @@ def github_callback():
                     db.session.add(user)
                     db.session.commit()
             else:
-                # 极端情况：没有获取到邮箱，用 GitHub ID 和用户名创建
                 hashed_pw = generate_password_hash(os.urandom(24).hex())
                 user = User(
                     email=f"{github_id}@github.local",
@@ -112,7 +103,6 @@ def github_callback():
                 db.session.add(user)
                 db.session.commit()
 
-        # 执行登录
         login_user(user)
         user.last_login = datetime.utcnow()
         db.session.commit()
@@ -123,7 +113,7 @@ def github_callback():
         return redirect(url_for('main.splash'))
 
 # ==========================================
-# 原有路由（保持不变）
+# 原有路由
 # ==========================================
 @main_bp.route('/')
 def splash():
@@ -317,7 +307,6 @@ def send_code():
         else: db.session.add(EmailCode(email=account, code=code))
         db.session.commit()
         try:
-            from app import mail
             msg = Message('【宫水编辑器】登录/注册验证码', recipients=[account])
             msg.body = f'您的验证码是：{code}，有效期为5分钟。请勿泄露给他人。'
             mail.send(msg)
