@@ -1,8 +1,8 @@
-<!-- 原版 3D 悬浮卡片（横向长方形，玻璃质感，猛烈向外飞出） -->
+<!-- 暴力纠正版：强制开启 3D 渲染，并大幅拉出飞出距离 -->
 <style>
-    /* ✅ 核心修改1：透视从 500px 拉到 220px，让 3D 空间视角更近、爆发力更强 */
     .cards {
-        perspective: 220px;
+        /* 视距拉近到 200px，让 3D 翻转极其明显 */
+        perspective: 200px;
         position: fixed;
         top: 24px;
         left: 24px;
@@ -17,18 +17,23 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.25);
-        /* ✅ 圆润边缘 */
         border-radius: 16px;
         position: relative;
+        /* ✅ 核心修复：强制开启 3D 渲染和 GPU 加速 */
         transform-style: preserve-3d;
+        backface-visibility: hidden;
         will-change: transform;
-        transition: transform .5s;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        cursor: pointer;
     }
 
-    /* 保持原有的右侧翻转角度，向外拉出强度略微增加 */
+    /* ✅ 测试方法：鼠标放上去，卡片瞬间爆红，并且明显往右前方用力弹出 */
     .card:hover {
-        transform: translateZ(15px) rotateX(20deg) rotateY(20deg);
+        transform: translateZ(20px) rotateX(20deg) rotateY(25deg);
+        /* 红色边框是为了让你 100% 确认悬停动作确实生效了！ */
+        border: 2px solid #ff4444; 
+        box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
     }
 
     .card_title {
@@ -36,24 +41,18 @@
         position: absolute;
         top: 50%;
         right: 20px;
-        /* 保持垂直居中 */
         transform: translateY(-50%);
-        transition: transform .5s;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         font: 700 1.5rem monospace;
-        text-shadow: 
-            -1px -1px 0 #000,  
-             1px -1px 0 #000,
-            -1px  1px 0 #000,
-             1px  1px 0 #000;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
-    /* ✅ 核心修改2：文字向外飞出的力度直接拉高到 180px，远超卡片自身厚度 */
+    /* ✅ 文字向外飞出的距离直接拉到 250px，必定飞出卡片边界 */
     .card:hover .card_title {
-        transform: translateY(-50%) translateZ(180px);
+        transform: translateY(-50%) translateZ(250px);
     }
 </style>
 
-<!-- From Uiverse.io by Cornerstone-04 --> 
 <div class="cards">
     <figure class="card">
         <figcaption class="card_title">3D Hover</figcaption>
