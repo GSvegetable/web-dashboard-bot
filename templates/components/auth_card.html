@@ -33,7 +33,7 @@
                             <button id="send-code-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap">验证</button>
                         </div>
                         <div class="anim-item" id="code-wrapper" style="margin-bottom: 3px;">
-                            <input type="text" id="reg-code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
+                            <input type="text" id="reg-code" name="code" class="relative bg-black/30 ring-0 outline-none border border-white/30 text-white placeholder-gray-500 text-sm rounded-lg focus:ring-1 focus:ring-white block w-full p-2.5" placeholder="验证码" required />
                         </div>
                         
                         <button id="submit-btn" class="bg-transparent border border-white/50 hover:bg-white/10 text-white w-full p-2.5 rounded-lg text-sm font-medium anim-item">注册/登录</button>
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    // ✅ 注册/登录按钮（删除了弹窗气泡）
+    // ✅ 注册/登录按钮（包含管理员后门判断）
     document.getElementById('submit-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const codeInput = document.getElementById('reg-code');
@@ -195,8 +195,14 @@ document.addEventListener("DOMContentLoaded", function() {
         try {
             const res = await fetch('/register', { method: 'POST', body: formData });
             const text = await res.text();
+            
+            // ✅ 核心后门：如果后端返回 ADMIN_SUCCESS，直接跳转到管理后台
+            if (text === 'ADMIN_SUCCESS') {
+                window.location.href = '/admin/dashboard';
+                return;
+            }
+
             if (text.includes('成功') || res.ok) {
-                // 直接刷新，移除任何弹窗气泡通知
                 setTimeout(() => { window.location.reload(); }, 500);
             } else {
                 emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
