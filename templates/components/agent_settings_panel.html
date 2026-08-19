@@ -15,38 +15,37 @@
             <fePointLight x="-200" y="-200" z="300" />
         </feSpecularLighting>
         <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-        <!-- ✨ 扭曲强度调到 50，确保果冻感不会过于夸张变形 -->
+        <!-- ✨ 扭曲强度调到 50 -->
         <feDisplacementMap in="SourceGraphic" in2="softMap" scale="50" xChannelSelector="R" yChannelSelector="G" />
     </filter>
 </svg>
 
 <div id="agentSettingsPanel" class="fixed left-0 top-0 bottom-0 w-full sm:w-[480px] z-40 hidden pointer-events-none flex flex-col h-screen">
     
-    <!-- 面板容器：替换磨砂背景，改用液态玻璃核心层 -->
     <div id="settingsModalContent" class="relative w-full h-full rounded-r-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] p-6 sm:p-8 pb-10 pointer-events-auto overflow-hidden flex flex-col gap-8 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.25, 0.46, 0.45, 0.94)] will-change-transform opacity-0 -translate-x-full">
         
-        <!-- 🟡 液态玻璃核心：扭曲与高光层 (使底层背景产生水波扭曲) -->
-        <div class="absolute inset-0 z-0 backdrop-filter blur-[2px] filter-[url(#glass-distortion)] overflow-hidden isolation-isolate rounded-r-[28px]"></div>
+        <!-- 液态玻璃核心扭曲层 (背景图会在此产生水波纹) -->
+        <div class="absolute inset-0 z-0 backdrop-filter blur-[1px] filter-[url(#glass-distortion)] overflow-hidden isolation-isolate rounded-r-[28px]"></div>
         
-        <!-- 🔵 液态玻璃核心：极淡黑色遮罩（保证白字清晰，同时保留背景透光） -->
-        <div class="absolute inset-0 z-[1] bg-black/30 mix-blend-multiply rounded-r-[28px]"></div>
-        
-        <!-- 🔵 液态玻璃核心：折射边缘高光反射 -->
+        <!-- 边缘高光折射反射 -->
         <div class="absolute inset-0 z-[1] overflow-hidden pointer-events-none shadow-[inset_2px_2px_1px_0_rgba(255,255,255,0.6),inset_-2px_-2px_1px_1px_rgba(255,255,255,0.5)] rounded-r-[28px]"></div>
+        
+        <!-- ✅ 核心修改：去掉黑底，改为一层极淡的透光玻璃层，让背景图亮出来！ -->
+        <div class="absolute inset-0 z-[1] bg-white/5 rounded-r-[28px]"></div>
 
-        <!-- ⭐ 内容区域：确保不被遮盖，并带一点点透明玻璃质感 -->
+        <!-- ⭐ 内容区域 -->
         <div class="relative z-10 flex flex-col gap-8 h-full overflow-y-auto hide-scrollbar">
             
-            <!-- ✨ 顶部空占位（高度不变） -->
             <div class="flex justify-between items-start h-8"></div>
 
             <div class="flex flex-col gap-10 mt-1">
                 <!-- 越狱设置 -->
                 <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">越狱设置</div>
+                    <!-- ✅ 加上了深色文字阴影，保证在浅色玻璃上依然清晰 -->
+                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-3 whitespace-nowrap">越狱设置</div>
                     <div class="flex flex-col gap-4">
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">激进沙盒</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">激进沙盒</span>
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="jailbreakFlashGroup">
                                 <input type="radio" name="jailbreak-flash" id="jailbreak-flash-off" checked />
                                 <label for="jailbreak-flash-off">关闭</label>
@@ -59,10 +58,10 @@
                 </div>
                 <!-- 分类一：省钱模型 -->
                 <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">gs-v2.5-flash</div>
+                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-3 whitespace-nowrap">gs-v2.5-flash</div>
                     <div class="flex flex-col gap-4 mt-2">
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">深度思考</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">深度思考</span>
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkFlashGroup">
                                 <input type="radio" name="think-flash" id="think-flash-off" />
                                 <label for="think-flash-off">关闭</label>
@@ -72,7 +71,7 @@
                             </div>
                         </div>
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">联网搜索</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">联网搜索</span>
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
                                 <input type="radio" name="search-flash" id="search-flash-off" checked />
                                 <label for="search-flash-off">关闭</label>
@@ -82,7 +81,7 @@
                             </div>
                         </div>
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">思考强度</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">思考强度</span>
                             <div class="glass-radio-group-3 flex-shrink-0 w-[198px]">
                                 <input type="radio" name="strength-flash" id="strength-flash-low" checked />
                                 <label for="strength-flash-low">低</label>
@@ -97,10 +96,10 @@
                 </div>
                 <!-- 分类二：烧钱模型 -->
                 <div class="w-full">
-                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-3 whitespace-nowrap">gs-v2-pro</div>
+                    <div class="text-2xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-3 whitespace-nowrap">gs-v2-pro</div>
                     <div class="flex flex-col gap-4 mt-2">
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">深度思考</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">深度思考</span>
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]" id="thinkProGroup">
                                 <input type="radio" name="think-pro" id="think-pro-off" />
                                 <label for="think-pro-off">关闭</label>
@@ -110,7 +109,7 @@
                             </div>
                         </div>
                         <div class="flex flex-row items-center justify-between w-full">
-                            <span class="text-base font-medium text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)] flex-shrink-0 whitespace-nowrap">思考强度</span>
+                            <span class="text-base font-medium text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] flex-shrink-0 whitespace-nowrap">思考强度</span>
                             <div class="glass-radio-group-2 flex-shrink-0 w-[138px]">
                                 <input type="radio" name="strength-pro" id="strength-pro-high" checked />
                                 <label for="strength-pro-high">高</label>
@@ -207,14 +206,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var content = document.getElementById('settingsModalContent');
     var configKey = 'gsbot_agent_config';
 
-    // 读取配置（带默认值）
     function loadConfig() {
         var c = JSON.parse(localStorage.getItem(configKey));
         if (!c) {
-            c = {
-                discussion: { think: true, search: false, strength: 'low', jailbreak: false },
-                agent: { think: true, search: false, strength: 'high' }
-            };
+            c = { discussion: { think: true, search: false, strength: 'low', jailbreak: false }, agent: { think: true, search: false, strength: 'high' } };
         } else {
             if (!c.discussion) c.discussion = {};
             if (!c.agent) c.agent = {};
@@ -231,13 +226,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var config = loadConfig();
 
-    // 安全设置某个 radio 的选中状态
     function setChecked(id, checked) {
         var el = document.getElementById(id);
         if (el) el.checked = !!checked;
     }
 
-    // 强制锁死"深度思考"（不允许关闭）
     function setupThinkLock() {
         var groups = [document.getElementById('thinkFlashGroup'), document.getElementById('thinkProGroup')];
         groups.forEach(function(group) {
@@ -261,29 +254,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 把已保存的配置回填到界面控件
     function applyStoredConfig() {
         setChecked('think-flash-on', true);
         setChecked('think-pro-on', true);
         setChecked('search-flash-off', !config.discussion.search);
         setChecked('search-flash-on', config.discussion.search);
-        // search-pro 控件在 HTML 中不存在，做兼容处理（若未来添加则生效）
         setChecked('search-pro-off', !config.agent.search);
         setChecked('search-pro-on', config.agent.search);
         setChecked('jailbreak-flash-off', !config.discussion.jailbreak);
         setChecked('jailbreak-flash-on', config.discussion.jailbreak);
-        // flash 强度：合法值 low / mid / max
         var fs = ['low', 'mid', 'max'].indexOf(config.discussion.strength) >= 0 ? config.discussion.strength : 'low';
         setChecked('strength-flash-low', fs === 'low');
         setChecked('strength-flash-mid', fs === 'mid');
         setChecked('strength-flash-max', fs === 'max');
-        // pro 强度：只有 high / max，确保始终有选中项
         var ps = config.agent.strength === 'max' ? 'max' : 'high';
         setChecked('strength-pro-high', ps === 'high');
         setChecked('strength-pro-max', ps === 'max');
     }
 
-    // 绑定所有单选框的变更事件，保存配置
     function bindEvents() {
         document.querySelectorAll('input[type="radio"]').forEach(function(input) {
             input.addEventListener('change', function() {
@@ -304,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if (name.indexOf('-pro') >= 0) mode = 'agent';
 
                 if (mode && key && val !== null) {
-                    if (key === 'think') return; // 深度思考始终锁定开启
+                    if (key === 'think') return;
                     if (!config[mode]) config[mode] = {};
                     config[mode][key] = val;
                     localStorage.setItem(configKey, JSON.stringify(config));
@@ -314,21 +302,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 打开设置面板（横向滑入）
     window.openAgentSettings = function() {
         config = loadConfig();
         window.currentAgentConfig = config;
         applyStoredConfig();
         setupThinkLock();
         panel.classList.remove('hidden');
-        void content.offsetHeight; // 强制重绘，避免浏览器偷懒
+        void content.offsetHeight;
         requestAnimationFrame(function() {
             content.classList.remove('opacity-0', '-translate-x-full');
             content.classList.add('opacity-100', 'translate-x-0');
         });
     };
 
-    // 关闭设置面板（横向滑出）
     window.closeAgentSettings = function() {
         content.classList.remove('opacity-100', 'translate-x-0');
         content.classList.add('opacity-0', '-translate-x-full');
