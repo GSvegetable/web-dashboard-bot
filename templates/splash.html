@@ -15,7 +15,6 @@
         button:focus, a:focus, input:focus { outline: none; }
         :root { --bg-img: url("{{ url_for('static', filename='mmexport1785785172198.jpg') }}"); --new-bg-img: url("{{ url_for('static', filename='bg.png') }}"); }
         
-        /* ✅ 核心修改：去掉 overflow: hidden，让网页能正常上下滑动 */
         body { 
             width: 100vw; 
             min-height: 100vh; 
@@ -27,7 +26,6 @@
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
         }
         
-        /* ✅ 改为 min-height: 100vh，保证能延展出黑屏 */
         .content-area { 
             position: relative; 
             width: 100%; 
@@ -45,6 +43,39 @@
             justify-content: flex-start; 
             z-index: 1; 
             overflow: hidden; 
+        }
+        
+        /* 🎨 新增：液态玻璃折射文字排版容器 */
+        .glass-text-row {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            margin-top: 20px;
+            padding-right: 5%;
+            letter-spacing: -0.02em;
+            pointer-events: none;
+        }
+        .glass-text-item {
+            position: relative;
+            display: inline-block;
+            font-weight: 900;
+            color: #ffffff;
+            /* 这个效果的核心：遮挡文字背后产生折射，并给文字加阴影确保清晰可见 */
+            filter: url(#glass-distortion);
+            text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            /* 使用 backdrop-filter 给文字背后的像素施加模糊前处理 */
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
+            font-size: clamp(3rem, 8vw, 7.5rem);
+            transform: scaleY(0.85);
+            opacity: 0.9;
+            transition: transform 0.4s ease;
+        }
+        .glass-text-item:hover {
+            transform: scaleY(0.85) scaleX(1.05);
         }
         
         #theme-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; background-color: transparent; background-image: var(--bg-img); background-size: cover; background-position: center; background-repeat: no-repeat; clip-path: circle(0% at 0 0); will-change: clip-path, background-image; }
@@ -97,6 +128,7 @@
             .top-btn { font-size: 11px; padding: 6px 8px; }
             .modal-overlay { padding-top: 70px; padding-right: 12px; }
             .login-card, .music-card-glass { max-width: 320px; }
+            .glass-text-item { font-size: clamp(2rem, 6vw, 4rem); }
         }
         .hamburger { cursor: pointer; }
         body:has(#profileContainer) #menu-btn-wrapper { top: 112px; }
@@ -111,6 +143,28 @@
 </head>
 <body>
     
+    <!-- 🎨 核心液态玻璃 SVG 滤镜（放在最顶层） -->
+    <svg style="display: none; position: absolute; width: 0; height: 0;">
+        <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
+            <!-- 让噪点产生缓慢的水波流动，消除静止感 -->
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.012" numOctaves="1" seed="5" result="turbulence">
+                <animate attributeName="baseFrequency" values="0.015 0.012; 0.01 0.01; 0.015 0.012" dur="4s" repeatCount="indefinite" begin="0s" />
+            </feTurbulence>
+            <feComponentTransfer in="turbulence" result="mapped">
+                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+            </feComponentTransfer>
+            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                <fePointLight x="-200" y="-200" z="300" />
+            </feSpecularLighting>
+            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+            <!-- scale="85" 是之前实测比较舒服的折射拉扯力度 -->
+            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="85" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
+
     {% include 'components/user_profile.html' %}
 
     <div class="fixed top-4 left-6 z-[9999] w-9 h-9 flex items-center justify-center cursor-pointer" id="menu-btn-wrapper">
@@ -135,9 +189,14 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
-    </div>
 
-    <!-- ✅ 已彻底删除了那个 scroll_gallery 组件的引用 -->
+        <!-- ✅ 新增：大尺寸液态玻璃折射文字排版 -->
+        <div class="glass-text-row">
+            <span class="glass-text-item">@BotFather</span>
+            <span class="glass-text-item">宫水.com</span>
+            <span class="glass-text-item">stars</span>
+        </div>
+    </div>
 
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
@@ -168,6 +227,13 @@
         let isExpanded = false;
 
         document.addEventListener("DOMContentLoaded", function() {
+            /* 🧊 液态玻璃终极优化：页面加载时立刻预热 SVG 滤镜 */
+            const dummy = document.createElement('div');
+            dummy.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;filter:url(#glass-distortion);backdrop-filter:blur(1px);z-index:-9999;';
+            document.body.appendChild(dummy);
+            dummy.offsetHeight; // 触发强制显卡编译
+            document.body.removeChild(dummy);
+
             const themeRing = document.getElementById('theme-ring');
             const contentArea = document.getElementById('contentArea');
             const textElements = document.querySelectorAll('.text-pattern');
