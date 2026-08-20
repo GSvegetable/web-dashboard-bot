@@ -7,7 +7,6 @@ from . import main_bp
 @main_bp.route('/api/send_bind_request', methods=['POST'])
 def send_bind_request():
     data = request.get_json()
-    # ✅ 核心修复：无论用户填的是 @gsyxyc 还是 gsyxyc，都统一去掉左边的 @
     user_id_input = data.get('user_id', '').strip().lstrip('@')
     token = data.get('token', '').strip()
 
@@ -24,24 +23,39 @@ def send_bind_request():
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'验证异常: {str(e)}'})
 
-    # 2. 构造通知消息
+    # 2. 构造新版确认通知消息
     message_text = (
-        f"🔔 机器人绑定通知\n"
-        f"你的机器人已被成功绑定到「宫水大世界」工作台。\n"
-        f"如果这不是你本人的操作，请立即前往 @BotFather 使用 /revoke 命令重置此 Token。"
+        "🔔 机器人绑定通知\n"
+        "您的机器人已成功绑定至「宫水大世界」工作台\n"
+        "若此操作非由您本人执行 请忽略本条消息\n\n"
+        "请点击下方按钮 以确认绑定状态"
     )
+
+    # ✅ 核心：在按钮的 callback_data 中带上 Token，方便后续修改该消息
+    confirm_cb = f"bind_confirm|{token}"
+    cancel_cb = f"bind_cancel|{token}"
+    
+    reply_markup = {
+        "inline_keyboard": [
+            [
+                {"text": "✅ 确定", "callback_data": confirm_cb},
+                {"text": "❌ 取消", "callback_data": cancel_cb}
+            ]
+        ]
+    }
 
     try:
         send_resp = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={
                 "chat_id": user_id_input,
-                "text": message_text
+                "text": message_text,
+                "reply_markup": reply_markup
             },
             timeout=15
         )
         if send_resp.status_code == 200:
-            return jsonify({'ok': True, 'msg': '通知消息已成功发送'})
+            return jsonify({'ok': True, 'msg': '确认通知已发送，请去 Telegram 操作！'})
         else:
             error_data = send_resp.json()
             error_desc = error_data.get("description", "")
