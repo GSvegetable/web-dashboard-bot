@@ -17,6 +17,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0;
+        }
+        .modal-overlay {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .glass-panel {
             width: 100%;
@@ -28,6 +36,7 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             border-radius: 28px;
             padding: 32px;
+            position: relative;
         }
         .gh-input {
             background: rgba(0, 0, 0, 0.3);
@@ -55,42 +64,55 @@
         }
         .btn-primary:hover { background: #2ea043; }
         .btn-primary:active { transform: scale(0.97); }
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: #c9d1d9;
-            padding: 10px 20px;
-            font-weight: 500;
-            transition: 0.2s;
+        
+        /* 左上角的返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.2s;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
             text-decoration: none;
-            display: inline-block;
         }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+        .back-btn:hover {
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
-    <div class="glass-panel flex flex-col gap-6">
-        <div class="flex justify-between items-center mb-2">
-            <h2 class="text-2xl font-bold text-white tracking-tight">添加机器人</h2>
-            <a href="/workspace" class="btn-secondary text-sm px-4 py-2">取消 / 返回</a>
-        </div>
+    <!-- ✅ 点击整个 modal-overlay 区域（即空白处），就会触发返回工作台 -->
+    <div class="modal-overlay" onclick="if(event.target===this) window.location.href='/workspace'">
+        
+        <div class="glass-panel flex flex-col gap-6">
+            
+            <!-- 左上角返回按钮 -->
+            <a href="/workspace" class="back-btn">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                返回
+            </a>
 
-        <!-- 字段 1：机器人Token -->
-        <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-white/80">机器人 Token</label>
-            <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="gh-input" />
-        </div>
+            <h2 class="text-2xl font-bold text-white tracking-tight text-center pt-2">添加机器人</h2>
 
-        <!-- 字段 2：机器人代号（限5字符） -->
-        <div class="flex flex-col gap-1">
-            <label class="text-sm font-medium text-white/80">机器人代号</label>
-            <input id="addPanelCodeInput" type="text" maxlength="5" placeholder="如: bot01" class="gh-input" />
-        </div>
+            <!-- 字段 1：机器人Token -->
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-white/80">机器人 Token</label>
+                <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="gh-input" />
+            </div>
 
-        <div class="flex justify-end mt-2">
-            <button id="submitBtn" class="btn-primary w-full py-3 text-base">创建机器人</button>
+            <!-- 字段 2：机器人代号（限5字符） -->
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-white/80">机器人代号</label>
+                <input id="addPanelCodeInput" type="text" maxlength="5" placeholder="如: bot01" class="gh-input" />
+            </div>
+
+            <div class="flex justify-end mt-2">
+                <button id="submitBtn" class="btn-primary w-full py-3 text-base">创建机器人</button>
+            </div>
         </div>
     </div>
 
@@ -143,7 +165,6 @@
                     username: data.ok ? data.bot_username : ''
                 });
                 localStorage.setItem('gsbot_bot_repo_cards', JSON.stringify(cards));
-                // 创建完毕，跳转回工作台
                 window.location.href = '/workspace';
             })
             .catch(() => {
