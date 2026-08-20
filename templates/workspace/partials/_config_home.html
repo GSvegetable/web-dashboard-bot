@@ -2,7 +2,7 @@
     <!-- 标题 -->
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 修复：按钮用绝对定位放到右上角，并去除 backdrop-filter 解决“一刀切”的裁剪 Bug -->
+    <!-- 按钮 -->
     <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
@@ -56,7 +56,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
-    /* ✅ 跑马灯：完整连续滚动，无回跳，两端模糊 */
+    /* 跑马灯：无限、减速、两端模糊 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -75,7 +75,6 @@
         will-change: transform;
     }
     .bot-repo-track.marquee-run {
-        /* ✅ 改为从 0% 到 -50%，配合 JS 里复制的双倍文本，实现平滑连续滚动，不会闪回重置 */
         animation: botMarquee 12s linear infinite;
     }
     @keyframes botMarquee {
@@ -110,9 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var marquee = document.createElement('div'); marquee.className = 'bot-repo-marquee';
             var track = document.createElement('span'); track.className = 'bot-repo-track';
-            // ✅ 修复：将 Token 内容复制一份，中间通过两个空格分开，作为稳定的“一指宽”间距，配合 -50% 动画实现连续滚动不突跳
+            // ✅ 修复：用 8 个 &nbsp; 做间隔（清晰的一指到两指间距），实现“上一段播完，隔一段距离，再播下一段”的完美衔接
             var tokenStr = c.token || '';
-            track.textContent = tokenStr + '  ' + tokenStr; 
+            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr; 
             marquee.appendChild(track); tokenLine.appendChild(marquee);
 
             card.appendChild(name); card.appendChild(idLine); card.appendChild(tokenLine); grid.appendChild(card);
