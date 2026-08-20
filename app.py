@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime, timedelta  # ✅ 引入时间差控制
 from pathlib import Path
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
@@ -50,7 +51,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # ==========================================
-# ✅ 核心：全局访问记录器
+# ✅ 核心修复：全局访问记录器（防刷频）
 # ==========================================
 @app.before_request
 def log_visit():
@@ -60,12 +61,21 @@ def log_visit():
     
     try:
         ip = request.remote_addr
-        user_agent = request.user_agent.string if request.user_agent else ''
-        user_id = current_user.id if current_user.is_authenticated else None
         
-        visit = VisitLog(ip_address=ip, user_agent=user_agent, user_id=user_id)
-        db.session.add(visit)
-        db.session.commit()
+        # ✅ 核心改动：同一个 IP，5 分钟内只记录 1 次，避免瞬间刷爆数据
+        five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+        recent_visit = VisitLog.query.filter(
+            VisitLog.ip_address == ip,
+            VisitLog.visited_at > five_minutes_ago
+        ).first()
+        
+        if not recent_visit:
+            user_agent = request.user_agent.string if request.user_agent else ''
+            user_id = current_user.id if current_user.is_authenticated else None
+            
+            visit = VisitLog(ip_address=ip, user_agent=user_agent, user_id=user_id)
+            db.session.add(visit)
+            db.session.commit()
     except Exception as e:
         app.logger.error(f"记录访问失败: {e}")
 
