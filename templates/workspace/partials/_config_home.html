@@ -1,24 +1,19 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
-    <!-- 标题 + 添加仓库按钮并排 -->
-    <div class="flex justify-between items-center mb-6 flex-shrink-0">
-        <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md">机器人仓库</h2>
-        
-        <!-- ✅ 按钮完全恢复成原来的外观和位置 -->
-        <div id="addPanelBtn" class="outer-cont" onclick="addPanel()" style="padding: 10px 18px; font-size: 0.95rem; background: linear-gradient(90deg, rgba(30, 64, 175, 0.7), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.9)); backdrop-filter: blur(6px); border-radius: 10px; color: #fff; box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;">
-            <span class="font-bold">+ 添加仓库</span>
-        </div>
-    </div>
+    <!-- 标题 -->
+    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- 空状态提示 -->
-    <div id="botRepoEmpty" class="text-center text-gray-500 text-sm py-10 flex-shrink-0">仓库空空如也，点击右上角「+ 添加仓库」创建机器人</div>
+    <div id="botRepoEmpty" class="text-center text-gray-500 text-sm py-10 flex-shrink-0">仓库空空如也，点击右上角「添加bot」创建机器人</div>
 
-    <!-- 机器人卡片网格：一排5个 -->
     <div id="botRepoGrid" class="grid gap-4" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
     </div>
 </div>
 
+<!-- ✅ 修复：按钮固定在卡片内部的右上角（绝对定位），标题下方6px处 -->
+<div id="addPanelBtn" class="outer-cont absolute top-[12px] right-[24px] cursor-pointer z-20" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); backdrop-filter: blur(6px); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
+    <span class="font-bold text-white text-sm">+ 添加bot</span>
+</div>
+
 <style>
-    /* ✅ 添加了 .outer-cont 所需的按钮动画 */
     .outer-cont::before {
         content: "";
         position: absolute;
@@ -74,7 +69,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
-    /* 跑马灯：两端淡出 + 无限循环慢速 */
+    /* 跑马灯：无限、减速、两端模糊 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -93,7 +88,7 @@
         will-change: transform;
     }
     .bot-repo-track.marquee-run {
-        animation: botMarquee 12s linear infinite; /* 12秒一圈，无限循环 */
+        animation: botMarquee 12s linear infinite;
     }
     @keyframes botMarquee {
         0%   { transform: translateX(0); }
