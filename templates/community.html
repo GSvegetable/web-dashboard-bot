@@ -3,236 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>社区 - 宫水大世界</title>
+    <title>频道动态 - 宫水大世界</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             background-color: #0d1117; 
-            color: #c9d1d9;
+            color: #e5e7eb;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-            overflow-y: auto;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
         }
         
-        /* 滚动条样式 */
+        /* 滚动条保持清爽 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        /* 卡片入场动画 (轻微上浮) */
-        .fade-up {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        /* 发帖框样式 */
+        .post-input-area {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
         }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.10s; }
-        .delay-3 { animation-delay: 0.15s; }
-        .delay-4 { animation-delay: 0.20s; }
-        .delay-5 { animation-delay: 0.25s; }
-        .delay-6 { animation-delay: 0.30s; }
-
-        /* 频道卡片毛玻璃效果 */
-        .channel-card {
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s ease;
-        }
-        .channel-card:hover {
-            background: rgba(255, 255, 255, 0.08);
+        .post-input-area:focus-within {
             border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 空状态动画 */
+        .empty-state-icon {
+            animation: floatPulse 3s ease-in-out infinite;
+        }
+        @keyframes floatPulse {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
         }
 
-        /* 标签切换按钮 */
-        .tab-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #8b949e;
-            transition: all 0.2s;
-        }
-        .tab-btn.active, .tab-btn:hover {
-            background: rgba(88, 166, 255, 0.15);
-            border-color: #58a6ff;
-            color: #ffffff;
-        }
+        /* 回复/转发/点赞按钮的悬浮效果 */
+        .action-btn:hover { background: rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body>
-    <!-- ==================== 返回顶部导航 ==================== -->
-    <div class="w-full p-4 flex justify-between items-center max-w-6xl mx-auto mt-2 relative z-10">
-        <div class="flex items-center gap-3">
-            <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                返回首页
-            </button>
-        </div>
-        <div class="flex items-center gap-2 text-gray-400 text-xs">
-            <span>当前版本 v1.0</span>
-        </div>
-    </div>
-
-    <!-- ==================== 主内容区 ==================== -->
-    <div class="w-full max-w-6xl mx-auto px-4 pb-20">
+    
+    <div class="w-full max-w-xl mx-auto px-4 pb-12 relative z-10">
         
-        <!-- 头部：大标题 -->
-        <div class="mt-8 mb-6 fade-up">
-            <h1 class="text-4xl font-black text-white tracking-tight">📡 社区频道</h1>
-            <p class="text-gray-500 text-sm mt-1">发现精彩内容，订阅你感兴趣的创作者</p>
+        <!-- ==================== 顶部导航栏 ==================== -->
+        <div class="sticky top-0 bg-[#0d1117]/80 backdrop-blur-lg border-b border-[#30363d] py-3 px-2 z-20 flex justify-between items-center -mx-2">
+            <div class="flex items-center gap-3">
+                <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="text-base font-bold text-white tracking-wide"># 宫水社区</span>
+            </div>
+            <div class="flex gap-4 text-gray-500 text-xs">
+                <span>首页</span>
+                <span>最新</span>
+                <span>热门</span>
+            </div>
         </div>
 
-        <!-- 过滤分类标签 -->
-        <div class="flex flex-wrap items-center gap-2 mb-8 fade-up delay-1 overflow-x-auto pb-2">
-            <button class="tab-btn active px-4 py-1.5 rounded-full text-sm font-medium">全部</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">科技</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">生活</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">游戏</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">二次元</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">音乐</button>
-            <button class="tab-btn px-4 py-1.5 rounded-full text-sm font-medium">学习</button>
-        </div>
-
-        <!-- 频道卡片网格 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <!-- ==================== 发帖区（框架） ==================== -->
+        <div class="post-input-area mt-4 p-4 flex gap-3 items-start">
+            <!-- 默认占位头像 -->
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs">我</div>
             
-            <!-- 卡片 1：宫水大世界（官方） -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-2 relative cursor-pointer group">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl shadow-lg">
-                        水
+            <!-- 输入框和按钮 -->
+            <div class="flex-1 flex flex-col gap-2">
+                <input type="text" placeholder="有什么新鲜事？在这里发消息..." class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-gray-500 py-1">
+                <div class="flex justify-between items-center mt-1">
+                    <div class="flex gap-2 text-gray-500">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                     </div>
-                    <span class="text-xs text-[#8b949e] bg-black/30 px-2 py-1 rounded-md border border-white/5">已订阅</span>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">宫水大世界</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    宫水的官方主频道，发布最新动态、开发日志和社区活动。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 2.4k 订阅</span>
-                    <span>🕒 1小时前更新</span>
-                </div>
-                <div class="absolute inset-0 rounded-2xl border-2 border-blue-500/0 group-hover:border-blue-500/30 transition-colors duration-200 pointer-events-none"></div>
-            </div>
-
-            <!-- 卡片 2：极客工坊 -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-3 relative cursor-pointer">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white text-xl shadow-lg">
-                        ⚙️
-                    </div>
-                    <button class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition">订阅</button>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">极客工坊</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    分享硬核代码、开源项目与技术思考。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 1.2k 订阅</span>
-                    <span>🕒 昨天更新</span>
+                    <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs font-bold px-4 py-1.5 rounded-full transition active:scale-95">发布</button>
                 </div>
             </div>
-
-            <!-- 卡片 3：二次元放送局 -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-4 relative cursor-pointer">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white text-xl shadow-lg">
-                        ✨
-                    </div>
-                    <button class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition">订阅</button>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">二次元放送局</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    新番速递，番剧推荐，ACG 爱好者聚集地。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 3.5k 订阅</span>
-                    <span>🕒 5分钟前更新</span>
-                </div>
-            </div>
-
-            <!-- 卡片 4：每日音乐精选 -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-5 relative cursor-pointer">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white text-xl shadow-lg">
-                        🎵
-                    </div>
-                    <button class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition">订阅</button>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">每日音乐精选</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    每天推荐一首优质好歌，帮你发现新的宝藏音乐。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 856 订阅</span>
-                    <span>🕒 今天更新</span>
-                </div>
-            </div>
-
-            <!-- 卡片 5：深夜食堂（美食） -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-4 relative cursor-pointer">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-600 to-yellow-300 flex items-center justify-center text-white text-xl shadow-lg">
-                        🍜
-                    </div>
-                    <button class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition">订阅</button>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">深夜食堂</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    分享美食制作与探店，深夜放毒专用频道。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 320 订阅</span>
-                    <span>🕒 3天前更新</span>
-                </div>
-            </div>
-
-            <!-- 卡片 6：猫咪治愈所（萌宠） -->
-            <div class="channel-card rounded-2xl p-5 flex flex-col items-start fade-up delay-5 relative cursor-pointer">
-                <div class="w-full flex justify-between items-start mb-4">
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-xl shadow-lg">
-                        🐱
-                    </div>
-                    <button class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-white px-3 py-1 rounded-full transition">订阅</button>
-                </div>
-                <h3 class="text-base font-bold text-white truncate w-full">猫咪治愈所</h3>
-                <p class="text-xs text-gray-400 truncate w-full mt-1 line-clamp-2 leading-relaxed">
-                    全网最可爱的猫咪萌图、小视频合集。
-                </p>
-                <div class="mt-4 flex justify-between w-full text-[10px] text-gray-500">
-                    <span>👥 5.7k 订阅</span>
-                    <span>🕒 10分钟前更新</span>
-                </div>
-            </div>
-
         </div>
 
-        <!-- 底部：更多频道提示 -->
-        <div class="mt-12 text-center fade-up delay-6 text-sm text-gray-500 border-t border-[#30363d]/60 pt-8">
-            <p>已经到底了，我们正在不断添加新的频道 🚀</p>
+        <!-- ==================== 信息流区域 ==================== -->
+        <div class="mt-6 flex flex-col gap-3 min-h-[60vh]">
+            
+            <!-- ✅ 如果没有任何人发帖，展示这个精美的“空状态” -->
+            <div class="flex flex-col items-center justify-center py-20 text-center border border-[#30363d] rounded-2xl bg-[#161b22]/50">
+                <div class="empty-state-icon text-6xl mb-4 text-gray-500">
+                    🕊️
+                </div>
+                <h3 class="text-base font-semibold text-white">这里空空的</h3>
+                <p class="text-sm text-gray-500 max-w-[200px] mt-1 leading-relaxed">
+                    还没有人在这里发过消息。<br>成为第一个发言的人吧！
+                </p>
+            </div>
+
+            <!-- 
+            ============================================================
+            【重要提示】：如果有人发帖了，帖子会显示在下面这个区域。
+            你之后通过 JS 动态往这下面插入帖子即可。
+            帖子卡片的结构（你不必现在用，这是参考）：
+            
+            <div class="flex gap-3 p-4 border-b border-[#30363d]">
+                <div class="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0"></div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-sm">用户昵称</span>
+                            <span class="text-xs text-gray-500">@username · 1小时前</span>
+                        </div>
+                        <div class="text-gray-500 text-xs">···</div>
+                    </div>
+                    <div class="mt-1 text-sm text-white leading-relaxed">这是帖子内容。</div>
+                    <div class="mt-2 flex gap-4 text-gray-500 text-xs">
+                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">💬 0</span>
+                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">🔁 0</span>
+                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">❤️ 0</span>
+                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">📌</span>
+                    </div>
+                </div>
+            </div>
+            ============================================================
+            -->
+
         </div>
 
     </div>
-
-    <script>
-        // 简单的分类切换演示（占位动画）
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabs = document.querySelectorAll('.tab-btn');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    // 后续可以在这里加入过滤卡片的逻辑
-                });
-            });
-        });
-    </script>
 </body>
 </html>
