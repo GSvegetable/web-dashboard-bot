@@ -3,129 +3,517 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>频道动态 - 宫水大世界</title>
+    <title>社区动态 - 宫水大世界</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            background-color: #0d1117; 
+            background-color: #0a0c10; 
             color: #e5e7eb;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
         }
-        
-        /* 滚动条保持清爽 */
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2a2d35; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        /* 发帖框样式 */
         .post-input-area {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
         }
         .post-input-area:focus-within {
-            border-color: rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
-        
-        /* 空状态动画 */
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            padding: 16px 20px;
+            margin-bottom: 8px;
+        }
+        .post-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .code-block {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .code-block:hover { border-color: #58a6ff; }
+        .code-content { display: none; margin-top: 10px; overflow-x: auto; }
+
+        .action-btn {
+            color: #8b949e;
+            transition: all 0.2s ease;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.05); color: #e5e7eb; }
+        .action-btn.liked { color: #f91880; }
+
         .empty-state-icon {
-            animation: floatPulse 3s ease-in-out infinite;
+            animation: floatPulse 4s ease-in-out infinite;
         }
         @keyframes floatPulse {
             0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-8px) scale(1.05); }
+            50% { transform: translateY(-10px) scale(1.05); }
         }
 
-        /* 回复/转发/点赞按钮的悬浮效果 */
-        .action-btn:hover { background: rgba(255, 255, 255, 0.05); }
+        .glass-bg {
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
     </style>
 </head>
 <body>
     
-    <div class="w-full max-w-xl mx-auto px-4 pb-12 relative z-10">
+    <div class="w-full max-w-2xl mx-auto px-4 pb-12 relative z-10">
         
-        <!-- ==================== 顶部导航栏 ==================== -->
-        <div class="sticky top-0 bg-[#0d1117]/80 backdrop-blur-lg border-b border-[#30363d] py-3 px-2 z-20 flex justify-between items-center -mx-2">
+        <!-- 顶部导航 -->
+        <div class="glass-bg sticky top-0 border-b border-[#30363d] py-3 px-2 z-20 flex justify-between items-center -mx-2">
             <div class="flex items-center gap-3">
                 <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
                 <span class="text-base font-bold text-white tracking-wide"># 宫水社区</span>
             </div>
-            <div class="flex gap-4 text-gray-500 text-xs">
+            <div class="flex gap-4 text-gray-400 text-xs">
                 <span>首页</span>
                 <span>最新</span>
                 <span>热门</span>
             </div>
         </div>
 
-        <!-- ==================== 发帖区（框架） ==================== -->
+        <!-- 搜索与过滤 -->
+        <div class="mt-4 flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+                <svg class="absolute left-3 top-2.5 text-gray-500" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="searchInput" placeholder="搜索帖子、作者..." class="w-full bg-[#161b22] border border-[#30363d] rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] transition">
+            </div>
+            <select id="timeFilter" class="bg-[#161b22] border border-[#30363d] rounded-full px-4 py-2 text-sm text-white outline-none focus:border-[#58a6ff]">
+                <option value="all">全部时间</option>
+                <option value="today">今日</option>
+                <option value="week">本周</option>
+                <option value="month">本月</option>
+            </select>
+        </div>
+
+        <!-- 发帖区 -->
         <div class="post-input-area mt-4 p-4 flex gap-3 items-start">
-            <!-- 默认占位头像 -->
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs">我</div>
-            
-            <!-- 输入框和按钮 -->
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs border border-[#30363d]">
+                {{ current_user.first_name[0] if current_user.first_name else '我' }}
+            </div>
             <div class="flex-1 flex flex-col gap-2">
-                <input type="text" placeholder="有什么新鲜事？在这里发消息..." class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-gray-500 py-1">
+                <textarea id="postContent" rows="2" placeholder="有什么新鲜事？" class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-gray-500 resize-none py-1"></textarea>
+                
+                <div id="mediaInputArea" class="hidden flex-col gap-2 mt-1 border-t border-[#30363d]/50 pt-2">
+                    <input type="text" id="mediaUrls" placeholder="粘贴图片/视频链接 (多个用逗号隔开)" class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
+                </div>
+                
+                <div id="codeInputArea" class="hidden flex-col gap-2 mt-1 border-t border-[#30363d]/50 pt-2">
+                    <div class="flex gap-2">
+                        <input type="text" id="codeLang" placeholder="语言 (如 python, json)" class="w-1/3 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
+                        <textarea id="codeContent" rows="3" placeholder="粘贴你的代码..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none"></textarea>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-center mt-1">
                     <div class="flex gap-2 text-gray-500">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        <button onclick="toggleMediaInput()" class="hover:text-white transition text-xs px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
+                            📷 媒体
+                        </button>
+                        <button onclick="toggleCodeInput()" class="hover:text-white transition text-xs px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
+                            &lt;/&gt; 代码
+                        </button>
                     </div>
-                    <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs font-bold px-4 py-1.5 rounded-full transition active:scale-95">发布</button>
+                    <button id="postSubmitBtn" class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs font-bold px-5 py-1.5 rounded-full transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        发布
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== 信息流区域 ==================== -->
-        <div class="mt-6 flex flex-col gap-3 min-h-[60vh]">
-            
-            <!-- ✅ 如果没有任何人发帖，展示这个精美的“空状态” -->
-            <div class="flex flex-col items-center justify-center py-20 text-center border border-[#30363d] rounded-2xl bg-[#161b22]/50">
-                <div class="empty-state-icon text-6xl mb-4 text-gray-500">
-                    🕊️
-                </div>
+        <!-- 帖子信息流 -->
+        <div id="postFeed" class="mt-4 min-h-[40vh]">
+            <!-- 空状态 (默认显示) -->
+            <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center border border-[#30363d]/50 rounded-2xl bg-[#161b22]/30">
+                <div class="empty-state-icon text-6xl mb-4 text-gray-500">🕊️</div>
                 <h3 class="text-base font-semibold text-white">这里空空的</h3>
                 <p class="text-sm text-gray-500 max-w-[200px] mt-1 leading-relaxed">
-                    还没有人在这里发过消息。<br>成为第一个发言的人吧！
+                    还没有人发过消息。<br>成为第一个发言的人吧！
                 </p>
             </div>
-
-            <!-- 
-            ============================================================
-            【重要提示】：如果有人发帖了，帖子会显示在下面这个区域。
-            你之后通过 JS 动态往这下面插入帖子即可。
-            帖子卡片的结构（你不必现在用，这是参考）：
             
-            <div class="flex gap-3 p-4 border-b border-[#30363d]">
-                <div class="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0"></div>
-                <div class="flex-1">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-white text-sm">用户昵称</span>
-                            <span class="text-xs text-gray-500">@username · 1小时前</span>
-                        </div>
-                        <div class="text-gray-500 text-xs">···</div>
-                    </div>
-                    <div class="mt-1 text-sm text-white leading-relaxed">这是帖子内容。</div>
-                    <div class="mt-2 flex gap-4 text-gray-500 text-xs">
-                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">💬 0</span>
-                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">🔁 0</span>
-                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">❤️ 0</span>
-                        <span class="flex items-center gap-1 cursor-pointer action-btn px-2 py-1 rounded-full">📌</span>
-                    </div>
-                </div>
-            </div>
-            ============================================================
-            -->
+            <!-- 帖子列表容器 -->
+            <div id="postList" class="hidden flex-col gap-2"></div>
+        </div>
 
+        <!-- 加载更多 -->
+        <div id="loadMoreArea" class="hidden mt-4 text-center">
+            <button id="loadMoreBtn" class="text-gray-400 hover:text-white text-sm border border-[#30363d] px-4 py-1.5 rounded-full transition">加载更多</button>
         </div>
 
     </div>
+
+    <script>
+        // ===========================
+        // 状态管理
+        // ===========================
+        let currentPage = 1;
+        let hasMore = true;
+        let isLoading = false;
+        let currentKeyword = '';
+        let currentTime = 'all';
+
+        // ===========================
+        // 发帖控制
+        // ===========================
+        const contentInput = document.getElementById('postContent');
+        const submitBtn = document.getElementById('postSubmitBtn');
+
+        contentInput.addEventListener('input', function() {
+            submitBtn.disabled = !this.value.trim();
+        });
+
+        function toggleMediaInput() {
+            const area = document.getElementById('mediaInputArea');
+            area.classList.toggle('hidden');
+        }
+
+        function toggleCodeInput() {
+            const area = document.getElementById('codeInputArea');
+            area.classList.toggle('hidden');
+        }
+
+        document.getElementById('postSubmitBtn').addEventListener('click', function() {
+            const content = contentInput.value.trim();
+            if (!content) return;
+            
+            const mediaUrls = document.getElementById('mediaUrls').value.trim();
+            const codeLang = document.getElementById('codeLang').value.trim();
+            const codeContent = document.getElementById('codeContent').value.trim();
+            
+            this.innerText = '发布中...';
+            this.disabled = true;
+            
+            fetch('/api/posts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    content: content,
+                    media_urls: mediaUrls,
+                    code_lang: codeLang,
+                    code_content: codeContent
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    contentInput.value = '';
+                    document.getElementById('mediaUrls').value = '';
+                    document.getElementById('codeLang').value = '';
+                    document.getElementById('codeContent').value = '';
+                    document.getElementById('mediaInputArea').classList.add('hidden');
+                    document.getElementById('codeInputArea').classList.add('hidden');
+                    submitBtn.disabled = true;
+                    // 重新加载第一页
+                    currentPage = 1;
+                    loadPosts(true);
+                } else {
+                    alert('发布失败: ' + data.msg);
+                }
+            })
+            .catch(() => alert('发布异常，请检查网络'))
+            .finally(() => {
+                this.innerText = '发布';
+                this.disabled = false;
+            });
+        });
+
+        // ===========================
+        // 加载帖子
+        // ===========================
+        function loadPosts(reset = false) {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const keyword = document.getElementById('searchInput').value.trim();
+            const time = document.getElementById('timeFilter').value;
+            
+            if (reset) {
+                currentPage = 1;
+                hasMore = true;
+                document.getElementById('postList').innerHTML = '';
+                document.getElementById('postList').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+            
+            let url = `/api/posts?page=${currentPage}&time=${time}`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            
+            fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    const list = document.getElementById('postList');
+                    const empty = document.getElementById('emptyState');
+                    
+                    if (reset) {
+                        list.innerHTML = '';
+                        currentPage = 1;
+                    }
+                    
+                    if (data.posts.length > 0) {
+                        empty.classList.add('hidden');
+                        list.classList.remove('hidden');
+                        
+                        // GSAP 入场动画
+                        data.posts.forEach((post, index) => {
+                            const el = createPostElement(post);
+                            list.appendChild(el);
+                            gsap.fromTo(el, 
+                                { opacity: 0, y: 20, scale: 0.98 },
+                                { opacity: 1, y: 0, scale: 1, duration: 0.5, delay: index * 0.05, ease: "power2.out" }
+                            );
+                        });
+                        
+                        hasMore = data.has_next;
+                        currentPage++;
+                        
+                        // 控制加载更多按钮
+                        const loadArea = document.getElementById('loadMoreArea');
+                        if (hasMore) {
+                            loadArea.classList.remove('hidden');
+                        } else {
+                            loadArea.classList.add('hidden');
+                        }
+                    } else if (reset) {
+                        empty.classList.remove('hidden');
+                        list.classList.add('hidden');
+                        document.getElementById('loadMoreArea').classList.add('hidden');
+                    }
+                }
+            })
+            .catch(err => console.error('加载失败:', err))
+            .finally(() => { isLoading = false; });
+        }
+
+        // ===========================
+        // 创建帖子 DOM
+        // ===========================
+        function createPostElement(post) {
+            const div = document.createElement('div');
+            div.className = 'post-card';
+            div.id = `post-${post.id}`;
+            
+            let mediaHtml = '';
+            if (post.media_urls && post.media_urls.length > 0) {
+                mediaHtml = post.media_urls.map(url => 
+                    `<div class="mt-2 rounded-lg overflow-hidden border border-[#30363d] bg-[#161b22] p-1">
+                        ${url.match(/\.(mp4|webm|ogg)$/i) ? 
+                            `<video src="${url}" controls class="w-full max-h-60 object-contain"></video>` :
+                            `<img src="${url}" class="w-full max-h-60 object-contain" loading="lazy">`
+                        }
+                    </div>`
+                ).join('');
+            }
+            
+            let codeHtml = '';
+            if (post.code_lang && post.code_content) {
+                codeHtml = `
+                    <div class="code-block" onclick="toggleCode(this)">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span class="font-mono text-[#58a6ff]">&lt;/&gt; ${post.code_lang}</span>
+                            <span>点击展开</span>
+                        </div>
+                        <div class="code-content font-mono text-xs text-gray-300 whitespace-pre-wrap">${escapeHtml(post.code_content)}</div>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = `
+                <div class="flex gap-3">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs border border-[#30363d]">
+                        ${post.author_name[0] || '?'}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="font-bold text-white text-sm">${escapeHtml(post.author_name)}</span>
+                            <span class="text-xs text-gray-500">@${post.author_display_id}</span>
+                            <span class="text-xs text-gray-600">·</span>
+                            <span class="text-xs text-gray-500">${post.created_at}</span>
+                            ${post.is_subscribed ? '<span class="text-[10px] text-[#1d9bf0] border border-[#1d9bf0] px-1.5 rounded-full">已订阅</span>' : ''}
+                        </div>
+                        <div class="mt-1 text-sm text-white leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</div>
+                        ${mediaHtml}
+                        ${codeHtml}
+                        <div class="mt-3 flex gap-4 text-xs text-gray-500">
+                            <button class="action-btn flex items-center gap-1 ${post.is_liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+                                ${post.is_liked ? '❤️' : '🤍'} <span id="like-count-${post.id}">${post.likes}</span>
+                            </button>
+                            <button class="action-btn flex items-center gap-1" onclick="toggleComment(${post.id})">
+                                💬 <span>${post.comments}</span>
+                            </button>
+                            <button class="action-btn flex items-center gap-1" onclick="toggleSubscribe(${post.user_id}, this)">
+                                ${post.is_subscribed ? '✅ 已订阅' : '+ 订阅'}
+                            </button>
+                        </div>
+                        <div id="comment-area-${post.id}" class="hidden mt-3 border-t border-[#30363d]/50 pt-3">
+                            <div id="comment-list-${post.id}" class="mb-2 max-h-40 overflow-y-auto"></div>
+                            <div class="flex gap-2">
+                                <input type="text" id="comment-input-${post.id}" placeholder="写下你的评论..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
+                                <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs px-3 py-1.5 rounded-full" onclick="submitComment(${post.id})">发送</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        // ===========================
+        // 交互函数
+        // ===========================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function toggleCode(el) {
+            const content = el.querySelector('.code-content');
+            const label = el.querySelector('span:last-child');
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                label.textContent = '点击展开';
+            } else {
+                content.style.display = 'block';
+                label.textContent = '点击收起';
+            }
+        }
+
+        function toggleLike(postId) {
+            fetch(`/api/posts/${postId}/like`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    const btn = document.querySelector(`#post-${postId} .action-btn`);
+                    const count = document.getElementById(`like-count-${postId}`);
+                    if (data.action === 'liked') {
+                        btn.classList.add('liked');
+                        btn.innerHTML = `❤️ <span id="like-count-${postId}">${data.count}</span>`;
+                    } else {
+                        btn.classList.remove('liked');
+                        btn.innerHTML = `🤍 <span id="like-count-${postId}">${data.count}</span>`;
+                    }
+                }
+            });
+        }
+
+        function toggleComment(postId) {
+            const area = document.getElementById(`comment-area-${postId}`);
+            const list = document.getElementById(`comment-list-${postId}`);
+            if (area.classList.contains('hidden')) {
+                area.classList.remove('hidden');
+                fetch(`/api/posts/${postId}/comments`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        list.innerHTML = '';
+                        data.comments.forEach(c => {
+                            const div = document.createElement('div');
+                            div.className = 'flex gap-2 py-1.5 text-xs';
+                            div.innerHTML = `
+                                <span class="font-bold text-white">${c.author_name}</span>
+                                <span class="text-gray-400">${c.content}</span>
+                            `;
+                            list.appendChild(div);
+                        });
+                    }
+                });
+            } else {
+                area.classList.add('hidden');
+            }
+        }
+
+        function submitComment(postId) {
+            const input = document.getElementById(`comment-input-${postId}`);
+            const content = input.value.trim();
+            if (!content) return;
+            fetch(`/api/posts/${postId}/comments`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ content: content })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    input.value = '';
+                    toggleComment(postId); // 刷新评论列表
+                }
+            });
+        }
+
+        function toggleSubscribe(userId, btn) {
+            fetch(`/api/users/${userId}/subscribe`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    if (data.action === 'subscribed') {
+                        btn.textContent = '✅ 已订阅';
+                    } else {
+                        btn.textContent = '+ 订阅';
+                    }
+                }
+            });
+        }
+
+        // ===========================
+        // 搜索与过滤监听
+        // ===========================
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                currentPage = 1;
+                loadPosts(true);
+            }, 400);
+        });
+
+        document.getElementById('timeFilter').addEventListener('change', function() {
+            currentPage = 1;
+            loadPosts(true);
+        });
+
+        document.getElementById('loadMoreBtn').addEventListener('click', function() {
+            loadPosts(false);
+        });
+
+        // ===========================
+        // 初始加载
+        // ===========================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPosts(true);
+        });
+    </script>
 </body>
 </html>
