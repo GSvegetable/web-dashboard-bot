@@ -1,24 +1,15 @@
-<!-- 🟢 外层：控制四边边距、外角圆润 -->
+<!-- 🟢 外层：控制四边边距、外角圆润，绝对不会贴边！ -->
 <div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
-    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润 -->
+    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润，绝对不会消失！ -->
     <div class="panel-inner">
         {% include 'workspace/partials/_config_home.html' %}
         {% include 'workspace/partials/_config_form.html' %}
     </div>
 
-    <!-- ✅ 右上角添加面板按钮 -->
-    <div id="addPanelBtnContainer" class="absolute top-[32px] right-[32px] z-40 flex items-center">
-        <div id="addPanelBtn" class="outer-cont" onclick="addPanel()">
-            <span class="action-flex font-bold whitespace-nowrap">
-                <span>+ 添加面板</span>
-            </span>
-        </div>
-    </div>
-
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 添加面板弹窗 -->
+    <!-- ✅ 添加面板弹出卡片（点击背景自动关闭） -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none" onclick="closeAddPanelIfOutside(event)">
         <div id="modalWrapper" class="pointer-events-auto w-[360px] max-w-[calc(100vw-48px)] origin-top">
             <!-- 毛玻璃卡片 + 表单 -->
@@ -38,7 +29,7 @@
                         <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
-                    <!-- 字段 3：机器人Token（增加了自动补全逻辑） -->
+                    <!-- 字段 3：机器人Token -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
                         <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" onblur="autoFetchBotInfo()" />
@@ -61,13 +52,121 @@
     </div>
 
     <style>
-        /* 样式部分保持不变，重点增加 CSS 确保遮罩逻辑 */
-        #customAddPanelModal { pointer-events: none; }
-        #customAddPanelModal #modalWrapper { pointer-events: auto; }
+        /* ================== 全屏模式（机器人仓库） ================== */
+        .panel-fullscreen {
+            top: 20px !important;        
+            left: 32px !important;       
+            right: 32px !important;      
+            bottom: 32px !important;     
+            width: auto !important;
+            height: auto !important;
+            border-radius: 28px !important;
+            
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .panel-fullscreen .panel-inner {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 28px !important;
+
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
+        }
+        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
+        @media (min-width: 768px) {
+            .panel-fullscreen .panel-inner {
+                clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
+                mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+                -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
+            }
+        }
+
+        /* ================== 缩回模式（机器人配置） ================== */
+        .panel-collapsed {
+            top: auto !important;
+            left: 24px !important;
+            bottom: 24px !important;
+            right: 24px !important; 
+            width: auto !important;
+            max-width: 480px !important; 
+            height: auto !important;
+            max-height: calc(100vh - 48px) !important;
+            border-radius: 28px !important;
+            background: rgba(255, 255, 255, 0.04) !important;
+            backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        
+        .panel-collapsed .panel-inner {
+            clip-path: none !important;
+            mask-image: none !important;
+            -webkit-mask-image: none !important;
+        }
+        .panel-collapsed #addPanelBtnContainer { display: none !important; }
+
+        .panel-fullscreen #configHome { display: flex !important; }
+        .panel-fullscreen #configForm { display: none !important; }
+
+        /* ✅ 纯正毛玻璃卡片，无白边包裹 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 1.2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bec4cf;
+        }
+        .glass-card input:focus {
+            border-color: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 480px) {
+            #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; }
+            #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; }
+        }
     </style>
 
     <script>
-        // ✅ 点击背景关闭弹窗的核心函数
+        document.addEventListener("DOMContentLoaded", function() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
+        });
+
+        window.switchToConfig = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            panel.classList.remove('panel-fullscreen');
+            panel.classList.add('panel-collapsed');
+            setTimeout(() => {
+                home.classList.add('hidden');
+                form.classList.remove('hidden');
+            }, 50);
+        };
+
+        window.switchToHome = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            form.classList.add('hidden');
+            home.classList.remove('hidden');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
+        };
+
+        // ✅ 点击背景关闭弹窗
         function closeAddPanelIfOutside(e) {
             var modal = document.getElementById('customAddPanelModal');
             var wrapper = document.getElementById('modalWrapper');
@@ -89,79 +188,50 @@
             }, 220);
         }
 
-        // ✅ 打开面板功能
         window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            const btn = document.getElementById('addPanelBtn');
-            if (!modal || !wrapper || !btn) return;
-            
-            if (!modal.classList.contains('hidden')) {
-                closeAddPanel();
-                return;
-            }
-
-            btn.classList.remove('pulling');
-            void btn.offsetHeight;
-            btn.classList.add('pulling');
-
+            if (!modal || !wrapper) return;
+            if (!modal.classList.contains('hidden')) { closeAddPanel(); return; }
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
             wrapper.style.opacity = '0';
-
             setTimeout(() => {
                 wrapper.style.opacity = '';
                 wrapper.classList.add('animate-in');
             }, 40);
         };
 
-        // ✅ 自动补齐：失败直接静默，不做任何提示
+        // ✅ 自动补齐（静默失败）
         window.autoFillClipboard = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
-            
-            if (!navigator.clipboard) {
-                // 完全静默
-                return;
-            }
-
+            if (!navigator.clipboard) return;
             navigator.clipboard.readText().then(text => {
                 if (text) {
                     const lines = text.split(/\r?\n/);
-                    let matched = false;
                     lines.forEach(line => {
                         const trimmed = line.trim();
                         if (!trimmed) return;
                         if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
                             if (!tokenInput.value) {
                                 tokenInput.value = trimmed;
-                                // 触发自动拉取
                                 autoFetchBotInfo(); 
                             }
-                            matched = true;
-                        }
-                        else if (/^\d{5,15}$/.test(trimmed)) {
+                        } else if (/^\d{5,15}$/.test(trimmed)) {
                             if (!idInput.value) idInput.value = trimmed;
-                            matched = true;
                         }
                     });
                 }
-            }).catch(() => {
-                // 失败静默
-            });
+            }).catch(() => { /* 静默 */ });
         };
 
-        // ✅ 输入 Token 后，离焦自动拉取机器人的名字和 ID
+        // ✅ 自动拉取机器人名字
         function autoFetchBotInfo() {
             const tokenInput = document.getElementById('addPanelTokenInput');
             const nameInput = document.getElementById('addPanelNameInput');
-            const idInput = document.getElementById('addPanelIdInput');
             const token = tokenInput.value.trim();
-
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) return;
-
-            // 这里复用 execute_bind_bot 的请求方法，或者专门开一个只拉取的接口
-            // 为了不产生副作用，我们模拟一个轻量请求：
             fetch('/api/bind_bot', { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -169,85 +239,38 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.ok && data.bot_name) {
-                    if (!nameInput.value) nameInput.value = data.bot_name;
-                    if (data.bot_avatar_url && !idInput.value) {
-                        // 可以用作ID参考，如果没有自己填
-                    }
+                if (data.ok && data.bot_name && !nameInput.value) {
+                    nameInput.value = data.bot_name;
                 }
             })
-            .catch(() => { /* 静默处理 */ });
+            .catch(() => { /* 静默 */ });
         }
 
-        // 辅助函数：高亮错误
-        function markInvalid(input) {
-            if (!input) return;
-            input.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-            input.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.3)';
-            input.focus();
-        }
-        function clearInvalid(input) {
-            if (!input) return;
-            input.style.borderColor = '';
-            input.style.boxShadow = '';
-        }
+        function markInvalid(input) { if(!input)return; input.style.borderColor='rgba(239,68,68,0.8)'; input.style.boxShadow='0 0 10px rgba(239,68,68,0.3)'; input.focus(); }
+        function clearInvalid(input) { if(!input)return; input.style.borderColor=''; input.style.boxShadow=''; }
 
-        // ✅ 创建功能：错误提示改用自定义 Toast 而不是 alert
+        // ✅ 创建功能：错误走自定义 Toast
         window.createPanel = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
-
             const idVal = idInput.value.trim();
             const nameVal = nameInput.value.trim();
             const tokenVal = tokenInput.value.trim();
 
-            if (!nameVal) {
-                markInvalid(nameInput);
-                if (typeof showTopToast === 'function') {
-                    showTopToast('请填写机器人名称。');
-                }
-                return;
-            }
+            if (!nameVal) { markInvalid(nameInput); if(typeof showTopToast==='function') showTopToast('请填写机器人名称。'); return; }
             clearInvalid(nameInput);
-
-            if (!idVal) {
-                markInvalid(idInput);
-                if (typeof showTopToast === 'function') {
-                    showTopToast('请填写你的 ID（纯数字）。');
-                }
-                return;
-            }
-            if (!/^\d{5,15}$/.test(idVal)) {
-                markInvalid(idInput);
-                if (typeof showTopToast === 'function') {
-                    showTopToast('ID 格式不正确，应为 5~15 位纯数字。');
-                }
-                return;
-            }
+            if (!idVal) { markInvalid(idInput); if(typeof showTopToast==='function') showTopToast('请填写你的 ID（纯数字）。'); return; }
+            if (!/^\d{5,15}$/.test(idVal)) { markInvalid(idInput); if(typeof showTopToast==='function') showTopToast('ID 格式不正确，应为 5~15 位纯数字。'); return; }
             clearInvalid(idInput);
-
-            if (!tokenVal) {
-                markInvalid(tokenInput);
-                if (typeof showTopToast === 'function') {
-                    showTopToast('请填写机器人 Token。');
-                }
-                return;
-            }
-            if (!/^\d+:[A-Za-z0-9_-]+$/.test(tokenVal)) {
-                markInvalid(tokenInput);
-                if (typeof showTopToast === 'function') {
-                    showTopToast('Token 格式不正确。');
-                }
-                return;
-            }
+            if (!tokenVal) { markInvalid(tokenInput); if(typeof showTopToast==='function') showTopToast('请填写机器人 Token。'); return; }
+            if (!/^\d+:[A-Za-z0-9_-]+$/.test(tokenVal)) { markInvalid(tokenInput); if(typeof showTopToast==='function') showTopToast('Token 格式不正确。'); return; }
             clearInvalid(tokenInput);
 
             let cards = [];
             try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
             cards.push({ id: idVal, name: nameVal, token: tokenVal });
             localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
-
             idInput.value = ''; nameInput.value = ''; tokenInput.value = '';
             closeAddPanel();
             if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
