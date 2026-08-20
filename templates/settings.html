@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
         /* ==========================================
-           背景纹理（与之前保持一致）
+           背景纹理
            ========================================== */
         .bg-container {
             position: absolute; inset: 0; width: 100%; height: 100%;
@@ -29,17 +29,7 @@
         body { background: transparent !important; }
         .settings-content-wrapper { position: relative; z-index: 10; }
 
-        /* 毛玻璃偏移层（复用） */
-        .glass-offset-layer {
-            position: absolute; inset: 0; border-radius: 6px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
-            -webkit-backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
-            transform: translate(4px, 4px) scale(0.98);
-            z-index: 0; pointer-events: none;
-        }
-
-        /* 导航、菜单按钮、卡片、动画（保留原有样式） */
+        /* 导航栏、菜单、通用样式 */
         .gh-sidebar-item {
             display: flex; align-items: center; gap: 12px;
             width: 100%; padding: 6px 12px; border-radius: 6px;
@@ -121,14 +111,8 @@
             </div>
 
             <nav class="flex flex-col gap-1" id="sidebarNav">
-                <a href="#" class="gh-sidebar-item active" data-target="profile">
-                    <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                    个人资料
-                </a>
-                <a href="#" class="gh-sidebar-item" data-target="stars">
-                    <svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>
-                    星星
-                </a>
+                <a href="#" class="gh-sidebar-item active" data-target="profile"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>个人资料</a>
+                <a href="#" class="gh-sidebar-item" data-target="stars"><svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>星星</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
@@ -206,7 +190,6 @@
     <!-- JS 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 侧边栏切换
             const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
             const panels = { profile: document.getElementById('panel-profile'), stars: document.getElementById('panel-stars') };
             menuItems.forEach(item => {
@@ -225,7 +208,6 @@
                 });
             });
 
-            // 3D 卡片
             const card3d = document.getElementById('starToggleCard3D');
             if (card3d) {
                 card3d.addEventListener('click', function(e) { e.stopPropagation(); this.classList.toggle('is-active'); });
@@ -236,7 +218,6 @@
                 });
             }
 
-            // 头像裁剪
             const editBtn = document.getElementById('editAvatarBtn'); const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal'); const cropperImg = document.getElementById('avatarCropperImg');
             const cancelBtn = document.getElementById('cancelCropBtn'); const confirmBtn = document.getElementById('confirmCropBtn');
@@ -247,9 +228,7 @@
                 const file = this.files[0]; if (!file) return;
                 const img = new Image();
                 img.onload = function() {
-                    if (this.naturalWidth > 2000 || this.naturalHeight > 2000) {
-                        alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。'); avatarInput.value = ''; return;
-                    }
+                    if (this.naturalWidth > 2000 || this.naturalHeight > 2000) { alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。'); avatarInput.value = ''; return; }
                     const reader = new FileReader();
                     reader.onload = function(e) { cropperImg.src = e.target.result; modal.classList.remove('hidden');
                         if (cropper) cropper.destroy(); cropper = new Cropper(cropperImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: false }); };
