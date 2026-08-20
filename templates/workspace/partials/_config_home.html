@@ -34,7 +34,6 @@
     .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
     .bot-repo-card:active { transform: scale(0.98); }
 
-    /* ✅ 新增：专门用于名字的跑马灯容器 */
     .bot-repo-name-marquee {
         flex: 1;
         min-width: 0;
@@ -116,17 +115,24 @@ document.addEventListener('DOMContentLoaded', function() {
             var card = document.createElement('div');
             card.className = 'bot-repo-card';
 
-            // ✅ 第1行：名字（用跑马灯容器）
+            // ✅ 第1行：名字（先判断是否溢出，再决定是否做跑马灯）
             var nameWrapper = document.createElement('div');
             nameWrapper.className = 'bot-repo-name-marquee';
             var nameTrack = document.createElement('span');
             nameTrack.className = 'bot-repo-track';
             var nameText = c.name || '未命名';
             if (c.code) nameText += ' (' + c.code + ')';
-            // 复制文本用于无缝轮播
-            nameTrack.innerHTML = nameText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + nameText;
+            nameTrack.textContent = nameText;
             nameWrapper.appendChild(nameTrack);
             card.appendChild(nameWrapper);
+
+            // ✅ 异步检测：只有真正超出卡片长度，才做双倍文本和跑马灯动画
+            requestAnimationFrame(function() {
+                if (nameTrack.scrollWidth > nameWrapper.clientWidth + 2) {
+                    nameTrack.innerHTML = nameText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + nameText;
+                    nameTrack.classList.add('marquee-run');
+                }
+            });
 
             // ✅ 第2行：ID
             var idLine = document.createElement('div');
@@ -141,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             idLine.appendChild(idVal);
             card.appendChild(idLine);
 
-            // ✅ 第3行：用户名（单独占一行）
+            // ✅ 第3行：用户名
             var usernameLine = document.createElement('div');
             usernameLine.className = 'bot-repo-line';
             var userLabel = document.createElement('span');
@@ -154,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
             usernameLine.appendChild(userVal);
             card.appendChild(usernameLine);
 
-            // ✅ 第4行：Token（跑马灯，保持原样）
+            // ✅ 第4行：Token
             var tokenLine = document.createElement('div');
             tokenLine.className = 'bot-repo-line';
             var tokenLabel = document.createElement('span');
@@ -172,14 +178,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tokenLine.appendChild(marquee);
             card.appendChild(tokenLine);
 
-            // 加入网格
             grid.appendChild(card);
 
-            // 加载完后判断名字是否过长，需要跑马灯
             requestAnimationFrame(function() {
-                if (nameTrack.scrollWidth > nameWrapper.clientWidth + 1) {
-                    nameTrack.classList.add('marquee-run');
-                }
                 if (track.scrollWidth > marquee.clientWidth + 1) {
                     track.classList.add('marquee-run');
                 }
