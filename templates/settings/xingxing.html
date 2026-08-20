@@ -9,24 +9,45 @@
     </div>
 </div>
 
-<!-- ✅ 全新的横向交互卡片（点击锁定状态，不回弹） -->
+<!-- ✅ 完美复刻 Uiverse 动画的横向卡片（尺寸、颜色已改，文字点击切换） -->
 <div class="flex justify-center mt-10">
-    <div id="starCard" class="group relative overflow-hidden w-80 h-40 rounded-2xl cursor-pointer text-xl font-bold bg-[#1e293b] border border-[#334155] shadow-lg transition-all duration-300 select-none" onclick="this.classList.toggle('active')">
+    <div id="starCard" class="relative overflow-hidden w-80 h-40 rounded-3xl cursor-pointer text-xl font-bold bg-[#1e293b] border border-[#334155] shadow-lg group">
         
-        <!-- 左上角展开的辉光圆球 -->
-        <div class="absolute -top-32 -left-16 w-32 h-44 rounded-full bg-indigo-500/30 transition-all duration-500 group-[.active]:-top-20 group-[.active]:-left-16 group-[.active]:w-[140%] group-[.active]:h-[140%]"></div>
+        <!-- 悬停动画触发层（原汁原味的 peer 结构） -->
+        <div class="z-10 absolute w-full h-full peer"></div>
         
-        <!-- 右下角展开的辉光圆球（点击后会出现，并覆盖整个卡片） -->
-        <div class="absolute flex text-lg text-center items-end justify-end -bottom-32 -right-16 w-36 h-44 rounded-full bg-purple-500/30 transition-all duration-500 group-[.active]:right-0 group-[.active]:rounded-b-none group-[.active]:bottom-0 group-[.active]:items-center group-[.active]:justify-center group-[.active]:w-full group-[.active]:h-full">
-            <span class="hidden group-[.active]:block text-slate-200 px-4 leading-relaxed">
-                ✨ 还没想好你随便想一个吧
-            </span>
+        <!-- 左上角球体扩散动画（颜色改成了跟暗黑风更搭的蓝紫色） -->
+        <div class="absolute peer-hover:-top-20 peer-hover:-left-16 peer-hover:w-[140%] peer-hover:h-[140%] -top-32 -left-16 w-32 h-44 rounded-full bg-indigo-500/20 transition-all duration-500"></div>
+        
+        <!-- 右下角球体扩散动画（点击/悬停后展示的层） -->
+        <div class="absolute flex text-lg text-center items-end justify-end peer-hover:right-0 peer-hover:rounded-b-none peer-hover:bottom-0 peer-hover:items-center peer-hover:justify-center peer-hover:w-full peer-hover:h-full -bottom-32 -right-16 w-36 h-44 rounded-full bg-[#2d3748]/90 transition-all duration-500">
+            <span id="cardStatusText" class="text-indigo-200">更多星星</span>
         </div>
         
-        <!-- 初始状态文字（点击前显示） -->
-        <div class="w-full h-full items-center justify-center flex uppercase tracking-wider text-slate-200 group-[.active]:hidden">
+        <!-- 卡片默认显示的文字（鼠标移入时会同步淡出） -->
+        <div class="w-full h-full items-center justify-center flex uppercase tracking-wider text-slate-400 peer-hover:opacity-0 transition-opacity duration-300">
             更多星星
         </div>
         
     </div>
 </div>
+
+<!-- ✅ 纯 JS 控制：仅负责切换文字，绝不干涉 CSS 动画 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.getElementById('starCard');
+    const statusText = document.getElementById('cardStatusText');
+    let isClicked = false;
+
+    if (card) {
+        card.addEventListener('click', function() {
+            isClicked = !isClicked;
+            if (isClicked) {
+                statusText.innerHTML = '✨ 还没想好你随便想一个吧';
+            } else {
+                statusText.innerHTML = '更多星星';
+            }
+        });
+    }
+});
+</script>
