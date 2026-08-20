@@ -3,7 +3,7 @@ import random
 import re
 import requests
 import uuid
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import io
 import base64
 import json
@@ -17,7 +17,7 @@ from flask_mail import Message
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
-from models import db, User, EmailCode, QrLoginSession, TelegramCode, Transaction, CardKey, VisitLog
+from models import db, User, EmailCode, QrLoginSession, TelegramCode, Transaction, CardKey, VisitLog, Post, Comment, Like, Subscription
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
@@ -147,9 +147,6 @@ def admin_dashboard():
     if not current_user.is_authenticated or not current_user.is_admin:
         return "无权访问，请使用管理员密码登录", 403
     
-    from datetime import datetime, date
-    from sqlalchemy import func, distinct
-
     today = date.today()
     
     total_visits = VisitLog.query.count()
@@ -161,6 +158,8 @@ def admin_dashboard():
     recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
     users = User.query.order_by(User.created_at.desc()).all()
     
+    all_posts = Post.query.order_by(Post.created_at.desc()).all()
+    
     return render_template('admin/dashboard.html', 
                            users=users,
                            total_visits=total_visits,
@@ -169,13 +168,13 @@ def admin_dashboard():
                            today_uv=today_uv,
                            total_users=total_users,
                            today_registered=today_registered,
-                           recent_active_users=recent_active_users)
+                           recent_active_users=recent_active_users,
+                           all_posts=all_posts)
 
 @main_bp.route('/api/admin/add_stars', methods=['POST'])
 def admin_add_stars():
     if not current_user.is_authenticated or not current_user.is_admin:
         return jsonify({'ok': False, 'msg': '权限不足'}), 403
-    
     data = request.get_json()
     user_id = data.get('user_id')
     amount = data.get('amount')
@@ -184,33 +183,185 @@ def admin_add_stars():
         amount = int(amount)
         if amount <= 0: return jsonify({'ok': False, 'msg': '赠送数量必须大于 0'})
     except: return jsonify({'ok': False, 'msg': '数量格式错误'})
-    
     user = User.query.get(int(user_id))
     if not user: return jsonify({'ok': False, 'msg': '用户不存在'})
-    
     before_balance = user.stars
     user.stars += amount
     db.session.commit()
-    
     tx = Transaction(user_id=user.id, amount=amount, before_balance=before_balance, after_balance=user.stars, reason="管理员后台赠送")
     db.session.add(tx)
     db.session.commit()
-    
     return jsonify({'ok': True, 'new_balance': user.stars})
+
+@main_bp.route('/api/admin/hide_post', methods=['POST'])
+def admin_hide_post():
+    if not current_user.is_authenticated or not current_user.is_admin:
+        return jsonify({'ok': False, 'msg': '权限不足'}), 403
+    data = request.get_json()
+    post_id = data.get('post_id')
+    if not post_id: return jsonify({'ok': False, 'msg': '参数缺失'})
+    post = Post.query.get(int(post_id))
+    if not post: return jsonify({'ok': False, 'msg': '帖子不存在'})
+    post.is_hidden = True
+    db.session.commit()
+    return jsonify({'ok': True, 'msg': '已隐藏该帖子'})
 
 @main_bp.route('/workspace')
 def workspace():
     return render_template('workspace/workspace.html')
 
-# ==========================================
-# ✅ 新增：社区路由
-# ==========================================
 @main_bp.route('/community')
 def community():
     return render_template('community.html')
 
 # ==========================================
-# 其他辅助路由
+# ✅ 社区动态 API 接口
+# ==========================================
+
+# 1. 获取帖子列表（支持关键词和时段搜索）
+@main_bp.route('/api/posts', methods=['GET'])
+def get_posts():
+    keyword = request.args.get('keyword', '').strip()
+    time_filter = request.args.get('time', 'all')
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    query = Post.query.filter_by(is_hidden=False).order_by(Post.created_at.desc())
+    
+    if keyword:
+        query = query.filter(Post.content.contains(keyword))
+    
+    now = datetime.utcnow()
+    if time_filter == 'today':
+        query = query.filter(Post.created_at >= now - timedelta(days=1))
+    elif time_filter == 'week':
+        query = query.filter(Post.created_at >= now - timedelta(days=7))
+    elif time_filter == 'month':
+        query = query.filter(Post.created_at >= now - timedelta(days=30))
+    
+    posts = query.paginate(page=page, per_page=per_page)
+    
+    data = []
+    for post in posts.items:
+        author = User.query.get(post.user_id)
+        data.append({
+            'id': post.id,
+            'user_id': post.user_id,
+            'author_name': author.first_name or '匿名',
+            'author_display_id': author.display_id or '000000',
+            'author_avatar': author.avatar_url or '',
+            'content': post.content,
+            'media_urls': post.media_urls.split(',') if post.media_urls else [],
+            'code_lang': post.code_lang,
+            'code_content': post.code_content,
+            'created_at': post.created_at.strftime('%Y-%m-%d %H:%M'),
+            'likes': Like.query.filter_by(post_id=post.id).count(),
+            'comments': Comment.query.filter_by(post_id=post.id).count(),
+            'is_liked': current_user.is_authenticated and Like.query.filter_by(post_id=post.id, user_id=current_user.id).first() is not None,
+            'is_subscribed': current_user.is_authenticated and Subscription.query.filter_by(follower_id=current_user.id, following_id=post.user_id).first() is not None
+        })
+    
+    return jsonify({
+        'ok': True,
+        'posts': data,
+        'has_next': posts.has_next,
+        'total': posts.total
+    })
+
+# 2. 发布新帖子（✅ 修复：已取消 @login_required，改为手动 JSON 拦截）
+@main_bp.route('/api/posts', methods=['POST'])
+def create_post():
+    if not current_user.is_authenticated:
+        return jsonify({'ok': False, 'msg': '请先登录后再发布动态'}), 401
+    
+    data = request.get_json()
+    content = data.get('content', '').strip()
+    media_urls = data.get('media_urls', '')
+    code_lang = data.get('code_lang', '')
+    code_content = data.get('code_content', '')
+    
+    if not content and not code_content:
+        return jsonify({'ok': False, 'msg': '内容不能为空'})
+    
+    post = Post(
+        user_id=current_user.id,
+        content=content,
+        media_urls=media_urls,
+        code_lang=code_lang,
+        code_content=code_content
+    )
+    db.session.add(post)
+    db.session.commit()
+    
+    return jsonify({'ok': True, 'msg': '发布成功', 'post_id': post.id})
+
+# 3. 点赞/取消点赞
+@main_bp.route('/api/posts/<int:post_id>/like', methods=['POST'])
+def toggle_like(post_id):
+    if not current_user.is_authenticated:
+        return jsonify({'ok': False, 'msg': '请先登录'}), 401
+    post = Post.query.get_or_404(post_id)
+    like = Like.query.filter_by(post_id=post_id, user_id=current_user.id).first()
+    if like:
+        db.session.delete(like)
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'unliked', 'count': Like.query.filter_by(post_id=post_id).count()})
+    else:
+        new_like = Like(post_id=post_id, user_id=current_user.id)
+        db.session.add(new_like)
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'liked', 'count': Like.query.filter_by(post_id=post_id).count()})
+
+# 4. 获取评论
+@main_bp.route('/api/posts/<int:post_id>/comments', methods=['GET'])
+def get_comments(post_id):
+    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.asc()).all()
+    data = []
+    for c in comments:
+        author = User.query.get(c.user_id)
+        data.append({
+            'id': c.id,
+            'user_id': c.user_id,
+            'author_name': author.first_name or '匿名',
+            'author_display_id': author.display_id or '000000',
+            'content': c.content,
+            'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    return jsonify({'ok': True, 'comments': data})
+
+# 5. 发布评论
+@main_bp.route('/api/posts/<int:post_id>/comments', methods=['POST'])
+def create_comment(post_id):
+    if not current_user.is_authenticated:
+        return jsonify({'ok': False, 'msg': '请先登录'}), 401
+    data = request.get_json()
+    content = data.get('content', '').strip()
+    if not content: return jsonify({'ok': False, 'msg': '评论不能为空'})
+    comment = Comment(post_id=post_id, user_id=current_user.id, content=content)
+    db.session.add(comment)
+    db.session.commit()
+    return jsonify({'ok': True, 'msg': '评论成功'})
+
+# 6. 订阅/取消订阅
+@main_bp.route('/api/users/<int:user_id>/subscribe', methods=['POST'])
+def toggle_subscribe(user_id):
+    if not current_user.is_authenticated:
+        return jsonify({'ok': False, 'msg': '请先登录'}), 401
+    if user_id == current_user.id:
+        return jsonify({'ok': False, 'msg': '不能订阅自己'})
+    sub = Subscription.query.filter_by(follower_id=current_user.id, following_id=user_id).first()
+    if sub:
+        db.session.delete(sub)
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'unsubscribed'})
+    else:
+        new_sub = Subscription(follower_id=current_user.id, following_id=user_id)
+        db.session.add(new_sub)
+        db.session.commit()
+        return jsonify({'ok': True, 'action': 'subscribed'})
+
+# ==========================================
+# 辅助路由 (AI对话、机器人绑定等保持不变)
 # ==========================================
 def fetch_telegram_user_info(tg_id):
     try:
@@ -256,7 +407,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口 (保持原样，篇幅原因忽略中间一些非核心的函数，但保证下发的文件是完整的 routes.py)
+# AI 接口
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
@@ -430,7 +581,6 @@ def register():
     code = request.form.get('code')
     
     ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY')
-    
     if code == ADMIN_SECRET_KEY:
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
@@ -443,13 +593,10 @@ def register():
         return "ADMIN_SUCCESS"
 
     if not all([account, code]): return "表格信息填写不完整"
-    
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
     record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first() if is_email else TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
     if not record or record.code != code or (datetime.utcnow() - record.created_at).seconds > 300: return "验证码错误或已超时"
-    
     user = User.query.filter_by(email=account).first() if is_email else User.query.filter_by(telegram_id=account).first()
-    
     if user:
         login_user(user)
         user.last_login = datetime.utcnow()
