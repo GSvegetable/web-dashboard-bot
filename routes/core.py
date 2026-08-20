@@ -6,7 +6,7 @@ from . import main_bp
 def splash():
     return render_template('splash.html')
 
-# ✅ 废弃旧仓库页面，重定向到现在的开发工作台（跑马灯卡片）
+# ✅ 核心修复：强制将旧版仓库页面（/warehouse）重定向到新版工作台（/workspace）
 @main_bp.route('/warehouse')
 def warehouse():
     return redirect(url_for('main.workspace'))
