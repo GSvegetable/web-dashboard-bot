@@ -1,12 +1,11 @@
 from flask import render_template, redirect, url_for, abort
-from flask_login import current_user
 from . import main_bp
 
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
 
-# ✅ 核心修复：强制将旧版仓库页面（/warehouse）重定向到新版工作台（/workspace）
+# ✅ 核心修复：旧路由 /warehouse 强制重定向到 /workspace
 @main_bp.route('/warehouse')
 def warehouse():
     return redirect(url_for('main.workspace'))
