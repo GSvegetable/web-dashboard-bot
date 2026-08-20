@@ -3,62 +3,63 @@
 <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12 animate-item">
     <div class="flex flex-col gap-6">
         
-        <!-- 名称 -->
+        <!-- ====== 名称 ====== -->
         <div class="animate-item delay-2">
             <div class="relative w-full mt-4">
-                <div class="glass-offset-layer"></div>
-                <!-- 边框容器：让输入框和标签共用同一条线 -->
-                <div class="border border-[rgba(255,255,255,0.15)] rounded-lg relative bg-transparent">
-                    <!-- 标签：嵌在边框线上 -->
-                    <label class="absolute -top-2.5 left-3 px-1.5 text-xs font-medium text-[rgba(255,255,255,0.85)] bg-[rgba(0,0,0,0.6)] backdrop-blur-md rounded-sm z-10">名称</label>
+                <!-- 强制偏移层 -->
+                <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] contrast-125 saturate-150 translate-x-[5px] translate-y-[5px] pointer-events-none z-0"></div>
+                <!-- 输入框容器 -->
+                <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.15)] rounded-lg">
+                    <!-- 独立标签小盒子：往下移，更圆润 -->
+                    <label class="absolute -top-2 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.85)] z-20 leading-none">名称</label>
                     <input type="text" id="name" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
                 </div>
             </div>
             <span class="gh-note block text-xs text-[rgba(255,255,255,0.65)] mt-1.5">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
         </div>
         
-        <!-- ID -->
+        <!-- ====== ID ====== -->
         <div class="animate-item delay-3">
             <div class="relative w-full mt-4">
-                <div class="glass-offset-layer"></div>
-                <div class="border border-[rgba(255,255,255,0.15)] rounded-lg relative bg-transparent">
-                    <label class="absolute -top-2.5 left-3 px-1.5 text-xs font-medium text-[rgba(255,255,255,0.85)] bg-[rgba(0,0,0,0.6)] backdrop-blur-md rounded-sm z-10">ID</label>
+                <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] contrast-125 saturate-150 translate-x-[5px] translate-y-[5px] pointer-events-none z-0"></div>
+                <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.15)] rounded-lg">
+                    <label class="absolute -top-2 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.85)] z-20 leading-none">ID</label>
                     <input type="text" id="display_id" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.display_id or '000000' }}" readonly />
                 </div>
             </div>
             <span class="gh-note block text-xs text-[rgba(255,255,255,0.65)] mt-1.5">你的 6 位唯一公开身份标识</span>
         </div>
         
-        <!-- 邮箱 -->
+        <!-- ====== 邮箱 ====== -->
         <div class="animate-item delay-4">
             <div class="relative w-full mt-4">
-                <div class="glass-offset-layer"></div>
-                <div class="border border-[rgba(255,255,255,0.15)] rounded-lg relative bg-transparent">
-                    <label class="absolute -top-2.5 left-3 px-1.5 text-xs font-medium text-[rgba(255,255,255,0.85)] bg-[rgba(0,0,0,0.6)] backdrop-blur-md rounded-sm z-10">邮箱</label>
+                <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] contrast-125 saturate-150 translate-x-[5px] translate-y-[5px] pointer-events-none z-0"></div>
+                <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.15)] rounded-lg">
+                    <label class="absolute -top-2 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.85)] z-20 leading-none">邮箱</label>
                     <input type="text" id="email" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.email if current_user.email else '' }}" placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" {% if current_user.email %}readonly{% endif %} />
                 </div>
             </div>
             <span class="gh-note block text-xs text-[rgba(255,255,255,0.65)] mt-1.5">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
         </div>
         
-        <!-- 个人简介 -->
+        <!-- ====== 个人简介 ====== -->
         <div class="animate-item delay-5">
             <div class="relative w-full mt-4">
-                <div class="glass-offset-layer"></div>
-                <div class="border border-[rgba(255,255,255,0.15)] rounded-lg relative bg-transparent">
-                    <label class="absolute -top-2.5 left-3 px-1.5 text-xs font-medium text-[rgba(255,255,255,0.85)] bg-[rgba(0,0,0,0.6)] backdrop-blur-md rounded-sm z-10">个人简介</label>
+                <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] contrast-125 saturate-150 translate-x-[5px] translate-y-[5px] pointer-events-none z-0"></div>
+                <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.15)] rounded-lg">
+                    <label class="absolute -top-2 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.85)] z-20 leading-none">个人简介</label>
                     <textarea id="bio" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0 resize-none min-h-[60px]" placeholder="简单介绍一下你自己吧"></textarea>
                 </div>
             </div>
             <span class="gh-note block text-xs text-[rgba(255,255,255,0.65)] mt-1.5">你可以通过 @提及其他用户和组织，链接到他们。</span>
         </div>
         
-        <!-- 网址 -->
+        <!-- ====== 网址 ====== -->
         <div class="animate-item delay-6">
             <div class="relative w-full mt-4">
-                <div class="glass-offset-layer"></div>
-                <div class="border border-[rgba(255,255,255,0.15)] rounded-lg relative bg-transparent">
-                    <label class="absolute -top-2.5 left-3 px-1.5 text-xs font-medium text-[rgba(255,255,255,0.85)] bg-[rgba(0,0,0,0.6)] backdrop-blur-md rounded-sm z-10">网址</label>
+                <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.03)] backdrop-blur-[12px] contrast-125 saturate-150 translate-x-[5px] translate-y-[5px] pointer-events-none z-0"></div>
+                <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.15)] rounded-lg">
+                    <label class="absolute -top-2 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.6)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.85)] z-20 leading-none">网址</label>
                     <input type="url" id="url" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" placeholder="输入你的个人网站或社交主页链接" />
                 </div>
             </div>
@@ -66,7 +67,7 @@
 
     </div>
     
-    <!-- 头像区域（保留独立样式） -->
+    <!-- 头像区（保持不变） -->
     <div class="flex flex-col items-start gap-4 animate-item delay-3">
         <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
             <label class="gh-label w-full text-sm font-semibold text-white mb-2">头像</label>
