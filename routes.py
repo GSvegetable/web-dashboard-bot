@@ -129,18 +129,24 @@ def logout():
     logout_user()
     return redirect(url_for('main.splash'))
 
+# ==========================================
+# ✅ 核心修复：后台路由，全部改为 db.func 防御
+# ==========================================
 @main_bp.route('/admin/dashboard')
 def admin_dashboard():
     if not current_user.is_authenticated or not current_user.is_admin:
         return "无权访问，请使用管理员密码登录", 403
     
     today = date.today()
+    
     total_visits = VisitLog.query.count()
-    today_visits = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).count()
+    # 这里改用 db.func.date，彻底解决 func 未定义的问题
+    today_visits = VisitLog.query.filter(db.func.date(VisitLog.visited_at) == today).count()
     total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
-    today_uv = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
+    today_uv = VisitLog.query.filter(db.func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
     total_users = User.query.count()
-    today_registered = User.query.filter(func.date(User.created_at) == today).count()
+    today_registered = User.query.filter(db.func.date(User.created_at) == today).count()
+    
     recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
     users = User.query.order_by(User.created_at.desc()).all()
     all_posts = Post.query.order_by(Post.created_at.desc()).all()
@@ -313,7 +319,7 @@ def toggle_subscribe(user_id):
         db.session.commit()
         return jsonify({'ok': True, 'action': 'subscribed'})
 
-# 机器人绑定（省略部分细节，保持完整）
+# 机器人绑定
 def fetch_telegram_user_info(tg_id):
     try:
         resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
@@ -357,7 +363,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
         return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
-# AI 对话省略，保持完整入口...
+# AI 接口
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
 
