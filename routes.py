@@ -37,7 +37,7 @@ def generate_unique_display_id():
             return new_id
 
 # ==========================================
-# 1. 设置页面重定向（新添加）
+# 设置页面重定向
 # ==========================================
 ALLOWED_SETTINGS = ['profile', 'stars', 'appearance', 'accessibility', 'notifications', 'billing', 'email', 'password', 'sessions', 'keys', 'credentials', 'organizations', 'enterprises', 'moderation', 'repositories', 'codespaces', 'packages']
 
@@ -52,7 +52,7 @@ def settings_page(page):
     return render_template('settings.html', active_page=page)
 
 # ==========================================
-# 2. GitHub OAuth 登录
+# GitHub OAuth 登录
 # ==========================================
 oauth.register(
     name='github',
@@ -131,7 +131,7 @@ def github_callback():
         return redirect(url_for('main.splash'))
 
 # ==========================================
-# 3. 核心路由
+# 核心路由
 # ==========================================
 @main_bp.route('/')
 def splash():
@@ -219,7 +219,7 @@ def community():
     return render_template('community.html')
 
 # ==========================================
-# 4. 社区 API
+# 社区 API
 # ==========================================
 @main_bp.route('/api/posts', methods=['GET'])
 def get_posts():
@@ -335,7 +335,7 @@ def toggle_subscribe(user_id):
         return jsonify({'ok': True, 'action': 'subscribed'})
 
 # ==========================================
-# 5. 机器人绑定与 AI 相关（辅助路由）
+# 机器人绑定与 AI 相关
 # ==========================================
 def fetch_telegram_user_info(tg_id):
     try:
@@ -352,7 +352,7 @@ def bind_bot():
     token, chat_id, bot_name = data.get('token'), data.get('telegram_id'), data.get('name', '宫水编辑器')
     if not token or not chat_id: return jsonify({'ok': False, 'msg': '缺少参数'})
     result = execute_bind_bot(token, chat_id, bot_name)
-    if result['ok']: return jsonify({'ok': True, 'msg': result['msg'], 'bot_name': result['bot_name'], 'bot_avatar_url': result.get('avatar')})
+    if result['ok']: return jsonify({'ok': True, 'msg': result['msg'], 'bot_name': result['bot_name'], 'bot_avatar_url': result.get('avatar'), 'bot_id': result.get('bot_id'), 'bot_username': result.get('bot_username')})
     return jsonify({'ok': False, 'msg': result['msg']})
 
 def execute_bind_bot(token, chat_id, name='宫水编辑器'):
@@ -360,11 +360,15 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
         test_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10)
         if test_resp.status_code != 200: return {"ok": False, "msg": "Token 无效或网络错误"}
         getme_data = test_resp.json()
-        real_bot_name = name; bot_avatar_url = None
+        real_bot_name = name
+        bot_avatar_url = None
+        bot_id = None
+        bot_username = None
         if getme_data.get('ok'):
             result = getme_data.get('result', {})
             real_bot_name = result.get('first_name') or result.get('username') or name
-            bot_id = result.get('id')
+            bot_id = str(result.get('id')) if result.get('id') else None
+            bot_username = result.get('username')
             if bot_id:
                 try:
                     photos_resp = requests.get(f"https://api.telegram.org/bot{token}/getUserProfilePhotos?user_id={bot_id}&limit=1", timeout=10)
@@ -376,12 +380,14 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
                             bot_avatar_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
                 except: pass
         send_resp = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": f"机器人已绑定{real_bot_name}"}, timeout=10)
-        if send_resp.status_code == 200: return {"ok": True, "msg": "绑定成功", "bot_name": real_bot_name, "avatar": bot_avatar_url}
+        if send_resp.status_code == 200:
+            # ✅ 核心修改：将 ID 和用户名一并返回给前端
+            return {"ok": True, "msg": "绑定成功", "bot_name": real_bot_name, "avatar": bot_avatar_url, "bot_id": bot_id, "bot_username": bot_username}
         return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# 6. AI 接口
+# AI 接口
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
