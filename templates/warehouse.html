@@ -65,7 +65,6 @@
             </div>
         </div>
 
-        <!-- ✅ 彻底删除了内嵌的右键菜单监听，点击背景只会关闭黑菜单，绝不弹出别的东西 -->
         <div class="bottom-box" id="mainBox" onclick="if(event.target===this) closeBotActionMenu(event)">
             
             <button onclick="window.location.href='/'" class="absolute bottom-4 right-4 z-10 top-btn bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] text-white hover:bg-[rgba(255,255,255,0.15)] shadow-md">
@@ -83,8 +82,7 @@
 
             <div id="treeContainer" class="tree-container hidden w-full h-full overflow-auto">
                 <div class="file-tree-accordion open">
-                    <div class="file-tree-content">
-                    </div>
+                    <div class="file-tree-content"></div>
                 </div>
             </div>
 
@@ -98,9 +96,20 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             console.log('仓库页面已加载');
+
+            // ✅ 1. 彻底禁用页面右键菜单（防调出幽灵菜单）
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // ✅ 2. 主动在 DOM 里移除工作台残留的 ctxMenu
+            var oldMenu = document.getElementById('ctxMenu');
+            if (oldMenu) {
+                oldMenu.remove();
+            }
         });
 
-        // ✅ 触发添加仓库
         function addWarehouse() {
             if (typeof window.addPanel === 'function') {
                 window.addPanel();
@@ -113,7 +122,7 @@
         }
 
         // ==========================================
-        // ✅ 纯正的仓库卡片与黑卡菜单逻辑
+        // 仓库卡片与黑卡菜单逻辑
         // ==========================================
         window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
         let currentBotActionIndex = null;
@@ -220,4 +229,4 @@
         }
     </script>
 </body>
-</html> 
+</html>
