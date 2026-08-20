@@ -28,21 +28,6 @@
         ::-webkit-scrollbar-track { background: transparent; }
 
         .chat-item:hover { background: rgba(255,255,255,0.05); }
-        .msg-bubble-blue {
-            background: #6ab4f7;
-            color: #fff;
-            border-radius: 12px 12px 4px 12px;
-        }
-        .msg-bubble-purple {
-            background: #5f6b7a;
-            color: #fff;
-            border-radius: 12px 12px 12px 4px;
-        }
-        .msg-bubble-file {
-            background: #2e3440;
-            border: 1px solid #434c5e;
-            border-radius: 12px 12px 4px 12px;
-        }
 
         @media (max-width: 768px) {
             .left-panel { width: 100% !important; display: flex; flex-direction: column; }
@@ -53,7 +38,7 @@
 <body>
     <div class="flex h-screen w-full doodle-bg overflow-hidden">
         
-        <!-- ==================== 左侧：聊天列表 ==================== -->
+        <!-- ==================== 左侧：聊天列表（空壳框架） ==================== -->
         <div class="left-panel w-[380px] min-w-[380px] h-full border-r border-[#30363d] flex flex-col bg-[#0d1117]/80 backdrop-blur-sm">
             
             <!-- 顶部：标题栏 -->
@@ -75,92 +60,19 @@
 
             <!-- 标签分类 -->
             <div class="flex gap-2 px-4 py-3 overflow-x-auto border-b border-[#30363d] whitespace-nowrap scrollbar-hide">
-                <span class="px-3 py-1 rounded-full bg-[#2b5278] text-white text-xs font-medium">全部 2</span>
-                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">私信 41</span>
-                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">频道 5</span>
-                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">bot 5</span>
-                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">群组 35</span>
-                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">1</span>
+                <span class="px-3 py-1 rounded-full bg-[#2b5278] text-white text-xs font-medium">全部 0</span>
+                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">私信 0</span>
+                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">频道 0</span>
+                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">bot 0</span>
+                <span class="px-3 py-1 rounded-full bg-[#30363d] text-gray-400 text-xs font-medium">群组 0</span>
             </div>
 
-            <!-- 聊天列表 (空壳占位) -->
-            <div class="flex-1 overflow-y-auto py-2">
-                
-                <!-- 模拟条目 1 -->
-                <div class="chat-item px-4 py-3 flex items-center gap-3 cursor-pointer">
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex-shrink-0 bg-[url('https://i.pravatar.cc/150?u=1')] bg-cover bg-center"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-semibold text-white text-sm">来财来财来财</span>
-                            <span class="text-[10px] text-gray-500">20:03</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-0.5">
-                            <span class="text-xs text-gray-400 truncate">澳门六合彩90号机器人： 🚀 新澳...</span>
-                            <span class="bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full ml-2">124</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 模拟条目 2 -->
-                <div class="chat-item px-4 py-3 flex items-center gap-3 cursor-pointer bg-[rgba(255,255,255,0.03)] border-l-2 border-[#6ab4f7]">
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex-shrink-0 bg-[url('https://i.pravatar.cc/150?u=2')] bg-cover bg-center"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-semibold text-white text-sm">宫水大世界</span>
-                            <span class="text-[10px] text-gray-500">周一</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-0.5">
-                            <span class="text-xs text-gray-400 truncate">GitHub 更新 - 我们的网络体验...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 模拟条目 3 -->
-                <div class="chat-item px-4 py-3 flex items-center gap-3 cursor-pointer">
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex-shrink-0 bg-[url('https://i.pravatar.cc/150?u=3')] bg-cover bg-center"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-semibold text-white text-sm">极搜大船团</span>
-                            <span class="text-[10px] text-gray-500">20:30</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-0.5">
-                            <span class="text-xs text-gray-400 truncate">曾：Max 双向了</span>
-                            <span class="bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full ml-2">1460</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 模拟条目 4 -->
-                <div class="chat-item px-4 py-3 flex items-center gap-3 cursor-pointer">
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex-shrink-0 bg-[url('https://i.pravatar.cc/150?u=4')] bg-cover bg-center"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-semibold text-white text-sm">TikTok Updates</span>
-                            <span class="text-[10px] text-gray-500">20:23</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-0.5">
-                            <span class="text-xs text-gray-400 truncate">Кого хочешь раздеть и тр*хнуть?</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 模拟条目 5 -->
-                <div class="chat-item px-4 py-3 flex items-center gap-3 cursor-pointer">
-                    <div class="w-12 h-12 rounded-full bg-gray-700 flex-shrink-0 bg-[url('https://i.pravatar.cc/150?u=5')] bg-cover bg-center"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-baseline">
-                            <span class="font-semibold text-white text-sm">NULLの茶馆</span>
-                            <span class="text-[10px] text-gray-500">20:14</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-0.5">
-                            <span class="text-xs text-gray-400 truncate">bo：只能被迫看筒中区</span>
-                        </div>
-                    </div>
-                </div>
-                
+            <!-- 聊天列表（完全为空） -->
+            <div class="flex-1 overflow-y-auto py-2 flex items-center justify-center text-gray-500 text-sm">
+                <span>暂无聊天记录，快去联系好友吧</span>
             </div>
 
-            <!-- 底部导航（仿 App 风格） -->
+            <!-- 底部导航（仿 App 风格，UI 框架） -->
             <div class="flex justify-around items-center py-3 px-2 border-t border-[#30363d] bg-[#161b22]">
                 <div class="flex flex-col items-center gap-1 cursor-pointer text-[#6ab4f7]">
                     <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
@@ -182,7 +94,7 @@
             
         </div>
 
-        <!-- ==================== 右侧：聊天窗口 ==================== -->
+        <!-- ==================== 右侧：聊天窗口（空的，占位符） ==================== -->
         <div class="right-panel flex-1 h-full flex flex-col bg-transparent relative">
             
             <!-- 顶部：对话标题栏 -->
@@ -202,68 +114,16 @@
                 </div>
             </div>
 
-            <!-- 中间：对话气泡区域 -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
-                
-                <!-- 日期分割 -->
-                <div class="flex justify-center"><span class="text-xs text-gray-500 bg-[#1e2128] px-3 py-1 rounded-full">8月9日</span></div>
-                
-                <!-- 蓝色气泡 1 -->
-                <div class="flex flex-col items-end gap-1">
-                    <div class="msg-bubble-blue px-4 py-2.5 max-w-[70%] text-sm">
-                        <div class="font-medium tracking-wider">7857605443</div>
-                        <div class="mt-1 break-all text-[14px]">8639354662_AAFL02o_KBcxRhbTuLp9DXkfAXcIGE-m3hl</div>
-                    </div>
-                    <span class="text-[10px] text-gray-500 flex items-center gap-1">已编辑 <span class="text-gray-600">04:06</span> <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></span>
+            <!-- 中间：对话区域（完全空置，无气泡、无日期、无文件） -->
+            <div class="flex-1 overflow-y-auto p-4 pb-24 flex items-center justify-center text-gray-500 text-sm">
+                <div class="text-center">
+                    <div class="text-6xl mb-4 text-[#30363d]">💬</div>
+                    <div>暂无消息</div>
+                    <div class="text-xs mt-1 text-gray-600">所有对话将显示在这里</div>
                 </div>
-
-                <!-- 蓝色气泡 2 -->
-                <div class="flex flex-col items-end gap-1">
-                    <div class="msg-bubble-blue px-4 py-2 max-w-[70%] text-sm text-white">
-                        <span class="text-gray-200">@jisou</span> <span class="ml-2">15:24</span>
-                        <span class="ml-2 text-xs text-gray-300">已编辑</span>
-                    </div>
-                </div>
-
-                <!-- 日期分割 -->
-                <div class="flex justify-center"><span class="text-xs text-gray-500 bg-[#1e2128] px-3 py-1 rounded-full">8月10日</span></div>
-
-                <!-- 紫色文件气泡 -->
-                <div class="flex flex-col items-start gap-1">
-                    <div class="msg-bubble-file px-4 py-2.5 max-w-[70%] flex items-start gap-3 text-sm">
-                        <div class="w-10 h-10 rounded-full bg-purple-600 flex-shrink-0 flex items-center justify-center text-white">
-                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
-                        </div>
-                        <div>
-                            <div class="font-medium text-white">诚铭OBBv1.24版本单透视.zip</div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">1.73 GB ZIP</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1 text-[10px] text-gray-500 pl-2">
-                        <span class="text-gray-400">诚铭...</span> <span>8月7日 21:46</span>
-                    </div>
-                </div>
-
-                <!-- 日期分割 -->
-                <div class="flex justify-center"><span class="text-xs text-gray-500 bg-[#1e2128] px-3 py-1 rounded-full">8月13日</span></div>
-
-                <!-- 紫色气泡 1 -->
-                <div class="flex flex-col items-start gap-1">
-                    <div class="msg-bubble-purple px-4 py-2 max-w-[70%] text-sm text-gray-200">
-                        <span>@github</span> <span class="ml-2">01:00</span>
-                    </div>
-                </div>
-
-                <!-- 紫色气泡 2 -->
-                <div class="flex flex-col items-start gap-1">
-                    <div class="msg-bubble-purple px-4 py-2 max-w-[70%] text-sm text-gray-200">
-                        <span>宫水.com</span> <span class="ml-2">03:50</span>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- 底部：输入框 -->
+            <!-- 底部：输入框（UI 框架，可点击输入） -->
             <div class="absolute bottom-0 w-full p-4 bg-gradient-to-t from-[#0d1117] via-[#0d1117] to-transparent">
                 <div class="flex items-center gap-3 bg-[#161b22] border border-[#30363d] rounded-2xl px-4 py-2">
                     <button class="text-gray-400 hover:text-white"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
@@ -276,4 +136,4 @@
         </div>
     </div>
 </body>
-                      </html>
+</html>
