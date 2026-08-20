@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>宫水大世界 - gsbot</title>
     
-    <!-- 引入 GSAP 动画库 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     
@@ -15,8 +14,8 @@
         button, a { outline: none; -webkit-tap-highlight-color: transparent; }
         body {
             width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto;
-            background-color: #ffffff; /* 纯白底色 */
-            color: #1a1a1a; /* 全黑文字 */
+            background-color: #fcfcfc; /* ✅ 改为纯白微暖背景 */
+            color: #111111; /* 纯黑文字 */
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             display: flex; flex-direction: column;
         }
@@ -24,32 +23,24 @@
         /* 顶层状态与下拉菜单（需保持 z-index 高于黑球） */
         .top-actions { position: fixed; top: 24px; right: 36px; z-index: 9999; display: flex; gap: 14px; align-items: center; }
         .top-btn {
-            padding: 6px 16px; border-radius: 30px; background: rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(0, 0, 0, 0.08); color: #1a1a1a;
+            padding: 6px 16px; border-radius: 30px; background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1); color: #111;
             font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
         }
         .top-btn:active { transform: scale(0.95); background: rgba(0, 0, 0, 0.1); }
 
-        /* ⭐ 核心：极简点阵背景 */
-        #dot-pattern {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            background-image: radial-gradient(#d1d5db 1.2px, transparent 1.2px);
-            background-size: 24px 24px; opacity: 0.6;
-        }
-
         /* ⭐ 核心：3D 字体容器（用于「看向黑球」） */
         .three-d-container {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 1; perspective: 1200px; /* 营造 3D 景深 */
+            z-index: 1; perspective: 1200px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; pointer-events: none;
         }
-        .three-d-content {
-            transform-style: preserve-3d; transition: none;
-        }
+        .three-d-content { transform-style: preserve-3d; transition: none; }
 
+        /* 纯黑大号标题 */
         .main-title {
-            font-size: 8vw; font-weight: 900; color: #1a1a1a;
+            font-size: 8vw; font-weight: 900; color: #111;
             letter-spacing: 6px; line-height: 1.2; margin-bottom: 8px;
         }
         .sub-title {
@@ -61,40 +52,38 @@
         #black-ball {
             position: fixed; z-index: 2; pointer-events: none;
             width: 18vw; height: 18vw;
-            background-color: #1a1a1a; border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0); /* 初始隐藏，用于动画 */
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-            transition: transform 0.01s linear; /* 平滑跟随 */
+            background-color: #111; /* 纯黑实心 */
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transition: transform 0.01s linear;
         }
 
         /* 涟漪波纹元素 */
         .ripple-ring {
             position: fixed; z-index: 1; pointer-events: none;
-            border-radius: 50%; border: 2px solid rgba(26, 26, 26, 0.15);
+            border-radius: 50%; border: 2px solid rgba(17, 17, 17, 0.2);
             transform: translate(-50%, -50%) scale(0); opacity: 1;
         }
 
-        /* 手机端适配 */
         @media (max-width: 768px) {
             .top-actions { top: 16px; right: 16px; gap: 8px; }
             .top-btn { font-size: 11px; padding: 4px 10px; }
-            .main-title { font-size: 14vw; }
-            .sub-title { font-size: 3vw; }
+            .main-title { font-size: 15vw; }
+            .sub-title { font-size: 3.2vw; }
             #black-ball { width: 30vw; height: 30vw; }
         }
 
         /* 弹窗覆盖层（复用的组件保持原样） */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; pointer-events: none; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { opacity: 1; transform: translateY(0); }
-        .login-card, .music-card-glass { position: relative; width: 100%; max-width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: #1a1a1a; display: flex; flex-direction: column; gap: 14px; }
+        .login-card, .music-card-glass { position: relative; width: 100%; max-width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); color: #1a1a1a; display: flex; flex-direction: column; gap: 14px; }
         .music-card-glass { max-width: 320px; }
     </style>
 </head>
 <body>
-    <!-- 背景点阵层 -->
-    <div id="dot-pattern"></div>
 
     <!-- 3D 注视文字层（居中） -->
     <div class="three-d-container">
@@ -143,16 +132,14 @@
             
             // --- 1. 首屏“拉扯涟漪”动画 ---
             function startEntranceAnimation() {
-                // 获取屏幕中心点
                 const centerX = window.innerWidth / 2;
                 const centerY = window.innerHeight / 2;
 
-                // 黑球从中心点以0大小初始，然后膨胀并稍做位移模拟“拉扯感”
                 ball.style.left = centerX + 'px';
                 ball.style.top = centerY + 'px';
                 ball.style.transform = 'translate(-50%, -50%) scale(0)';
 
-                // 触发多层涟漪波纹
+                // 多层涟漪
                 for (let i = 0; i < 4; i++) {
                     setTimeout(() => {
                         const ring = document.createElement('div');
@@ -162,19 +149,18 @@
                         ring.style.width = '20px'; ring.style.height = '20px';
                         document.body.appendChild(ring);
 
-                        // 涟漪扩散动画
                         gsap.to(ring, {
-                            width: '60vw', height: '60vw', opacity: 0,
+                            width: '70vw', height: '70vw', opacity: 0,
                             duration: 1.6, ease: "power2.out",
                             onComplete: () => ring.remove()
                         });
-                    }, i * 300); // 每300ms产生一道涟漪
+                    }, i * 300);
                 }
 
-                // 黑球膨胀并轻微位移动画
+                // 黑球膨胀
                 gsap.to(ball, {
                     scale: 1,
-                    x: -20, y: -30, // 轻微的拉扯方向
+                    x: -20, y: -30,
                     duration: 1.2,
                     ease: "power2.out",
                     delay: 0.1
@@ -186,61 +172,52 @@
             let targetX = 0, targetY = 0;
             let currentX = 0, currentY = 0;
 
-            // 鼠标跟随（桌面端）
+            // 鼠标跟随
             document.addEventListener('mousemove', (e) => {
-                // 将鼠标坐标映射到 [-100, 100] 范围，方便黑球位移
-                const x = (e.clientX / window.innerWidth) * 2 - 1;
-                const y = -(e.clientY / window.innerHeight) * 2 + 1;
-                targetX = x * 120; // 球最大左右偏移 120px
-                targetY = y * 80;  // 球最大上下偏移 80px
+                targetX = (e.clientX / window.innerWidth - 0.5) * 2 * 180; // 灵敏度拉满
+                targetY = -(e.clientY / window.innerHeight - 0.5) * 2 * 120;
             });
 
-            // 陀螺仪跟随（移动端）
+            // 🚀 陀螺仪修复（灵敏度大大提升！）
+            let isOrientationGranted = false;
+            const handleOrientation = (event) => {
+                // gamma = 左右倾斜 (-90 ~ 90)，beta = 前后倾斜 (-180 ~ 180)
+                // 乘以 2.8 的系数，让手机轻轻一晃，球就能满屏飞
+                const multiplier = 2.8; 
+                targetX = (event.gamma || 0) * multiplier;
+                targetY = (event.beta || 0) * multiplier;
+            };
+
             if (window.DeviceOrientationEvent) {
-                // iOS 13+ 需要请求权限
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                     DeviceOrientationEvent.requestPermission().then(state => {
                         if (state === 'granted') {
                             window.addEventListener('deviceorientation', handleOrientation);
+                            isOrientationGranted = true;
                         }
                     }).catch(console.error);
                 } else {
                     window.addEventListener('deviceorientation', handleOrientation);
                 }
             }
-            function handleOrientation(event) {
-                const gamma = event.gamma || 0; // 左右倾斜 -90 ~ 90
-                const beta = event.beta || 0;   // 上下倾斜 -180 ~ 180
-                targetX = (gamma / 45) * 120;
-                targetY = (beta / 45) * 80;
-            }
 
-            // --- 3. 平滑动画帧循环 ---
+            // --- 3. 平滑动画帧循环（提高刷新速率） ---
             function animate() {
-                // 缓动平滑（比直接赋值更丝滑）
-                currentX += (targetX - currentX) * 0.08;
-                currentY += (targetY - currentY) * 0.08;
+                // 调整缓动因子为 0.15，让跟随响应更快
+                currentX += (targetX - currentX) * 0.15;
+                currentY += (targetY - currentY) * 0.15;
 
-                // 更新黑球坐标
-                const left = `calc(50% + ${currentX}px)`;
-                const top = `calc(50% + ${currentY}px)`;
-                ball.style.left = left;
-                ball.style.top = top;
+                ball.style.left = `calc(50% + ${currentX}px)`;
+                ball.style.top = `calc(50% + ${currentY}px)`;
 
-                // ⭐ 核心亮点：文字“看向”黑球，产生3D倾角
-                // 反向映射黑球偏移量给文字，产生视觉注视感
-                const textRotX = -currentY * 0.06; // 反向倾斜上下
-                const textRotY = -currentX * 0.06; // 反向倾斜左右
+                // 文字视线跟随（倾角幅度）
+                const textRotX = -currentY * 0.06;
+                const textRotY = -currentX * 0.06;
                 text3D.style.transform = `rotateX(${textRotX}deg) rotateY(${textRotY}deg)`;
 
                 requestAnimationFrame(animate);
             }
             animate();
-
-            // 窗口改变时重置中心点上下文（避免动画错位）
-            window.addEventListener('resize', () => {
-                // 如果愿意也可以在这重新定位黑球，但目前利用 CSS calc 自适应是不需要重算的
-            });
 
             // --- 4. 注册已有的弹窗控制函数 ---
             window.toggleFullScreen = function() {
