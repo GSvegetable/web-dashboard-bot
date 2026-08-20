@@ -37,14 +37,21 @@ mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
-# 核心建表逻辑
+# ================== 核心数据库初始化 ==================
 try:
     with app.app_context():
+        # ✅ 此处执行自动建表
         db.create_all()
         app.logger.info("✅ 数据库表结构检查/创建成功！")
 except Exception as e:
-    app.logger.error(f"❌ 数据库初始化失败: {e}")
+    # 🚨 修复 PostgreSQL 死锁的关键代码：出错后强制回滚事务
+    try:
+        db.session.rollback()
+    except:
+        pass
+    app.logger.error(f"❌ 数据库初始化失败 (已回滚事务): {e}")
 
+# ================== 登录管理器 ==================
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -53,7 +60,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# 访问日志
+# ================== 访问记录器 ==================
 @app.before_request
 def log_visit():
     if request.path.startswith('/static') or request.path == '/favicon.ico':
