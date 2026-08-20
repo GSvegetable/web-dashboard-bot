@@ -71,7 +71,7 @@
 </head>
 <body>
     
-    <!-- ✅ 已删掉 user_profile.html，这里不显示带退出按钮的卡片 -->
+    <!-- 已删掉 user_profile.html，这里不显示带退出按钮的卡片 -->
 
     <div class="content-area" id="contentArea">
         <div id="theme-ring"></div>
@@ -93,7 +93,7 @@
         {% if current_user.is_authenticated and current_user.is_admin %}
         <a href="/admin/dashboard" class="top-btn">后台管理</a>
         {% endif %}
-        <button class="top-btn" onclick="openBecomeFanModal()">开发者</button>
+        <!-- ✅ 已删除：开发者按钮 -->
         {% if not current_user.is_authenticated %}
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
