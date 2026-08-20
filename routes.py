@@ -9,7 +9,7 @@ import base64
 import json
 import secrets
 
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, Response, stream_with_context
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session, Response, stream_with_context, abort
 from flask_login import login_user, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Message
@@ -36,10 +36,24 @@ def generate_unique_display_id():
         if not User.query.filter_by(display_id=new_id).first():
             return new_id
 
-@main_bp.route('/settings')
-def settings():
-    return render_template('settings.html')
+# ==========================================
+# 1. 设置页面重定向（新添加）
+# ==========================================
+ALLOWED_SETTINGS = ['profile', 'stars', 'appearance', 'accessibility', 'notifications', 'billing', 'email', 'password', 'sessions', 'keys', 'credentials', 'organizations', 'enterprises', 'moderation', 'repositories', 'codespaces', 'packages']
 
+@main_bp.route('/settings')
+def settings_redirect():
+    return redirect(url_for('main.settings_page', page='profile'))
+
+@main_bp.route('/settings/<string:page>')
+def settings_page(page):
+    if page not in ALLOWED_SETTINGS:
+        abort(404)
+    return render_template('settings.html', active_page=page)
+
+# ==========================================
+# 2. GitHub OAuth 登录
+# ==========================================
 oauth.register(
     name='github',
     client_id=os.getenv('GITHUB_CLIENT_ID'),
@@ -116,6 +130,9 @@ def github_callback():
         print(f"GitHub 登录失败: {e}")
         return redirect(url_for('main.splash'))
 
+# ==========================================
+# 3. 核心路由
+# ==========================================
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
@@ -129,9 +146,6 @@ def logout():
     logout_user()
     return redirect(url_for('main.splash'))
 
-# ==========================================
-# ✅ 核心修复：后台路由，全部改为 db.func 防御
-# ==========================================
 @main_bp.route('/admin/dashboard')
 def admin_dashboard():
     if not current_user.is_authenticated or not current_user.is_admin:
@@ -140,7 +154,6 @@ def admin_dashboard():
     today = date.today()
     
     total_visits = VisitLog.query.count()
-    # 这里改用 db.func.date，彻底解决 func 未定义的问题
     today_visits = VisitLog.query.filter(db.func.date(VisitLog.visited_at) == today).count()
     total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
     today_uv = VisitLog.query.filter(db.func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
@@ -205,7 +218,9 @@ def workspace():
 def community():
     return render_template('community.html')
 
-# ========= 社区 API =========
+# ==========================================
+# 4. 社区 API
+# ==========================================
 @main_bp.route('/api/posts', methods=['GET'])
 def get_posts():
     keyword = request.args.get('keyword', '').strip()
@@ -319,7 +334,9 @@ def toggle_subscribe(user_id):
         db.session.commit()
         return jsonify({'ok': True, 'action': 'subscribed'})
 
-# 机器人绑定
+# ==========================================
+# 5. 机器人绑定与 AI 相关（辅助路由）
+# ==========================================
 def fetch_telegram_user_info(tg_id):
     try:
         resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
@@ -363,7 +380,9 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
         return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
-# AI 接口
+# ==========================================
+# 6. AI 接口
+# ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
 
@@ -534,6 +553,7 @@ def process_qr_token():
 def register():
     account = request.form.get('email')
     code = request.form.get('code')
+    
     ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY')
     if code == ADMIN_SECRET_KEY:
         admin_user = User.query.filter_by(is_admin=True).first()
