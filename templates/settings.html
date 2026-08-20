@@ -5,134 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>设置 - 宫水大世界</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Cropper.js 用于图片裁剪 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
         /* 复刻 GitHub 深色模式的核心配置 */
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-        
-        .gh-input, .gh-select, .gh-textarea {
-            background-color: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #c9d1d9;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-            width: 100%;
-            font-size: 14px;
-        }
-        .gh-input:focus, .gh-select:focus, .gh-textarea:focus {
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
-        }
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        .gh-input, .gh-select, .gh-textarea { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%; font-size: 14px; }
+        .gh-input:focus, .gh-select:focus, .gh-textarea:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
         .gh-input { padding: 5px 12px; height: 32px; }
         .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
         .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
-
         .gh-label { display: block; font-size: 14px; font-weight: 600; color: #c9d1d9; margin-bottom: 6px; }
         .gh-note { display: block; font-size: 12px; color: #8b949e; margin-top: 4px; }
-        
-        /* 左侧菜单按钮 */
-        .gh-sidebar-item {
-            display: flex; align-items: center; gap: 12px;
-            width: 100%; padding: 6px 12px; border-radius: 6px;
-            color: #c9d1d9; text-decoration: none; font-size: 14px;
-            transition: background-color 0.2s; cursor: pointer;
-        }
+        .gh-sidebar-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 6px 12px; border-radius: 6px; color: #c9d1d9; text-decoration: none; font-size: 14px; transition: background-color 0.2s; cursor: pointer; }
         .gh-sidebar-item:hover { background-color: rgba(255, 255, 255, 0.05); }
         .gh-sidebar-item.active { background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
         .gh-sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; fill: #8b949e; }
         .gh-sidebar-item:hover svg { fill: #c9d1d9; }
-
         .gh-divider { border: 0; border-top: 1px solid #30363d; margin: 8px 0; }
-
-        .gh-edit-btn {
-            background-color: #21262d; border: 1px solid #30363d; border-radius: 6px;
-            color: #c9d1d9; padding: 5px 16px; font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px;
-        }
+        .gh-edit-btn { background-color: #21262d; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 5px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
         .gh-edit-btn:hover { background-color: #30363d; border-color: #8b949e; }
-
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
-        
-        @media (max-width: 768px) {
-            .settings-container { flex-direction: column !important; gap: 24px; }
-            .settings-sidebar { width: 100% !important; }
-            .settings-grid { grid-template-columns: 1fr !important; }
-        }
-
+        @media (max-width: 768px) { .settings-container { flex-direction: column !important; gap: 24px; } .settings-sidebar { width: 100% !important; } .settings-grid { grid-template-columns: 1fr !important; } }
         #avatarModal .cropper-container { width: 100%; height: 100%; }
         #avatarModal .cropper-view-box { border-radius: 50%; }
-
-        .payment-method-btn {
-            background-color: #161b22; border: 1px solid #30363d; border-radius: 8px;
-            padding: 12px 16px; color: #c9d1d9; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center; gap: 10px;
-        }
+        .payment-method-btn { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 16px; color: #c9d1d9; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
         .payment-method-btn:hover { border-color: #58a6ff; background-color: #21262d; }
         .payment-method-btn.selected { border-color: #238636; background-color: rgba(35, 134, 54, 0.1); }
-        
-        .stars-amount-btn {
-            background-color: #161b22; border: 1px solid #30363d; border-radius: 8px;
-            padding: 10px 20px; color: #f0f6fc; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
-        }
+        .stars-amount-btn { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px 20px; color: #f0f6fc; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .stars-amount-btn:hover { border-color: #58a6ff; background-color: #21262d; }
         .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
+        
+        /* 入场动画 */
+        .animate-item { opacity: 0; transform: translateY(18px); animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+        .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.10s; } .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.20s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.30s; } .delay-7 { animation-delay: 0.35s; }
 
-        /* 优雅入场上浮动画 */
-        .animate-item {
-            opacity: 0;
-            transform: translateY(18px);
-            animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(18px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.10s; }
-        .delay-3 { animation-delay: 0.15s; }
-        .delay-4 { animation-delay: 0.20s; }
-        .delay-5 { animation-delay: 0.25s; }
-        .delay-6 { animation-delay: 0.30s; }
-        .delay-7 { animation-delay: 0.35s; }
-
-        /* ========================================== */
-        /* ✅ 星星数字 3D 上下翻转动效 */
-        /* ========================================== */
-        .perspective-800 {
-            perspective: 800px;
-            transform-style: preserve-3d;
-        }
-        .digit {
-            display: inline-block;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            transform: rotateX(0deg);
-            opacity: 0;
-        }
-        .spin-animate {
-            animation: spinVertical 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-        @keyframes spinVertical {
-            0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; }
-            100% { transform: rotateX(720deg) scale(1); opacity: 1; }
-        }
+        /* 星星上下翻转 */
+        .perspective-800 { perspective: 800px; transform-style: preserve-3d; }
+        .digit { display: inline-block; transform-style: preserve-3d; backface-visibility: hidden; transform: rotateX(0deg); opacity: 0; }
+        .spin-animate { animation: spinVertical 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes spinVertical { 0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; } 100% { transform: rotateX(720deg) scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item">
-        
         <!-- 左侧导航栏 -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
@@ -150,18 +70,14 @@
                     <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                     个人资料
                 </a>
-                
                 <a href="#" class="gh-sidebar-item" data-target="stars">
                     <svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>
                     星星
                 </a>
-
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
-
                 <hr class="gh-divider">
-
                 <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">Access</div>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>账单与许可</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>邮箱</a>
@@ -172,9 +88,7 @@
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>组织</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>企业</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>审核</a>
-
                 <hr class="gh-divider">
-
                 <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">代码，规划和自动化</div>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>仓库</a>
                 <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>Codespaces</a>
@@ -184,131 +98,18 @@
 
         <!-- ==================== 右侧内容区 ==================== -->
         <main class="flex-1 min-w-0">
-            
-            <!-- ==================== 面板1：个人资料 ==================== -->
+            <!-- 使用 include 引入独立页面 -->
             <div id="panel-profile" class="panel-content animate-item delay-1">
-                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人资料</h1>
-                
-                <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12 animate-item">
-                    <!-- 左侧：表单信息 -->
-                    <div class="flex flex-col gap-6">
-                        <div class="animate-item delay-2">
-                            <label class="gh-label" for="name">名称</label>
-                            <input type="text" id="name" class="gh-input" 
-                                   value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
-                            <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
-                        </div>
-
-                        <div class="animate-item delay-3">
-                            <label class="gh-label" for="display_id">ID</label>
-                            <input type="text" id="display_id" class="gh-input" 
-                                   value="{{ current_user.display_id or '000000' }}" readonly />
-                            <span class="gh-note">你的 6 位唯一公开身份标识</span>
-                        </div>
-
-                        <div class="animate-item delay-4">
-                            <label class="gh-label" for="email">邮箱</label>
-                            <input type="text" id="email" class="gh-input" 
-                                   value="{{ current_user.email if current_user.email else '' }}" 
-                                   placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" 
-                                   {% if current_user.email %}readonly{% endif %} />
-                            <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
-                        </div>
-
-                        <div class="animate-item delay-5">
-                            <label class="gh-label" for="bio">个人简介</label>
-                            <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
-                            <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
-                        </div>
-
-                        <div class="animate-item delay-6">
-                            <label class="gh-label" for="url">网址</label>
-                            <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
-                        </div>
-                    </div>
-
-                    <!-- 右侧：头像 -->
-                    <div class="flex flex-col items-start gap-4 animate-item delay-3">
-                        <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
-                            <label class="gh-label w-full">头像</label>
-                            
-                            <div class="relative w-28 h-28 rounded-full bg-[#afb8c1] flex items-center justify-center overflow-hidden border-2 border-[#30363d] shadow-sm text-[#0d1117]">
-                                <img id="profileAvatarImg" src="{{ current_user.avatar_url if current_user.avatar_url else '' }}" 
-                                     class="w-full h-full object-cover" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-                                <svg id="avatarPlaceholder" viewBox="0 0 24 24" width="64" height="64" fill="currentColor" style="display: none;">
-                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                </svg>
-                            </div>
-                            
-                            <input type="file" id="avatarInput" accept="image/*" style="display:none;">
-                            <button class="gh-edit-btn" id="editAvatarBtn">
-                                <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.013 1.427a1.75 1.75 0 012.474 0l1.086 1.086a1.75 1.75 0 010 2.474L3.522 14.038a.75.75 0 01-.416.197l-2.936.326a.75.75 0 01-.82-.82l.326-2.936a.75.75 0 01.197-.416L11.013 1.427z"/></svg>
-                                编辑
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {% include 'settings/gerenziliao.html' %}
             </div>
 
-            <!-- ==================== 面板2：星星（新版布局） ==================== -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
-                
-                <!-- ✅ 星星余额：靠右，间距紧，加上标题 -->
-                <div class="flex justify-end mt-6 pr-16 mb-6">
-                    <div class="flex flex-col items-end">
-                        <div class="text-white/60 text-sm font-medium tracking-wider mb-1 select-none">星星储备</div>
-                        <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight">
-                            {% set stars_str = '%05d' % (current_user.stars or 0) %}
-                            {% for char in stars_str %}
-                                <!-- 从右往左逐次延迟 0.15s -->
-                                <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.15 }}s;">{{ char }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 选择充值金额 -->
-                <div class="mb-6 animate-item delay-4">
-                    <label class="gh-label">选择充值金额</label>
-                    <div class="flex flex-wrap gap-3">
-                        <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
-                        <button class="stars-amount-btn" data-amount="50">50 颗</button>
-                        <button class="stars-amount-btn" data-amount="100">100 颗</button>
-                        <button class="stars-amount-btn" data-amount="500">500 颗</button>
-                    </div>
-                </div>
-
-                <!-- 支付方式 -->
-                <div class="mb-6 animate-item delay-5">
-                    <label class="gh-label">选择支付方式</label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <button class="payment-method-btn selected">
-                            <span class="text-2xl">💳</span> <span>OKpay</span>
-                        </button>
-                        <button class="payment-method-btn">
-                            <span class="text-2xl">💚</span> <span>微信</span>
-                        </button>
-                        <button class="payment-method-btn">
-                            <span class="text-2xl">💙</span> <span>支付宝</span>
-                        </button>
-                        <button class="payment-method-btn">
-                            <span class="text-2xl">₮</span> <span>USDT</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 立即充值按钮 -->
-                <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md animate-item delay-6">
-                    立即充值
-                </button>
-                <p class="text-xs text-[#8b949e] text-center mt-2 animate-item delay-7">充值后星星将自动到账，如有问题请联系客服</p>
+                {% include 'settings/xingxing.html' %}
             </div>
-
         </main>
     </div>
 
-    <!-- 头像裁剪弹窗 -->
+    <!-- 头像裁剪弹窗（放在最外层，方便复用） -->
     <div id="avatarModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center">
         <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 w-full max-w-lg shadow-2xl">
             <h3 class="text-lg font-semibold text-white mb-4">编辑头像</h3>
@@ -322,44 +123,40 @@
         </div>
     </div>
 
-    <!-- JS 逻辑 -->
+    <!-- JS 逻辑（切换面板 和 头像裁剪） -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ==================== 侧边栏切换逻辑 ====================
+            // === 侧边栏切换逻辑 ===
             const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
             const panels = {
                 profile: document.getElementById('panel-profile'),
                 stars: document.getElementById('panel-stars')
             };
-
             menuItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const target = this.dataset.target;
                     if (!target || !panels[target]) return;
-
                     menuItems.forEach(m => m.classList.remove('active'));
                     this.classList.add('active');
-
                     Object.keys(panels).forEach(key => {
                         panels[key].classList.toggle('hidden', key !== target);
                     });
-
-                    // 每次切换到【星星】面板，重新触发 3D 上下翻转动画
+                    // 切换到星星面板时触发翻转动画
                     if (target === 'stars') {
                         setTimeout(() => {
                             const digits = document.querySelectorAll('#stars-display .digit');
                             digits.forEach(el => {
                                 el.classList.remove('spin-animate');
-                                void el.offsetWidth; // 强制重绘
+                                void el.offsetWidth;
                                 el.classList.add('spin-animate');
                             });
-                        }, 250); // 延迟等待面板切换动画完成
+                        }, 250);
                     }
                 });
             });
 
-            // ==================== 头像上传/裁剪逻辑 ====================
+            // === 头像上传/裁剪逻辑 ===
             const editBtn = document.getElementById('editAvatarBtn');
             const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal');
@@ -368,84 +165,63 @@
             const confirmBtn = document.getElementById('confirmCropBtn');
             const profileImg = document.getElementById('profileAvatarImg');
             const placeholder = document.getElementById('avatarPlaceholder');
-            
             let cropper = null;
-
-            editBtn.addEventListener('click', function() {
-                avatarInput.click();
-            });
-
-            avatarInput.addEventListener('change', function(e) {
-                const file = this.files[0];
-                if (!file) return;
-
-                const img = new Image();
-                img.onload = function() {
-                    if (this.naturalWidth > 2000 || this.naturalHeight > 2000) {
-                        alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。');
-                        avatarInput.value = '';
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        cropperImg.src = e.target.result;
-                        modal.classList.remove('hidden');
-                        if (cropper) cropper.destroy();
-                        cropper = new Cropper(cropperImg, {
-                            aspectRatio: 1,
-                            viewMode: 1,
-                            autoCropArea: 0.8,
-                            background: false
-                        });
+            if(editBtn) {
+                editBtn.addEventListener('click', function() { avatarInput.click(); });
+            }
+            if(avatarInput) {
+                avatarInput.addEventListener('change', function(e) {
+                    const file = this.files[0];
+                    if (!file) return;
+                    const img = new Image();
+                    img.onload = function() {
+                        if (this.naturalWidth > 2000 || this.naturalHeight > 2000) {
+                            alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。');
+                            avatarInput.value = '';
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            cropperImg.src = e.target.result;
+                            modal.classList.remove('hidden');
+                            if (cropper) cropper.destroy();
+                            cropper = new Cropper(cropperImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: false });
+                        };
+                        reader.readAsDataURL(file);
                     };
-                    reader.readAsDataURL(file);
-                };
-                img.src = URL.createObjectURL(file);
-            });
-
-            cancelBtn.addEventListener('click', function() {
-                modal.classList.add('hidden');
-                if (cropper) cropper.destroy();
-                avatarInput.value = '';
-            });
-
-            confirmBtn.addEventListener('click', function() {
-                if (!cropper) return;
-                const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
-                canvas.toBlob(function(blob) {
-                    const url = URL.createObjectURL(blob);
-                    profileImg.src = url;
-                    profileImg.style.display = 'block';
-                    placeholder.style.display = 'none';
+                    img.src = URL.createObjectURL(file);
+                });
+            }
+            if(cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
                     modal.classList.add('hidden');
-                    cropper.destroy();
+                    if (cropper) cropper.destroy();
                     avatarInput.value = '';
-                    alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
                 });
-            });
-
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) cancelBtn.click();
-            });
-
-            // ==================== 星星充值金额选择 ====================
-            const amountBtns = document.querySelectorAll('.stars-amount-btn');
-            amountBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    amountBtns.forEach(b => b.classList.remove('selected'));
-                    this.classList.add('selected');
+            }
+            if(confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    if (!cropper) return;
+                    const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        if(profileImg) {
+                            profileImg.src = url;
+                            profileImg.style.display = 'block';
+                            if(placeholder) placeholder.style.display = 'none';
+                        }
+                        modal.classList.add('hidden');
+                        cropper.destroy();
+                        avatarInput.value = '';
+                        alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
+                    });
                 });
-            });
-
-            // ==================== 支付方式选择 ====================
-            const payBtns = document.querySelectorAll('.payment-method-btn');
-            payBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    payBtns.forEach(b => b.classList.remove('selected'));
-                    this.classList.add('selected');
+            }
+            if(modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal && cancelBtn) cancelBtn.click();
                 });
-            });
+            }
         });
     </script>
 </body>
