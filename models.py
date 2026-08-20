@@ -19,7 +19,6 @@ class User(UserMixin, db.Model):
     is_vip = db.Column(db.Boolean, default=False)
     vip_level = db.Column(db.Integer, default=0)
     stars = db.Column(db.Integer, default=0)
-    # ✅ 新增：6 位唯一随机显示 ID
     display_id = db.Column(db.String(6), unique=True, nullable=True)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -72,3 +71,13 @@ class CardKey(db.Model):
     used_by_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# ==========================================
+# ✅ 新增：访问日志记录表
+# ==========================================
+class VisitLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(50), nullable=False)
+    user_agent = db.Column(db.String(255), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    visited_at = db.Column(db.DateTime, default=datetime.utcnow)
