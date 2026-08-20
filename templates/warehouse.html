@@ -96,17 +96,16 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             console.log('仓库页面已加载');
-
-            // ✅ 1. 彻底禁用页面右键菜单（防调出幽灵菜单）
+            // ✅ 绝杀：禁用所有右键点击动作
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 return false;
             });
 
-            // ✅ 2. 主动在 DOM 里移除工作台残留的 ctxMenu
+            // ✅ 彻底封杀残留 DOM
             var oldMenu = document.getElementById('ctxMenu');
             if (oldMenu) {
-                oldMenu.remove();
+                oldMenu.parentNode.removeChild(oldMenu);
             }
         });
 
@@ -121,9 +120,7 @@
             }
         }
 
-        // ==========================================
-        // 仓库卡片与黑卡菜单逻辑
-        // ==========================================
+        // 仓库卡片渲染逻辑
         window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
         let currentBotActionIndex = null;
 
@@ -172,7 +169,9 @@
                 marquee.className = 'bot-repo-marquee';
                 var track = document.createElement('span');
                 track.className = 'bot-repo-track';
-                track.textContent = c.token || '';
+                // 用 8 个 &nbsp; 做间隔
+                var tokenStr = c.token || '';
+                track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
                 marquee.appendChild(track);
                 tokenLine.appendChild(marquee);
 
