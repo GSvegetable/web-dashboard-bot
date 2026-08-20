@@ -80,16 +80,18 @@ class VisitLog(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     visited_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# 社区数据表
+# ==========================================
+# 社区帖子数据表
+# ==========================================
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    media_urls = db.Column(db.Text, nullable=True)
-    code_lang = db.Column(db.String(20), nullable=True)
-    code_content = db.Column(db.Text, nullable=True)
-    is_hidden = db.Column(db.Boolean, default=False)
-    weight = db.Column(db.Float, default=1.0)
+    content = db.Column(db.Text, nullable=False)           # 纯文本内容
+    media_urls = db.Column(db.Text, nullable=True)         # 逗号分隔的图片/视频链接
+    code_lang = db.Column(db.String(20), nullable=True)    # 代码语言 (如 python, json)
+    code_content = db.Column(db.Text, nullable=True)       # 代码块内容
+    is_hidden = db.Column(db.Boolean, default=False)       # 管理员隐藏标记
+    weight = db.Column(db.Float, default=1.0)              # 权重（资产化预留）
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     comments = db.relationship('Comment', backref='post', cascade='all, delete-orphan')
@@ -112,7 +114,20 @@ class Like(db.Model):
 
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # 订阅者
+    following_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) # 被订阅者
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_sub'),)
+
+# ==========================================
+# ✅ 新增：待确认的绑定请求表
+# ==========================================
+class PendingBind(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(255), unique=True, nullable=False)
+    telegram_id = db.Column(db.String(50), nullable=False)
+    bot_name = db.Column(db.String(100), nullable=True)
+    bot_id = db.Column(db.String(50), nullable=True)
+    bot_username = db.Column(db.String(50), nullable=True)
+    status = db.Column(db.String(20), default='pending')  # pending, confirmed, canceled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
