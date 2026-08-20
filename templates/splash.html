@@ -4,52 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>宫水大世界 - gsbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
+        /* 重置和基础样式 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            width: 100vw; height: 100vh; 
-            background-color: #ffffff; /* 纯白底色 */
+            width: 100vw; height: 100vh; overflow: hidden;
+            background-color: #ffffff; /* 彻底纯净的白底 */
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
         }
 
+        /* 点阵网格背景 */
+        .content-area { 
+            position: relative; width: 100%; height: 100%; 
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px); 
+            background-size: 24px 24px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        }
+
+        /* 文字容器 3D 视差 */
+        .hero-wrapper {
+            perspective: 800px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; z-index: 2;
+        }
+
+        /* 纯黑大字 */
         .main-title {
-            color: #000000; /* 纯黑字 */
-            font-size: 64px; font-weight: 900; letter-spacing: 6px; text-align: center;
+            font-size: 4.5rem; font-weight: 900; color: #000000; 
+            letter-spacing: 6px; text-align: center;
+            transform-style: preserve-3d;
+            margin: 0; line-height: 1.2;
         }
         .sub-title {
-            color: #333333; /* 副标题深灰 */
-            font-size: 22px; font-weight: 300; letter-spacing: 2px; text-align: center; margin-top: 10px;
+            font-size: 1.2rem; color: #4b5563; 
+            margin-top: 12px; letter-spacing: 2px; font-weight: 300;
+            transform-style: preserve-3d;
         }
 
-        /* 右上角按钮适配白底黑字 */
-        .top-actions { position: fixed; top: 20px; right: 24px; display: flex; gap: 10px; z-index: 9999; }
+        /* 纯黑实心大圆 */
+        #tracking-ball {
+            position: absolute; 
+            width: 300px; height: 300px; 
+            background: #000000; 
+            border-radius: 50%; 
+            z-index: 0; pointer-events: none;
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%) scale(0);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 顶部导航按钮 - 白底适配 */
+        .top-actions { position: fixed; top: 20px; right: 24px; z-index: 9999; display: flex; gap: 8px; }
         .top-btn { 
-            color: #000000; background: transparent; border: 1px solid #d1d5db;
-            padding: 6px 16px; border-radius: 30px; font-size: 13px; font-weight: 500; text-decoration: none;
-            cursor: pointer; transition: all 0.2s;
+            padding: 6px 16px; border-radius: 30px; 
+            background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1f2937; font-size: 13px; font-weight: 500; 
+            cursor: pointer; transition: all 0.2s; 
         }
-        .top-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .top-btn:hover { background: rgba(0, 0, 0, 0.05); }
 
-        /* 原样保留的模态框组件（颜色我已统一改为白底适配） */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: all 0.3s ease; pointer-events: none; }
+        /* 弹窗组件 - 白底适配 */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .modal-box { opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-overlay.active .modal-box { opacity: 1; transform: translateY(0); }
-        
-        .login-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); padding: 24px; color: #1f2937; display: flex; flex-direction: column; gap: 14px; width: 320px; }
+        .login-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.05); padding: 24px; color: #1f2937; display: flex; flex-direction: column; gap: 14px; }
         .login-card input { background: #f9fafb; border: 1px solid #e5e7eb; color: #1f2937; border-radius: 6px; padding: 8px 12px; outline: none; width: 100%; }
         .login-card input:focus { border-color: #000000; }
-        .login-card button { background: #f3f4f6; border: 1px solid #e5e7eb; color: #1f2937; border-radius: 8px; padding: 8px 16px; cursor: pointer; transition: background 0.2s; }
-        .login-card button:hover { background: #e5e7eb; }
-
         .music-card-glass { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; padding: 20px 24px; color: #1f2937; box-shadow: 0 8px 32px rgba(0,0,0,0.05); }
-        .music-track-title { color: #000000; } .music-artist-name { color: #6b7280; }
+
+        @media (max-width: 600px) {
+            .main-title { font-size: 2.8rem; }
+            #tracking-ball { width: 180px; height: 180px; }
+        }
     </style>
 </head>
 <body>
     
-    <!-- 右上角按钮 -->
+    <!-- 顶部导航（已适配白底） -->
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
@@ -65,11 +100,16 @@
         </button>
     </div>
 
-    <!-- 主内容：纯白底 + 纯黑字 -->
-    <div class="main-title">宫水大世界</div>
-    <div class="sub-title">Telegram Bot Editor</div>
+    <!-- 主内容：白底、黑字、黑球 -->
+    <div class="content-area" id="contentArea">
+        <div id="tracking-ball"></div>
+        <div class="hero-wrapper" id="heroWrapper">
+            <div class="main-title" id="mainTitle">宫水大世界</div>
+            <div class="sub-title" id="subTitle">Telegram Bot Editor</div>
+        </div>
+    </div>
 
-    <!-- 原样保留的卡片（已在 CSS 中适配白底） -->
+    <!-- 保留原组件 -->
     {% include 'components/toast.html' %}
     {% include 'components/auth_card.html' %}
     {% include 'components/music_card.html' %}
@@ -80,8 +120,55 @@
     {% include 'components/plan_detail_modal.html' %}
     {% include 'components/3d_card.html' %}
 
-    <!-- 没有任何动画和跟随代码，只剩弹窗开关函数 -->
+    <!-- ============ 核心动画与黑球跟随便 ============ -->
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ball = document.getElementById('tracking-ball');
+            const title = document.getElementById('mainTitle');
+            const subtitle = document.getElementById('subTitle');
+
+            // 1. 入场拉扯动画：黑球从文字正中心“弹”出来
+            const tl = gsap.timeline();
+            gsap.set(ball, { scale: 0, top: '50%', left: '50%', x: '-50%', y: '-50%' });
+            
+            tl.to(ball, { scale: 2, duration: 0.6, ease: "power2.out" }, 0.1)
+              .to(ball, { 
+                  scale: 1, 
+                  top: '3%', left: '3%', x: '-50%', y: '-50%',
+                  duration: 0.9, ease: "elastic.out(1, 0.4)" 
+              }, 0.4);
+
+            // 2. 鼠标 / 陀螺仪跟随
+            let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', function(event) {
+                    targetX = (event.gamma / 45) * 30;
+                    targetY = (event.beta / 45) * 30;
+                });
+            }
+            document.addEventListener('mousemove', function(e) {
+                const winW = window.innerWidth, winH = window.innerHeight;
+                targetX = (e.clientX / winW - 0.5) * 2 * 25;
+                targetY = (e.clientY / winH - 0.5) * 2 * 25;
+            });
+
+            // 3. 丝滑渲染循环 (让字“看向”黑球)
+            function updateLoop() {
+                currentX += (targetX - currentX) * 0.1;
+                currentY += (targetY - currentY) * 0.1;
+
+                ball.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+
+                const maxTilt = 15;
+                title.style.transform = `rotateY(${(currentX / 25) * maxTilt}deg) rotateX(${-(currentY / 25) * maxTilt}deg)`;
+                subtitle.style.transform = `rotateY(${(currentX / 25) * maxTilt}deg) rotateX(${-(currentY / 25) * maxTilt}deg)`;
+
+                requestAnimationFrame(updateLoop);
+            }
+            updateLoop();
+        });
+
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen();
             else if (document.exitFullscreen) document.exitFullscreen();
