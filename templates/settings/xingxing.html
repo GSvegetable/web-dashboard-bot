@@ -1,66 +1,107 @@
 <style>
-    .card-6 {
-        display: flex;
-        justify-content: center;
-        margin: 16px 0 20px 0;
+    /* ✅ 原版翻转动画（只转圈，不反弹，有减速） */
+    .perspective-800 {
+        perspective: 800px;
+        transform-style: preserve-3d;
     }
-    
-    .card-6__holo {
-        position: relative;
-        width: auto;
-        min-width: 120px;
-        padding: 10px 30px;
-        border-radius: 26px;
-        display: flex;
-        gap: 4px;
-        align-items: center;
-        justify-content: center;
-        animation: card6-wobble 6.2s ease-in-out infinite;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(0, 123, 255, 0.25);
-        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+    .digit {
+        display: inline-block;
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+        transform: rotateX(0deg);
+        opacity: 0;
+    }
+    .spin-animate {
+        animation: spinVertical 1s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
+    }
+    @keyframes spinVertical {
+        0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; }
+        100% { transform: rotateX(360deg) scale(1); opacity: 1; }
     }
 
-    @keyframes card6-wobble {
-        0% { transform: rotateX(8deg) rotateY(-10deg) scale(1); }
-        50% { transform: rotateX(10deg) rotateY(10deg) scale(1.03); }
-        100% { transform: rotateX(8deg) rotateY(-10deg) scale(1); }
-    }
-
-    .card-6__digit {
+    /* ✅ 全息蓝色发光渐变（不要外框，只放在数字上） */
+    .holographic-text {
         font-weight: 900;
-        font-size: 80px;
-        line-height: 1;
-        letter-spacing: -2px;
-        background: linear-gradient(90deg, rgba(0, 123, 255, 0.6) 0%, rgba(0, 180, 255, 1) 50%, rgba(0, 123, 255, 0.6) 100%);
+        background: linear-gradient(
+            90deg,
+            rgba(0, 123, 255, 0.4) 0%,
+            rgba(0, 123, 255, 0.92) 35%,
+            rgba(0, 180, 255, 0.7) 60%,
+            rgba(0, 123, 255, 0.22) 100%
+        );
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.2);
-        filter: drop-shadow(0 4px 12px rgba(0, 123, 255, 0.3));
+        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.15);
+        filter: drop-shadow(0 10px 22px rgba(0, 123, 255, 0.2));
     }
 
-    @media (max-width: 600px) {
-        .card-6__holo { min-width: 100px; padding: 8px 20px; }
-        .card-6__digit { font-size: 56px; letter-spacing: -1px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .card-6__holo { animation: none !important; }
+    /* ✅ 陀螺仪容器 */
+    #gyro-container {
+        transition: transform 0.15s ease-out; /* 倾斜时非常丝滑，不突兀 */
     }
 </style>
 
-<div class="mb-6 animate-item delay-4">
+<div class="mb-6 animate-item delay-4 w-full">
     <label class="gh-label">星星储备</label>
     
-    <div class="card-6">
-        <div class="card-6__holo">
+    <!-- 容器绑定陀螺仪（居中、无边框） -->
+    <div id="gyro-container" class="perspective-800 w-full flex justify-center items-center py-4">
+        <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black tracking-tight holographic-text">
             {% set stars_str = '%05d' % (current_user.stars or 0) %}
             {% for char in stars_str %}
-                <span class="card-6__digit">{{ char }}</span>
+                <!-- 从右往左依次翻转，效果就是原来的滚轮翻页 -->
+                <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
             {% endfor %}
         </div>
     </div>
 </div>
+
+<!-- ✅ 陀螺仪交互脚本 -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('gyro-container');
+
+        // 1. 处理 iOS 13+ 的设备权限请求 (必须点一下页面才能激活)
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iOS 需要用户手动点击一次才能触发
+            document.body.addEventListener('click', function() {
+                DeviceOrientationEvent.requestPermission().then(state => {
+                    if (state === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                    }
+                });
+            }, { once: true });
+        } else {
+            // Android 或桌面端直接监听
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+
+        let currentRotX = 0, currentRotY = 0;
+
+        function handleOrientation(event) {
+            if (!container) return;
+
+            // beta: 前后倾斜 (标准手机平放时约 45 度)
+            // gamma: 左右倾斜 (-90 到 90 度)
+            let rotX = 0, rotY = 0;
+            
+            if (event.beta !== null && event.gamma !== null) {
+                // 限制倾斜幅度，轻微摆动 (+- 8 度)
+                rotX = Math.min(8, Math.max(-8, (event.beta - 45) * 0.4)); 
+                rotY = Math.min(10, Math.max(-10, event.gamma * 0.5));
+                
+                // 如果是在电脑上浏览（没有陀螺仪，event 值可能会乱跳），此时不做任何变换
+                if (Math.abs(rotX) > 20 || Math.abs(rotY) > 20) {
+                    return;
+                }
+
+                if (Math.abs(rotX - currentRotX) > 0.1 || Math.abs(rotY - currentRotY) > 0.1) {
+                    currentRotX = rotX;
+                    currentRotY = rotY;
+                    container.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+                }
+            }
+        }
+    });
+</script>
