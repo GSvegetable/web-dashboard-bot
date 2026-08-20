@@ -48,15 +48,14 @@
             letter-spacing: 2px;
         }
 
-        /* ⭐ 核心：改成纯白球（删除黑边，只保留极淡阴影防止隐身） */
-        #black-ball {
+        /* ⭐ 核心：ID 彻底改名为 white-ball，避开所有缓存残余 */
+        #white-ball {
             position: fixed; z-index: 2; pointer-events: none;
             width: 18vw; height: 18vw;
-            background-color: #ffffff !important; /* 纯白填充 */
-            border: none !important;              /* 彻底删除黑边 */
+            background-color: #ffffff !important; /* 纯白填充，且强制生效 */
+            border: none !important;             /* 彻底删除任何可能的黑边 */
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
-            /* 极浅的阴影，让它能微微察觉到轮廓，如果不想要，可以直接删掉下面这行 */
             box-shadow: 0 4px 20px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
             transition: transform 0.01s linear;
         }
@@ -73,7 +72,7 @@
             .top-btn { font-size: 11px; padding: 4px 10px; }
             .main-title { font-size: 14vw; }
             .sub-title { font-size: 3.2vw; }
-            #black-ball { width: 30vw; height: 30vw; }
+            #white-ball { width: 30vw; height: 30vw; }
         }
 
         /* 弹窗覆盖层 */
@@ -95,8 +94,8 @@
         </div>
     </div>
 
-    <!-- 纯白实心球 -->
-    <div id="black-ball"></div>
+    <!-- ⭐ 纯白实心球（ID 已改为 white-ball） -->
+    <div id="white-ball"></div>
 
     <!-- 顶部导航与交互按钮 -->
     <div class="top-actions">
@@ -129,7 +128,8 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const ball = document.getElementById('black-ball');
+            // 获取改名后的新 ID
+            const ball = document.getElementById('white-ball');
             const text3D = document.getElementById('text3DGroup');
             
             // --- 1. 首屏拉扯涟漪动画 ---
