@@ -7,25 +7,44 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <!-- ✅ 引入 Three.js 核心库 (用于 3D 粒子) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
         body { 
             width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto; 
-            background-color: #05050a; /* 极深底色，衬托粒子发光 */
+            background-color: #05050a; 
             display: flex; flex-direction: column; 
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
         }
-        
-        /* ✅ 核心修改：背景粒子画布定位在底层，绝对不阻挡点击 */
-        #particle-canvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 0; pointer-events: none; /* 关键：鼠标穿透 */
-            background: transparent;
+
+        /* ================== 你发来的 Uiverse 高级滤镜背景 ================== */
+        #texture-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            z-index: 0; pointer-events: none; overflow: hidden;
         }
+        #texture-bg .container {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle, #777777 2px, transparent 2px),
+                radial-gradient(circle, #eaeaea 10px, transparent 32px),
+                linear-gradient(-45deg, #eaeaea 0%, transparent 49%, transparent 50%, transparent 51%, #eaeaea 100%),
+                linear-gradient(45deg, #eaeaea 0%, transparent 49%, #777777 50%, transparent 51%, #eaeaea 100%),
+                linear-gradient(-45deg, transparent 49%, #777777 50%, transparent 51%);
+            background-size: 8rem 8rem; background-repeat: repeat;
+            pointer-events: none;
+        }
+        #texture-bg .paper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(194, 167, 87, 0.241) 0%, rgba(162, 125, 55, 0.255) 100%);
+            background-size: cover; pointer-events: none;
+            transition: filter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #texture-bg .paper.filter-1 { filter: url(#void-texture); }
+        #texture-bg .paper.filter-2 { filter: url(#alt-void-texture); }
+        #texture-bg .texture-filter {
+            position: absolute; width: 0; height: 0; overflow: hidden;
+        }
+        /* ============================================================== */
 
         .content-area { 
             position: relative; width: 100%; min-height: 100vh; 
@@ -51,7 +70,7 @@
         #themeToggleBtn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
         .text-pattern { 
             color: #ffffff; 
-            background: none; /* 去掉了图片纹理，纯白色发光字体，更高级 */
+            background: none; 
             -webkit-text-fill-color: #ffffff; 
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
             font-weight: 900; text-align: left; margin: 0; letter-spacing: 8px; 
@@ -74,8 +93,6 @@
             white-space: nowrap; flex-shrink: 0; width: auto; min-width: auto; 
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
-        @keyframes shakeField { 0% { transform: translateX(0px); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0px); } }
-        .shake-field { animation: shakeField 0.2s ease-in-out 2; }
         
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; pointer-events: none; }
         .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
@@ -113,19 +130,49 @@
 </head>
 <body>
     
-    <!-- ✅ 粒子背景 Canvas（Three.js 渲染在此） -->
-    <canvas id="particle-canvas"></canvas>
+    <!-- ================== 背景占位（Uiverse 滤镜） ================== -->
+    <div id="texture-bg">
+        <div class="container"></div>
+        <div class="paper filter-1" id="paperTexture">
+            <span class="orbit-overlay"></span>
+            <svg class="texture-filter">
+                <filter id="void-texture">
+                    <feTurbulence seed="5" result="noise1" numOctaves="8" baseFrequency="0.015" type="fractalNoise"></feTurbulence>
+                    <feTurbulence seed="2" result="noise2" numOctaves="8" baseFrequency="0.015" type="fractalNoise"></feTurbulence>
+                    <feMerge result="noise"><feMergeNode in="noise1"></feMergeNode><feMergeNode in="noise1"></feMergeNode><feMergeNode in="noise2"></feMergeNode></feMerge>
+                    <feGaussianBlur result="blur" stdDeviation="0" in="noise"></feGaussianBlur>
+                    <feSpecularLighting result="specular" lighting-color="#ffffff" specularExponent="20" specularConstant="1" surfaceScale="3" in="blur">
+                        <feDistantLight elevation="45" azimuth="90"></feDistantLight>
+                    </feSpecularLighting>
+                    <feComposite result="lit" operator="over" in2="SourceGraphic" in="specular"></feComposite>
+                    <feBlend mode="screen" in2="lit" in="SourceGraphic"></feBlend>
+                </filter>
 
+                <filter id="alt-void-texture">
+                    <feTurbulence repeatCount="indefinite" dur="6s" values="0.015; 0.02; 0.015" attributeName="baseFrequency" seed="2" result="noise1" numOctaves="8" baseFrequency="0.015" type="fractalNoise"></feTurbulence>
+                    <feTurbulence repeatCount="indefinite" dur="6s" values="0.015; 0.02; 0.015" attributeName="baseFrequency" seed="1" result="noise2" numOctaves="8" baseFrequency="0.015" type="fractalNoise"></feTurbulence>
+                    <feMerge result="noise"><feMergeNode in="noise1"></feMergeNode><feMergeNode in="noise1"></feMergeNode><feMergeNode in="noise2"></feMergeNode></feMerge>
+                    <feGaussianBlur result="blur" stdDeviation="0" in="noise"></feGaussianBlur>
+                    <feSpecularLighting result="specular" lighting-color="#ffeeff" specularExponent="20" specularConstant="1" surfaceScale="3" in="blur">
+                        <feDistantLight elevation="45" azimuth="90"></feDistantLight>
+                    </feSpecularLighting>
+                    <feComposite result="lit" operator="over" in2="SourceGraphic" in="specular"></feComposite>
+                    <feBlend mode="screen" in2="lit" in="SourceGraphic"></feBlend>
+                </filter>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ================== 页面主要内容区 ================== -->
     <div class="content-area" id="contentArea">
-        <!-- 原有切换光圈我们改为直接由 JS 控制粒子颜色，这里移除 theme-ring 引用 -->
         <div class="title-row">
             <div class="text-group">
                 <h1 class="text-pattern main-title">宫水大世界</h1>
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
                 {% include 'components/action_btn.html' %}
             </div>
-            <!-- ✅ 切换按钮依然保留，但功能改为切换粒子颜色主题 -->
-            <button id="themeToggleBtn" class="theme-btn-title" onclick="toggleParticleTheme(event)">
+            <!-- ✅ 按钮还在，但功能现在切换背景滤镜的两种渲染模式 -->
+            <button id="themeToggleBtn" class="theme-btn-title" onclick="toggleBackgroundTexture(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
         </div>
@@ -142,7 +189,6 @@
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
         
-        <!-- ✅ 齿轮设置按钮跳转设置页面 -->
         <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center" onclick="window.location.href='/settings'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1 2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -158,11 +204,8 @@
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
-
         document.addEventListener("DOMContentLoaded", function() {
             const textElements = document.querySelectorAll('.text-pattern');
-            
-            // 依然保留 GSAP 文字入场动画
             gsap.fromTo(textElements, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2, stagger: 0.2 });
 
             document.addEventListener('click', function(e) {
@@ -197,154 +240,25 @@
                 };
             }
         })();
+
+        // ================== 切换按钮（切换高定滤镜效果） ==================
+        window.toggleBackgroundTexture = function(event) {
+            const btn = event.currentTarget;
+            btn.classList.add('animate-ping');
+            setTimeout(() => btn.classList.remove('animate-ping'), 300);
+
+            const paper = document.getElementById('paperTexture');
+            if (paper.classList.contains('filter-1')) {
+                paper.classList.remove('filter-1');
+                paper.classList.add('filter-2');
+            } else {
+                paper.classList.remove('filter-2');
+                paper.classList.add('filter-1');
+            }
+        };
     </script>
     
     {% include 'components/plan_detail_modal.html' %}
     {% include 'components/3d_card.html' %}
-
-    <!-- ✅ Three.js 动态星系粒子交互引擎 -->
-    <script>
-        (function() {
-            // 基础设置
-            const canvas = document.getElementById('particle-canvas');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制渲染性能开销
-
-            // 颜色主题定义 (原版白 / 赛博紫蓝 / 落日橙)
-            const themes = [
-                { color1: 0xffffff, color2: 0x88aaff, name: '极光白' },
-                { color1: 0x6a00ff, color2: 0x00ccff, name: '赛博紫蓝' },
-                { color1: 0xff4500, color2: 0xffcc00, name: '落日橙' }
-            ];
-            let currentThemeIndex = 0;
-
-            // 粒子配置
-            const particleCount = 2500;
-            const geometry = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            const colors = new Float32Array(particleCount * 3);
-
-            const colorObj = new THREE.Color();
-
-            // 生成球状分布的粒子（类似星云）
-            for (let i = 0; i < particleCount; i++) {
-                // 球体坐标
-                const radius = 12 + Math.random() * 8; 
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos((Math.random() * 2) - 1);
-
-                positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
-                positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
-                positions[i*3+2] = radius * Math.cos(phi);
-
-                // 初始随机颜色 (基于主题1)
-                const mixed = new THREE.Color().setHSL(0.6 + Math.random() * 0.2, 0.8, 0.5 + Math.random() * 0.4);
-                colors[i*3] = mixed.r;
-                colors[i*3+1] = mixed.g;
-                colors[i*3+2] = mixed.b;
-            }
-
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-            // 粒子材质（发光、随机大小）
-            const textureCanvas = document.createElement('canvas');
-            textureCanvas.width = 32; textureCanvas.height = 32;
-            const ctx = textureCanvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-            gradient.addColorStop(0, 'rgba(255,255,255,1)');
-            gradient.addColorStop(0.5, 'rgba(255,255,255,0.8)');
-            gradient.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 32, 32);
-            const particleTexture = new THREE.CanvasTexture(textureCanvas);
-
-            const material = new THREE.PointsMaterial({
-                size: 0.25,
-                map: particleTexture,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.9
-            });
-
-            const particleSystem = new THREE.Points(geometry, material);
-            scene.add(particleSystem);
-
-            // 鼠标交互数据
-            let mouseX = 0, mouseY = 0;
-            let targetRotationX = 0, targetRotationY = 0;
-
-            document.addEventListener('mousemove', (event) => {
-                // 归一化鼠标坐标 [-1, 1]
-                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-                
-                // 平滑跟进目标
-                targetRotationY = mouseX * 0.3;
-                targetRotationX = mouseY * 0.2;
-            });
-
-            // 相机位置
-            camera.position.z = 15;
-            camera.position.y = 1;
-
-            // 动画循环
-            function animate() {
-                requestAnimationFrame(animate);
-
-                // 平滑旋转粒子系统
-                particleSystem.rotation.y += (targetRotationY - particleSystem.rotation.y) * 0.03;
-                particleSystem.rotation.x += (targetRotationX - particleSystem.rotation.x) * 0.03;
-                
-                // 基础自转（缓慢）
-                particleSystem.rotation.y += 0.0005;
-
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            // 自适应窗口
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-
-            // ✅ 暴露给按钮的切换主题函数
-            window.toggleParticleTheme = function(event) {
-                const btn = event.currentTarget;
-                btn.classList.add('animate-ping');
-                setTimeout(() => btn.classList.remove('animate-ping'), 300);
-
-                currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-                const theme = themes[currentThemeIndex];
-                
-                const positionsAttrib = geometry.attributes.position;
-                const colorsAttrib = geometry.attributes.color;
-                const colorArray = colorsAttrib.array;
-
-                // 重新计算粒子颜色为新主题
-                const color1 = new THREE.Color(theme.color1);
-                const color2 = new THREE.Color(theme.color2);
-
-                for (let i = 0; i < particleCount; i++) {
-                    const mixFactor = Math.random();
-                    const mixed = color1.clone().lerp(color2, mixFactor);
-                    colorArray[i*3] = mixed.r;
-                    colorArray[i*3+1] = mixed.g;
-                    colorArray[i*3+2] = mixed.b;
-                }
-                colorsAttrib.needsUpdate = true;
-                
-                // 轻触反馈
-                console.log(`切换至主题: ${theme.name}`);
-            };
-
-        })();
-    </script>
 </body>
 </html>
