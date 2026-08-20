@@ -1,12 +1,12 @@
 from flask import render_template, redirect, url_for, abort, request, jsonify
-from . import main_bp
+from models import db, PendingBind
 import requests
+from . import main_bp
 
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
 
-# 旧仓库重定向到新工作台
 @main_bp.route('/warehouse')
 def warehouse():
     return redirect(url_for('main.workspace'))
@@ -35,7 +35,7 @@ def add_bot():
     return render_template('workspace/add_bot.html')
 
 # ==========================================
-# ✅ 核心修改：处理机器人按钮点击的回调事件
+# Telegram Webhook（处理按钮点击）
 # ==========================================
 @main_bp.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
@@ -43,50 +43,76 @@ def tg_webhook():
     if not data: 
         return "Bad Request", 400
 
-    # 1. 处理按钮点击回调 (CallbackQuery)
+    # 1. 处理内联按钮回调
     if 'callback_query' in data:
         query = data['callback_query']
         chat_id = query['message']['chat']['id']
         message_id = query['message']['message_id']
         callback_data = query['data']
 
-        # 解析判断点击的是哪个按钮，并取出之前埋下的 Token
-        if callback_data.startswith('bind_confirm|'):
-            token = callback_data.split('|')[1]
-            try:
-                # 原地修改该条消息，移除按钮，显示成功文字
-                url = f"https://api.telegram.org/bot{token}/editMessageText"
-                payload = {
-                    "chat_id": chat_id,
-                    "message_id": message_id,
-                    "text": "✅ 已绑定成功 访问宫水.com",
-                    "reply_markup": None  # 清除按钮
-                }
-                requests.post(url, json=payload)
-            except Exception as e:
-                print(f"修改消息失败(确定): {e}")
+        # 解析: 格式如 bind|123|confirm
+        parts = callback_data.split('|')
+        if len(parts) == 3 and parts[0] == 'bind':
+            bind_id = parts[1]
+            action = parts[2]  # confirm 或 cancel
 
-        elif callback_data.startswith('bind_cancel|'):
-            token = callback_data.split('|')[1]
-            try:
-                # 原地修改该条消息，移除按钮，显示取消文字
-                url = f"https://api.telegram.org/bot{token}/editMessageText"
-                payload = {
-                    "chat_id": chat_id,
-                    "message_id": message_id,
-                    "text": "❌ 绑定已取消",
-                    "reply_markup": None  # 清除按钮
-                }
-                requests.post(url, json=payload)
-            except Exception as e:
-                print(f"修改消息失败(取消): {e}")
-                
+            bind_record = PendingBind.query.get(int(bind_id))
+            if not bind_record:
+                return "Record not found", 404
+
+            if action == 'confirm':
+                bind_record.status = 'confirmed'
+                db.session.commit()
+                # 修改 Telegram 消息，移除按钮
+                try:
+                    url = f"https://api.telegram.org/bot{bind_record.token}/editMessageText"
+                    payload = {
+                        "chat_id": chat_id,
+                        "message_id": message_id,
+                        "text": "✅ 绑定成功 访问宫水.com",
+                        "reply_markup": None
+                    }
+                    requests.post(url, json=payload)
+                except Exception as e:
+                    print(f"修改消息失败(确定): {e}")
+
+            elif action == 'cancel':
+                bind_record.status = 'canceled'
+                db.session.commit()
+                try:
+                    url = f"https://api.telegram.org/bot{bind_record.token}/editMessageText"
+                    payload = {
+                        "chat_id": chat_id,
+                        "message_id": message_id,
+                        "text": "❌ 绑定已取消",
+                        "reply_markup": None
+                    }
+                    requests.post(url, json=payload)
+                except Exception as e:
+                    print(f"修改消息失败(取消): {e}")
+
         return "OK"
 
-    # 2. 处理普通消息 (如 /start, 扫码登录等)
+    # 2. 处理普通消息（保留你之前老的功能，这里放你之前的 handle_message 或 /start）
     if 'message' in data:
-        # 此处保留原有的微信机器人逻辑
-        # 直接继承之前写的逻辑就好
+        # 这里我留空，你把之前写的 /start qr_ 逻辑复制到此处即可
         pass
-        
+
     return "OK"
+
+# ==========================================
+# ✅ 新增：网页端轮询状态 API
+# ==========================================
+@main_bp.route('/api/bind_status/<token>', methods=['GET'])
+def bind_status(token):
+    record = PendingBind.query.filter_by(token=token).first()
+    if not record:
+        return jsonify({'status': 'not_found'})
+    
+    # 返回数据库中的状态以及机器人信息
+    return jsonify({
+        'status': record.status,
+        'bot_name': record.bot_name,
+        'bot_id': record.bot_id,
+        'bot_username': record.bot_username
+    })
