@@ -11,7 +11,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         button:focus, a:focus, input:focus { outline: none; }
+        /* ✅ 核心修改：body撑开高度，支持长滚动 */
         body { 
+            position: relative; /* 让内部 absolute 背景基于 body 定位 */
             width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto; 
             background-color: #05050a; 
             display: flex; flex-direction: column; 
@@ -19,8 +21,9 @@
         }
 
         /* ================== 你发来的 Uiverse 高级滤镜背景 ================== */
+        /* ✅ 修改：从 fixed 改为 absolute，让它跟着页面滚动 */
         #texture-bg {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 0; pointer-events: none; overflow: hidden;
         }
         #texture-bg .container {
@@ -130,7 +133,7 @@
 </head>
 <body>
     
-    <!-- ================== 背景占位（Uiverse 滤镜） ================== -->
+    <!-- ================== 背景区（随页面滚动） ================== -->
     <div id="texture-bg">
         <div class="container"></div>
         <div class="paper filter-1" id="paperTexture">
@@ -171,7 +174,6 @@
                 <h2 class="text-pattern sub-title">Telegram Bot Editor</h2>
                 {% include 'components/action_btn.html' %}
             </div>
-            <!-- ✅ 按钮还在，但功能现在切换背景滤镜的两种渲染模式 -->
             <button id="themeToggleBtn" class="theme-btn-title" onclick="toggleBackgroundTexture(event)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             </button>
@@ -201,6 +203,9 @@
     {% include 'components/update_log_card.html' %}
     {% include 'components/become_fan_card.html' %}
     <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
+
+    <!-- ✅ 核心修改：底部加一个1屏高的占位层，让网页能滚起来 -->
+    <div class="scroll-spacer" style="height: 100vh; width: 100%; pointer-events: none; position: relative; z-index: 0;"></div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
