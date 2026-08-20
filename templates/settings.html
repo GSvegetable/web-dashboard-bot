@@ -89,7 +89,7 @@
         .stars-amount-btn:hover { border-color: #58a6ff; background-color: #21262d; }
         .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
 
-        /* 优雅入场上浮动画（纯CSS） */
+        /* 优雅入场上浮动画 */
         .animate-item {
             opacity: 0;
             transform: translateY(18px);
@@ -108,7 +108,7 @@
         .delay-7 { animation-delay: 0.35s; }
 
         /* ========================================== */
-        /* ✅ 星星数字 3D 上下翻转动效（速度变慢） */
+        /* ✅ 星星数字 3D 上下翻转动效 */
         /* ========================================== */
         .perspective-800 {
             perspective: 800px;
@@ -122,7 +122,6 @@
             opacity: 0;
         }
         .spin-animate {
-            /* 时间从 0.9s 延长到 1.5s，速度变慢 */
             animation: spinVertical 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         @keyframes spinVertical {
@@ -252,17 +251,20 @@
                 </div>
             </div>
 
-            <!-- ==================== 面板2：星星 ==================== -->
+            <!-- ==================== 面板2：星星（新版布局） ==================== -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
                 
-                <!-- ✅ 星星余额：重新居中，缩小间距，改为慢速上下翻转 -->
-                <div class="mt-6 flex flex-col items-center justify-center">
-                    <div id="stars-display" class="flex justify-center items-center gap-0.5 text-8xl font-black text-white mb-8 py-6 tracking-[0.02em] perspective-800">
-                        {% set stars_str = '%05d' % (current_user.stars or 0) %}
-                        {% for char in stars_str %}
-                            <!-- 从右往左逐次延迟 0.15s，实现上下滚轮效果 -->
-                            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.15 }}s;">{{ char }}</span>
-                        {% endfor %}
+                <!-- ✅ 星星余额：靠右，间距紧，加上标题 -->
+                <div class="flex justify-end mt-6 pr-16 mb-6">
+                    <div class="flex flex-col items-end">
+                        <div class="text-white/60 text-sm font-medium tracking-wider mb-1 select-none">星星储备</div>
+                        <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight">
+                            {% set stars_str = '%05d' % (current_user.stars or 0) %}
+                            {% for char in stars_str %}
+                                <!-- 从右往左逐次延迟 0.15s -->
+                                <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.15 }}s;">{{ char }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
 
@@ -343,7 +345,7 @@
                         panels[key].classList.toggle('hidden', key !== target);
                     });
 
-                    // ✅ 每次切换到【星星】面板，重新触发 3D 上下翻转动画
+                    // 每次切换到【星星】面板，重新触发 3D 上下翻转动画
                     if (target === 'stars') {
                         setTimeout(() => {
                             const digits = document.querySelectorAll('#stars-display .digit');
