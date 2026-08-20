@@ -17,7 +17,6 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        /* 输入框、下拉框、文本域统一 GitHub 风格 */
         .gh-input, .gh-select, .gh-textarea {
             background-color: #0d1117;
             border: 1px solid #30363d;
@@ -36,7 +35,6 @@
         .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
         .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
 
-        /* 标签和辅助文字 */
         .gh-label { display: block; font-size: 14px; font-weight: 600; color: #c9d1d9; margin-bottom: 6px; }
         .gh-note { display: block; font-size: 12px; color: #8b949e; margin-top: 4px; }
         
@@ -52,10 +50,8 @@
         .gh-sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; fill: #8b949e; }
         .gh-sidebar-item:hover svg { fill: #c9d1d9; }
 
-        /* 分割线 */
         .gh-divider { border: 0; border-top: 1px solid #30363d; margin: 8px 0; }
 
-        /* 头像编辑按钮 */
         .gh-edit-btn {
             background-color: #21262d; border: 1px solid #30363d; border-radius: 6px;
             color: #c9d1d9; padding: 5px 16px; font-size: 12px; font-weight: 600;
@@ -63,7 +59,6 @@
         }
         .gh-edit-btn:hover { background-color: #30363d; border-color: #8b949e; }
 
-        /* 自定义滚动条（GitHub 风格） */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0d1117; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
@@ -75,11 +70,9 @@
             .settings-grid { grid-template-columns: 1fr !important; }
         }
 
-        /* 裁剪弹窗定制 */
         #avatarModal .cropper-container { width: 100%; height: 100%; }
         #avatarModal .cropper-view-box { border-radius: 50%; }
 
-        /* 充值卡片/星星面板样式 */
         .payment-method-btn {
             background-color: #161b22; border: 1px solid #30363d; border-radius: 8px;
             padding: 12px 16px; color: #c9d1d9; cursor: pointer;
@@ -97,7 +90,7 @@
         .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
 
         /* ========================================== */
-        /* ✅ 优雅入场上浮动画（纯CSS） */
+        /* 优雅入场上浮动画（纯CSS） */
         /* ========================================== */
         .animate-item {
             opacity: 0;
@@ -108,7 +101,6 @@
             from { opacity: 0; transform: translateY(18px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* 错落有致的延迟 */
         .delay-1 { animation-delay: 0.05s; }
         .delay-2 { animation-delay: 0.10s; }
         .delay-3 { animation-delay: 0.15s; }
@@ -116,19 +108,35 @@
         .delay-5 { animation-delay: 0.25s; }
         .delay-6 { animation-delay: 0.30s; }
         .delay-7 { animation-delay: 0.35s; }
-        .delay-8 { animation-delay: 0.40s; }
-        .delay-9 { animation-delay: 0.45s; }
-        .delay-10 { animation-delay: 0.50s; }
+
+        /* ========================================== */
+        /* ✅ 星星数字 3D 旋转动效 */
+        /* ========================================== */
+        .perspective-800 {
+            perspective: 800px;
+            transform-style: preserve-3d;
+        }
+        .digit {
+            display: inline-block;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transform: rotateY(0deg);
+            opacity: 0;
+        }
+        .spin-animate {
+            animation: spinWheel 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes spinWheel {
+            0% { transform: rotateY(0deg) scale(0.6); opacity: 0.2; }
+            100% { transform: rotateY(720deg) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
-    <!-- ✅ 给最外层容器加上 animate-item -->
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item">
         
         <!-- ==================== 左侧导航栏 ==================== -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
-            
-            <!-- 用户头部 -->
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
                 <div class="w-10 h-10 rounded-full bg-[#afb8c1] flex items-center justify-center flex-shrink-0 text-[#0d1117] font-bold text-lg">
                     <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
@@ -140,13 +148,11 @@
             </div>
 
             <nav class="flex flex-col gap-1" id="sidebarNav">
-                <!-- ✅ 修改：公开个人资料 → 个人资料 -->
                 <a href="#" class="gh-sidebar-item active" data-target="profile">
                     <svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                     个人资料
                 </a>
                 
-                <!-- 星星 -->
                 <a href="#" class="gh-sidebar-item" data-target="stars">
                     <svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>
                     星星
@@ -181,15 +187,13 @@
         <!-- ==================== 右侧内容区 ==================== -->
         <main class="flex-1 min-w-0">
             
-            <!-- ==================== 面板1：个人资料（添加了 animate-item 解决白屏） ==================== -->
+            <!-- ==================== 面板1：个人资料 ==================== -->
             <div id="panel-profile" class="panel-content animate-item delay-1">
                 <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人资料</h1>
                 
                 <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12 animate-item">
                     <!-- 左侧：表单信息 -->
                     <div class="flex flex-col gap-6">
-                        
-                        <!-- 名称 -->
                         <div class="animate-item delay-2">
                             <label class="gh-label" for="name">名称</label>
                             <input type="text" id="name" class="gh-input" 
@@ -197,7 +201,6 @@
                             <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
                         </div>
 
-                        <!-- ID -->
                         <div class="animate-item delay-3">
                             <label class="gh-label" for="display_id">ID</label>
                             <input type="text" id="display_id" class="gh-input" 
@@ -205,7 +208,6 @@
                             <span class="gh-note">你的 6 位唯一公开身份标识</span>
                         </div>
 
-                        <!-- 邮箱 -->
                         <div class="animate-item delay-4">
                             <label class="gh-label" for="email">邮箱</label>
                             <input type="text" id="email" class="gh-input" 
@@ -215,7 +217,6 @@
                             <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
                         </div>
 
-                        <!-- 个人简介 -->
                         <div class="animate-item delay-5">
                             <label class="gh-label" for="bio">个人简介</label>
                             <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
@@ -226,7 +227,6 @@
                             <label class="gh-label" for="url">网址</label>
                             <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
                         </div>
-
                     </div>
 
                     <!-- 右侧：头像 -->
@@ -253,60 +253,55 @@
                 </div>
             </div>
 
-            <!-- ==================== 面板2：星星（充值中心） ==================== -->
+            <!-- ==================== 面板2：星星（重构版） ==================== -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
-                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1 flex items-center gap-2">⭐ 我的星星</h1>
                 
-                <div class="mt-6">
-                    <!-- 余额展示 -->
-                    <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6 flex flex-col sm:flex-row justify-between items-center animate-item delay-2">
-                        <div>
-                            <div class="text-sm text-[#8b949e]">当前余额</div>
-                            <div class="text-4xl font-bold text-white mt-1 flex items-center gap-2">
-                                {{ current_user.stars or 0 }} <span class="text-xl text-[#8b949e] font-normal">颗星星</span>
-                            </div>
-                        </div>
-                        <div class="text-xs text-[#8b949e] mt-4 sm:mt-0 border-t sm:border-t-0 sm:border-l border-[#30363d] pl-0 sm:pl-6 pt-2 sm:pt-0">
-                            星星可用于兑换高级对话额度<br>和扩展机器人功能。
-                        </div>
+                <!-- ✅ 星星余额显示：去掉了标题和外部大框，纯5位大数字，自动3D旋转 -->
+                <div class="mt-6 flex flex-col items-center justify-center">
+                    <div id="stars-display" class="flex justify-center items-center gap-4 text-8xl font-black text-white mb-8 py-6 tracking-[0.2em] perspective-800">
+                        {% set stars_str = '%05d' % (current_user.stars or 0) %}
+                        {% for char in stars_str %}
+                            <!-- 从右往左逐次延迟 0.12s，实现滚轮刷新效果 -->
+                            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
+                        {% endfor %}
                     </div>
-
-                    <!-- 选择充值金额 -->
-                    <div class="mb-6 animate-item delay-3">
-                        <label class="gh-label">选择充值金额</label>
-                        <div class="flex flex-wrap gap-3">
-                            <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
-                            <button class="stars-amount-btn" data-amount="50">50 颗</button>
-                            <button class="stars-amount-btn" data-amount="100">100 颗</button>
-                            <button class="stars-amount-btn" data-amount="500">500 颗</button>
-                        </div>
-                    </div>
-
-                    <!-- 支付方式 -->
-                    <div class="mb-6 animate-item delay-4">
-                        <label class="gh-label">选择支付方式</label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            <button class="payment-method-btn selected">
-                                <span class="text-2xl">💳</span> <span>OKpay</span>
-                            </button>
-                            <button class="payment-method-btn">
-                                <span class="text-2xl">💚</span> <span>微信</span>
-                            </button>
-                            <button class="payment-method-btn">
-                                <span class="text-2xl">💙</span> <span>支付宝</span>
-                            </button>
-                            <button class="payment-method-btn">
-                                <span class="text-2xl">₮</span> <span>USDT</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 立即充值按钮 -->
-                    <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md animate-item delay-5">
-                        立即充值
-                    </button>
-                    <p class="text-xs text-[#8b949e] text-center mt-2 animate-item delay-6">充值后星星将自动到账，如有问题请联系客服</p>
                 </div>
+
+                <!-- 选择充值金额 -->
+                <div class="mb-6 animate-item delay-4">
+                    <label class="gh-label">选择充值金额</label>
+                    <div class="flex flex-wrap gap-3">
+                        <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
+                        <button class="stars-amount-btn" data-amount="50">50 颗</button>
+                        <button class="stars-amount-btn" data-amount="100">100 颗</button>
+                        <button class="stars-amount-btn" data-amount="500">500 颗</button>
+                    </div>
+                </div>
+
+                <!-- 支付方式 -->
+                <div class="mb-6 animate-item delay-5">
+                    <label class="gh-label">选择支付方式</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <button class="payment-method-btn selected">
+                            <span class="text-2xl">💳</span> <span>OKpay</span>
+                        </button>
+                        <button class="payment-method-btn">
+                            <span class="text-2xl">💚</span> <span>微信</span>
+                        </button>
+                        <button class="payment-method-btn">
+                            <span class="text-2xl">💙</span> <span>支付宝</span>
+                        </button>
+                        <button class="payment-method-btn">
+                            <span class="text-2xl">₮</span> <span>USDT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 立即充值按钮 -->
+                <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md animate-item delay-6">
+                    立即充值
+                </button>
+                <p class="text-xs text-[#8b949e] text-center mt-2 animate-item delay-7">充值后星星将自动到账，如有问题请联系客服</p>
             </div>
 
         </main>
@@ -342,14 +337,24 @@
                     const target = this.dataset.target;
                     if (!target || !panels[target]) return;
 
-                    // 切换菜单高亮
                     menuItems.forEach(m => m.classList.remove('active'));
                     this.classList.add('active');
 
-                    // 切换面板显示
                     Object.keys(panels).forEach(key => {
                         panels[key].classList.toggle('hidden', key !== target);
                     });
+
+                    // ✅ 每次切换到【星星】面板，重新触发 3D 旋转动画
+                    if (target === 'stars') {
+                        setTimeout(() => {
+                            const digits = document.querySelectorAll('#stars-display .digit');
+                            digits.forEach(el => {
+                                el.classList.remove('spin-animate');
+                                void el.offsetWidth; // 强制重绘
+                                el.classList.add('spin-animate');
+                            });
+                        }, 250); // 延迟等待面板切换动画完成
+                    }
                 });
             });
 
@@ -375,7 +380,6 @@
 
                 const img = new Image();
                 img.onload = function() {
-                    // 分辨率检查：超过 2000x2000 禁止上传
                     if (this.naturalWidth > 2000 || this.naturalHeight > 2000) {
                         alert('图片分辨率过高，请上传 2000x2000 像素以内的图片。');
                         avatarInput.value = '';
@@ -386,7 +390,6 @@
                     reader.onload = function(e) {
                         cropperImg.src = e.target.result;
                         modal.classList.remove('hidden');
-                        
                         if (cropper) cropper.destroy();
                         cropper = new Cropper(cropperImg, {
                             aspectRatio: 1,
@@ -422,9 +425,7 @@
             });
 
             modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    cancelBtn.click();
-                }
+                if (e.target === modal) cancelBtn.click();
             });
 
             // ==================== 星星充值金额选择 ====================
