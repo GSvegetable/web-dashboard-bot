@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, abort
 from flask_login import current_user
 from . import main_bp
 
@@ -29,6 +29,7 @@ def settings_page(page):
         abort(404)
     return render_template('settings.html', active_page=page)
 
+# ✅ 这个路由确保你打开 /workspace/add_bot 时能进得去
 @main_bp.route('/workspace/add_bot')
 def add_bot():
     return render_template('workspace/add_bot.html')
