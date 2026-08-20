@@ -12,11 +12,9 @@ from routes import main_bp
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-
-# ✅ 核心安全：强制从环境变量读取 SECRET_KEY，防止默认弱密钥
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 if not app.config['SECRET_KEY']:
-    raise ValueError("❌ 严重安全警告：环境变量 SECRET_KEY 未设置！请立即设置！")
+    raise ValueError("❌ 严重安全警告：环境变量 SECRET_KEY 未设置！")
 
 BASE_DIR = Path(__file__).parent.resolve()
 DB_PATH = BASE_DIR / 'local.db'
@@ -39,6 +37,7 @@ mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
+# 核心建表逻辑
 try:
     with app.app_context():
         db.create_all()
@@ -54,9 +53,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ==========================================
-# 全局访问记录器（防刷频）
-# ==========================================
+# 访问日志
 @app.before_request
 def log_visit():
     if request.path.startswith('/static') or request.path == '/favicon.ico':
