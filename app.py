@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from extensions import mail, oauth
 from models import db, User, VisitLog
-# ✅ 引用刚刚拆分好的路由包
+# ✅ 核心修复：只引用 main_bp，不要 auth_bp 和 api_bp
 from routes import main_bp
 
 logging.basicConfig(level=logging.INFO)
