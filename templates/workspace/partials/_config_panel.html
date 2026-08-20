@@ -9,40 +9,28 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 添加面板弹出卡片：点击背景自动关闭（修复 pointer-events 失效问题） -->
+    <!-- ✅ 添加面板弹出卡片 -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden">
         <!-- 外层蒙版允许点击 -->
         <div id="modalWrapper" class="w-[360px] max-w-[calc(100vw-48px)] origin-top">
-            <!-- 毛玻璃卡片 + 表单，正常允许交互 -->
+            <!-- 毛玻璃卡片 + 表单 -->
             <div class="glass-card p-6 cursor-auto">
-                
                 <div class="w-full flex flex-col gap-4">
-                    <!-- 字段 1：你的ID -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
                         <input id="addPanelIdInput" type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
-
-                    <!-- 字段 2：机器人名称 -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人名称</label>
                         <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
-
-                    <!-- 字段 3：机器人Token -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
                         <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" onblur="autoFetchBotInfo()" />
                     </div>
-
-                    <!-- 底部：双按钮布局 -->
                     <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                        <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
-                            自动补齐
-                        </button>
-                        <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
-                            创建
-                        </button>
+                        <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">自动补齐</button>
+                        <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">创建</button>
                     </div>
                 </div>
             </div>
@@ -50,12 +38,7 @@
     </div>
 
     <style>
-        .panel-fullscreen {
-            top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; 
-            width: auto !important; height: auto !important; border-radius: 28px !important;
-            background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
-        }
+        .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important; }
         .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
         @media (min-width: 768px) {
             .panel-fullscreen .panel-inner {
@@ -64,24 +47,13 @@
                 -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
             }
         }
-        .panel-collapsed {
-            top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; 
-            width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important;
-            border-radius: 28px !important; background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        }
+        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; }
         .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
-        .panel-collapsed #addPanelBtnContainer { display: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
-
         .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255, 255, 255, 0.4) !important; box-shadow: 0 0 15px rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.5); }
-
-        @media (max-width: 480px) {
-            #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; }
-            #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; }
-        }
+        @media (max-width: 480px) { #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; } #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; } }
     </style>
 
     <script>
@@ -107,17 +79,13 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 终极修复：点击外部蒙层关闭
+        let isModalOpening = false; // ✅ 弹窗打开防抖锁
+
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (modal && !modal.classList.contains('hidden')) {
-                // 如果点击的是 modal 本身（也就是蒙层背景），则关闭
-                if (e.target === modal) {
-                    closeAddPanel();
-                }
-                // 如果点击的是 wrapper 之外的任何地方（比如右边空白），也视为点击外部
-                if (wrapper && !wrapper.contains(e.target)) {
+            if (modal && !modal.classList.contains('hidden') && !isModalOpening) {
+                if (e.target === modal || (wrapper && !wrapper.contains(e.target))) {
                     closeAddPanel();
                 }
             }
@@ -137,10 +105,18 @@
             const wrapper = document.getElementById('modalWrapper');
             if (!modal || !wrapper) return;
             if (!modal.classList.contains('hidden')) { closeAddPanel(); return; }
+            
+            // ✅ 打开锁：防止打开瞬间立即被全局点击监听误关闭
+            isModalOpening = true;
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
             wrapper.style.opacity = '0';
-            setTimeout(() => { wrapper.style.opacity = ''; wrapper.classList.add('animate-in'); }, 40);
+            setTimeout(() => {
+                wrapper.style.opacity = '';
+                wrapper.classList.add('animate-in');
+                // 解锁
+                setTimeout(() => { isModalOpening = false; }, 250);
+            }, 40);
         };
 
         // 自动补齐（静默失败）
