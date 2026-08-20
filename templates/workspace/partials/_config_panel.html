@@ -9,8 +9,8 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 添加面板弹出卡片：修复了 display: none 导致的失效问题 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: flex-start; justify-content: flex-end; padding-top: 85px; padding-right: 32px;">
+    <!-- ✅ 添加面板弹出卡片：背景纯粹模糊，没有任何黑底或加深 -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: flex-start; justify-content: flex-end; padding-top: 85px; padding-right: 32px;">
         <div id="modalWrapper" class="w-[360px] max-w-[calc(100vw-48px)] origin-top pointer-events-auto">
             <div class="glass-card p-6 cursor-auto">
                 <div class="w-full flex flex-col gap-4">
