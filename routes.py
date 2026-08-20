@@ -22,20 +22,13 @@ from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
 from agent_tools import TOOLS, read_webpage, web_search
-
 from extensions import mail, oauth
 
 main_bp = Blueprint('main', __name__)
 
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
 
-FIRST_NAMES = [
-    '仆', '恶魔用户0323', '天使用户0323', '灰调雪', 'Rely', 
-    '该用户名为天使、', '涩骨痣', 'みゃ、？', '活着为了火鸡面', '露水情缘', 
-    '我心自有凜冬', '天真流尽泪', '缘如弦断难续', '循环的圆', '泪糸痛', 
-    '世間於我無关', '一万篇坏心事', '虚假郁片', '归属哪颗流星', '浅色泪、', 
-    '此用户很忧郁', '一滴名为白水', '鉴心永远是多远、', 'github'
-]
+FIRST_NAMES = ['仆', '恶魔用户0323', '天使用户0323', '灰调雪', 'Rely', '该用户名为天使、', '涩骨痣', 'みゃ、？', '活着为了火鸡面', '露水情缘', '我心自有凜冬', '天真流尽泪', '缘如弦断难续', '循环的圆', '泪糸痛', '世間於我無关', '一万篇坏心事', '虚假郁片', '归属哪颗流星', '浅色泪、', '此用户很忧郁', '一滴名为白水', '鉴心永远是多远、', 'github']
 
 def generate_unique_display_id():
     while True:
@@ -47,9 +40,6 @@ def generate_unique_display_id():
 def settings():
     return render_template('settings.html')
 
-# ==========================================
-# GitHub OAuth 登录
-# ==========================================
 oauth.register(
     name='github',
     client_id=os.getenv('GITHUB_CLIENT_ID'),
@@ -126,9 +116,6 @@ def github_callback():
         print(f"GitHub 登录失败: {e}")
         return redirect(url_for('main.splash'))
 
-# ==========================================
-# 基础路由
-# ==========================================
 @main_bp.route('/')
 def splash():
     return render_template('splash.html')
@@ -148,7 +135,6 @@ def admin_dashboard():
         return "无权访问，请使用管理员密码登录", 403
     
     today = date.today()
-    
     total_visits = VisitLog.query.count()
     today_visits = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).count()
     total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
@@ -157,7 +143,6 @@ def admin_dashboard():
     today_registered = User.query.filter(func.date(User.created_at) == today).count()
     recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
     users = User.query.order_by(User.created_at.desc()).all()
-    
     all_posts = Post.query.order_by(Post.created_at.desc()).all()
     
     return render_template('admin/dashboard.html', 
@@ -214,23 +199,16 @@ def workspace():
 def community():
     return render_template('community.html')
 
-# ==========================================
-# ✅ 社区动态 API 接口
-# ==========================================
-
-# 1. 获取帖子列表（支持关键词和时段搜索）
+# ========= 社区 API =========
 @main_bp.route('/api/posts', methods=['GET'])
 def get_posts():
     keyword = request.args.get('keyword', '').strip()
     time_filter = request.args.get('time', 'all')
     page = request.args.get('page', 1, type=int)
     per_page = 20
-    
     query = Post.query.filter_by(is_hidden=False).order_by(Post.created_at.desc())
-    
     if keyword:
         query = query.filter(Post.content.contains(keyword))
-    
     now = datetime.utcnow()
     if time_filter == 'today':
         query = query.filter(Post.created_at >= now - timedelta(days=1))
@@ -238,9 +216,7 @@ def get_posts():
         query = query.filter(Post.created_at >= now - timedelta(days=7))
     elif time_filter == 'month':
         query = query.filter(Post.created_at >= now - timedelta(days=30))
-    
     posts = query.paginate(page=page, per_page=per_page)
-    
     data = []
     for post in posts.items:
         author = User.query.get(post.user_id)
@@ -260,7 +236,6 @@ def get_posts():
             'is_liked': current_user.is_authenticated and Like.query.filter_by(post_id=post.id, user_id=current_user.id).first() is not None,
             'is_subscribed': current_user.is_authenticated and Subscription.query.filter_by(follower_id=current_user.id, following_id=post.user_id).first() is not None
         })
-    
     return jsonify({
         'ok': True,
         'posts': data,
@@ -268,34 +243,22 @@ def get_posts():
         'total': posts.total
     })
 
-# 2. 发布新帖子（✅ 修复：已取消 @login_required，改为手动 JSON 拦截）
 @main_bp.route('/api/posts', methods=['POST'])
 def create_post():
     if not current_user.is_authenticated:
         return jsonify({'ok': False, 'msg': '请先登录后再发布动态'}), 401
-    
     data = request.get_json()
     content = data.get('content', '').strip()
     media_urls = data.get('media_urls', '')
     code_lang = data.get('code_lang', '')
     code_content = data.get('code_content', '')
-    
     if not content and not code_content:
         return jsonify({'ok': False, 'msg': '内容不能为空'})
-    
-    post = Post(
-        user_id=current_user.id,
-        content=content,
-        media_urls=media_urls,
-        code_lang=code_lang,
-        code_content=code_content
-    )
+    post = Post(user_id=current_user.id, content=content, media_urls=media_urls, code_lang=code_lang, code_content=code_content)
     db.session.add(post)
     db.session.commit()
-    
     return jsonify({'ok': True, 'msg': '发布成功', 'post_id': post.id})
 
-# 3. 点赞/取消点赞
 @main_bp.route('/api/posts/<int:post_id>/like', methods=['POST'])
 def toggle_like(post_id):
     if not current_user.is_authenticated:
@@ -312,24 +275,15 @@ def toggle_like(post_id):
         db.session.commit()
         return jsonify({'ok': True, 'action': 'liked', 'count': Like.query.filter_by(post_id=post_id).count()})
 
-# 4. 获取评论
 @main_bp.route('/api/posts/<int:post_id>/comments', methods=['GET'])
 def get_comments(post_id):
     comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.asc()).all()
     data = []
     for c in comments:
         author = User.query.get(c.user_id)
-        data.append({
-            'id': c.id,
-            'user_id': c.user_id,
-            'author_name': author.first_name or '匿名',
-            'author_display_id': author.display_id or '000000',
-            'content': c.content,
-            'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')
-        })
+        data.append({'id': c.id, 'user_id': c.user_id, 'author_name': author.first_name or '匿名', 'author_display_id': author.display_id or '000000', 'content': c.content, 'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')})
     return jsonify({'ok': True, 'comments': data})
 
-# 5. 发布评论
 @main_bp.route('/api/posts/<int:post_id>/comments', methods=['POST'])
 def create_comment(post_id):
     if not current_user.is_authenticated:
@@ -342,7 +296,6 @@ def create_comment(post_id):
     db.session.commit()
     return jsonify({'ok': True, 'msg': '评论成功'})
 
-# 6. 订阅/取消订阅
 @main_bp.route('/api/users/<int:user_id>/subscribe', methods=['POST'])
 def toggle_subscribe(user_id):
     if not current_user.is_authenticated:
@@ -360,9 +313,7 @@ def toggle_subscribe(user_id):
         db.session.commit()
         return jsonify({'ok': True, 'action': 'subscribed'})
 
-# ==========================================
-# 辅助路由 (AI对话、机器人绑定等保持不变)
-# ==========================================
+# 机器人绑定（省略部分细节，保持完整）
 def fetch_telegram_user_info(tg_id):
     try:
         resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
@@ -406,9 +357,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
         return {"ok": False, "msg": "Token有效，但向该ID发送消息失败"}
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
-# ==========================================
-# AI 接口
-# ==========================================
+# AI 对话省略，保持完整入口...
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
 
@@ -579,7 +528,6 @@ def process_qr_token():
 def register():
     account = request.form.get('email')
     code = request.form.get('code')
-    
     ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY')
     if code == ADMIN_SECRET_KEY:
         admin_user = User.query.filter_by(is_admin=True).first()
@@ -591,7 +539,6 @@ def register():
         db.session.commit()
         login_user(admin_user)
         return "ADMIN_SUCCESS"
-
     if not all([account, code]): return "表格信息填写不完整"
     is_email = re.match(r"[^@]+@[^@]+\.[^@]+", account)
     record = EmailCode.query.filter_by(email=account).order_by(EmailCode.created_at.desc()).first() if is_email else TelegramCode.query.filter_by(telegram_id=account).order_by(TelegramCode.created_at.desc()).first()
@@ -605,22 +552,10 @@ def register():
     else:
         hashed_password = generate_password_hash(secrets.token_urlsafe(16))
         if is_email:
-            new_user = User(
-                email=account,
-                password_hash=hashed_password,
-                first_name=random.choice(FIRST_NAMES),
-                display_id=generate_unique_display_id()
-            )
+            new_user = User(email=account, password_hash=hashed_password, first_name=random.choice(FIRST_NAMES), display_id=generate_unique_display_id())
         else:
             tg_info = fetch_telegram_user_info(account)
-            new_user = User(
-                telegram_id=account,
-                password_hash=hashed_password,
-                first_name=tg_info['first_name'] if tg_info else '',
-                last_name=tg_info['last_name'] if tg_info else '',
-                telegram_username=tg_info['username'] if tg_info else '',
-                avatar_url=tg_info['avatar_url'] if tg_info else None
-            )
+            new_user = User(telegram_id=account, password_hash=hashed_password, first_name=tg_info['first_name'] if tg_info else '', last_name=tg_info['last_name'] if tg_info else '', telegram_username=tg_info['username'] if tg_info else '', avatar_url=tg_info['avatar_url'] if tg_info else None)
         db.session.add(new_user); db.session.commit(); login_user(new_user)
         return "注册成功"
 
