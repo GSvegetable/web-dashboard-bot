@@ -479,4 +479,8 @@
                     alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
                 });
             });
-            if(modal) modal.addEventListener('click', function(e) { if (e.target === modal && cancel
+            if(modal) modal.addEventListener('click', function(e) { if (e.target === modal && cancelBtn) cancelBtn.click(); });
+        });
+    </script>
+</body>
+</html>
