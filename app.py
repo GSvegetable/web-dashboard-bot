@@ -7,9 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from extensions import mail, oauth
 from models import db, User, VisitLog
-
-# ✅ 从 routes 包导入拆分后的蓝图
-from routes import main_bp, auth_bp, api_bp
+# ✅ 引用刚刚拆分好的路由包
+from routes import main_bp
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,6 +17,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 if not app.config['SECRET_KEY']:
     raise ValueError("❌ 严重安全警告：环境变量 SECRET_KEY 未设置！")
 
+# ================== 数据库配置 ==================
 BASE_DIR = Path(__file__).parent.resolve()
 DB_PATH = BASE_DIR / 'local.db'
 db_url = os.getenv('DATABASE_URL')
@@ -28,6 +28,7 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ================== 邮件配置 ==================
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -35,10 +36,12 @@ app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
+# ================== 初始化扩展 ==================
 mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
+# ================== 数据库建表（防多进程死锁） ==================
 try:
     with app.app_context():
         db.create_all()
@@ -48,8 +51,9 @@ except Exception as e:
         db.session.rollback()
     except:
         pass
-    app.logger.error(f"❌ 数据库初始化失败: {e}")
+    app.logger.error(f"❌ 数据库初始化失败 (已回滚事务): {e}")
 
+# ================== 登录管理器 ==================
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -58,6 +62,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# ================== 访问记录器 ==================
 @app.before_request
 def log_visit():
     if request.path.startswith('/static') or request.path == '/favicon.ico':
@@ -78,10 +83,8 @@ def log_visit():
     except Exception as e:
         app.logger.error(f"记录访问失败: {e}")
 
-# ✅ 注册三个拆分好的蓝图
+# ================== 注册路由蓝图 ==================
 app.register_blueprint(main_bp)
-app.register_blueprint(auth_bp)
-app.register_blueprint(api_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
