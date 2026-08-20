@@ -1,4 +1,4 @@
-<!-- 极光炫彩渐变按钮组件（网格布局：第一行2个，第二行1个左对齐） -->
+<!-- 极光炫彩渐变按钮组件（网格布局：2x2） -->
 <style>
   .action-flex {
     display: flex;
@@ -60,7 +60,7 @@
   }
 </style>
 
-<!-- ✅ 核心修改：用 grid-cols-2 实现两列网格，第3个自动对齐到左下角 -->
+<!-- 2x2 网格布局 -->
 <div class="grid grid-cols-2 gap-[14px] w-full max-w-[240px]">
   
   <!-- 按钮 1：开发作品（第一行，第一列） -->
@@ -83,7 +83,7 @@
     </span>
   </div>
 
-  <!-- 按钮 3：终端（第二行，第一列，自动对齐到“开发作品”正下方） -->
+  <!-- 按钮 3：终端（第二行，第一列） -->
   <div class="outer-cont" onclick="window.location.href='/terminal'">
     <span class="action-flex font-bold">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -91,6 +91,16 @@
         <line x1="12" y1="19" x2="20" y2="19"></line>
       </svg>
       <span>终端</span>
+    </span>
+  </div>
+
+  <!-- ✅ 按钮 4：社区（第二行，第二列） -->
+  <div class="outer-cont" onclick="window.location.href='/community'">
+    <span class="action-flex font-bold">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span>社区</span>
     </span>
   </div>
 
