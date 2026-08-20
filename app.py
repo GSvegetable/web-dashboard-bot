@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timedelta  # ✅ 引入时间差控制
+from datetime import datetime, timedelta
 from pathlib import Path
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
@@ -12,7 +12,11 @@ from routes import main_bp
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24).hex())
+
+# ✅ 核心安全：强制从环境变量读取 SECRET_KEY，防止默认弱密钥
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+if not app.config['SECRET_KEY']:
+    raise ValueError("❌ 严重安全警告：环境变量 SECRET_KEY 未设置！请立即设置！")
 
 BASE_DIR = Path(__file__).parent.resolve()
 DB_PATH = BASE_DIR / 'local.db'
@@ -51,28 +55,22 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # ==========================================
-# ✅ 核心修复：全局访问记录器（防刷频）
+# 全局访问记录器（防刷频）
 # ==========================================
 @app.before_request
 def log_visit():
-    # 排除静态资源请求和 favicon，只记录页面访问
     if request.path.startswith('/static') or request.path == '/favicon.ico':
         return
-    
     try:
         ip = request.remote_addr
-        
-        # ✅ 核心改动：同一个 IP，5 分钟内只记录 1 次，避免瞬间刷爆数据
         five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
         recent_visit = VisitLog.query.filter(
             VisitLog.ip_address == ip,
             VisitLog.visited_at > five_minutes_ago
         ).first()
-        
         if not recent_visit:
             user_agent = request.user_agent.string if request.user_agent else ''
             user_id = current_user.id if current_user.is_authenticated else None
-            
             visit = VisitLog(ip_address=ip, user_agent=user_agent, user_id=user_id)
             db.session.add(visit)
             db.session.commit()
