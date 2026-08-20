@@ -1,11 +1,153 @@
-<!-- ✅ 星星余额：只保留标签和数字，删掉了下方充值区和按钮 -->
+{% if current_user.is_authenticated %}
+<style>
+    /* From Uiverse.io by Thomas-Cabrit */
+    .card-6 {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 900px;
+        margin: 16px 0 20px 0;
+    }
+
+    .card-6__holo {
+        position: relative;
+        width: auto;
+        min-width: 160px;
+        height: 140px;
+        border-radius: 26px;
+        transform-style: preserve-3d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        animation: card6-wobble 6.2s ease-in-out infinite;
+    }
+
+    @keyframes card6-wobble {
+        0% {
+            transform: rotateX(16deg) rotateY(-18deg);
+        }
+        50% {
+            transform: rotateX(18deg) rotateY(18deg);
+        }
+        100% {
+            transform: rotateX(16deg) rotateY(-18deg);
+        }
+    }
+
+    .card-6__layer {
+        position: absolute;
+        font-weight: 900;
+        font-size: 84px;
+        letter-spacing: -4px;
+        line-height: 1;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.7);
+
+        background: linear-gradient(
+            90deg,
+            rgba(0, 123, 255, 0.18) 0%,
+            rgba(0, 123, 255, 0.92) 35%,
+            rgba(0, 180, 255, 0.7) 60%,
+            rgba(0, 123, 255, 0.22) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+
+        filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+        opacity: 0.95;
+        transform-style: preserve-3d;
+    }
+
+    .card-6__layer--back {
+        opacity: 0.18;
+        filter: blur(1px);
+        transform: translateZ(-70px);
+        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.45);
+    }
+    .card-6__layer--mid {
+        opacity: 0.42;
+        filter: blur(0.4px);
+        transform: translateZ(-34px);
+        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.55);
+    }
+    .card-6__layer--front {
+        opacity: 0.98;
+        transform: translateZ(0px);
+        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.78);
+    }
+
+    .card-6__holo::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 26px;
+        background: radial-gradient(
+            circle at 40% 35%,
+            rgba(0, 123, 255, 0.14),
+            rgba(0, 0, 0, 0) 62%
+        );
+        filter: blur(8px);
+        opacity: 0.9;
+        transform: translateZ(-80px);
+    }
+
+    .card-6__holo::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 26px;
+        border: 1px solid rgba(0, 123, 255, 0.16);
+        background: linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.01) 45%,
+            rgba(0, 0, 0, 0)
+        );
+        opacity: 0.55;
+        transform: translateZ(-45px);
+    }
+
+    @media (max-width: 600px) {
+        .card-6__holo {
+            width: auto;
+            min-width: 120px;
+            height: 120px;
+            border-radius: 24px;
+        }
+        .card-6__layer {
+            font-size: 72px;
+            letter-spacing: -3px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card-6__holo {
+            animation: none !important;
+        }
+    }
+</style>
+
 <div class="mb-6 animate-item delay-4">
     <label class="gh-label">星星储备</label>
-    <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight mt-2">
-        {% set stars_str = '%05d' % (current_user.stars or 0) %}
-        {% for char in stars_str %}
-            <!-- 从右往左逐次延迟 0.12s，配合新动画 -->
-            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
-        {% endfor %}
+
+    <!-- 3D 全息动态卡片 -->
+    <div class="card-6" aria-hidden="true">
+        <div class="card-6__holo">
+            {% set stars_str = '%05d' % (current_user.stars or 0) %}
+            
+            <!-- 三层叠加，实现空间错位感 -->
+            <div class="card-6__layer card-6__layer--back">{{ stars_str }}</div>
+            <div class="card-6__layer card-6__layer--mid">{{ stars_str }}</div>
+            <div class="card-6__layer card-6__layer--front">{{ stars_str }}</div>
+        </div>
     </div>
 </div>
+{% endif %}
