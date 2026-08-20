@@ -172,12 +172,13 @@
             .then(data => {
                 let cards = [];
                 try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
+                // ✅ 只要后端返回了 data.ok，不管发送消息是否成功，都会带上名字、ID和用户名。
                 cards.push({ 
                     token: tokenVal, 
                     code: codeVal, 
                     name: data.ok ? data.bot_name : '未命名', 
-                    id: data.ok && data.bot_id ? data.bot_id : '', 
-                    username: data.ok && data.bot_username ? data.bot_username : '' 
+                    id: data.ok ? data.bot_id : '', 
+                    username: data.ok ? data.bot_username : '' 
                 });
                 localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
                 tokenInput.value = ''; codeInput.value = '';
@@ -185,7 +186,7 @@
                 if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
             })
             .catch(() => {
-                // 即使网络错误，也把 Token 和代号先存进去，名字填"未命名"
+                // 即使网络错误，也把 Token 和代号先存进去
                 let cards = [];
                 try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
                 cards.push({ token: tokenVal, code: codeVal, name: '未命名', id: '', username: '' });
