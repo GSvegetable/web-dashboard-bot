@@ -95,4 +95,97 @@
     }
 
     @media (max-width: 1400px) { #botRepoGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0,
+    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 720px)  { #botRepoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
+    window.renderBotRepo = function() {
+        var grid = document.getElementById('botRepoGrid');
+        var empty = document.getElementById('botRepoEmpty');
+        if (!grid) return;
+        var cards = [];
+        try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
+        if (cards.length === 0) { if (empty) empty.style.display = 'block'; grid.innerHTML = ''; return; }
+        if (empty) empty.style.display = 'none';
+        grid.innerHTML = '';
+        cards.forEach(function(c) {
+            var card = document.createElement('div');
+            card.className = 'bot-repo-card';
+
+            // ✅ 第1行：名字（用跑马灯容器）
+            var nameWrapper = document.createElement('div');
+            nameWrapper.className = 'bot-repo-name-marquee';
+            var nameTrack = document.createElement('span');
+            nameTrack.className = 'bot-repo-track';
+            var nameText = c.name || '未命名';
+            if (c.code) nameText += ' (' + c.code + ')';
+            // 复制文本用于无缝轮播
+            nameTrack.innerHTML = nameText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + nameText;
+            nameWrapper.appendChild(nameTrack);
+            card.appendChild(nameWrapper);
+
+            // ✅ 第2行：ID
+            var idLine = document.createElement('div');
+            idLine.className = 'bot-repo-line';
+            var idLabel = document.createElement('span');
+            idLabel.className = 'bot-repo-label';
+            idLabel.textContent = 'ID';
+            idLine.appendChild(idLabel);
+            var idVal = document.createElement('span');
+            idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            idVal.textContent = c.id || '';
+            idLine.appendChild(idVal);
+            card.appendChild(idLine);
+
+            // ✅ 第3行：用户名（单独占一行）
+            var usernameLine = document.createElement('div');
+            usernameLine.className = 'bot-repo-line';
+            var userLabel = document.createElement('span');
+            userLabel.className = 'bot-repo-label';
+            userLabel.textContent = 'User';
+            usernameLine.appendChild(userLabel);
+            var userVal = document.createElement('span');
+            userVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            userVal.textContent = c.username ? '@' + c.username : '无';
+            usernameLine.appendChild(userVal);
+            card.appendChild(usernameLine);
+
+            // ✅ 第4行：Token（跑马灯，保持原样）
+            var tokenLine = document.createElement('div');
+            tokenLine.className = 'bot-repo-line';
+            var tokenLabel = document.createElement('span');
+            tokenLabel.className = 'bot-repo-label';
+            tokenLabel.textContent = 'Token';
+            tokenLine.appendChild(tokenLabel);
+
+            var marquee = document.createElement('div');
+            marquee.className = 'bot-repo-marquee';
+            var track = document.createElement('span');
+            track.className = 'bot-repo-track';
+            var tokenStr = c.token || '';
+            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
+            marquee.appendChild(track);
+            tokenLine.appendChild(marquee);
+            card.appendChild(tokenLine);
+
+            // 加入网格
+            grid.appendChild(card);
+
+            // 加载完后判断名字是否过长，需要跑马灯
+            requestAnimationFrame(function() {
+                if (nameTrack.scrollWidth > nameWrapper.clientWidth + 1) {
+                    nameTrack.classList.add('marquee-run');
+                }
+                if (track.scrollWidth > marquee.clientWidth + 1) {
+                    track.classList.add('marquee-run');
+                }
+            });
+        });
+    };
+    window.renderBotRepo();
+});
+</script>
