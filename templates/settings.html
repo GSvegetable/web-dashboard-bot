@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
         /* ==========================================
-           ✅ 新增：背景纹理 CSS（重命名防冲突）
+           ✅ 背景纹理 CSS（重命名防冲突）
            ========================================== */
         .bg-container {
             position: absolute;
@@ -64,12 +64,13 @@
         }
 
         /* ==========================================
-           复刻 GitHub 深色模式的核心配置
+           ✅ 核心修改：输入框全玻璃透明效果
            ========================================== */
         .gh-input, .gh-select, .gh-textarea {
-            background-color: rgba(13, 17, 23, 0.8);
-            backdrop-filter: blur(4px);
-            border: 1px solid #30363d;
+            background-color: rgba(255, 255, 255, 0.05); /* 降低背景不透明度 */
+            backdrop-filter: blur(8px);                 /* 加强毛玻璃模糊度 */
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* 边框变亮 */
             border-radius: 6px;
             color: #c9d1d9;
             transition: border-color 0.2s, box-shadow 0.2s;
@@ -85,9 +86,11 @@
         .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
         .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
 
-        .gh-label { display: block; font-size: 14px; font-weight: 600; color: #c9d1d9; margin-bottom: 6px; }
-        .gh-note { display: block; font-size: 12px; color: #8b949e; margin-top: 4px; }
+        /* ✅ 核心修改：提示文字全部改为纯白色 */
+        .gh-label { display: block; font-size: 14px; font-weight: 600; color: #ffffff; margin-bottom: 6px; }
+        .gh-note { display: block; font-size: 12px; color: #ffffff; margin-top: 4px; }
         
+        /* 左侧菜单按钮 */
         .gh-sidebar-item {
             display: flex; align-items: center; gap: 12px;
             width: 100%; padding: 6px 12px; border-radius: 6px;
@@ -282,7 +285,7 @@
                     </div>
                 </div>
 
-                <!-- ✅ 3D 悬停卡片（更多星星） -->
+                <!-- 3D 悬停卡片（更多星星） -->
                 <div class="flex justify-end mt-6">
                     <figure id="starToggleCard3D">
                         <div class="avatar">
