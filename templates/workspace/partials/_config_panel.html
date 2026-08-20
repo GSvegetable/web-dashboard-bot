@@ -9,9 +9,9 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 添加面板弹出卡片 -->
-    <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden">
-        <div id="modalWrapper" class="w-[360px] max-w-[calc(100vw-48px)] origin-top">
+    <!-- ✅ 添加面板弹出卡片：全屏背景虚化 -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; align-items: flex-start; justify-content: flex-end; padding-top: 85px; padding-right: 32px; pointer-events: none;">
+        <div id="modalWrapper" class="pointer-events-auto w-[360px] max-w-[calc(100vw-48px)] origin-top">
             <div class="glass-card p-6 cursor-auto">
                 <div class="w-full flex flex-col gap-4">
                     
@@ -24,7 +24,8 @@
                     <!-- 字段 2：机器人代号 -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人代号</label>
-                        <input id="addPanelCodeInput" type="text" placeholder="请输入机器人代号 (如: bot01)" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        <!-- ✅ 新增 maxlength="5" 限制 -->
+                        <input id="addPanelCodeInput" type="text" maxlength="5" placeholder="请输入机器人代号 (如: bot01)" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                     </div>
 
                     <!-- 底部：双按钮布局 -->
@@ -53,7 +54,7 @@
         .panel-fullscreen #configForm { display: none !important; }
         .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255, 255, 255, 0.4) !important; box-shadow: 0 0 15px rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.5); }
-        @media (max-width: 480px) { #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; } #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; } }
+        @media (max-width: 480px) { #customAddPanelModal { padding-right: 12px !important; padding-top: 72px !important; } #customAddPanelModal #modalWrapper { width: 100% !important; max-width: none !important; } }
     </style>
 
     <script>
@@ -149,7 +150,6 @@
         function markInvalid(input) { if(!input)return; input.style.borderColor='rgba(239,68,68,0.8)'; input.style.boxShadow='0 0 10px rgba(239,68,68,0.3)'; input.focus(); }
         function clearInvalid(input) { if(!input)return; input.style.borderColor=''; input.style.boxShadow=''; }
 
-        // ✅ 核心修改：只保留 Token 和 代号，自动拉取名字、ID和用户名
         window.createPanel = function() {
             const tokenInput = document.getElementById('addPanelTokenInput');
             const codeInput = document.getElementById('addPanelCodeInput');
@@ -162,7 +162,6 @@
             if (!codeVal) { markInvalid(codeInput); if(typeof showTopToast==='function') showTopToast('请填写机器人代号。'); return; }
             clearInvalid(codeInput);
 
-            // 向服务器请求机器人详细信息（名字、ID、用户名）
             fetch('/api/bind_bot', { 
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -172,7 +171,6 @@
             .then(data => {
                 let cards = [];
                 try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
-                // ✅ 只要后端返回了 data.ok，不管发送消息是否成功，都会带上名字、ID和用户名。
                 cards.push({ 
                     token: tokenVal, 
                     code: codeVal, 
@@ -186,7 +184,6 @@
                 if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
             })
             .catch(() => {
-                // 即使网络错误，也把 Token 和代号先存进去
                 let cards = [];
                 try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
                 cards.push({ token: tokenVal, code: codeVal, name: '未命名', id: '', username: '' });
