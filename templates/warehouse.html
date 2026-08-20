@@ -22,7 +22,7 @@
         }
         .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
 
-        /* ✅ 黑色操作菜单卡片样式 */
+        /* ✅ 独立的黑色操作菜单卡片（仅供仓库卡片使用） */
         #botActionMenu {
             position: fixed; inset: 0; z-index: 9999;
             background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -65,10 +65,9 @@
             </div>
         </div>
 
-        <!-- ✅ 给主容器增加点击事件：点击空白处时强制关闭黑菜单（如果菜单开着） -->
+        <!-- ✅ 彻底删除了内嵌的右键菜单监听，点击背景只会关闭黑菜单，绝不弹出别的东西 -->
         <div class="bottom-box" id="mainBox" onclick="if(event.target===this) closeBotActionMenu(event)">
             
-            <!-- 返回主页按钮 -->
             <button onclick="window.location.href='/'" class="absolute bottom-4 right-4 z-10 top-btn bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] text-white hover:bg-[rgba(255,255,255,0.15)] shadow-md">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                 返回主页
@@ -90,7 +89,7 @@
             </div>
 
             <div class="login-form-container" id="loginFormContainer">
-                <!-- 登录框省略，保持原样 -->
+                <!-- 登录框（保持原样） -->
             </div>
 
         </div>
@@ -101,20 +100,20 @@
             console.log('仓库页面已加载');
         });
 
-        // ✅ 触发仓库卡片上的添加面板
+        // ✅ 触发添加仓库（指向 _config_panel 里的全局函数）
         function addWarehouse() {
             if (typeof window.addPanel === 'function') {
                 window.addPanel();
             } else {
                 const name = prompt("请输入新仓库的名称：");
                 if (name && name.trim() !== "") {
-                    // 这里可以接入真正的后端API
+                    // 后续可接入真实 API
                 }
             }
         }
 
         // ==========================================
-        // ✅ 仓库卡片与黑卡菜单的核心逻辑
+        // ✅ 纯正的仓库卡片与黑卡菜单逻辑
         // ==========================================
         window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
         let currentBotActionIndex = null;
@@ -125,11 +124,7 @@
             if (!grid) return;
             var cards = [];
             try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
-            if (cards.length === 0) {
-                if (empty) empty.style.display = 'block';
-                grid.innerHTML = '';
-                return;
-            }
+            if (cards.length === 0) { if (empty) empty.style.display = 'block'; grid.innerHTML = ''; return; }
             if (empty) empty.style.display = 'none';
             grid.innerHTML = '';
             cards.forEach(function(c, index) {
@@ -137,9 +132,8 @@
                 card.className = 'bot-repo-card cursor-pointer';
                 card.dataset.index = index;
 
-                // 点击卡片调出黑卡菜单
                 card.onclick = function(e) {
-                    e.stopPropagation(); // 阻止事件冒泡到 background
+                    e.stopPropagation();
                     showBotActionMenu(index);
                 };
 
@@ -178,7 +172,6 @@
                 card.appendChild(tokenLine);
                 grid.appendChild(card);
 
-                // Token 过长时启用跑马灯
                 requestAnimationFrame(function() {
                     if (track.scrollWidth > marquee.clientWidth + 1) {
                         track.classList.add('marquee-run');
@@ -187,13 +180,11 @@
             });
         }
 
-        // 显示菜单
         function showBotActionMenu(index) {
             currentBotActionIndex = index;
             document.getElementById('botActionMenu').style.display = 'flex';
         }
 
-        // 点击背景关闭菜单
         function closeBotActionMenu(e) {
             if (e && e.target === e.currentTarget) {
                 document.getElementById('botActionMenu').style.display = 'none';
@@ -201,7 +192,6 @@
             }
         }
 
-        // 删除当前 bot
         function deleteCurrentBot() {
             if (currentBotActionIndex === null) return;
             var cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || [];
@@ -214,7 +204,6 @@
             currentBotActionIndex = null;
         }
 
-        // 复制当前 bot
         function copyCurrentBot() {
             if (currentBotActionIndex === null) return;
             var cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || [];
