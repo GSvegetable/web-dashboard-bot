@@ -9,7 +9,7 @@
     </div>
 </div>
 
-<!-- ✅ 全新的 3D 毛玻璃卡片组（全部集中到右侧） -->
+<!-- ✅ 卡片移到对面：flex justify-end 改为 justify-start -->
 <style>
     .star-3d-card {
         min-width: 90px;
@@ -42,8 +42,8 @@
     }
 </style>
 
-<!-- 所有卡片排列到右边 -->
-<div class="flex justify-end mt-6 gap-3 flex-wrap">
+<!-- ✅ justify-start 移到左侧 -->
+<div class="flex justify-start mt-6 gap-3 flex-wrap">
     <!-- 更多星星（已删除单独小圆圈） -->
     <figure id="starToggleCard3D" class="star-3d-card">
         <div class="text-box text-white text-sm font-semibold">更多星星</div>
@@ -59,7 +59,7 @@
     <figure class="star-3d-card">使用权限</figure>
 </div>
 
-<!-- JS 交互（仅保留“更多星星”的3D翻转点击） -->
+<!-- JS 交互 -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const card = document.getElementById('starToggleCard3D');
