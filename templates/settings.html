@@ -95,13 +95,42 @@
         }
         .stars-amount-btn:hover { border-color: #58a6ff; background-color: #21262d; }
         .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
+
+        /* ========================================== */
+        /* ✅ 新增：优雅入场上浮动画（纯CSS） */
+        /* ========================================== */
+        .animate-item {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 错落有致的延迟 */
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.10s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.20s; }
+        .delay-5 { animation-delay: 0.25s; }
+        .delay-6 { animation-delay: 0.30s; }
+        .delay-7 { animation-delay: 0.35s; }
+        .delay-8 { animation-delay: 0.40s; }
+        .delay-9 { animation-delay: 0.45s; }
+        .delay-10 { animation-delay: 0.50s; }
+        /* 初始状态隐藏，动画结束后保持可见 */
+        .settings-sidebar, .panel-content, .settings-grid {
+            opacity: 0; /* 默认隐藏，等动画触发 */
+        }
     </style>
 </head>
 <body>
-    <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12">
+    <!-- ✅ 给最外层容器加上 animate-item，保证整体淡入，但内部子元素单独控制 -->
+    <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item">
         
         <!-- ==================== 左侧导航栏 ==================== -->
-        <aside class="w-64 flex-shrink-0 settings-sidebar">
+        <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             
             <!-- 用户头部 -->
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
@@ -121,7 +150,7 @@
                     公开个人资料
                 </a>
                 
-                <!-- ✅ 修改：账号改成 星星 -->
+                <!-- 星星 -->
                 <a href="#" class="gh-sidebar-item" data-target="stars">
                     <svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>
                     星星
@@ -158,22 +187,22 @@
             
             <!-- ==================== 面板1：公开个人资料 ==================== -->
             <div id="panel-profile" class="panel-content">
-                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人账号与资料</h1>
+                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1 animate-item delay-2">个人账号与资料</h1>
                 
                 <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12">
                     <!-- 左侧：表单信息 -->
                     <div class="flex flex-col gap-6">
                         
                         <!-- 名称 -->
-                        <div>
+                        <div class="animate-item delay-3">
                             <label class="gh-label" for="name">名称</label>
                             <input type="text" id="name" class="gh-input" 
                                    value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
                             <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
                         </div>
 
-                        <!-- ✅ 新增：在名称和邮箱中间加一个 ID -->
-                        <div>
+                        <!-- ID -->
+                        <div class="animate-item delay-4">
                             <label class="gh-label" for="display_id">ID</label>
                             <input type="text" id="display_id" class="gh-input" 
                                    value="{{ current_user.display_id or '000000' }}" readonly />
@@ -181,7 +210,7 @@
                         </div>
 
                         <!-- 邮箱 -->
-                        <div>
+                        <div class="animate-item delay-5">
                             <label class="gh-label" for="email">邮箱</label>
                             <input type="text" id="email" class="gh-input" 
                                    value="{{ current_user.email if current_user.email else '' }}" 
@@ -191,18 +220,13 @@
                         </div>
 
                         <!-- 个人简介 -->
-                        <div>
+                        <div class="animate-item delay-6">
                             <label class="gh-label" for="bio">个人简介</label>
                             <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
                             <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
                         </div>
 
-                        <!-- ✅ 已删除：代词 -->
-                        <!-- ✅ 已删除：网址（根据习惯保留网址，也可以保留） -->
-                        <!-- ✅ 已删除：社交账号 -->
-                        <!-- ✅ 已删除：公司 -->
-
-                        <div>
+                        <div class="animate-item delay-7">
                             <label class="gh-label" for="url">网址</label>
                             <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
                         </div>
@@ -210,7 +234,7 @@
                     </div>
 
                     <!-- 右侧：头像 -->
-                    <div class="flex flex-col items-start gap-4">
+                    <div class="flex flex-col items-start gap-4 animate-item delay-4">
                         <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
                             <label class="gh-label w-full">头像</label>
                             
@@ -235,11 +259,11 @@
 
             <!-- ==================== 面板2：星星（充值中心） ==================== -->
             <div id="panel-stars" class="panel-content hidden">
-                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1 flex items-center gap-2">⭐ 我的星星</h1>
+                <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1 flex items-center gap-2 animate-item delay-2">⭐ 我的星星</h1>
                 
                 <div class="mt-6">
                     <!-- 余额展示 -->
-                    <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6 flex flex-col sm:flex-row justify-between items-center">
+                    <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 mb-6 flex flex-col sm:flex-row justify-between items-center animate-item delay-3">
                         <div>
                             <div class="text-sm text-[#8b949e]">当前余额</div>
                             <div class="text-4xl font-bold text-white mt-1 flex items-center gap-2">
@@ -252,7 +276,7 @@
                     </div>
 
                     <!-- 选择充值金额 -->
-                    <div class="mb-6">
+                    <div class="mb-6 animate-item delay-4">
                         <label class="gh-label">选择充值金额</label>
                         <div class="flex flex-wrap gap-3">
                             <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
@@ -263,7 +287,7 @@
                     </div>
 
                     <!-- 支付方式 -->
-                    <div class="mb-6">
+                    <div class="mb-6 animate-item delay-5">
                         <label class="gh-label">选择支付方式</label>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <button class="payment-method-btn selected">
@@ -282,10 +306,10 @@
                     </div>
 
                     <!-- 立即充值按钮 -->
-                    <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md">
+                    <button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md animate-item delay-6">
                         立即充值
                     </button>
-                    <p class="text-xs text-[#8b949e] text-center mt-2">充值后星星将自动到账，如有问题请联系客服</p>
+                    <p class="text-xs text-[#8b949e] text-center mt-2 animate-item delay-7">充值后星星将自动到账，如有问题请联系客服</p>
                 </div>
             </div>
 
