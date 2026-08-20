@@ -7,11 +7,12 @@ from . import main_bp
 @main_bp.route('/api/send_bind_request', methods=['POST'])
 def send_bind_request():
     data = request.get_json()
-    user_id_input = data.get('user_id', '').strip()
+    # ✅ 核心修复：无论用户填的是 @gsyxyc 还是 gsyxyc，都统一去掉左边的 @
+    user_id_input = data.get('user_id', '').strip().lstrip('@')
     token = data.get('token', '').strip()
 
     if not user_id_input or not token:
-        return jsonify({'ok': False, 'msg': '用户名和 Token 都不能为空'})
+        return jsonify({'ok': False, 'msg': 'ID 和 Token 都不能为空'})
     if not token or not token.startswith('') or ':' not in token:
         return jsonify({'ok': False, 'msg': 'Token 格式无效'})
 
@@ -23,7 +24,7 @@ def send_bind_request():
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'验证异常: {str(e)}'})
 
-    # 2. 构造一条纯通知消息
+    # 2. 构造通知消息
     message_text = (
         f"🔔 机器人绑定通知\n"
         f"你的机器人已被成功绑定到「宫水大世界」工作台。\n"
@@ -44,8 +45,6 @@ def send_bind_request():
         else:
             error_data = send_resp.json()
             error_desc = error_data.get("description", "")
-            
-            # ✅ 修复：直接捕获 chat not found，返回更明确的中文提示
             if "chat not found" in error_desc:
                 return jsonify({'ok': False, 'msg': '发送失败：机器人找不到该用户。请检查 Token 是否正确，并确保已在 Telegram 中向该机器人发送过 "/start" 命令。'})
             else:
