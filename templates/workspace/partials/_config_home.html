@@ -1,7 +1,8 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
+    <!-- ✅ 修改：将 onclick="addPanel()" 改为跳转新页面 -->
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="window.location.href='/workspace/add_bot'" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
@@ -115,7 +116,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var card = document.createElement('div');
             card.className = 'bot-repo-card';
 
-            // ✅ 第1行：名字（先判断是否溢出，再决定是否做跑马灯）
             var nameWrapper = document.createElement('div');
             nameWrapper.className = 'bot-repo-name-marquee';
             var nameTrack = document.createElement('span');
@@ -126,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nameWrapper.appendChild(nameTrack);
             card.appendChild(nameWrapper);
 
-            // ✅ 异步检测：只有真正超出卡片长度，才做双倍文本和跑马灯动画
             requestAnimationFrame(function() {
                 if (nameTrack.scrollWidth > nameWrapper.clientWidth + 2) {
                     nameTrack.innerHTML = nameText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + nameText;
@@ -134,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // ✅ 第2行：ID
             var idLine = document.createElement('div');
             idLine.className = 'bot-repo-line';
             var idLabel = document.createElement('span');
@@ -147,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
             idLine.appendChild(idVal);
             card.appendChild(idLine);
 
-            // ✅ 第3行：用户名
             var usernameLine = document.createElement('div');
             usernameLine.className = 'bot-repo-line';
             var userLabel = document.createElement('span');
@@ -160,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
             usernameLine.appendChild(userVal);
             card.appendChild(usernameLine);
 
-            // ✅ 第4行：Token
             var tokenLine = document.createElement('div');
             tokenLine.className = 'bot-repo-line';
             var tokenLabel = document.createElement('span');
@@ -189,4 +185,4 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window.renderBotRepo();
 });
-</script>
+                      </script>
