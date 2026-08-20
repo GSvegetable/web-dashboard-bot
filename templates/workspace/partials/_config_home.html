@@ -14,7 +14,6 @@
 </div>
 
 <style>
-    /* 按钮被点击时的微缩放动画 */
     #addPanelBtn:active { transform: scale(0.95); }
 
     .bot-repo-card {
@@ -57,7 +56,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
-    /* 跑马灯：无限、减速、两端模糊 */
+    /* ✅ 跑马灯：完整连续滚动，无回跳，两端模糊 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -71,16 +70,17 @@
     .bot-repo-marquee .bot-repo-track {
         display: inline-block;
         white-space: nowrap;
-        padding-right: 2rem;
+        padding-right: 0;
         color: rgba(255, 255, 255, 0.8);
         will-change: transform;
     }
     .bot-repo-track.marquee-run {
+        /* ✅ 改为从 0% 到 -50%，配合 JS 里复制的双倍文本，实现平滑连续滚动，不会闪回重置 */
         animation: botMarquee 12s linear infinite;
     }
     @keyframes botMarquee {
         0%   { transform: translateX(0); }
-        100% { transform: translateX(calc(-100% + 2rem)); }
+        100% { transform: translateX(-50%); }
     }
 
     @media (max-width: 1400px) { #botRepoGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -107,7 +107,14 @@ document.addEventListener('DOMContentLoaded', function() {
             var name = document.createElement('div'); name.className = 'bot-repo-name'; name.textContent = c.name || '未命名';
             var idLine = document.createElement('div'); idLine.className = 'bot-repo-line'; var idLabel = document.createElement('span'); idLabel.className = 'bot-repo-label'; idLabel.textContent = 'ID'; idLine.appendChild(idLabel); var idVal = document.createElement('span'); idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'; idVal.textContent = c.id || ''; idLine.appendChild(idVal);
             var tokenLine = document.createElement('div'); tokenLine.className = 'bot-repo-line'; var tokenLabel = document.createElement('span'); tokenLabel.className = 'bot-repo-label'; tokenLabel.textContent = 'Token'; tokenLine.appendChild(tokenLabel);
-            var marquee = document.createElement('div'); marquee.className = 'bot-repo-marquee'; var track = document.createElement('span'); track.className = 'bot-repo-track'; track.textContent = c.token || ''; marquee.appendChild(track); tokenLine.appendChild(marquee);
+
+            var marquee = document.createElement('div'); marquee.className = 'bot-repo-marquee';
+            var track = document.createElement('span'); track.className = 'bot-repo-track';
+            // ✅ 修复：将 Token 内容复制一份，中间通过两个空格分开，作为稳定的“一指宽”间距，配合 -50% 动画实现连续滚动不突跳
+            var tokenStr = c.token || '';
+            track.textContent = tokenStr + '  ' + tokenStr; 
+            marquee.appendChild(track); tokenLine.appendChild(marquee);
+
             card.appendChild(name); card.appendChild(idLine); card.appendChild(tokenLine); grid.appendChild(card);
             requestAnimationFrame(function() {
                 if (track.scrollWidth > marquee.clientWidth + 1) track.classList.add('marquee-run');
