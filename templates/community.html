@@ -20,18 +20,6 @@
         ::-webkit-scrollbar-thumb { background: #2a2d35; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        .post-input-area {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-        .post-input-area:focus-within {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.04);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-        }
-
         .post-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -68,14 +56,6 @@
         .action-btn:hover { background: rgba(255, 255, 255, 0.05); color: #e5e7eb; }
         .action-btn.liked { color: #f91880; }
 
-        .empty-state-icon {
-            animation: floatPulse 4s ease-in-out infinite;
-        }
-        @keyframes floatPulse {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-10px) scale(1.05); }
-        }
-
         .glass-bg {
             background: rgba(10, 12, 16, 0.85);
             backdrop-filter: blur(16px);
@@ -84,22 +64,14 @@
     </style>
 </head>
 <body>
-    
-    <div class="w-full max-w-2xl mx-auto px-4 pb-12 relative z-10">
+    <!-- 移除居中限制，改为 w-full 铺满 -->
+    <div class="w-full px-4 pb-12 relative z-10">
         
-        <!-- 顶部导航 -->
-        <div class="glass-bg sticky top-0 border-b border-[#30363d] py-3 px-2 z-20 flex justify-between items-center -mx-2">
-            <div class="flex items-center gap-3">
-                <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <span class="text-base font-bold text-white tracking-wide"># 宫水社区</span>
-            </div>
-            <div class="flex gap-4 text-gray-400 text-xs">
-                <span>首页</span>
-                <span>最新</span>
-                <span>热门</span>
-            </div>
+        <!-- 顶部导航（仅保留返回按钮） -->
+        <div class="glass-bg sticky top-0 border-b border-[#30363d] py-3 px-2 z-20 flex items-center -mx-2">
+            <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
         </div>
 
         <!-- 搜索与过滤 -->
@@ -116,141 +88,58 @@
             </select>
         </div>
 
-        <!-- 发帖区 -->
-        <div class="post-input-area mt-4 p-4 flex gap-3 items-start">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs border border-[#30363d]">
-                {{ current_user.first_name[0] if current_user.first_name else '我' }}
-            </div>
-            <div class="flex-1 flex flex-col gap-2">
-                <textarea id="postContent" rows="2" placeholder="有什么新鲜事？" class="w-full bg-transparent border-none outline-none text-sm text-white placeholder-gray-500 resize-none py-1"></textarea>
-                
-                <div id="mediaInputArea" class="hidden flex-col gap-2 mt-1 border-t border-[#30363d]/50 pt-2">
-                    <input type="text" id="mediaUrls" placeholder="粘贴图片/视频链接 (多个用逗号隔开)" class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
-                </div>
-                
-                <div id="codeInputArea" class="hidden flex-col gap-2 mt-1 border-t border-[#30363d]/50 pt-2">
-                    <div class="flex gap-2">
-                        <input type="text" id="codeLang" placeholder="语言 (如 python, json)" class="w-1/3 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
-                        <textarea id="codeContent" rows="3" placeholder="粘贴你的代码..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none"></textarea>
-                    </div>
-                </div>
-
-                <div class="flex justify-between items-center mt-1">
-                    <div class="flex gap-2 text-gray-500">
-                        <button onclick="toggleMediaInput()" class="hover:text-white transition text-xs px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
-                            📷 媒体
-                        </button>
-                        <button onclick="toggleCodeInput()" class="hover:text-white transition text-xs px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
-                            &lt;/&gt; 代码
-                        </button>
-                    </div>
-                    <button id="postSubmitBtn" class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs font-bold px-5 py-1.5 rounded-full transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                        发布
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 帖子信息流 -->
+        <!-- 帖子信息流（已删除空状态） -->
         <div id="postFeed" class="mt-4 min-h-[40vh]">
-            <!-- 空状态 (默认显示) -->
-            <div id="emptyState" class="flex flex-col items-center justify-center py-20 text-center border border-[#30363d]/50 rounded-2xl bg-[#161b22]/30">
-                <div class="empty-state-icon text-6xl mb-4 text-gray-500">🕊️</div>
-                <h3 class="text-base font-semibold text-white">这里空空的</h3>
-                <p class="text-sm text-gray-500 max-w-[200px] mt-1 leading-relaxed">
-                    还没有人发过消息。<br>成为第一个发言的人吧！
-                </p>
-            </div>
-            
-            <!-- 帖子列表容器 -->
-            <div id="postList" class="hidden flex-col gap-2"></div>
+            <div id="postList" class="flex-col gap-2"></div>
         </div>
 
         <!-- 加载更多 -->
         <div id="loadMoreArea" class="hidden mt-4 text-center">
             <button id="loadMoreBtn" class="text-gray-400 hover:text-white text-sm border border-[#30363d] px-4 py-1.5 rounded-full transition">加载更多</button>
         </div>
+    </div>
 
+    <!-- ✅ 右下角浮动加号按钮 -->
+    <button id="composeFloatingBtn" class="fixed bottom-8 right-8 z-40 w-14 h-14 rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-4xl font-light shadow-lg flex items-center justify-center transition active:scale-95">
+        +
+    </button>
+
+    <!-- ✅ 新增：发帖弹窗 -->
+    <div id="composeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center">
+        <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-3">发布动态</h3>
+            <textarea id="modalPostContent" rows="4" class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none" placeholder="今天有什么新鲜事？"></textarea>
+            
+            <!-- 进阶发帖选项（可折叠） -->
+            <div class="mt-2 flex flex-col gap-2">
+                <div class="flex gap-2 text-xs text-gray-400">
+                    <button onclick="toggleModalMedia()" class="hover:text-white px-2 py-0.5 rounded bg-[#0d1117] border border-[#30363d]">📷 链接</button>
+                    <button onclick="toggleModalCode()" class="hover:text-white px-2 py-0.5 rounded bg-[#0d1117] border border-[#30363d]">&lt;/&gt; 代码</button>
+                </div>
+                <div id="modalMediaArea" class="hidden">
+                    <input id="modalMediaUrls" type="text" placeholder="图片/视频链接 (多个用逗号隔开)" class="w-full bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
+                </div>
+                <div id="modalCodeArea" class="hidden flex flex-col gap-2">
+                    <input id="modalCodeLang" type="text" placeholder="语言 (如 python, json)" class="w-1/2 bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
+                    <textarea id="modalCodeContent" rows="3" placeholder="粘贴代码..." class="w-full bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-4">
+                <button onclick="closeComposeModal()" class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded-full transition">取消</button>
+                <button id="modalSubmitBtn" class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-sm font-medium px-5 py-1.5 rounded-full transition active:scale-95 disabled:opacity-50" disabled>发布</button>
+            </div>
+        </div>
     </div>
 
     <script>
         // ===========================
-        // 状态管理
+        // 状态管理 & 帖子加载
         // ===========================
         let currentPage = 1;
         let hasMore = true;
         let isLoading = false;
-        let currentKeyword = '';
-        let currentTime = 'all';
 
-        // ===========================
-        // 发帖控制
-        // ===========================
-        const contentInput = document.getElementById('postContent');
-        const submitBtn = document.getElementById('postSubmitBtn');
-
-        contentInput.addEventListener('input', function() {
-            submitBtn.disabled = !this.value.trim();
-        });
-
-        function toggleMediaInput() {
-            const area = document.getElementById('mediaInputArea');
-            area.classList.toggle('hidden');
-        }
-
-        function toggleCodeInput() {
-            const area = document.getElementById('codeInputArea');
-            area.classList.toggle('hidden');
-        }
-
-        document.getElementById('postSubmitBtn').addEventListener('click', function() {
-            const content = contentInput.value.trim();
-            if (!content) return;
-            
-            const mediaUrls = document.getElementById('mediaUrls').value.trim();
-            const codeLang = document.getElementById('codeLang').value.trim();
-            const codeContent = document.getElementById('codeContent').value.trim();
-            
-            this.innerText = '发布中...';
-            this.disabled = true;
-            
-            fetch('/api/posts', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    content: content,
-                    media_urls: mediaUrls,
-                    code_lang: codeLang,
-                    code_content: codeContent
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    contentInput.value = '';
-                    document.getElementById('mediaUrls').value = '';
-                    document.getElementById('codeLang').value = '';
-                    document.getElementById('codeContent').value = '';
-                    document.getElementById('mediaInputArea').classList.add('hidden');
-                    document.getElementById('codeInputArea').classList.add('hidden');
-                    submitBtn.disabled = true;
-                    // 重新加载第一页
-                    currentPage = 1;
-                    loadPosts(true);
-                } else {
-                    alert('发布失败: ' + data.msg);
-                }
-            })
-            .catch(() => alert('发布异常，请检查网络'))
-            .finally(() => {
-                this.innerText = '发布';
-                this.disabled = false;
-            });
-        });
-
-        // ===========================
-        // 加载帖子
-        // ===========================
         function loadPosts(reset = false) {
             if (isLoading) return;
             isLoading = true;
@@ -262,8 +151,6 @@
                 currentPage = 1;
                 hasMore = true;
                 document.getElementById('postList').innerHTML = '';
-                document.getElementById('postList').classList.add('hidden');
-                document.getElementById('emptyState').classList.remove('hidden');
             }
             
             let url = `/api/posts?page=${currentPage}&time=${time}`;
@@ -274,18 +161,12 @@
             .then(data => {
                 if (data.ok) {
                     const list = document.getElementById('postList');
-                    const empty = document.getElementById('emptyState');
-                    
                     if (reset) {
                         list.innerHTML = '';
                         currentPage = 1;
                     }
                     
                     if (data.posts.length > 0) {
-                        empty.classList.add('hidden');
-                        list.classList.remove('hidden');
-                        
-                        // GSAP 入场动画
                         data.posts.forEach((post, index) => {
                             const el = createPostElement(post);
                             list.appendChild(el);
@@ -298,17 +179,12 @@
                         hasMore = data.has_next;
                         currentPage++;
                         
-                        // 控制加载更多按钮
                         const loadArea = document.getElementById('loadMoreArea');
                         if (hasMore) {
                             loadArea.classList.remove('hidden');
                         } else {
                             loadArea.classList.add('hidden');
                         }
-                    } else if (reset) {
-                        empty.classList.remove('hidden');
-                        list.classList.add('hidden');
-                        document.getElementById('loadMoreArea').classList.add('hidden');
                     }
                 }
             })
@@ -317,7 +193,7 @@
         }
 
         // ===========================
-        // 创建帖子 DOM
+        // 创建帖子 DOM（保持不变）
         // ===========================
         function createPostElement(post) {
             const div = document.createElement('div');
@@ -389,9 +265,6 @@
             return div;
         }
 
-        // ===========================
-        // 交互函数
-        // ===========================
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -399,6 +272,9 @@
             return div.innerHTML;
         }
 
+        // ===========================
+        // 帖子交互（点赞、评论、订阅、代码折叠）
+        // ===========================
         function toggleCode(el) {
             const content = el.querySelector('.code-content');
             const label = el.querySelector('span:last-child');
@@ -468,7 +344,7 @@
             .then(data => {
                 if (data.ok) {
                     input.value = '';
-                    toggleComment(postId); // 刷新评论列表
+                    toggleComment(postId);
                 }
             });
         }
@@ -506,6 +382,84 @@
 
         document.getElementById('loadMoreBtn').addEventListener('click', function() {
             loadPosts(false);
+        });
+
+        // ===========================
+        // 弹窗发帖控制逻辑
+        // ===========================
+        const modal = document.getElementById('composeModal');
+        const floatingBtn = document.getElementById('composeFloatingBtn');
+
+        floatingBtn.addEventListener('click', function() {
+            modal.classList.remove('hidden');
+            document.getElementById('modalPostContent').focus();
+        });
+
+        window.closeComposeModal = function() {
+            modal.classList.add('hidden');
+            // 清理输入框
+            document.getElementById('modalPostContent').value = '';
+            document.getElementById('modalMediaUrls').value = '';
+            document.getElementById('modalCodeLang').value = '';
+            document.getElementById('modalCodeContent').value = '';
+            document.getElementById('modalSubmitBtn').disabled = true;
+        };
+
+        // 点击模态框外部关闭
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeComposeModal();
+        });
+
+        // 监听弹窗文本输入
+        document.getElementById('modalPostContent').addEventListener('input', function() {
+            document.getElementById('modalSubmitBtn').disabled = !this.value.trim();
+        });
+
+        // 弹窗内的折叠选项
+        function toggleModalMedia() {
+            document.getElementById('modalMediaArea').classList.toggle('hidden');
+        }
+        function toggleModalCode() {
+            document.getElementById('modalCodeArea').classList.toggle('hidden');
+        }
+
+        // 提交弹窗发帖
+        document.getElementById('modalSubmitBtn').addEventListener('click', function() {
+            const content = document.getElementById('modalPostContent').value.trim();
+            if (!content) return;
+            
+            const mediaUrls = document.getElementById('modalMediaUrls').value.trim();
+            const codeLang = document.getElementById('modalCodeLang').value.trim();
+            const codeContent = document.getElementById('modalCodeContent').value.trim();
+            
+            this.innerText = '发布中...';
+            this.disabled = true;
+            
+            fetch('/api/posts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    content: content,
+                    media_urls: mediaUrls,
+                    code_lang: codeLang,
+                    code_content: codeContent
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    closeComposeModal();
+                    currentPage = 1;
+                    loadPosts(true);
+                } else {
+                    alert('发布失败: ' + data.msg);
+                }
+            })
+            .catch(() => alert('发布异常，请检查网络'))
+            .finally(() => {
+                this.innerText = '发布';
+                this.disabled = false;
+            });
         });
 
         // ===========================
