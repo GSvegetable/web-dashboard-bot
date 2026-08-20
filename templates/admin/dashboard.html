@@ -8,21 +8,21 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background-color: #0d1117; color: #c9d1d9; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
-        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px 20px; transition: border-color 0.2s; }
         .stat-card:hover { border-color: #58a6ff; }
-        .stat-number { font-size: 28px; font-weight: 700; color: #f0f6fc; margin-top: 4px; }
-        .stat-label { font-size: 14px; color: #8b949e; }
+        .stat-number { font-size: 24px; font-weight: 700; color: #f0f6fc; margin-top: 2px; letter-spacing: -0.5px; }
+        .stat-label { font-size: 13px; color: #8b949e; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #30363d; font-size: 14px; }
-        th { background: #21262d; color: #8b949e; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #30363d; }
+        th { background: #21262d; color: #8b949e; font-weight: 600; position: sticky; top: 0; z-index: 10; }
         td { color: #c9d1d9; }
         
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
         .tag-admin { background: #da3633; color: white; }
         .tag-vip { background: #d29922; color: white; }
         .tag-user { background: #21262d; color: #8b949e; }
@@ -30,26 +30,32 @@
         .tag-github { background: #2b313c; color: white; border: 1px solid #8b949e; }
         .tag-tg { background: #0088cc; color: white; }
         
-        .btn { background: #238636; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 13px; }
+        .btn { background: #238636; color: white; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.2s; }
         .btn:hover { background: #2ea043; }
-        .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; }
+        .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 14px; border-radius: 6px; font-size: 13px; transition: 0.2s; }
         .btn-outline:hover { background: #21262d; }
 
-        .gh-input { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 4px 8px; outline: none; font-size: 14px; width: 70px; }
+        .gh-input { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 4px 8px; outline: none; font-size: 14px; width: 60px; transition: 0.2s; }
         .gh-input:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
+        .gh-search { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 8px 12px; outline: none; min-width: 200px; transition: 0.2s; }
+        .gh-search:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
         
-        @media (max-width: 600px) { 
+        @media (max-width: 768px) { 
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            table { font-size: 12px; } th, td { padding: 8px 10px; }
+            table { font-size: 12px; } th, td { padding: 6px 8px; }
+            .gh-search { min-width: 100px; width: 100%; }
+            .table-wrapper { overflow-x: auto; }
         }
     </style>
 </head>
 <body>
-    <nav class="bg-[#161b22] border-b border-[#30363d] px-6 py-4 flex justify-between items-center">
-        <div class="font-bold text-lg text-white">GsBot 管理后台</div>
+    <nav class="bg-[#161b22] border-b border-[#30363d] px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="font-bold text-lg text-white flex items-center gap-2">
+            <span class="text-[#58a6ff]">◆</span> GsBot 管理后台
+        </div>
         <div class="flex gap-4">
             <a href="/" class="btn-outline text-sm">返回首页</a>
-            <a href="/logout" class="btn text-sm" style="background:#da3633;">退出登录</a>
+            <a href="/logout" class="btn text-sm" style="background:#da3633; border-color:#da3633; hover:bg:#b62324;">退出登录</a>
         </div>
     </nav>
 
@@ -57,65 +63,34 @@
         
         <!-- 数据统计卡片区 -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">历史总访问量 (PV)</div>
-                <div class="stat-number">{{ total_visits }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">今日访问量 (PV)</div>
-                <div class="stat-number">{{ today_visits }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">历史独立访客 (UV)</div>
-                <div class="stat-number">{{ total_uv }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">今日独立访客 (UV)</div>
-                <div class="stat-number">{{ today_uv }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">总注册用户</div>
-                <div class="stat-number">{{ total_users }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">今日新增注册</div>
-                <div class="stat-number">{{ today_registered }}</div>
-            </div>
+            <div class="stat-card"><div class="stat-label">总注册用户</div><div class="stat-number">{{ total_users }}</div></div>
+            <div class="stat-card"><div class="stat-label">今日新增注册</div><div class="stat-number">{{ today_registered }}</div></div>
+            <div class="stat-card"><div class="stat-label">历史独立访客 (真实UV)</div><div class="stat-number">{{ total_uv }}</div></div>
+            <div class="stat-card"><div class="stat-label">今日独立访客 (今日UV)</div><div class="stat-number">{{ today_uv }}</div></div>
+            <div class="stat-card" style="opacity: 0.6;"><div class="stat-label">总访问量 (含刷新)</div><div class="stat-number">{{ total_visits }}</div></div>
+            <div class="stat-card" style="opacity: 0.6;"><div class="stat-label">今日访问量 (含刷新)</div><div class="stat-number">{{ today_visits }}</div></div>
         </div>
 
-        <!-- 近期活跃用户 -->
+        <!-- 近期活跃用户 + 搜索面板 -->
         <div class="card mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-[#f0f6fc]">近期活跃用户</h2>
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-2">
+                <h2 class="text-lg font-bold text-[#f0f6fc]">📊 运营监控</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-[#8b949e]">快速搜索用户：</span>
+                    <input type="text" id="searchUserInput" class="gh-search" placeholder="输入 ID / 邮箱 / 昵称">
+                </div>
             </div>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>显示名称 / ID</th>
-                            <th>账号</th>
-                            <th>上次登录时间</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    <thead><tr><th>昵称</th><th>邮箱 / ID</th><th>上次登录</th></tr></thead>
+                    <tbody id="recentUsersList">
                         {% for user in recent_active_users %}
                         <tr>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono text-[#f0f6fc] font-bold">{{ user.display_id or '----' }}</span>
-                                    <span>{{ user.first_name or '未设置' }}</span>
-                                </div>
-                            </td>
+                            <td><span class="font-bold text-white">{{ user.first_name or '未设置' }}</span> <span class="text-xs text-[#8b949e]">#{{ user.display_id or '----' }}</span></td>
                             <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% else %}未知{% endif %}
                             </td>
-                            <td>
-                                {% if user.last_login %}
-                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
-                                {% else %}
-                                    <span style="color: #8b949e;">从未上线</span>
-                                {% endif %}
-                            </td>
+                            <td>{% if user.last_login %}{{ user.last_login.strftime('%Y-%m-%d %H:%M') }}{% else %}<span style="color: #8b949e;">从未上线</span>{% endif %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -123,68 +98,51 @@
             </div>
         </div>
 
-        <!-- 全部用户列表 (新增操作列) -->
-        <div class="card">
+        <!-- 全部用户列表 (支持搜索) -->
+        <div class="card relative">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-[#f0f6fc]">全部用户数据 ({{ users|length }})</h2>
+                <h2 class="text-lg font-bold text-[#f0f6fc]">👥 全部用户 ({{ users|length }})</h2>
             </div>
             
-            <div style="overflow-x: auto;">
+            <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th>6位ID</th>
-                            <th>显示名称</th>
-                            <th>账号</th>
-                            <th>注册方式</th>
-                            <th>VIP状态</th>
-                            <th>⭐ 星星余额</th>
+                            <th>ID</th>
+                            <th>昵称</th>
+                            <th>账户</th>
+                            <th>来源</th>
+                            <th>身份</th>
+                            <th>⭐ 余额</th>
                             <th>操作</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="allUsersList">
                         {% for user in users %}
-                        <tr>
+                        <tr class="user-row">
                             <td><span class="font-mono text-[#f0f6fc]">{{ user.display_id or '----' }}</span></td>
                             <td>{{ user.first_name or '未设置' }}</td>
                             <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {% if user.email %}
-                                    {{ user.email }}
-                                {% elif user.telegram_id %}
-                                    {{ user.telegram_id }}
-                                {% elif user.github_id %}
-                                    {{ user.github_id }}
-                                {% else %}
-                                    <span style="color: #8b949e;">未知</span>
-                                {% endif %}
+                                {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% elif user.github_id %}{{ user.github_id }}{% else %}未知{% endif %}
                             </td>
                             <td>
-                                {% if user.email %}
-                                    <span class="tag tag-email">邮箱</span>
-                                {% elif user.telegram_id %}
-                                    <span class="tag tag-tg">Telegram</span>
-                                {% elif user.github_id %}
-                                    <span class="tag tag-github">GitHub</span>
-                                {% else %}
-                                    <span class="tag" style="background:#333; color:#888;">未知</span>
-                                {% endif %}
+                                {% if user.email %}<span class="tag tag-email">邮箱</span>
+                                {% elif user.telegram_id %}<span class="tag tag-tg">Telegram</span>
+                                {% elif user.github_id %}<span class="tag tag-github">GitHub</span>
+                                {% else %}<span class="tag" style="background:#333; color:#888;">未知</span>{% endif %}
                             </td>
                             <td>
-                                {% if user.is_admin %}
-                                    <span class="tag tag-admin">管理员</span>
-                                {% elif user.is_vip %}
-                                    <span class="tag tag-vip">VIP Lv.{{ user.vip_level or 1 }}</span>
-                                {% else %}
-                                    <span class="tag tag-user">普通用户</span>
-                                {% endif %}
+                                {% if user.is_admin %}<span class="tag tag-admin">管理员</span>
+                                {% elif user.is_vip %}<span class="tag tag-vip">VIP Lv.{{ user.vip_level or 1 }}</span>
+                                {% else %}<span class="tag tag-user">普通</span>{% endif %}
                             </td>
                             <td>
-                                <span id="balance-display-{{ user.id }}">{{ user.stars or 0 }}</span>
+                                <span id="balance-display-{{ user.id }}" class="font-mono font-bold">{{ user.stars or 0 }}</span>
                             </td>
                             <td>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <input type="number" id="stars-input-{{ user.id }}" class="gh-input" placeholder="数量" min="1">
-                                    <button class="btn" onclick="addStars({{ user.id }})">赠送</button>
+                                <div class="flex items-center gap-2 flex-nowrap">
+                                    <input type="number" id="stars-input-{{ user.id }}" class="gh-input" placeholder="加" min="1">
+                                    <button class="btn text-xs px-3 py-1" onclick="addStars({{ user.id }})">赠星</button>
                                 </div>
                             </td>
                         </tr>
@@ -195,51 +153,59 @@
         </div>
     </div>
 
-    <!-- ✅ 赠送星星的 JS 核心逻辑 -->
+    <!-- 搜索过滤脚本 -->
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchUserInput');
+            const rows = document.querySelectorAll('#allUsersList .user-row');
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                rows.forEach(row => {
+                    // 获取 ID, 昵称, 邮箱拼接
+                    const id = row.querySelector('td:nth-child(1)')?.innerText.toLowerCase() || '';
+                    const name = row.querySelector('td:nth-child(2)')?.innerText.toLowerCase() || '';
+                    const email = row.querySelector('td:nth-child(3)')?.innerText.toLowerCase() || '';
+                    const match = id.includes(query) || name.includes(query) || email.includes(query);
+                    row.style.display = match ? '' : 'none';
+                });
+            });
+        });
+
+        // 赠送星星逻辑
         function addStars(userId) {
             const input = document.getElementById('stars-input-' + userId);
             const amount = parseInt(input.value);
+            const btn = event.target;
             
             if (!amount || amount <= 0) {
-                alert('请输入有效的、大于 0 的赠送数量。');
+                alert('请输入有效的赠送数量（大于0）。');
                 input.focus();
                 return;
             }
 
-            // 发送请求前禁用按钮防止重复点击
-            const btn = event.target;
             btn.disabled = true;
-            btn.innerText = '发送中...';
+            btn.innerText = '中...';
 
             fetch('/api/admin/add_stars', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    amount: amount
-                })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId, amount: amount })
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(data => {
                 if (data.ok) {
-                    // 更新 UI 上的余额数字
                     document.getElementById('balance-display-' + userId).innerText = data.new_balance;
-                    input.value = ''; // 清空输入框
-                    alert(`✅ 赠送成功！用户当前星星余额：${data.new_balance}`);
+                    input.value = '';
+                    alert(`✅ 赠送成功！当前余额：${data.new_balance}`);
                 } else {
-                    alert(`❌ 赠送失败：${data.msg}`);
+                    alert(`❌ 失败：${data.msg}`);
                 }
             })
-            .catch(err => {
-                alert('❌ 请求异常，请检查网络或控制台错误。');
-            })
+            .catch(() => alert('❌ 请求异常'))
             .finally(() => {
-                // 恢复按钮状态
                 btn.disabled = false;
-                btn.innerText = '赠送';
+                btn.innerText = '赠星';
             });
         }
     </script>
