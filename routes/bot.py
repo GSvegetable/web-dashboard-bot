@@ -23,7 +23,7 @@ def send_bind_request():
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'验证异常: {str(e)}'})
 
-    # 2. 构造一条纯通知消息（不再带按钮）
+    # 2. 构造一条纯通知消息
     message_text = (
         f"🔔 机器人绑定通知\n"
         f"你的机器人已被成功绑定到「宫水大世界」工作台。\n"
@@ -31,7 +31,6 @@ def send_bind_request():
     )
 
     try:
-        # ✅ 核心：直接向用户填写的 Telegram 用户名发消息（支持带 @ 或不带）
         send_resp = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={
@@ -44,6 +43,12 @@ def send_bind_request():
             return jsonify({'ok': True, 'msg': '通知消息已成功发送'})
         else:
             error_data = send_resp.json()
-            return jsonify({'ok': False, 'msg': f'发送失败: {error_data.get("description", "未知错误")}'})
+            error_desc = error_data.get("description", "")
+            
+            # ✅ 修复：直接捕获 chat not found，返回更明确的中文提示
+            if "chat not found" in error_desc:
+                return jsonify({'ok': False, 'msg': '发送失败：机器人找不到该用户。请检查 Token 是否正确，并确保已在 Telegram 中向该机器人发送过 "/start" 命令。'})
+            else:
+                return jsonify({'ok': False, 'msg': f'发送失败: {error_desc}'})
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'发送异常: {str(e)}'})
