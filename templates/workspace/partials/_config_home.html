@@ -56,7 +56,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
-    /* 跑马灯：无限、减速、两端模糊 */
+    /* 跑马灯：两端模糊 + 无限循环 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -109,9 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var marquee = document.createElement('div'); marquee.className = 'bot-repo-marquee';
             var track = document.createElement('span'); track.className = 'bot-repo-track';
-            // ✅ 修复：用 8 个 &nbsp; 做间隔（清晰的一指到两指间距），实现“上一段播完，隔一段距离，再播下一段”的完美衔接
+            // ✅ 修复：间距从 8 个放大到 16 个 &nbsp;，视觉间隔更明显
             var tokenStr = c.token || '';
-            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr; 
+            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr; 
             marquee.appendChild(track); tokenLine.appendChild(marquee);
 
             card.appendChild(name); card.appendChild(idLine); card.appendChild(tokenLine); grid.appendChild(card);
