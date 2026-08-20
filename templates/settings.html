@@ -42,13 +42,21 @@
         /* 入场动画 */
         .animate-item { opacity: 0; transform: translateY(18px); animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-        .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.10s; } .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.20s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.30s; } .delay-7 { animation-delay: 0.35s; }
+        .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.10s; } .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.20s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.30s; } .delay-7 { animation-delay: 0.35s; } .delay-8 { animation-delay: 0.40s; }
 
-        /* 星星上下翻转 */
+        /* ========================================== */
+        /* ✅ 星星数字 3D 快速翻转 + 减速刹停 */
+        /* ========================================== */
         .perspective-800 { perspective: 800px; transform-style: preserve-3d; }
         .digit { display: inline-block; transform-style: preserve-3d; backface-visibility: hidden; transform: rotateX(0deg); opacity: 0; }
-        .spin-animate { animation: spinVertical 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-        @keyframes spinVertical { 0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; } 100% { transform: rotateX(720deg) scale(1); opacity: 1; } }
+        .spin-animate {
+            /* 1秒快速翻转 + 减速刹停 (easeOut) */
+            animation: spinVertical 1s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
+        }
+        @keyframes spinVertical {
+            0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; }
+            100% { transform: rotateX(360deg) scale(1); opacity: 1; } /* 只转一圈，不回弹 */
+        }
     </style>
 </head>
 <body>
@@ -109,7 +117,7 @@
         </main>
     </div>
 
-    <!-- 头像裁剪弹窗（放在最外层，方便复用） -->
+    <!-- 头像裁剪弹窗 -->
     <div id="avatarModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center">
         <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 w-full max-w-lg shadow-2xl">
             <h3 class="text-lg font-semibold text-white mb-4">编辑头像</h3>
