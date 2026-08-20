@@ -1,7 +1,6 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 核心：按钮点击直接跳转页面，彻底清除所有弹窗逻辑 -->
     <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="window.location.href='/workspace/add_bot'" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
@@ -35,28 +34,17 @@
     .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
     .bot-repo-card:active { transform: scale(0.98); }
 
-    .bot-repo-name-marquee {
+    /* ✅ 核心修改：名字改回普通文本，超出显示省略号，不再跑马灯 */
+    .bot-repo-name {
         flex: 1;
         min-width: 0;
-        overflow: hidden;
-        position: relative;
-        height: 22px;
-        line-height: 22px;
-        -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-        mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-    }
-    .bot-repo-name-marquee .bot-repo-track {
-        display: inline-block;
         white-space: nowrap;
-        padding-right: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
         color: #ffffff;
         font-size: 17px;
         font-weight: 700;
         letter-spacing: 0.3px;
-        will-change: transform;
-    }
-    .bot-repo-name-marquee .bot-repo-track.marquee-run {
-        animation: botMarquee 12s linear infinite;
     }
 
     .bot-repo-line {
@@ -69,6 +57,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
+    /* Token 跑马灯保留 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -116,22 +105,13 @@ document.addEventListener('DOMContentLoaded', function() {
             var card = document.createElement('div');
             card.className = 'bot-repo-card';
 
-            var nameWrapper = document.createElement('div');
-            nameWrapper.className = 'bot-repo-name-marquee';
-            var nameTrack = document.createElement('span');
-            nameTrack.className = 'bot-repo-track';
+            // ✅ 第1行：名字 - 只使用 div，无跑马灯
+            var nameDiv = document.createElement('div');
+            nameDiv.className = 'bot-repo-name';
             var nameText = c.name || '未命名';
             if (c.code) nameText += ' (' + c.code + ')';
-            nameTrack.textContent = nameText;
-            nameWrapper.appendChild(nameTrack);
-            card.appendChild(nameWrapper);
-
-            requestAnimationFrame(function() {
-                if (nameTrack.scrollWidth > nameWrapper.clientWidth + 2) {
-                    nameTrack.innerHTML = nameText + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + nameText;
-                    nameTrack.classList.add('marquee-run');
-                }
-            });
+            nameDiv.textContent = nameText;
+            card.appendChild(nameDiv);
 
             var idLine = document.createElement('div');
             idLine.className = 'bot-repo-line';
