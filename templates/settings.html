@@ -89,9 +89,7 @@
         .stars-amount-btn:hover { border-color: #58a6ff; background-color: #21262d; }
         .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
 
-        /* ========================================== */
         /* 优雅入场上浮动画（纯CSS） */
-        /* ========================================== */
         .animate-item {
             opacity: 0;
             transform: translateY(18px);
@@ -110,7 +108,7 @@
         .delay-7 { animation-delay: 0.35s; }
 
         /* ========================================== */
-        /* ✅ 星星数字 3D 旋转动效 */
+        /* ✅ 星星数字 3D 上下翻转动效（速度变慢） */
         /* ========================================== */
         .perspective-800 {
             perspective: 800px;
@@ -120,22 +118,23 @@
             display: inline-block;
             transform-style: preserve-3d;
             backface-visibility: hidden;
-            transform: rotateY(0deg);
+            transform: rotateX(0deg);
             opacity: 0;
         }
         .spin-animate {
-            animation: spinWheel 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            /* 时间从 0.9s 延长到 1.5s，速度变慢 */
+            animation: spinVertical 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
-        @keyframes spinWheel {
-            0% { transform: rotateY(0deg) scale(0.6); opacity: 0.2; }
-            100% { transform: rotateY(720deg) scale(1); opacity: 1; }
+        @keyframes spinVertical {
+            0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; }
+            100% { transform: rotateX(720deg) scale(1); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item">
         
-        <!-- ==================== 左侧导航栏 ==================== -->
+        <!-- 左侧导航栏 -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
                 <div class="w-10 h-10 rounded-full bg-[#afb8c1] flex items-center justify-center flex-shrink-0 text-[#0d1117] font-bold text-lg">
@@ -253,16 +252,16 @@
                 </div>
             </div>
 
-            <!-- ==================== 面板2：星星（重构版） ==================== -->
+            <!-- ==================== 面板2：星星 ==================== -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
                 
-                <!-- ✅ 星星余额显示：去掉了标题和外部大框，纯5位大数字，自动3D旋转 -->
+                <!-- ✅ 星星余额：重新居中，缩小间距，改为慢速上下翻转 -->
                 <div class="mt-6 flex flex-col items-center justify-center">
-                    <div id="stars-display" class="flex justify-center items-center gap-4 text-8xl font-black text-white mb-8 py-6 tracking-[0.2em] perspective-800">
+                    <div id="stars-display" class="flex justify-center items-center gap-0.5 text-8xl font-black text-white mb-8 py-6 tracking-[0.02em] perspective-800">
                         {% set stars_str = '%05d' % (current_user.stars or 0) %}
                         {% for char in stars_str %}
-                            <!-- 从右往左逐次延迟 0.12s，实现滚轮刷新效果 -->
-                            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
+                            <!-- 从右往左逐次延迟 0.15s，实现上下滚轮效果 -->
+                            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.15 }}s;">{{ char }}</span>
                         {% endfor %}
                     </div>
                 </div>
@@ -344,7 +343,7 @@
                         panels[key].classList.toggle('hidden', key !== target);
                     });
 
-                    // ✅ 每次切换到【星星】面板，重新触发 3D 旋转动画
+                    // ✅ 每次切换到【星星】面板，重新触发 3D 上下翻转动画
                     if (target === 'stars') {
                         setTimeout(() => {
                             const digits = document.querySelectorAll('#stars-display .digit');
