@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
         /* ==========================================
-           ✅ 背景纹理 CSS（重命名防冲突）
+           背景纹理 CSS（重命名防冲突）
            ========================================== */
         .bg-container {
             position: absolute;
@@ -64,19 +64,39 @@
         }
 
         /* ==========================================
-           ✅ 核心修改：输入框全玻璃透明效果
+           ✅ 核心修改：带有折射偏移的玻璃输入框
            ========================================== */
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .glass-offset-layer {
+            position: absolute;
+            inset: 0;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            /* 核心：使用模糊 + 对比度 + 饱和度，模拟折射时的光晕 */
+            backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
+            -webkit-backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
+            /* 核心偏移：向右下角移动并轻微缩放，模拟光线透过玻璃的折射 */
+            transform: translate(4px, 4px) scale(0.98);
+            z-index: 0;
+            pointer-events: none;
+        }
         .gh-input, .gh-select, .gh-textarea {
-            background-color: rgba(255, 255, 255, 0.05); /* 降低背景不透明度 */
-            backdrop-filter: blur(8px);                 /* 加强毛玻璃模糊度 */
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.15); /* 边框变亮 */
+            position: relative;
+            z-index: 1;
+            background: transparent !important; /* 关键：必须透明才能透出底层偏移 */
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
             color: #c9d1d9;
             transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
             width: 100%;
             font-size: 14px;
+            /* 给输入框本身再加一层超轻模糊，让融合更自然 */
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
         }
         .gh-input:focus, .gh-select:focus, .gh-textarea:focus {
             border-color: #58a6ff;
@@ -86,9 +106,11 @@
         .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
         .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
 
-        /* ✅ 核心修改：提示文字全部改为纯白色 */
+        /* ==========================================
+           ✅ 核心修改：标签纯白，提示文字略淡
+           ========================================== */
         .gh-label { display: block; font-size: 14px; font-weight: 600; color: #ffffff; margin-bottom: 6px; }
-        .gh-note { display: block; font-size: 12px; color: #ffffff; margin-top: 4px; }
+        .gh-note { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.65); margin-top: 4px; }
         
         /* 左侧菜单按钮 */
         .gh-sidebar-item {
@@ -154,7 +176,7 @@
 </head>
 <body>
     
-    <!-- ==================== 华丽纹理背景层 ==================== -->
+    <!-- ==================== 纹理背景层 ==================== -->
     <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;">
         <div class="bg-container"></div>
         <div class="bg-paper">
@@ -179,7 +201,7 @@
         </div>
     </div>
 
-    <!-- ==================== 设置页面实际内容 ==================== -->
+    <!-- ==================== 设置内容 ==================== -->
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item settings-content-wrapper">
         
         <!-- 左侧导航栏 -->
@@ -233,31 +255,52 @@
                 <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">个人资料</h1>
                 <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12 animate-item">
                     <div class="flex flex-col gap-6">
+                        
                         <div class="animate-item delay-2">
                             <label class="gh-label" for="name">名称</label>
-                            <input type="text" id="name" class="gh-input" value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
+                            <div class="input-wrapper">
+                                <div class="glass-offset-layer"></div>
+                                <input type="text" id="name" class="gh-input" value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
+                            </div>
                             <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
                         </div>
+                        
                         <div class="animate-item delay-3">
                             <label class="gh-label" for="display_id">ID</label>
-                            <input type="text" id="display_id" class="gh-input" value="{{ current_user.display_id or '000000' }}" readonly />
+                            <div class="input-wrapper">
+                                <div class="glass-offset-layer"></div>
+                                <input type="text" id="display_id" class="gh-input" value="{{ current_user.display_id or '000000' }}" readonly />
+                            </div>
                             <span class="gh-note">你的 6 位唯一公开身份标识</span>
                         </div>
+                        
                         <div class="animate-item delay-4">
                             <label class="gh-label" for="email">邮箱</label>
-                            <input type="text" id="email" class="gh-input" value="{{ current_user.email if current_user.email else '' }}" placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" {% if current_user.email %}readonly{% endif %} />
+                            <div class="input-wrapper">
+                                <div class="glass-offset-layer"></div>
+                                <input type="text" id="email" class="gh-input" value="{{ current_user.email if current_user.email else '' }}" placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" {% if current_user.email %}readonly{% endif %} />
+                            </div>
                             <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
                         </div>
+                        
                         <div class="animate-item delay-5">
                             <label class="gh-label" for="bio">个人简介</label>
-                            <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
+                            <div class="input-wrapper">
+                                <div class="glass-offset-layer"></div>
+                                <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
+                            </div>
                             <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
                         </div>
+                        
                         <div class="animate-item delay-6">
                             <label class="gh-label" for="url">网址</label>
-                            <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
+                            <div class="input-wrapper">
+                                <div class="glass-offset-layer"></div>
+                                <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="flex flex-col items-start gap-4 animate-item delay-3">
                         <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
                             <label class="gh-label w-full">头像</label>
@@ -274,7 +317,6 @@
 
             <!-- 面板2：星星 -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
-                <!-- 星星储备大数字 -->
                 <div class="mb-6 animate-item delay-4">
                     <label class="gh-label">星星储备</label>
                     <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight mt-2">
@@ -285,7 +327,7 @@
                     </div>
                 </div>
 
-                <!-- 3D 悬停卡片（更多星星） -->
+                <!-- 3D 卡片 -->
                 <div class="flex justify-end mt-6">
                     <figure id="starToggleCard3D">
                         <div class="avatar">
@@ -313,7 +355,7 @@
         </div>
     </div>
 
-    <!-- 3D 卡片 CSS（必须放在这里，与 HTML 共存） -->
+    <!-- 3D 卡片 CSS -->
     <style>
         #starToggleCard3D {
             width: 180px; height: 56px; padding: 0 14px;
@@ -343,7 +385,6 @@
     <!-- JS 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 侧边栏切换逻辑
             const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
             const panels = { profile: document.getElementById('panel-profile'), stars: document.getElementById('panel-stars') };
             menuItems.forEach(item => {
@@ -362,7 +403,6 @@
                 });
             });
 
-            // 3D 卡片点击逻辑
             const card3d = document.getElementById('starToggleCard3D');
             if (card3d) {
                 card3d.addEventListener('click', function(e) {
@@ -375,7 +415,6 @@
                 });
             }
 
-            // 头像上传裁剪逻辑
             const editBtn = document.getElementById('editAvatarBtn'); const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal'); const cropperImg = document.getElementById('avatarCropperImg');
             const cancelBtn = document.getElementById('cancelCropBtn'); const confirmBtn = document.getElementById('confirmCropBtn');
