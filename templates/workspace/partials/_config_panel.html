@@ -1,7 +1,7 @@
-<!-- 🟢 外层：控制四边边距、外角圆润，绝对不会贴边！ -->
+<!-- 🟢 外层：控制四边边距、外角圆润 -->
 <div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
-    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润，绝对不会消失！ -->
+    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润 -->
     <div class="panel-inner">
         {% include 'workspace/partials/_config_home.html' %}
         {% include 'workspace/partials/_config_form.html' %}
@@ -52,31 +52,13 @@
     </div>
 
     <style>
-        /* ================== 全屏模式（机器人仓库） ================== */
         .panel-fullscreen {
-            top: 20px !important;        
-            left: 32px !important;       
-            right: 32px !important;      
-            bottom: 32px !important;     
-            width: auto !important;
-            height: auto !important;
-            border-radius: 28px !important;
-            
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(24px) !important;
+            top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; 
+            width: auto !important; height: auto !important; border-radius: 28px !important;
+            background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
         }
-
-        .panel-fullscreen .panel-inner {
-            width: 100% !important;
-            height: 100% !important;
-            border-radius: 28px !important;
-
-            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%) !important;
-            mask-image: none !important;
-            -webkit-mask-image: none !important;
-        }
-        /* 仅在平板/电脑以上设备启用特殊的凸起裁剪 */
+        .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
         @media (min-width: 768px) {
             .panel-fullscreen .panel-inner {
                 clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important;
@@ -84,52 +66,19 @@
                 -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important;
             }
         }
-
-        /* ================== 缩回模式（机器人配置） ================== */
         .panel-collapsed {
-            top: auto !important;
-            left: 24px !important;
-            bottom: 24px !important;
-            right: 24px !important; 
-            width: auto !important;
-            max-width: 480px !important; 
-            height: auto !important;
-            max-height: calc(100vh - 48px) !important;
-            border-radius: 28px !important;
-            background: rgba(255, 255, 255, 0.04) !important;
-            backdrop-filter: blur(24px) !important;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; 
+            width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important;
+            border-radius: 28px !important; background: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(24px) !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
-        
-        .panel-collapsed .panel-inner {
-            clip-path: none !important;
-            mask-image: none !important;
-            -webkit-mask-image: none !important;
-        }
+        .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-collapsed #addPanelBtnContainer { display: none !important; }
-
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
 
-        /* ✅ 纯正毛玻璃卡片，无白边包裹 */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 1.2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #bec4cf;
-        }
-        .glass-card input:focus {
-            border-color: rgba(255, 255, 255, 0.4) !important;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-            background: rgba(0, 0, 0, 0.5);
-        }
+        .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
+        .glass-card input:focus { border-color: rgba(255, 255, 255, 0.4) !important; box-shadow: 0 0 15px rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.5); }
 
         @media (max-width: 480px) {
             #customAddPanelModal { right: 12px !important; left: 12px !important; top: 72px !important; }
@@ -150,42 +99,29 @@
             const form = document.getElementById('configForm');
             panel.classList.remove('panel-fullscreen');
             panel.classList.add('panel-collapsed');
-            setTimeout(() => {
-                home.classList.add('hidden');
-                form.classList.remove('hidden');
-            }, 50);
+            setTimeout(() => { home.classList.add('hidden'); form.classList.remove('hidden'); }, 50);
         };
-
         window.switchToHome = function() {
             const panel = document.getElementById('configPanel');
             const home = document.getElementById('configHome');
             const form = document.getElementById('configForm');
-            form.classList.add('hidden');
-            home.classList.remove('hidden');
-            panel.classList.remove('panel-collapsed');
-            panel.classList.add('panel-fullscreen');
+            form.classList.add('hidden'); home.classList.remove('hidden');
+            panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 点击背景关闭弹窗
+        // ✅ 点击外部蒙层关闭
         function closeAddPanelIfOutside(e) {
-            var modal = document.getElementById('customAddPanelModal');
-            var wrapper = document.getElementById('modalWrapper');
-            if (modal && wrapper && e.target === modal) {
-                closeAddPanel();
-            }
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal && e.target === modal) { closeAddPanel(); }
         }
 
         function closeAddPanel() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
             if (!modal || !wrapper) return;
-            
             wrapper.classList.remove('animate-in');
             wrapper.classList.add('animate-out');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                wrapper.classList.remove('animate-out');
-            }, 220);
+            setTimeout(() => { modal.classList.add('hidden'); wrapper.classList.remove('animate-out'); }, 220);
         }
 
         window.addPanel = function() {
@@ -196,13 +132,10 @@
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
             wrapper.style.opacity = '0';
-            setTimeout(() => {
-                wrapper.style.opacity = '';
-                wrapper.classList.add('animate-in');
-            }, 40);
+            setTimeout(() => { wrapper.style.opacity = ''; wrapper.classList.add('animate-in'); }, 40);
         };
 
-        // ✅ 自动补齐（静默失败）
+        // 自动补齐（静默失败）
         window.autoFillClipboard = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
@@ -214,10 +147,7 @@
                         const trimmed = line.trim();
                         if (!trimmed) return;
                         if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
-                            if (!tokenInput.value) {
-                                tokenInput.value = trimmed;
-                                autoFetchBotInfo(); 
-                            }
+                            if (!tokenInput.value) { tokenInput.value = trimmed; autoFetchBotInfo(); }
                         } else if (/^\d{5,15}$/.test(trimmed)) {
                             if (!idInput.value) idInput.value = trimmed;
                         }
@@ -226,7 +156,7 @@
             }).catch(() => { /* 静默 */ });
         };
 
-        // ✅ 自动拉取机器人名字
+        // 自动拉取机器人名字
         function autoFetchBotInfo() {
             const tokenInput = document.getElementById('addPanelTokenInput');
             const nameInput = document.getElementById('addPanelNameInput');
@@ -238,25 +168,18 @@
                 body: JSON.stringify({ token: token, telegram_id: '000000', name: '临时获取' }) 
             })
             .then(res => res.json())
-            .then(data => {
-                if (data.ok && data.bot_name && !nameInput.value) {
-                    nameInput.value = data.bot_name;
-                }
-            })
+            .then(data => { if (data.ok && data.bot_name && !nameInput.value) { nameInput.value = data.bot_name; } })
             .catch(() => { /* 静默 */ });
         }
 
         function markInvalid(input) { if(!input)return; input.style.borderColor='rgba(239,68,68,0.8)'; input.style.boxShadow='0 0 10px rgba(239,68,68,0.3)'; input.focus(); }
         function clearInvalid(input) { if(!input)return; input.style.borderColor=''; input.style.boxShadow=''; }
 
-        // ✅ 创建功能：错误走自定义 Toast
         window.createPanel = function() {
             const idInput = document.getElementById('addPanelIdInput');
             const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
-            const idVal = idInput.value.trim();
-            const nameVal = nameInput.value.trim();
-            const tokenVal = tokenInput.value.trim();
+            const idVal = idInput.value.trim(); const nameVal = nameInput.value.trim(); const tokenVal = tokenInput.value.trim();
 
             if (!nameVal) { markInvalid(nameInput); if(typeof showTopToast==='function') showTopToast('请填写机器人名称。'); return; }
             clearInvalid(nameInput);
