@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
         /* ==========================================
-           背景纹理 CSS（重命名防冲突）
+           背景纹理
            ========================================== */
         .bg-container {
             position: absolute;
@@ -54,17 +54,11 @@
             background-size: cover;
         }
 
-        /* 设置页面本体透明化 */
-        body {
-            background: transparent !important;
-        }
-        .settings-content-wrapper {
-            position: relative;
-            z-index: 10;
-        }
+        body { background: transparent !important; }
+        .settings-content-wrapper { position: relative; z-index: 10; }
 
         /* ==========================================
-           ✅ 核心修改：带有折射偏移的玻璃输入框
+           ✅ 核心修改：折射玻璃输入框 + 浮动标签
            ========================================== */
         .input-wrapper {
             position: relative;
@@ -75,18 +69,18 @@
             inset: 0;
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.02);
-            /* 核心：使用模糊 + 对比度 + 饱和度，模拟折射时的光晕 */
             backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
             -webkit-backdrop-filter: blur(14px) contrast(1.2) saturate(150%);
-            /* 核心偏移：向右下角移动并轻微缩放，模拟光线透过玻璃的折射 */
+            /* 折射偏移 */
             transform: translate(4px, 4px) scale(0.98);
             z-index: 0;
             pointer-events: none;
         }
-        .gh-input, .gh-select, .gh-textarea {
+
+        .gh-input, .gh-textarea {
             position: relative;
             z-index: 1;
-            background: transparent !important; /* 关键：必须透明才能透出底层偏移 */
+            background: transparent !important;
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 6px;
             color: #c9d1d9;
@@ -94,25 +88,47 @@
             outline: none;
             width: 100%;
             font-size: 14px;
-            /* 给输入框本身再加一层超轻模糊，让融合更自然 */
             backdrop-filter: blur(2px);
             -webkit-backdrop-filter: blur(2px);
+            padding: 18px 12px 4px 12px; /* 为浮动标签留出顶部内边距 */
         }
-        .gh-input:focus, .gh-select:focus, .gh-textarea:focus {
+        .gh-input:focus, .gh-textarea:focus {
             border-color: #58a6ff;
             box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
         }
-        .gh-input { padding: 5px 12px; height: 32px; }
-        .gh-select { padding: 5px 12px; height: 32px; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238b949e' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 8px center; background-repeat: no-repeat; background-size: 16px; padding-right: 32px; }
-        .gh-textarea { padding: 8px 12px; min-height: 80px; resize: vertical; }
+        .gh-input { height: 50px; }
+        .gh-textarea { min-height: 100px; resize: vertical; }
 
-        /* ==========================================
-           ✅ 核心修改：标签纯白，提示文字略淡
-           ========================================== */
-        .gh-label { display: block; font-size: 14px; font-weight: 600; color: #ffffff; margin-bottom: 6px; }
+        /* ✅ 浮动标签核心样式 */
+        .floating-label {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            transition: all 0.2s ease-out;
+            z-index: 2;
+        }
+        /* 针对 textarea 标签的位置微调 */
+        .input-wrapper.textarea-wrapper .floating-label {
+            top: 24px; /* 因为 textarea 高度大，放在中间偏上位置 */
+        }
+
+        /* ✅ 聚焦或输入内容时，标签上浮 */
+        .input-wrapper:focus-within .floating-label,
+        .input-wrapper.filled .floating-label {
+            top: 4px;
+            transform: translateY(0);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 标签与说明文字 */
         .gh-note { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.65); margin-top: 4px; }
         
-        /* 左侧菜单按钮 */
+        /* 左侧菜单 */
         .gh-sidebar-item {
             display: flex; align-items: center; gap: 12px;
             width: 100%; padding: 6px 12px; border-radius: 6px;
@@ -147,22 +163,9 @@
         .payment-method-btn {
             background-color: rgba(22, 27, 34, 0.7);
             backdrop-filter: blur(4px);
-            border: 1px solid #30363d;
-            border-radius: 8px; padding: 12px 16px; color: #c9d1d9; cursor: pointer;
+            border: 1px solid #30363d; border-radius: 8px; padding: 12px 16px; color: #c9d1d9; cursor: pointer;
             transition: all 0.2s; display: flex; align-items: center; gap: 10px;
         }
-        .payment-method-btn:hover { border-color: #58a6ff; background-color: rgba(33, 38, 45, 0.8); }
-        .payment-method-btn.selected { border-color: #238636; background-color: rgba(35, 134, 54, 0.1); }
-        
-        .stars-amount-btn {
-            background-color: rgba(22, 27, 34, 0.7);
-            backdrop-filter: blur(4px);
-            border: 1px solid #30363d; border-radius: 8px;
-            padding: 10px 20px; color: #f0f6fc; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
-        }
-        .stars-amount-btn:hover { border-color: #58a6ff; background-color: rgba(33, 38, 45, 0.8); }
-        .stars-amount-btn.selected { border-color: #f0f6fc; background-color: #30363d; }
 
         .animate-item { opacity: 0; transform: translateY(18px); animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
@@ -176,7 +179,7 @@
 </head>
 <body>
     
-    <!-- ==================== 纹理背景层 ==================== -->
+    <!-- 纹理背景 -->
     <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;">
         <div class="bg-container"></div>
         <div class="bg-paper">
@@ -201,10 +204,10 @@
         </div>
     </div>
 
-    <!-- ==================== 设置内容 ==================== -->
+    <!-- 设置内容 -->
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item settings-content-wrapper">
         
-        <!-- 左侧导航栏 -->
+        <!-- 左侧导航 -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
                 <div class="w-10 h-10 rounded-full bg-[#afb8c1] flex items-center justify-center flex-shrink-0 text-[#0d1117] font-bold text-lg">
@@ -247,7 +250,7 @@
             </nav>
         </aside>
 
-        <!-- 右侧内容区 -->
+        <!-- 右侧内容 -->
         <main class="flex-1 min-w-0">
             
             <!-- 面板1：个人资料 -->
@@ -256,54 +259,68 @@
                 <div class="mt-6 settings-grid grid grid-cols-[2fr_1fr] gap-12 animate-item">
                     <div class="flex flex-col gap-6">
                         
+                        <!-- 名称（浮动标签） -->
                         <div class="animate-item delay-2">
-                            <label class="gh-label" for="name">名称</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" id="wrapper-name">
                                 <div class="glass-offset-layer"></div>
-                                <input type="text" id="name" class="gh-input" value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
+                                <input type="text" id="name" class="gh-input" placeholder=" " 
+                                       value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" 
+                                       oninput="this.closest('.input-wrapper').classList.toggle('filled', this.value.trim()!== '')">
+                                <label class="floating-label">名称</label>
                             </div>
                             <span class="gh-note">你的名字将在宫水大世界社区里对外展示 你也可以随时设置为匿名</span>
                         </div>
                         
+                        <!-- ID（浮动标签） -->
                         <div class="animate-item delay-3">
-                            <label class="gh-label" for="display_id">ID</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" id="wrapper-id">
                                 <div class="glass-offset-layer"></div>
-                                <input type="text" id="display_id" class="gh-input" value="{{ current_user.display_id or '000000' }}" readonly />
+                                <input type="text" id="display_id" class="gh-input" placeholder=" " 
+                                       value="{{ current_user.display_id or '000000' }}" readonly
+                                       oninput="this.closest('.input-wrapper').classList.toggle('filled', this.value.trim()!== '')">
+                                <label class="floating-label">ID</label>
                             </div>
                             <span class="gh-note">你的 6 位唯一公开身份标识</span>
                         </div>
                         
+                        <!-- 邮箱（浮动标签） -->
                         <div class="animate-item delay-4">
-                            <label class="gh-label" for="email">邮箱</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" id="wrapper-email">
                                 <div class="glass-offset-layer"></div>
-                                <input type="text" id="email" class="gh-input" value="{{ current_user.email if current_user.email else '' }}" placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" {% if current_user.email %}readonly{% endif %} />
+                                <input type="text" id="email" class="gh-input" placeholder=" " 
+                                       value="{{ current_user.email if current_user.email else '' }}" 
+                                       placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" 
+                                       {% if current_user.email %}readonly{% endif %}
+                                       oninput="this.closest('.input-wrapper').classList.toggle('filled', this.value.trim()!== '')">
+                                <label class="floating-label">邮箱</label>
                             </div>
                             <span class="gh-note">你可以在 <a href="#" class="text-[#58a6ff] hover:underline">邮箱设置</a> 中管理已验证的邮箱地址。</span>
                         </div>
                         
+                        <!-- 个人简介（浮动标签 + Textarea） -->
                         <div class="animate-item delay-5">
-                            <label class="gh-label" for="bio">个人简介</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper textarea-wrapper" id="wrapper-bio">
                                 <div class="glass-offset-layer"></div>
-                                <textarea id="bio" class="gh-textarea" placeholder="简单介绍一下你自己吧"></textarea>
+                                <textarea id="bio" class="gh-textarea" placeholder=" " oninput="this.closest('.input-wrapper').classList.toggle('filled', this.value.trim()!== '')"></textarea>
+                                <label class="floating-label">个人简介</label>
                             </div>
                             <span class="gh-note">你可以通过 @提及其他用户和组织，链接到他们。</span>
                         </div>
                         
+                        <!-- 网址（浮动标签） -->
                         <div class="animate-item delay-6">
-                            <label class="gh-label" for="url">网址</label>
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" id="wrapper-url">
                                 <div class="glass-offset-layer"></div>
-                                <input type="url" id="url" class="gh-input" placeholder="输入你的个人网站或社交主页链接" />
+                                <input type="url" id="url" class="gh-input" placeholder=" " oninput="this.closest('.input-wrapper').classList.toggle('filled', this.value.trim()!== '')">
+                                <label class="floating-label">网址</label>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- 头像 -->
                     <div class="flex flex-col items-start gap-4 animate-item delay-3">
                         <div class="flex flex-col items-center gap-4 w-full max-w-[160px]">
-                            <label class="gh-label w-full">头像</label>
+                            <label class="gh-label w-full text-sm font-semibold text-white">头像</label>
                             <div class="relative w-28 h-28 rounded-full bg-[#afb8c1] flex items-center justify-center overflow-hidden border-2 border-[#30363d] shadow-sm text-[#0d1117]">
                                 <img id="profileAvatarImg" src="{{ current_user.avatar_url if current_user.avatar_url else '' }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
                                 <svg id="avatarPlaceholder" viewBox="0 0 24 24" width="64" height="64" fill="currentColor" style="display: none;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -318,7 +335,7 @@
             <!-- 面板2：星星 -->
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
                 <div class="mb-6 animate-item delay-4">
-                    <label class="gh-label">星星储备</label>
+                    <label class="gh-label text-sm font-semibold text-white">星星储备</label>
                     <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight mt-2">
                         {% set stars_str = '%05d' % (current_user.stars or 0) %}
                         {% for char in stars_str %}
@@ -385,6 +402,7 @@
     <!-- JS 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // === 侧边栏切换 ===
             const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
             const panels = { profile: document.getElementById('panel-profile'), stars: document.getElementById('panel-stars') };
             menuItems.forEach(item => {
@@ -403,6 +421,15 @@
                 });
             });
 
+            // === 浮动标签初始化 ===
+            // 页面加载时，检查输入框是否有内容，初始状态填满（如果为空，JS也会处理）
+            document.querySelectorAll('.input-wrapper input, .input-wrapper textarea').forEach(input => {
+                if (input.value && input.value.trim() !== '') {
+                    input.closest('.input-wrapper').classList.add('filled');
+                }
+            });
+
+            // === 3D 卡片 ===
             const card3d = document.getElementById('starToggleCard3D');
             if (card3d) {
                 card3d.addEventListener('click', function(e) {
@@ -415,6 +442,7 @@
                 });
             }
 
+            // === 头像裁剪 ===
             const editBtn = document.getElementById('editAvatarBtn'); const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal'); const cropperImg = document.getElementById('avatarCropperImg');
             const cancelBtn = document.getElementById('cancelCropBtn'); const confirmBtn = document.getElementById('confirmCropBtn');
@@ -451,8 +479,4 @@
                     alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
                 });
             });
-            if(modal) modal.addEventListener('click', function(e) { if (e.target === modal && cancelBtn) cancelBtn.click(); });
-        });
-    </script>
-</body>
-</html>
+            if(modal) modal.addEventListener('click', function(e) { if (e.target === modal && cancel
