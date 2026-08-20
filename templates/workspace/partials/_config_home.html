@@ -1,7 +1,7 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 修改：将 onclick="addPanel()" 改为跳转新页面 -->
+    <!-- ✅ 核心：按钮点击直接跳转页面，彻底清除所有弹窗逻辑 -->
     <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="window.location.href='/workspace/add_bot'" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
@@ -185,4 +185,4 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     window.renderBotRepo();
 });
-                      </script>
+</script>
