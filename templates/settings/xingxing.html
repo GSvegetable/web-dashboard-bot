@@ -1,107 +1,30 @@
-<style>
-    /* ✅ 原版翻转动画（只转圈，不反弹，有减速） */
-    .perspective-800 {
-        perspective: 800px;
-        transform-style: preserve-3d;
-    }
-    .digit {
-        display: inline-block;
-        transform-style: preserve-3d;
-        backface-visibility: hidden;
-        transform: rotateX(0deg);
-        opacity: 0;
-    }
-    .spin-animate {
-        animation: spinVertical 1s cubic-bezier(0.0, 0.0, 0.2, 1) forwards;
-    }
-    @keyframes spinVertical {
-        0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; }
-        100% { transform: rotateX(360deg) scale(1); opacity: 1; }
-    }
-
-    /* ✅ 全息蓝色发光渐变（不要外框，只放在数字上） */
-    .holographic-text {
-        font-weight: 900;
-        background: linear-gradient(
-            90deg,
-            rgba(0, 123, 255, 0.4) 0%,
-            rgba(0, 123, 255, 0.92) 35%,
-            rgba(0, 180, 255, 0.7) 60%,
-            rgba(0, 123, 255, 0.22) 100%
-        );
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        -webkit-text-stroke: 1px rgba(0, 123, 255, 0.15);
-        filter: drop-shadow(0 10px 22px rgba(0, 123, 255, 0.2));
-    }
-
-    /* ✅ 陀螺仪容器 */
-    #gyro-container {
-        transition: transform 0.15s ease-out; /* 倾斜时非常丝滑，不突兀 */
-    }
-</style>
-
-<div class="mb-6 animate-item delay-4 w-full">
+<!-- 星星储备大数字 -->
+<div class="mb-6 animate-item delay-4">
     <label class="gh-label">星星储备</label>
-    
-    <!-- 容器绑定陀螺仪（居中、无边框） -->
-    <div id="gyro-container" class="perspective-800 w-full flex justify-center items-center py-4">
-        <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black tracking-tight holographic-text">
-            {% set stars_str = '%05d' % (current_user.stars or 0) %}
-            {% for char in stars_str %}
-                <!-- 从右往左依次翻转，效果就是原来的滚轮翻页 -->
-                <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
-            {% endfor %}
-        </div>
+    <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight mt-2">
+        {% set stars_str = '%05d' % (current_user.stars or 0) %}
+        {% for char in stars_str %}
+            <span class="digit spin-animate inline-block" style="animation-delay: {{ (4 - loop.index0) * 0.12 }}s;">{{ char }}</span>
+        {% endfor %}
     </div>
 </div>
 
-<!-- ✅ 陀螺仪交互脚本 -->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const container = document.getElementById('gyro-container');
-
-        // 1. 处理 iOS 13+ 的设备权限请求 (必须点一下页面才能激活)
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS 需要用户手动点击一次才能触发
-            document.body.addEventListener('click', function() {
-                DeviceOrientationEvent.requestPermission().then(state => {
-                    if (state === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                    }
-                });
-            }, { once: true });
-        } else {
-            // Android 或桌面端直接监听
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-
-        let currentRotX = 0, currentRotY = 0;
-
-        function handleOrientation(event) {
-            if (!container) return;
-
-            // beta: 前后倾斜 (标准手机平放时约 45 度)
-            // gamma: 左右倾斜 (-90 到 90 度)
-            let rotX = 0, rotY = 0;
-            
-            if (event.beta !== null && event.gamma !== null) {
-                // 限制倾斜幅度，轻微摆动 (+- 8 度)
-                rotX = Math.min(8, Math.max(-8, (event.beta - 45) * 0.4)); 
-                rotY = Math.min(10, Math.max(-10, event.gamma * 0.5));
-                
-                // 如果是在电脑上浏览（没有陀螺仪，event 值可能会乱跳），此时不做任何变换
-                if (Math.abs(rotX) > 20 || Math.abs(rotY) > 20) {
-                    return;
-                }
-
-                if (Math.abs(rotX - currentRotX) > 0.1 || Math.abs(rotY - currentRotY) > 0.1) {
-                    currentRotX = rotX;
-                    currentRotY = rotY;
-                    container.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-                }
-            }
-        }
-    });
-</script>
+<!-- ✅ 新增：来自 Uiverse 的 3D 悬停特效卡片 -->
+<div class="flex justify-center mt-10">
+    <div class="relative overflow-hidden w-60 h-80 rounded-3xl cursor-pointer text-2xl font-bold bg-purple-400">
+        <div class="z-10 absolute w-full h-full peer"></div>
+        
+        <!-- 左上角圆球动画 -->
+        <div class="absolute peer-hover:-top-20 peer-hover:-left-16 peer-hover:w-[140%] peer-hover:h-[140%] -top-32 -left-16 w-32 h-44 rounded-full bg-purple-300 transition-all duration-500"></div>
+        
+        <!-- 右下角圆球动画 -->
+        <div class="absolute flex text-xl text-center items-end justify-end peer-hover:right-0 peer-hover:rounded-b-none peer-hover:bottom-0 peer-hover:items-center peer-hover:justify-center peer-hover:w-full peer-hover:h-full -bottom-32 -right-16 w-36 h-44 rounded-full bg-purple-300 transition-all duration-500">
+            Nice to meet u,<br />Uiverse
+        </div>
+        
+        <!-- 卡片初始文字 -->
+        <div class="w-full h-full items-center justify-center flex uppercase">
+            hover me
+        </div>
+    </div>
+</div>
