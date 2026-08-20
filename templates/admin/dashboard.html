@@ -1,4 +1,3 @@
-<!-- templates/admin/dashboard.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -10,7 +9,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background-color: #0d1117; color: #c9d1d9; }
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; overflow: hidden; }
+        
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 20px; text-align: center; transition: border-color 0.2s; }
+        .stat-card:hover { border-color: #58a6ff; }
+        .stat-number { font-size: 28px; font-weight: 700; color: #f0f6fc; margin-top: 4px; }
+        .stat-label { font-size: 14px; color: #8b949e; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 16px; }
         th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #30363d; font-size: 14px; }
         th { background: #21262d; color: #8b949e; font-weight: 600; }
@@ -28,7 +34,11 @@
         .btn:hover { background: #2ea043; }
         .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; }
         .btn-outline:hover { background: #21262d; }
-        @media (max-width: 600px) { table { font-size: 12px; } th, td { padding: 8px 10px; } }
+        
+        @media (max-width: 600px) { 
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            table { font-size: 12px; } th, td { padding: 8px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -41,9 +51,79 @@
     </nav>
 
     <div class="container">
+        
+        <!-- ✅ 数据统计卡片区 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">历史总访问量 (PV)</div>
+                <div class="stat-number">{{ total_visits }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">今日访问量 (PV)</div>
+                <div class="stat-number">{{ today_visits }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">历史独立访客 (UV)</div>
+                <div class="stat-number">{{ total_uv }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">今日独立访客 (UV)</div>
+                <div class="stat-number">{{ today_uv }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">总注册用户</div>
+                <div class="stat-number">{{ total_users }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">今日新增注册</div>
+                <div class="stat-number">{{ today_registered }}</div>
+            </div>
+        </div>
+
+        <!-- 近期活跃用户 -->
+        <div class="card mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-[#f0f6fc]">近期活跃用户</h2>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>显示名称 / ID</th>
+                            <th>账号</th>
+                            <th>上次登录时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_active_users %}
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-[#f0f6fc] font-bold">{{ user.display_id or '----' }}</span>
+                                    <span>{{ user.first_name or '未设置' }}</span>
+                                </div>
+                            </td>
+                            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% else %}未知{% endif %}
+                            </td>
+                            <td>
+                                {% if user.last_login %}
+                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                    <span style="color: #8b949e;">从未上线</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 全部用户列表 -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-[#f0f6fc]">用户数据总览 ({{ users|length }})</h2>
+                <h2 class="text-lg font-bold text-[#f0f6fc]">全部用户数据 ({{ users|length }})</h2>
             </div>
             
             <div style="overflow-x: auto;">
@@ -52,10 +132,10 @@
                         <tr>
                             <th>6位ID</th>
                             <th>显示名称</th>
-                            <th>账号 (注册来源)</th>
+                            <th>账号</th>
                             <th>注册方式</th>
                             <th>VIP状态</th>
-                            <th>上次登录时间</th>
+                            <th>注册时间</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,7 +143,7 @@
                         <tr>
                             <td><span class="font-mono text-[#f0f6fc]">{{ user.display_id or '----' }}</span></td>
                             <td>{{ user.first_name or '未设置' }}</td>
-                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 {% if user.email %}
                                     {{ user.email }}
                                 {% elif user.telegram_id %}
@@ -95,10 +175,10 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if user.last_login %}
-                                    {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                                {% if user.created_at %}
+                                    {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}
                                 {% else %}
-                                    <span style="color: #8b949e;">从未上线</span>
+                                    <span style="color: #8b949e;">-</span>
                                 {% endif %}
                             </td>
                         </tr>
