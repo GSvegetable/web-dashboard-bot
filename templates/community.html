@@ -193,7 +193,7 @@
         }
 
         // ===========================
-        // 创建帖子 DOM（保持不变）
+        // 创建帖子 DOM
         // ===========================
         function createPostElement(post) {
             const div = document.createElement('div');
@@ -273,7 +273,7 @@
         }
 
         // ===========================
-        // 帖子交互（点赞、评论、订阅、代码折叠）
+        // 帖子交互
         // ===========================
         function toggleCode(el) {
             const content = el.querySelector('.code-content');
@@ -385,7 +385,7 @@
         });
 
         // ===========================
-        // 弹窗发帖控制逻辑
+        // 弹窗发帖控制逻辑（核心修复区域）
         // ===========================
         const modal = document.getElementById('composeModal');
         const floatingBtn = document.getElementById('composeFloatingBtn');
@@ -397,7 +397,6 @@
 
         window.closeComposeModal = function() {
             modal.classList.add('hidden');
-            // 清理输入框
             document.getElementById('modalPostContent').value = '';
             document.getElementById('modalMediaUrls').value = '';
             document.getElementById('modalCodeLang').value = '';
@@ -405,17 +404,14 @@
             document.getElementById('modalSubmitBtn').disabled = true;
         };
 
-        // 点击模态框外部关闭
         modal.addEventListener('click', function(e) {
             if (e.target === modal) closeComposeModal();
         });
 
-        // 监听弹窗文本输入
         document.getElementById('modalPostContent').addEventListener('input', function() {
             document.getElementById('modalSubmitBtn').disabled = !this.value.trim();
         });
 
-        // 弹窗内的折叠选项
         function toggleModalMedia() {
             document.getElementById('modalMediaArea').classList.toggle('hidden');
         }
@@ -423,7 +419,7 @@
             document.getElementById('modalCodeArea').classList.toggle('hidden');
         }
 
-        // 提交弹窗发帖
+        // ✅ 修复：提交弹窗发帖
         document.getElementById('modalSubmitBtn').addEventListener('click', function() {
             const content = document.getElementById('modalPostContent').value.trim();
             if (!content) return;
@@ -445,7 +441,13 @@
                     code_content: codeContent
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    // 如果后端返回了非 200 状态码（比如未登录的 401），自动解析 JSON 并抛出错误
+                    return res.json().then(err => { throw new Error(err.msg || '发布失败'); });
+                }
+                return res.json();
+            })
             .then(data => {
                 if (data.ok) {
                     closeComposeModal();
@@ -455,7 +457,10 @@
                     alert('发布失败: ' + data.msg);
                 }
             })
-            .catch(() => alert('发布异常，请检查网络'))
+            .catch(err => {
+                // ✅ 核心修复：把后端的真实错误信息展示出来，而不是笼统地报“网络异常”
+                alert('发布异常: ' + err.message);
+            })
             .finally(() => {
                 this.innerText = '发布';
                 this.disabled = false;
