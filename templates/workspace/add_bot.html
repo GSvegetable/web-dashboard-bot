@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>添加机器人 - 开发工作台</title>
+    <title>空白页面 - 开发工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -14,14 +14,7 @@
             color: #e5e7eb;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             margin: 0;
-        }
-        .modal-overlay {
-            width: 100%;
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -35,146 +28,36 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             border-radius: 28px;
-            padding: 32px;
-            position: relative;
+            padding: 40px;
+            text-align: center;
         }
-        .gh-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            color: #ffffff;
-            padding: 10px 14px;
-            width: 100%;
-            outline: none;
-            transition: 0.2s;
-        }
-        .gh-input:focus {
-            border-color: #58a6ff;
-            box-shadow: 0 0 10px rgba(88, 166, 255, 0.2);
-        }
-        .btn-primary {
-            background: #238636;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            padding: 10px 20px;
-            font-weight: 600;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-        .btn-primary:hover { background: #2ea043; }
-        .btn-primary:active { transform: scale(0.97); }
-        
-        /* 左上角的返回按钮 */
         .back-btn {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            color: rgba(255, 255, 255, 0.5);
-            transition: color 0.2s;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #c9d1d9;
             text-decoration: none;
+            transition: 0.2s;
+            font-weight: 500;
         }
         .back-btn:hover {
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
 <body>
-    <!-- ✅ 点击整个 modal-overlay 区域（即空白处），就会触发返回工作台 -->
-    <div class="modal-overlay" onclick="if(event.target===this) window.location.href='/workspace'">
-        
-        <div class="glass-panel flex flex-col gap-6">
+    <!-- 点击空白卡片外面也能返回工作台 -->
+    <div style="width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="window.location.href='/workspace'">
+        <div class="glass-panel" onclick="event.stopPropagation()">
+            <h2 class="text-2xl font-bold text-white mb-3">空页面</h2>
+            <p class="text-gray-400">这里没有任何内容，</p>
+            <p class="text-gray-400">你可以点击下方按钮返回工作台。</p>
             
-            <!-- 左上角返回按钮 -->
-            <a href="/workspace" class="back-btn">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-                返回
-            </a>
-
-            <h2 class="text-2xl font-bold text-white tracking-tight text-center pt-2">添加机器人</h2>
-
-            <!-- 字段 1：机器人Token -->
-            <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-white/80">机器人 Token</label>
-                <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="gh-input" />
-            </div>
-
-            <!-- 字段 2：机器人代号（限5字符） -->
-            <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-white/80">机器人代号</label>
-                <input id="addPanelCodeInput" type="text" maxlength="5" placeholder="如: bot01" class="gh-input" />
-            </div>
-
-            <div class="flex justify-end mt-2">
-                <button id="submitBtn" class="btn-primary w-full py-3 text-base">创建机器人</button>
-            </div>
+            <a href="/workspace" class="back-btn">← 返回工作台</a>
         </div>
     </div>
-
-    <script>
-        document.getElementById('submitBtn').addEventListener('click', function() {
-            const tokenInput = document.getElementById('addPanelTokenInput');
-            const codeInput = document.getElementById('addPanelCodeInput');
-            const tokenVal = tokenInput.value.trim();
-            const codeVal = codeInput.value.trim();
-
-            if (!tokenVal) {
-                tokenInput.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-                tokenInput.focus();
-                return;
-            }
-            tokenInput.style.borderColor = '';
-
-            if (!/^\d+:[A-Za-z0-9_-]+$/.test(tokenVal)) {
-                alert('Token 格式不正确。');
-                tokenInput.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-                tokenInput.focus();
-                return;
-            }
-            tokenInput.style.borderColor = '';
-
-            if (!codeVal) {
-                codeInput.style.borderColor = 'rgba(239, 68, 68, 0.8)';
-                codeInput.focus();
-                return;
-            }
-            codeInput.style.borderColor = '';
-
-            this.innerText = '创建中...';
-            this.disabled = true;
-
-            fetch('/api/bind_bot', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ token: tokenVal, telegram_id: '000000', name: '获取信息' })
-            })
-            .then(res => res.json())
-            .then(data => {
-                let cards = [];
-                try { cards = JSON.parse(localStorage.getItem('gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
-                cards.push({
-                    token: tokenVal,
-                    code: codeVal,
-                    name: data.ok ? data.bot_name : '未命名',
-                    id: data.ok ? data.bot_id : '',
-                    username: data.ok ? data.bot_username : ''
-                });
-                localStorage.setItem('gsbot_bot_repo_cards', JSON.stringify(cards));
-                window.location.href = '/workspace';
-            })
-            .catch(() => {
-                let cards = [];
-                try { cards = JSON.parse(localStorage.getItem('gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
-                cards.push({ token: tokenVal, code: codeVal, name: '未命名', id: '', username: '' });
-                localStorage.setItem('gsbot_bot_repo_cards', JSON.stringify(cards));
-                window.location.href = '/workspace';
-            });
-        });
-    </script>
 </body>
 </html>
