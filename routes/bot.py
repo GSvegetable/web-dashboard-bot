@@ -2,6 +2,7 @@ import os
 import requests
 from datetime import datetime
 from flask import request, jsonify
+from models import db, PendingBind
 from . import main_bp
 
 @main_bp.route('/api/send_bind_request', methods=['POST'])
@@ -15,25 +16,47 @@ def send_bind_request():
     if not token or not token.startswith('') or ':' not in token:
         return jsonify({'ok': False, 'msg': 'Token 格式无效'})
 
-    # 1. 验证 Token 有效
+    # 1. 验证 Token 有效并获取机器人信息
     try:
         me_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=10)
         if me_resp.status_code != 200:
             return jsonify({'ok': False, 'msg': 'Token 无效或网络错误'})
+        bot_info = me_resp.json().get('result', {})
+        bot_name = bot_info.get('first_name') or '未命名'
+        bot_id = str(bot_info.get('id')) if bot_info.get('id') else ''
+        bot_username = bot_info.get('username', '')
     except Exception as e:
         return jsonify({'ok': False, 'msg': f'验证异常: {str(e)}'})
 
-    # 2. 构造新版确认通知消息
+    # 2. 存入数据库绑定请求（防止重复，先删旧的）
+    old_bind = PendingBind.query.filter_by(token=token).first()
+    if old_bind:
+        db.session.delete(old_bind)
+        db.session.commit()
+
+    new_bind = PendingBind(
+        token=token,
+        telegram_id=user_id_input,
+        bot_name=bot_name,
+        bot_id=bot_id,
+        bot_username=bot_username,
+        status='pending'
+    )
+    db.session.add(new_bind)
+    db.session.commit()
+    bind_id = new_bind.id
+
+    # 3. 构造新版确认通知消息（带 HTML 加粗）
     message_text = (
-        "🔔 机器人绑定通知\n"
-        "您的机器人已成功绑定至「宫水大世界」工作台\n"
+        "<b>机器人绑定通知</b>\n"
+        "机器人正在绑定至「宫水大世界」工作台\n"
         "若此操作非由您本人执行 请忽略本条消息\n\n"
-        "请点击下方按钮 以确认绑定状态"
+        "请点击下方按钮 以确认绑定"
     )
 
-    # ✅ 核心：在按钮的 callback_data 中带上 Token，方便后续修改该消息
-    confirm_cb = f"bind_confirm|{token}"
-    cancel_cb = f"bind_cancel|{token}"
+    # callback_data 带上数据库 ID，长度最长 64 字节，可以用 confirm|123
+    confirm_cb = f"bind|{bind_id}|confirm"
+    cancel_cb = f"bind|{bind_id}|cancel"
     
     reply_markup = {
         "inline_keyboard": [
@@ -50,6 +73,7 @@ def send_bind_request():
             json={
                 "chat_id": user_id_input,
                 "text": message_text,
+                "parse_mode": "HTML",
                 "reply_markup": reply_markup
             },
             timeout=15
