@@ -385,7 +385,7 @@
         });
 
         // ===========================
-        // 弹窗发帖控制逻辑（核心修复区域）
+        // 弹窗发帖控制逻辑
         // ===========================
         const modal = document.getElementById('composeModal');
         const floatingBtn = document.getElementById('composeFloatingBtn');
@@ -419,7 +419,6 @@
             document.getElementById('modalCodeArea').classList.toggle('hidden');
         }
 
-        // ✅ 修复：提交弹窗发帖
         document.getElementById('modalSubmitBtn').addEventListener('click', function() {
             const content = document.getElementById('modalPostContent').value.trim();
             if (!content) return;
@@ -443,7 +442,6 @@
             })
             .then(res => {
                 if (!res.ok) {
-                    // 如果后端返回了非 200 状态码（比如未登录的 401），自动解析 JSON 并抛出错误
                     return res.json().then(err => { throw new Error(err.msg || '发布失败'); });
                 }
                 return res.json();
@@ -458,7 +456,6 @@
                 }
             })
             .catch(err => {
-                // ✅ 核心修复：把后端的真实错误信息展示出来，而不是笼统地报“网络异常”
                 alert('发布异常: ' + err.message);
             })
             .finally(() => {
