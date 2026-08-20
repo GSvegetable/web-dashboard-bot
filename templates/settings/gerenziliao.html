@@ -6,11 +6,10 @@
         <!-- ====== 名称 ====== -->
         <div class="animate-item delay-2">
             <div class="relative w-full mt-4">
-                <!-- 高斯模糊层：背景微微加深 -->
                 <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.08)] backdrop-blur-md z-0 pointer-events-none"></div>
-                <!-- 输入框容器：边框颜色加深 -->
                 <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.3)] rounded-lg">
-                    <label class="absolute -top-2.5 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">名称</label>
+                    <!-- 改为 -top-[11px]，刚好下移1像素 -->
+                    <label class="absolute -top-[11px] left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">名称</label>
                     <input type="text" id="name" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.first_name if current_user.first_name else (current_user.email.split('@')[0] if current_user.email else '') }}" />
                 </div>
             </div>
@@ -22,7 +21,7 @@
             <div class="relative w-full mt-4">
                 <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.08)] backdrop-blur-md z-0 pointer-events-none"></div>
                 <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.3)] rounded-lg">
-                    <label class="absolute -top-2.5 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">ID</label>
+                    <label class="absolute -top-[11px] left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">ID</label>
                     <input type="text" id="display_id" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.display_id or '000000' }}" readonly />
                 </div>
             </div>
@@ -34,7 +33,7 @@
             <div class="relative w-full mt-4">
                 <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.08)] backdrop-blur-md z-0 pointer-events-none"></div>
                 <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.3)] rounded-lg">
-                    <label class="absolute -top-2.5 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">邮箱</label>
+                    <label class="absolute -top-[11px] left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">邮箱</label>
                     <input type="text" id="email" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" value="{{ current_user.email if current_user.email else '' }}" placeholder="{{ '未绑定邮箱' if not current_user.email else '' }}" {% if current_user.email %}readonly{% endif %} />
                 </div>
             </div>
@@ -46,7 +45,7 @@
             <div class="relative w-full mt-4">
                 <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.08)] backdrop-blur-md z-0 pointer-events-none"></div>
                 <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.3)] rounded-lg">
-                    <label class="absolute -top-2.5 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">个人简介</label>
+                    <label class="absolute -top-[11px] left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">个人简介</label>
                     <textarea id="bio" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0 resize-none min-h-[60px]" placeholder="简单介绍一下你自己吧"></textarea>
                 </div>
             </div>
@@ -58,7 +57,7 @@
             <div class="relative w-full mt-4">
                 <div class="absolute inset-0 rounded-lg bg-[rgba(255,255,255,0.08)] backdrop-blur-md z-0 pointer-events-none"></div>
                 <div class="relative z-10 bg-transparent border border-[rgba(255,255,255,0.3)] rounded-lg">
-                    <label class="absolute -top-2.5 left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">网址</label>
+                    <label class="absolute -top-[11px] left-3 px-1.5 py-0.5 bg-[rgba(0,0,0,0.7)] backdrop-blur-sm rounded-md text-xs font-medium text-[rgba(255,255,255,0.9)] z-20 leading-none">网址</label>
                     <input type="url" id="url" class="w-full bg-transparent border-none outline-none text-sm text-[#c9d1d9] px-3 py-2.5 focus:ring-0" placeholder="输入你的个人网站或社交主页链接" />
                 </div>
             </div>
