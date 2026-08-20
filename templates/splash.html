@@ -4,100 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>宫水大世界 - gsbot</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    
     <style>
-        /* 彻底清除所有黑色和背景图片残留 */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        button, a { outline: none; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto;
-            background-color: #ffffff !important; /* 纯白背景 */
-            color: #000000; /* 纯黑文字 */
+            width: 100vw; height: 100vh; overflow: hidden;
+            /* ✅ 核心修复：纯白色背景 */
+            background-color: #ffffff;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
-            display: flex; flex-direction: column;
-        }
-
-        /* 顶层状态与下拉菜单 */
-        .top-actions { position: fixed; top: 24px; right: 36px; z-index: 9999; display: flex; gap: 14px; align-items: center; }
-        .top-btn {
-            padding: 6px 16px; border-radius: 30px; background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1); color: #000;
-            font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-        }
-        .top-btn:active { transform: scale(0.95); background: rgba(0, 0, 0, 0.1); }
-
-        /* 3D 字体容器 */
-        .three-d-container {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 1; perspective: 1200px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; pointer-events: none;
+            position: relative;
         }
-        .three-d-content { transform-style: preserve-3d; transition: none; }
 
-        /* 纯黑大号标题 */
+        .top-actions {
+            position: fixed; top: 20px; right: 24px; z-index: 9999;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .top-btn {
+            padding: 8px 12px; border-radius: 30px;
+            /* ✅ 纯黑按钮，深色文字，维持极简 */
+            background: rgba(26, 26, 26, 0.05);
+            border: 1px solid rgba(26, 26, 26, 0.1);
+            color: #1a1a1a; font-size: 13px; font-weight: 500;
+            cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .top-btn:active { transform: scale(0.94); background: rgba(26, 26, 26, 0.1); }
+
+        /* ✅ 核心：主标题容器，赋予 3D 透视和注视交互 */
+        #main-text-wrapper {
+            position: relative; z-index: 10;
+            transform-style: preserve-3d; perspective: 1000px;
+            display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.1s linear; /* 丝滑跟随 */
+        }
         .main-title {
-            font-size: 8vw; font-weight: 900; color: #000000;
-            letter-spacing: 6px; line-height: 1.2; margin-bottom: 8px;
+            font-size: 80px; font-weight: 900; letter-spacing: 4px;
+            color: #1a1a1a;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.02);
         }
         .sub-title {
-            font-size: 1.2vw; font-weight: 400; color: #333333;
-            letter-spacing: 2px;
+            font-size: 20px; font-weight: 400; letter-spacing: 1px;
+            color: #1a1a1a; opacity: 0.6; margin-top: 8px;
         }
 
-        /* ⭐ 核心：ID 彻底改名为 white-ball，避开所有缓存残余 */
-        #white-ball {
-            position: fixed; z-index: 2; pointer-events: none;
-            width: 18vw; height: 18vw;
-            background-color: #ffffff !important; /* 纯白填充，且强制生效 */
-            border: none !important;             /* 彻底删除任何可能的黑边 */
-            border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
-            transition: transform 0.01s linear;
+        /* ✅ 核心：黑色实心大圆球 */
+        #black-ball {
+            position: fixed; width: 260px; height: 260px; border-radius: 50%;
+            background: #1a1a1a;
+            z-index: 5; pointer-events: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            /* 初始隐藏，动画会让它出现 */
+            transform: scale(0) translate(-50%, -50%);
+            top: 50%; left: 50%;
+            will-change: transform, top, left;
         }
 
-        /* 涟漪波纹元素 */
-        .ripple-ring {
-            position: fixed; z-index: 1; pointer-events: none;
-            border-radius: 50%; border: 2px solid rgba(0, 0, 0, 0.2);
-            transform: translate(-50%, -50%) scale(0); opacity: 1;
+        /* ✅ 涟漪效果附属圈（入场动画专用） */
+        #ripple-circle {
+            position: fixed; width: 300px; height: 300px; border-radius: 50%;
+            background: transparent; border: 2px solid rgba(26, 26, 26, 0.15);
+            z-index: 4; pointer-events: none;
+            top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
         }
 
-        @media (max-width: 768px) {
-            .top-actions { top: 16px; right: 16px; gap: 8px; }
-            .top-btn { font-size: 11px; padding: 4px 10px; }
-            .main-title { font-size: 14vw; }
-            .sub-title { font-size: 3.2vw; }
-            #white-ball { width: 30vw; height: 30vw; }
+        /* 移动端适配 */
+        @media (max-width: 600px) {
+            .main-title { font-size: 50px; }
+            .sub-title { font-size: 16px; }
+            #black-ball { width: 180px; height: 180px; }
         }
-
-        /* 弹窗覆盖层 */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); z-index: 9998; display: flex; justify-content: flex-end; align-items: flex-start; padding-top: 80px; padding-right: 24px; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; pointer-events: none; }
-        .modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
-        .modal-box { opacity: 0; transform: translateY(20px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .modal-overlay.active .modal-box { opacity: 1; transform: translateY(0); }
-        .login-card, .music-card-glass { position: relative; width: 100%; max-width: 320px; padding: 24px; background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); color: #1a1a1a; display: flex; flex-direction: column; gap: 14px; }
-        .music-card-glass { max-width: 320px; }
     </style>
 </head>
 <body>
 
-    <!-- 3D 注视文字层（居中） -->
-    <div class="three-d-container">
-        <div class="three-d-content" id="text3DGroup">
-            <h1 class="main-title">宫水大世界</h1>
-            <p class="sub-title">Telegram Bot Editor</p>
-        </div>
+    <!-- ✅ 黑色实心球 -->
+    <div id="black-ball"></div>
+    <!-- ✅ 涟漪圈 -->
+    <div id="ripple-circle"></div>
+
+    <!-- ✅ 主标题（具备 3D 注视效果） -->
+    <div id="main-text-wrapper">
+        <div class="main-title">宫水大世界</div>
+        <div class="sub-title">Telegram Bot Editor</div>
     </div>
 
-    <!-- ⭐ 纯白实心球（ID 已改为 white-ball） -->
-    <div id="white-ball"></div>
-
-    <!-- 顶部导航与交互按钮 -->
+    <!-- ✅ 右上角按钮（位置在 z-index 最上层） -->
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
@@ -108,13 +101,11 @@
         {% if not current_user.is_authenticated %}
         <button class="top-btn" onclick="openLoginModal()">Log in</button>
         {% endif %}
-        
-        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center border-none bg-transparent text-xl" onclick="window.location.href='/settings'">
-            ⚙️
+        <button class="top-btn !w-8 !h-8 !rounded-full !p-0 flex items-center justify-center border-0 !bg-transparent" onclick="window.location.href='/settings'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1 2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
     </div>
 
-    <!-- 业务组件 -->
     {% include 'components/toast.html' %}
     {% include 'components/auth_card.html' %}
     {% include 'components/music_card.html' %}
@@ -124,96 +115,135 @@
     {% include 'components/plan_detail_modal.html' %}
     {% include 'components/3d_card.html' %}
 
-    <script src="{{ url_for('static', filename='js/modal_manager.js') }}"></script>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // 获取改名后的新 ID
-            const ball = document.getElementById('white-ball');
-            const text3D = document.getElementById('text3DGroup');
+        let isAnimating = true;
+        let ballX = 50, ballY = 50; // 球在屏幕上的百分比位置
+        const ball = document.getElementById('black-ball');
+        const textWrapper = document.getElementById('main-text-wrapper');
+        const ripple = document.getElementById('ripple-circle');
+
+        // ==========================================
+        // 1. 入场拉扯动画（涟漪 + 放大 + 位移）
+        // ==========================================
+        function runEntranceAnimation() {
+            const tl = gsap.timeline();
             
-            // --- 1. 首屏拉扯涟漪动画 ---
-            function startEntranceAnimation() {
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
+            // 先让球恢复到中心并隐藏
+            gsap.set(ball, { top: '50%', left: '50%', transform: 'scale(0) translate(-50%, -50%)' });
+            gsap.set(ripple, { transform: 'scale(0) translate(-50%, -50%)', opacity: 0 });
 
-                ball.style.left = centerX + 'px';
-                ball.style.top = centerY + 'px';
-                ball.style.transform = 'translate(-50%, -50%) scale(0)';
+            // 第一步：涟漪扩张（模拟拉扯感）
+            tl.to(ripple, { 
+                duration: 0.8, ease: "power2.out", 
+                transform: 'scale(1.2) translate(-50%, -50%)', opacity: 1 
+            }, 0)
+            .to(ripple, { 
+                duration: 0.6, ease: "power2.in", 
+                opacity: 0 
+            }, 0.5)
 
-                for (let i = 0; i < 4; i++) {
-                    setTimeout(() => {
-                        const ring = document.createElement('div');
-                        ring.className = 'ripple-ring';
-                        ring.style.left = centerX + 'px';
-                        ring.style.top = centerY + 'px';
-                        ring.style.width = '20px'; ring.style.height = '20px';
-                        document.body.appendChild(ring);
-                        gsap.to(ring, {
-                            width: '70vw', height: '70vw', opacity: 0,
-                            duration: 1.6, ease: "power2.out",
-                            onComplete: () => ring.remove()
-                        });
-                    }, i * 300);
+            // 第二步：黑球从中心“撑开”，并且轻微放大和移动
+            .to(ball, { 
+                duration: 1.2, ease: "power3.out",
+                transform: 'scale(1) translate(-50%, -50%)', 
+                top: '30%', left: '80%', // 首次出现的落点，偏右上方
+                onComplete: () => { 
+                    isAnimating = false; 
+                    ball.style.transition = 'top 0.1s, left 0.1s'; // 完成动画后开启物理跟随
                 }
+            }, 0.1);
 
-                gsap.to(ball, {
-                    scale: 1,
-                    x: -20, y: -30,
-                    duration: 1.2,
-                    ease: "power2.out",
-                    delay: 0.1
-                });
-            }
-            startEntranceAnimation();
+            // 第三步：文字微微产生 3D 注视的初始倾斜（丝滑）
+            tl.to(textWrapper, { 
+                duration: 1.2, ease: "power2.out",
+                transform: 'perspective(1000px) rotateX(-8deg) rotateY(15deg)'
+            }, 0.5)
+            .to(textWrapper, { 
+                duration: 0.8, ease: "power3.out",
+                transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg)'
+            }, 1.2);
+        }
 
-            // --- 2. 鼠标 + 陀螺仪 跟随 ---
-            let targetX = 0, targetY = 0;
-            let currentX = 0, currentY = 0;
+        // ==========================================
+        // 2. 核心注视追踪引擎（陀螺仪 + 鼠标）
+        // ==========================================
+        function updateBallAndText(xPercent, yPercent) {
+            if (isAnimating) return;
 
-            document.addEventListener('mousemove', (e) => {
-                targetX = (e.clientX / window.innerWidth - 0.5) * 2 * 180;
-                targetY = -(e.clientY / window.innerHeight - 0.5) * 2 * 120;
-            });
+            // 限制范围，不让球飞出屏幕边缘
+            ballX = Math.max(5, Math.min(95, xPercent));
+            ballY = Math.max(5, Math.min(95, yPercent));
 
-            const handleOrientation = (event) => {
-                const multiplier = 2.8; 
-                targetX = (event.gamma || 0) * multiplier;
-                targetY = (event.beta || 0) * multiplier;
-            };
+            // 更新球的位置
+            ball.style.top = ballY + '%';
+            ball.style.left = ballX + '%';
 
-            if (window.DeviceOrientationEvent) {
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // 计算文字对球的“注视”角度 (倾斜)
+            // 换算成视口中心点偏移比例
+            const deltaX = (ballX - 50) / 50;  // -1 到 1
+            const deltaY = (ballY - 50) / 50;  // -1 到 1
+
+            // 最大倾斜角度 (限制在 20 度以内，保持优雅)
+            const maxTilt = 20;
+            const rotY = -deltaX * maxTilt;
+            const rotX = deltaY * maxTilt;
+
+            // 应用到文字容器
+            textWrapper.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        }
+
+        // 监听 陀螺仪 (移动端)
+        if (window.DeviceOrientationEvent) {
+            // iOS 13+ 需要主动请求权限
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.addEventListener('click', function requestGyro() {
                     DeviceOrientationEvent.requestPermission().then(state => {
                         if (state === 'granted') {
                             window.addEventListener('deviceorientation', handleOrientation);
                         }
-                    }).catch(console.error);
-                } else {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                }
+                        document.removeEventListener('click', requestGyro);
+                    });
+                }, { once: true });
+            } else {
+                // Android / 其他
+                window.addEventListener('deviceorientation', handleOrientation);
             }
+        }
 
-            // --- 3. 平滑动画帧 ---
-            function animate() {
-                currentX += (targetX - currentX) * 0.15;
-                currentY += (targetY - currentY) * 0.15;
+        function handleOrientation(event) {
+            // beta: 前后倾斜 (-180 ~ 180), gamma: 左右倾斜 (-90 ~ 90)
+            const beta = event.beta || 0;    // 前后
+            const gamma = event.gamma || 0;  // 左右
+            // 把角度映射到屏幕百分比 (假设左右倾斜 45 度 移动 100%)
+            const x = 50 + (gamma / 45) * 40; 
+            const y = 50 + (beta / 45) * 40;
+            updateBallAndText(x, y);
+        }
 
-                ball.style.left = `calc(50% + ${currentX}px)`;
-                ball.style.top = `calc(50% + ${currentY}px)`;
+        // 监听 鼠标移动 (桌面端备用)
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 100;
+            const y = (e.clientY / window.innerHeight) * 100;
+            updateBallAndText(x, y);
+        });
 
-                const textRotX = -currentY * 0.06;
-                const textRotY = -currentX * 0.06;
-                text3D.style.transform = `rotateX(${textRotX}deg) rotateY(${textRotY}deg)`;
+        // ==========================================
+        // 3. 弹窗控制器 (复用您的原逻辑)
+        // ==========================================
+        window.closeAllModals = function() {
+            ['loginModal', 'musicModal', 'contactModal', 'updateLogModal', 'becomeFanModal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+        };
+        window.openLoginModal = function() { closeAllModals(); document.getElementById('loginModal')?.classList.add('active'); };
+        window.openMusicModal = function() { closeAllModals(); document.getElementById('musicModal')?.classList.add('active'); };
+        window.openContactModal = function() { closeAllModals(); document.getElementById('contactModal')?.classList.add('active'); };
+        window.openUpdateLogModal = function() { closeAllModals(); document.getElementById('updateLogModal')?.classList.add('active'); };
+        window.openBecomeFanModal = function() { closeAllModals(); document.getElementById('becomeFanModal')?.classList.add('active'); };
 
-                requestAnimationFrame(animate);
-            }
-            animate();
-
-            window.toggleFullScreen = function() {
-                if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-                else if (document.exitFullscreen) document.exitFullscreen();
-            };
+        document.addEventListener('DOMContentLoaded', function() {
+            runEntranceAnimation();
         });
     </script>
 </body>
