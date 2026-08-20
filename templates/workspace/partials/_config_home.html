@@ -1,12 +1,10 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
-    <!-- 标题行：左侧是文字，右侧是按钮 -->
-    <div class="flex justify-between items-center mb-6 flex-shrink-0">
-        <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md">机器人仓库</h2>
-        
-        <!-- ✅ 放回 flex 行内，彻底解决被裁剪的问题 -->
-        <div id="addPanelBtn" class="outer-cont cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); backdrop-filter: blur(6px); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
-            <span class="font-bold text-white text-sm">+ 添加bot</span>
-        </div>
+    <!-- 标题 -->
+    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
+
+    <!-- ✅ 修复：按钮用绝对定位放到右上角，并去除 backdrop-filter 解决“一刀切”的裁剪 Bug -->
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
+        <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
     <div id="botRepoEmpty" class="text-center text-gray-500 text-sm py-10 flex-shrink-0">仓库空空如也，点击右上角「+ 添加bot」创建机器人</div>
@@ -16,20 +14,8 @@
 </div>
 
 <style>
-    .outer-cont::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        margin: auto;
-        border-radius: 10px;
-        filter: blur(0);
-        z-index: -1;
-        box-shadow: none;
-        background: conic-gradient( rgba(0,0,0,0) 80deg, #2563EB, #93C5FD, #FFFFFF, rgba(0,0,0,0) 280deg );
-        transition: all 0.3s ease;
-    }
-    .outer-cont:hover::before { filter: blur(15px); }
-    .outer-cont:active::before { filter: blur(5px); transform: scale(0.95) translateY(2px); }
+    /* 按钮被点击时的微缩放动画 */
+    #addPanelBtn:active { transform: scale(0.95); }
 
     .bot-repo-card {
         background: rgba(255, 255, 255, 0.06);
