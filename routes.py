@@ -48,7 +48,7 @@ def settings():
     return render_template('settings.html')
 
 # ==========================================
-# GitHub OAuth 登录 (修复硬编码)
+# GitHub OAuth 登录
 # ==========================================
 oauth.register(
     name='github',
@@ -62,7 +62,6 @@ oauth.register(
 
 @main_bp.route('/login/github')
 def login_github():
-    # ✅ 从环境变量读取 BASE_URL，防止硬编码域名失效
     base_url = os.getenv('BASE_URL', 'https://xn--3bts89a.com')
     redirect_uri = f"{base_url}/auth/github/callback"
     return oauth.github.authorize_redirect(redirect_uri)
@@ -128,7 +127,7 @@ def github_callback():
         return redirect(url_for('main.splash'))
 
 # ==========================================
-# 路由
+# 基础路由
 # ==========================================
 @main_bp.route('/')
 def splash():
@@ -155,15 +154,11 @@ def admin_dashboard():
     
     total_visits = VisitLog.query.count()
     today_visits = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).count()
-    
     total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
     today_uv = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
-    
     total_users = User.query.count()
     today_registered = User.query.filter(func.date(User.created_at) == today).count()
-    
     recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
-    
     users = User.query.order_by(User.created_at.desc()).all()
     
     return render_template('admin/dashboard.html', 
@@ -184,32 +179,20 @@ def admin_add_stars():
     data = request.get_json()
     user_id = data.get('user_id')
     amount = data.get('amount')
-    
-    if not user_id or amount is None:
-        return jsonify({'ok': False, 'msg': '参数缺失'})
-    
+    if not user_id or amount is None: return jsonify({'ok': False, 'msg': '参数缺失'})
     try:
         amount = int(amount)
-        if amount <= 0:
-            return jsonify({'ok': False, 'msg': '赠送数量必须大于 0'})
-    except (ValueError, TypeError):
-        return jsonify({'ok': False, 'msg': '数量格式错误'})
+        if amount <= 0: return jsonify({'ok': False, 'msg': '赠送数量必须大于 0'})
+    except: return jsonify({'ok': False, 'msg': '数量格式错误'})
     
     user = User.query.get(int(user_id))
-    if not user:
-        return jsonify({'ok': False, 'msg': '用户不存在'})
+    if not user: return jsonify({'ok': False, 'msg': '用户不存在'})
     
     before_balance = user.stars
     user.stars += amount
     db.session.commit()
     
-    tx = Transaction(
-        user_id=user.id,
-        amount=amount,
-        before_balance=before_balance,
-        after_balance=user.stars,
-        reason="管理员后台赠送"
-    )
+    tx = Transaction(user_id=user.id, amount=amount, before_balance=before_balance, after_balance=user.stars, reason="管理员后台赠送")
     db.session.add(tx)
     db.session.commit()
     
@@ -219,6 +202,16 @@ def admin_add_stars():
 def workspace():
     return render_template('workspace/workspace.html')
 
+# ==========================================
+# ✅ 新增：社区路由
+# ==========================================
+@main_bp.route('/community')
+def community():
+    return render_template('community.html')
+
+# ==========================================
+# 其他辅助路由
+# ==========================================
 def fetch_telegram_user_info(tg_id):
     try:
         resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={tg_id}", timeout=5)
@@ -263,7 +256,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口 (无变化)
+# AI 接口 (保持原样，篇幅原因忽略中间一些非核心的函数，但保证下发的文件是完整的 routes.py)
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
@@ -436,8 +429,6 @@ def register():
     account = request.form.get('email')
     code = request.form.get('code')
     
-    # ✅【重大安全升级】原硬编码 121100 已废除，改为读取环境变量 ADMIN_SECRET_KEY
-    # 请在宝塔环境变量中添加：ADMIN_SECRET_KEY=你自定义的复杂密码
     ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY')
     
     if code == ADMIN_SECRET_KEY:
@@ -489,9 +480,7 @@ def register():
 @main_bp.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
     data = request.get_json()
-    # ✅ 防御：防止恶意空数据轰炸
-    if not data:
-        return "Bad Request", 400
+    if not data: return "Bad Request", 400
     if 'message' in data:
         msg = data['message']; chat_id = str(msg['chat']['id']); text = msg.get('text', '')
         if text.startswith('/start qr_'):
