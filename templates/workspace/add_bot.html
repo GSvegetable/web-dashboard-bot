@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>授权绑定 - 开发工作台</title>
+    <title>机器人绑定 - 开发工作台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -58,18 +58,6 @@
         }
         .btn-primary:hover { background: #2ea043; }
         .btn-primary:active { transform: scale(0.98); }
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: #c9d1d9;
-            padding: 10px 20px;
-            font-weight: 500;
-            transition: 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
         .back-btn {
             position: absolute; top: 16px; left: 16px; color: rgba(255, 255, 255, 0.5);
             text-decoration: none; display: flex; align-items: center; gap: 6px; font-size: 14px;
@@ -86,13 +74,13 @@
                 返回
             </a>
 
-            <h2 class="text-2xl font-bold text-white tracking-tight text-center pt-4">授权机器人</h2>
-            <p class="text-xs text-gray-400 text-center mb-6">绑定后，机器人将向您发送一条授权确认消息</p>
+            <h2 class="text-2xl font-bold text-white tracking-tight text-center pt-4">绑定机器人</h2>
+            <p class="text-xs text-gray-400 text-center mb-6">绑定后，机器人将向你的 Telegram 发送一条确认通知</p>
 
-            <!-- ✅ 字段 1：你的ID -->
+            <!-- ✅ 字段 1：你的 Telegram 用户名 -->
             <div class="flex flex-col gap-2 mb-4">
-                <label class="text-sm font-medium text-white/80">你的 ID</label>
-                <input id="inputUserId" type="text" placeholder="请输入你在本网站的 ID" class="gh-input" />
+                <label class="text-sm font-medium text-white/80">你的 Telegram 用户名</label>
+                <input id="inputUserId" type="text" placeholder="例如: @your_username 或 your_username" class="gh-input" />
             </div>
 
             <!-- ✅ 字段 2：机器人Token -->
@@ -124,7 +112,7 @@
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) { alert('Token 格式不正确。'); tokenInput.focus(); return; }
             tokenInput.style.borderColor = '';
 
-            this.innerText = '正在发送授权...';
+            this.innerText = '正在发送...';
             this.disabled = true;
             statusMsg.classList.remove('hidden');
             statusMsg.innerText = '正在请求 API...';
@@ -138,7 +126,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.ok) {
-                    statusMsg.innerText = '✅ 授权消息已发送！';
+                    statusMsg.innerText = '✅ 通知已发送到你的 Telegram！';
                     statusMsg.className = 'mt-3 text-xs text-center text-green-400';
                     setTimeout(() => { window.location.href = '/workspace'; }, 2000);
                 } else {
