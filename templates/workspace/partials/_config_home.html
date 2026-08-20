@@ -34,14 +34,29 @@
     .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
     .bot-repo-card:active { transform: scale(0.98); }
 
-    .bot-repo-name {
+    /* ✅ 新增：专门用于名字的跑马灯容器 */
+    .bot-repo-name-marquee {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        height: 22px;
+        line-height: 22px;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    }
+    .bot-repo-name-marquee .bot-repo-track {
+        display: inline-block;
+        white-space: nowrap;
+        padding-right: 0;
+        color: #ffffff;
         font-size: 17px;
         font-weight: 700;
-        color: #ffffff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         letter-spacing: 0.3px;
+        will-change: transform;
+    }
+    .bot-repo-name-marquee .bot-repo-track.marquee-run {
+        animation: botMarquee 12s linear infinite;
     }
 
     .bot-repo-line {
@@ -71,7 +86,7 @@
         color: rgba(255, 255, 255, 0.8);
         will-change: transform;
     }
-    .bot-repo-track.marquee-run {
+    .bot-repo-marquee .bot-repo-track.marquee-run {
         animation: botMarquee 12s linear infinite;
     }
     @keyframes botMarquee {
@@ -80,82 +95,4 @@
     }
 
     @media (max-width: 1400px) { #botRepoGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 720px)  { #botRepoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
-    window.renderBotRepo = function() {
-        var grid = document.getElementById('botRepoGrid');
-        var empty = document.getElementById('botRepoEmpty');
-        if (!grid) return;
-        var cards = [];
-        try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
-        if (cards.length === 0) { if (empty) empty.style.display = 'block'; grid.innerHTML = ''; return; }
-        if (empty) empty.style.display = 'none';
-        grid.innerHTML = '';
-        cards.forEach(function(c) {
-            var card = document.createElement('div');
-            card.className = 'bot-repo-card';
-
-            // ✅ 第1行：名字(代号)
-            var nameDiv = document.createElement('div');
-            nameDiv.className = 'bot-repo-name';
-            var nameText = c.name || '未命名';
-            if (c.code) {
-                nameText += ' (' + c.code + ')';
-            }
-            nameDiv.textContent = nameText;
-
-            // ✅ 第2行：ID + 用户名
-            var idLine = document.createElement('div');
-            idLine.className = 'bot-repo-line';
-            var idLabel = document.createElement('span');
-            idLabel.className = 'bot-repo-label';
-            idLabel.textContent = 'ID';
-            idLine.appendChild(idLabel);
-            
-            var idVal = document.createElement('span');
-            idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-            var idText = c.id || '';
-            if (c.username) {
-                idText += ' @' + c.username;
-            }
-            idVal.textContent = idText;
-            idLine.appendChild(idVal);
-
-            // ✅ 第3行：跑马灯 Token
-            var tokenLine = document.createElement('div');
-            tokenLine.className = 'bot-repo-line';
-            var tokenLabel = document.createElement('span');
-            tokenLabel.className = 'bot-repo-label';
-            tokenLabel.textContent = 'Token';
-            tokenLine.appendChild(tokenLabel);
-
-            var marquee = document.createElement('div');
-            marquee.className = 'bot-repo-marquee';
-            var track = document.createElement('span');
-            track.className = 'bot-repo-track';
-            var tokenStr = c.token || '';
-            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
-            marquee.appendChild(track);
-            tokenLine.appendChild(marquee);
-
-            card.appendChild(nameDiv);
-            card.appendChild(idLine);
-            card.appendChild(tokenLine);
-            grid.appendChild(card);
-
-            requestAnimationFrame(function() {
-                if (track.scrollWidth > marquee.clientWidth + 1) {
-                    track.classList.add('marquee-run');
-                }
-            });
-        });
-    };
-    window.renderBotRepo();
-});
-</script>
+    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0,
