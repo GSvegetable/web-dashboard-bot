@@ -34,6 +34,8 @@
         .btn:hover { background: #2ea043; }
         .btn-outline { background: transparent; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 14px; border-radius: 6px; font-size: 13px; transition: 0.2s; }
         .btn-outline:hover { background: #21262d; }
+        .btn-danger { background: #da3633; color: white; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.2s; }
+        .btn-danger:hover { background: #b62324; }
 
         .gh-input { background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; padding: 4px 8px; outline: none; font-size: 14px; width: 60px; transition: 0.2s; }
         .gh-input:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3); }
@@ -55,7 +57,7 @@
         </div>
         <div class="flex gap-4">
             <a href="/" class="btn-outline text-sm">返回首页</a>
-            <a href="/logout" class="btn text-sm" style="background:#da3633; border-color:#da3633; hover:bg:#b62324;">退出登录</a>
+            <a href="/logout" class="btn text-sm" style="background:#da3633;">退出登录</a>
         </div>
     </nav>
 
@@ -65,45 +67,15 @@
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-label">总注册用户</div><div class="stat-number">{{ total_users }}</div></div>
             <div class="stat-card"><div class="stat-label">今日新增注册</div><div class="stat-number">{{ today_registered }}</div></div>
-            <div class="stat-card"><div class="stat-label">历史独立访客 (真实UV)</div><div class="stat-number">{{ total_uv }}</div></div>
-            <div class="stat-card"><div class="stat-label">今日独立访客 (今日UV)</div><div class="stat-number">{{ today_uv }}</div></div>
-            <div class="stat-card" style="opacity: 0.6;"><div class="stat-label">总访问量 (含刷新)</div><div class="stat-number">{{ total_visits }}</div></div>
-            <div class="stat-card" style="opacity: 0.6;"><div class="stat-label">今日访问量 (含刷新)</div><div class="stat-number">{{ today_visits }}</div></div>
+            <div class="stat-card"><div class="stat-label">历史独立访客 (UV)</div><div class="stat-number">{{ total_uv }}</div></div>
+            <div class="stat-card"><div class="stat-label">今日独立访客 (UV)</div><div class="stat-number">{{ today_uv }}</div></div>
         </div>
 
-        <!-- 近期活跃用户 + 搜索面板 -->
+        <!-- 用户管理 -->
         <div class="card mb-6">
-            <div class="flex flex-wrap justify-between items-center gap-4 mb-2">
-                <h2 class="text-lg font-bold text-[#f0f6fc]">📊 运营监控</h2>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs text-[#8b949e]">快速搜索用户：</span>
-                    <input type="text" id="searchUserInput" class="gh-search" placeholder="输入 ID / 邮箱 / 昵称">
-                </div>
-            </div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead><tr><th>昵称</th><th>邮箱 / ID</th><th>上次登录</th></tr></thead>
-                    <tbody id="recentUsersList">
-                        {% for user in recent_active_users %}
-                        <tr>
-                            <td><span class="font-bold text-white">{{ user.first_name or '未设置' }}</span> <span class="text-xs text-[#8b949e]">#{{ user.display_id or '----' }}</span></td>
-                            <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% else %}未知{% endif %}
-                            </td>
-                            <td>{% if user.last_login %}{{ user.last_login.strftime('%Y-%m-%d %H:%M') }}{% else %}<span style="color: #8b949e;">从未上线</span>{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 全部用户列表 (支持搜索) -->
-        <div class="card relative">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold text-[#f0f6fc]">👥 全部用户 ({{ users|length }})</h2>
             </div>
-            
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -117,13 +89,13 @@
                             <th>操作</th>
                         </tr>
                     </thead>
-                    <tbody id="allUsersList">
+                    <tbody>
                         {% for user in users %}
-                        <tr class="user-row">
+                        <tr>
                             <td><span class="font-mono text-[#f0f6fc]">{{ user.display_id or '----' }}</span></td>
                             <td>{{ user.first_name or '未设置' }}</td>
                             <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% elif user.github_id %}{{ user.github_id }}{% else %}未知{% endif %}
+                                {% if user.email %}{{ user.email }}{% elif user.telegram_id %}{{ user.telegram_id }}{% else %}未知{% endif %}
                             </td>
                             <td>
                                 {% if user.email %}<span class="tag tag-email">邮箱</span>
@@ -151,42 +123,68 @@
                 </table>
             </div>
         </div>
+
+        <!-- ✅ 新增：帖子管理 -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-[#f0f6fc]">📝 社区帖子管理 ({{ all_posts|length }})</h2>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>作者</th>
+                            <th>内容摘要</th>
+                            <th>发布时间</th>
+                            <th>点赞</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in all_posts %}
+                        <tr id="post-row-{{ post.id }}">
+                            <td><span class="font-mono text-[#f0f6fc]">#{{ post.id }}</span></td>
+                            <td>
+                                {% set author = User.query.get(post.user_id) %}
+                                {{ author.first_name or '匿名' }} ({{ author.display_id or '000000' }})
+                            </td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ post.content[:50] }}{% if post.content|length > 50 %}...{% endif %}
+                            </td>
+                            <td>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>{{ Like.query.filter_by(post_id=post.id).count() }}</td>
+                            <td>
+                                {% if post.is_hidden %}
+                                    <span class="tag" style="background:#da3633; color:white;">已隐藏</span>
+                                {% else %}
+                                    <span class="tag" style="background:#238636; color:white;">正常</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not post.is_hidden %}
+                                <button class="btn-danger text-xs px-3 py-1" onclick="hidePost({{ post.id }})">隐藏</button>
+                                {% else %}
+                                <span style="color:#8b949e; font-size:12px;">已操作</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- 搜索过滤脚本 -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchUserInput');
-            const rows = document.querySelectorAll('#allUsersList .user-row');
-
-            searchInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                rows.forEach(row => {
-                    // 获取 ID, 昵称, 邮箱拼接
-                    const id = row.querySelector('td:nth-child(1)')?.innerText.toLowerCase() || '';
-                    const name = row.querySelector('td:nth-child(2)')?.innerText.toLowerCase() || '';
-                    const email = row.querySelector('td:nth-child(3)')?.innerText.toLowerCase() || '';
-                    const match = id.includes(query) || name.includes(query) || email.includes(query);
-                    row.style.display = match ? '' : 'none';
-                });
-            });
-        });
-
-        // 赠送星星逻辑
+        // 赠送星星
         function addStars(userId) {
             const input = document.getElementById('stars-input-' + userId);
             const amount = parseInt(input.value);
+            if (!amount || amount <= 0) { alert('请输入有效的赠送数量（大于0）。'); input.focus(); return; }
             const btn = event.target;
-            
-            if (!amount || amount <= 0) {
-                alert('请输入有效的赠送数量（大于0）。');
-                input.focus();
-                return;
-            }
-
-            btn.disabled = true;
-            btn.innerText = '中...';
-
+            btn.disabled = true; btn.innerText = '中...';
             fetch('/api/admin/add_stars', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -198,15 +196,34 @@
                     document.getElementById('balance-display-' + userId).innerText = data.new_balance;
                     input.value = '';
                     alert(`✅ 赠送成功！当前余额：${data.new_balance}`);
-                } else {
-                    alert(`❌ 失败：${data.msg}`);
-                }
+                } else { alert(`❌ 失败：${data.msg}`); }
             })
             .catch(() => alert('❌ 请求异常'))
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerText = '赠星';
-            });
+            .finally(() => { btn.disabled = false; btn.innerText = '赠星'; });
+        }
+
+        // 隐藏帖子
+        function hidePost(postId) {
+            if (!confirm('确定要隐藏这条帖子吗？隐藏后用户在社区将无法看到。')) return;
+            fetch('/api/admin/hide_post', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ post_id: postId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    const row = document.getElementById('post-row-' + postId);
+                    if (row) {
+                        const statusCell = row.querySelector('td:nth-child(6)');
+                        if (statusCell) statusCell.innerHTML = '<span class="tag" style="background:#da3633; color:white;">已隐藏</span>';
+                        const actionCell = row.querySelector('td:nth-child(7)');
+                        if (actionCell) actionCell.innerHTML = '<span style="color:#8b949e; font-size:12px;">已操作</span>';
+                    }
+                    alert('✅ 帖子已隐藏');
+                } else { alert(`❌ 失败：${data.msg}`); }
+            })
+            .catch(() => alert('❌ 请求异常'));
         }
     </script>
 </body>
