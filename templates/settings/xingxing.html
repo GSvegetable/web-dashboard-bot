@@ -9,43 +9,91 @@
     </div>
 </div>
 
-<!-- ✅ 完美复刻 Uiverse 动画的横向卡片（尺寸、颜色已改，文字点击切换） -->
+<!-- ✅ 完美复刻动效 + 统一颜色的横向交互卡片 -->
 <div class="flex justify-center mt-10">
     <div id="starCard" class="relative overflow-hidden w-80 h-40 rounded-3xl cursor-pointer text-xl font-bold bg-[#1e293b] border border-[#334155] shadow-lg group">
         
-        <!-- 悬停动画触发层（原汁原味的 peer 结构） -->
-        <div class="z-10 absolute w-full h-full peer"></div>
+        <!-- 左上角圆球（点击/悬停后往右下扩散） -->
+        <div class="ball-tl absolute -top-32 -left-16 w-32 h-44 rounded-full bg-[#334155] transition-all duration-500"></div>
         
-        <!-- 左上角球体扩散动画（颜色改成了跟暗黑风更搭的蓝紫色） -->
-        <div class="absolute peer-hover:-top-20 peer-hover:-left-16 peer-hover:w-[140%] peer-hover:h-[140%] -top-32 -left-16 w-32 h-44 rounded-full bg-indigo-500/20 transition-all duration-500"></div>
-        
-        <!-- 右下角球体扩散动画（点击/悬停后展示的层） -->
-        <div class="absolute flex text-lg text-center items-end justify-end peer-hover:right-0 peer-hover:rounded-b-none peer-hover:bottom-0 peer-hover:items-center peer-hover:justify-center peer-hover:w-full peer-hover:h-full -bottom-32 -right-16 w-36 h-44 rounded-full bg-[#2d3748]/90 transition-all duration-500">
-            <span id="cardStatusText" class="text-indigo-200">更多星星</span>
+        <!-- 右下角圆球（点击/悬停后往左上扩散，完全覆盖） -->
+        <div class="ball-br absolute flex text-lg text-center items-end justify-end -bottom-32 -right-16 w-36 h-44 rounded-full bg-[#334155] transition-all duration-500">
+            <span id="cardStatusText" class="text-white">更多星星</span>
         </div>
         
-        <!-- 卡片默认显示的文字（鼠标移入时会同步淡出） -->
-        <div class="w-full h-full items-center justify-center flex uppercase tracking-wider text-slate-400 peer-hover:opacity-0 transition-opacity duration-300">
+        <!-- 卡片初始显示的文字 -->
+        <div class="w-full h-full items-center justify-center flex uppercase tracking-wider text-slate-400 group-hover:opacity-0 transition-opacity duration-300">
             更多星星
         </div>
         
     </div>
 </div>
 
-<!-- ✅ 纯 JS 控制：仅负责切换文字，绝不干涉 CSS 动画 -->
+<style>
+    /* 左上圆球基础状态 */
+    #starCard .ball-tl {
+        position: absolute;
+        top: -8rem;
+        left: -4rem;
+        width: 8rem;
+        height: 11rem;
+        border-radius: 9999px;
+        background-color: #334155;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* 右下圆球基础状态 */
+    #starCard .ball-br {
+        position: absolute;
+        bottom: -8rem;
+        right: -4rem;
+        width: 9rem;
+        height: 11rem;
+        border-radius: 9999px;
+        background-color: #334155;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        text-align: center;
+        font-size: 1.125rem;
+    }
+    
+    /* ✅ 鼠标悬停 或 点击触发 active 状态时，两个圆球的扩张动画完全一致 */
+    #starCard:hover .ball-tl,
+    #starCard.active .ball-tl {
+        top: -5rem !important;
+        left: -4rem !important;
+        width: 140% !important;
+        height: 140% !important;
+    }
+    #starCard:hover .ball-br,
+    #starCard.active .ball-br {
+        right: 0 !important;
+        bottom: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const card = document.getElementById('starCard');
     const statusText = document.getElementById('cardStatusText');
-    let isClicked = false;
+    let isActive = false;
 
     if (card) {
         card.addEventListener('click', function() {
-            isClicked = !isClicked;
-            if (isClicked) {
-                statusText.innerHTML = '✨ 还没想好你随便想一个吧';
+            isActive = !isActive;
+            if (isActive) {
+                this.classList.add('active'); // 触发并卡住动画
+                statusText.innerText = '✨ 还没想好你随便想一个吧';
             } else {
-                statusText.innerHTML = '更多星星';
+                this.classList.remove('active'); // 撤销卡住状态
+                statusText.innerText = '更多星星';
             }
         });
     }
