@@ -17,7 +17,7 @@ from flask_mail import Message
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
-from models import db, User, EmailCode, QrLoginSession, TelegramCode, Transaction, CardKey
+from models import db, User, EmailCode, QrLoginSession, TelegramCode, Transaction, CardKey, VisitLog
 from telegram_bot import send_verification_code, handle_message
 from tg_config import BOT_TOKEN
 from agent_prompts import DEFAULT_PROMPT, SANDBOX_PROMPT, AGENT_PROMPT, SUMMARY_PROMPT
@@ -48,7 +48,7 @@ def settings():
     return render_template('settings.html')
 
 # ==========================================
-# ✅ GitHub OAuth 登录
+# GitHub OAuth 登录
 # ==========================================
 oauth.register(
     name='github',
@@ -145,8 +145,38 @@ def logout():
 def admin_dashboard():
     if not current_user.is_authenticated or not current_user.is_admin:
         return "无权访问，请使用管理员密码登录", 403
+    
+    from datetime import datetime, date
+    from sqlalchemy import func, distinct
+
+    today = date.today()
+    
+    # 1. 访问量统计 (PV)
+    total_visits = VisitLog.query.count()
+    today_visits = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).count()
+    
+    # 2. 独立访客统计 (UV)
+    total_uv = VisitLog.query.distinct(VisitLog.ip_address).count()
+    today_uv = VisitLog.query.filter(func.date(VisitLog.visited_at) == today).distinct(VisitLog.ip_address).count()
+    
+    # 3. 用户统计
+    total_users = User.query.count()
+    today_registered = User.query.filter(func.date(User.created_at) == today).count()
+    
+    # 4. 最近登录的活跃用户 (取前8名)
+    recent_active_users = User.query.filter(User.last_login != None).order_by(User.last_login.desc()).limit(8).all()
+    
     users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/dashboard.html', users=users)
+    
+    return render_template('admin/dashboard.html', 
+                           users=users,
+                           total_visits=total_visits,
+                           today_visits=today_visits,
+                           total_uv=total_uv,
+                           today_uv=today_uv,
+                           total_users=total_users,
+                           today_registered=today_registered,
+                           recent_active_users=recent_active_users)
 
 @main_bp.route('/workspace')
 def workspace():
@@ -196,7 +226,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口（保持不变）
+# AI 接口
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
@@ -369,7 +399,7 @@ def register():
     account = request.form.get('email')
     code = request.form.get('code')
     
-    # ✅ 超级管理员后门：在验证码框里输入 121100 即可。
+    # 超级管理员后门：在验证码框里输入 121100 即可。
     if code == "121100":
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
