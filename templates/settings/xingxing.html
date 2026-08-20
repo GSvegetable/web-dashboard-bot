@@ -1,4 +1,3 @@
-{% if current_user.is_authenticated %}
 <style>
     /* From Uiverse.io by Thomas-Cabrit */
     .card-6 {
@@ -25,31 +24,23 @@
     }
 
     @keyframes card6-wobble {
-        0% {
-            transform: rotateX(16deg) rotateY(-18deg);
-        }
-        50% {
-            transform: rotateX(18deg) rotateY(18deg);
-        }
-        100% {
-            transform: rotateX(16deg) rotateY(-18deg);
-        }
+        0% { transform: rotateX(16deg) rotateY(-18deg); }
+        50% { transform: rotateX(18deg) rotateY(18deg); }
+        100% { transform: rotateX(16deg) rotateY(-18deg); }
     }
 
     .card-6__layer {
         position: absolute;
         font-weight: 900;
-        font-size: 84px;
-        letter-spacing: -4px;
+        font-size: 70px; /* 稍微缩小字体，防止5位数字撑破盒子 */
+        letter-spacing: -2px;
         line-height: 1;
         width: 100%;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-
         -webkit-text-stroke: 1px rgba(0, 123, 255, 0.7);
-
         background: linear-gradient(
             90deg,
             rgba(0, 123, 255, 0.18) 0%,
@@ -60,7 +51,6 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-
         filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
         opacity: 0.95;
         transform-style: preserve-3d;
@@ -122,19 +112,15 @@
             height: 120px;
             border-radius: 24px;
         }
-        .card-6__layer {
-            font-size: 72px;
-            letter-spacing: -3px;
-        }
+        .card-6__layer { font-size: 56px; letter-spacing: -1px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .card-6__holo {
-            animation: none !important;
-        }
+        .card-6__holo { animation: none !important; }
     }
 </style>
 
+<!-- ✅ 去掉包在外层的 {% if %} 判断，强制渲染 -->
 <div class="mb-6 animate-item delay-4">
     <label class="gh-label">星星储备</label>
 
@@ -150,4 +136,3 @@
         </div>
     </div>
 </div>
-{% endif %}
