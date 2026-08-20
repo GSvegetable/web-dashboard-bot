@@ -34,7 +34,7 @@
     .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
     .bot-repo-card:active { transform: scale(0.98); }
 
-    /* ✅ 核心修改：名字改回普通文本，超出显示省略号，不再跑马灯 */
+    /* 名字普通省略号 */
     .bot-repo-name {
         flex: 1;
         min-width: 0;
@@ -57,7 +57,7 @@
     }
     .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
 
-    /* Token 跑马灯保留 */
+    /* Token 跑马灯 */
     .bot-repo-marquee {
         flex: 1;
         min-width: 0;
@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var card = document.createElement('div');
             card.className = 'bot-repo-card';
 
-            // ✅ 第1行：名字 - 只使用 div，无跑马灯
             var nameDiv = document.createElement('div');
             nameDiv.className = 'bot-repo-name';
             var nameText = c.name || '未命名';
