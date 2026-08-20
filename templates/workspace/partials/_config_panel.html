@@ -11,23 +11,23 @@
 
     <!-- ✅ 添加面板弹出卡片 -->
     <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden">
-        <!-- 外层蒙版允许点击 -->
         <div id="modalWrapper" class="w-[360px] max-w-[calc(100vw-48px)] origin-top">
-            <!-- 毛玻璃卡片 + 表单 -->
             <div class="glass-card p-6 cursor-auto">
                 <div class="w-full flex flex-col gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
-                        <input id="addPanelIdInput" type="text" placeholder="请输入你的 ID" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-white/70 text-sm font-medium tracking-wide">机器人名称</label>
-                        <input id="addPanelNameInput" type="text" placeholder="请输入机器人名称" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                    </div>
+                    
+                    <!-- 字段 1：机器人Token -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">机器人Token</label>
                         <input id="addPanelTokenInput" type="text" placeholder="请输入 Bot Token" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" onblur="autoFetchBotInfo()" />
                     </div>
+
+                    <!-- 字段 2：机器人代号 -->
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">机器人代号</label>
+                        <input id="addPanelCodeInput" type="text" placeholder="请输入机器人代号 (如: bot01)" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
+
+                    <!-- 底部：双按钮布局 -->
                     <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
                         <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">自动补齐</button>
                         <button onclick="createPanel()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">创建</button>
@@ -79,8 +79,7 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        let isModalOpening = false; // ✅ 弹窗打开防抖锁
-
+        let isModalOpening = false;
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
@@ -105,8 +104,6 @@
             const wrapper = document.getElementById('modalWrapper');
             if (!modal || !wrapper) return;
             if (!modal.classList.contains('hidden')) { closeAddPanel(); return; }
-            
-            // ✅ 打开锁：防止打开瞬间立即被全局点击监听误关闭
             isModalOpening = true;
             modal.classList.remove('hidden');
             wrapper.classList.remove('animate-in', 'animate-out');
@@ -114,14 +111,11 @@
             setTimeout(() => {
                 wrapper.style.opacity = '';
                 wrapper.classList.add('animate-in');
-                // 解锁
                 setTimeout(() => { isModalOpening = false; }, 250);
             }, 40);
         };
 
-        // 自动补齐（静默失败）
         window.autoFillClipboard = function() {
-            const idInput = document.getElementById('addPanelIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
             if (!navigator.clipboard) return;
             navigator.clipboard.readText().then(text => {
@@ -132,8 +126,6 @@
                         if (!trimmed) return;
                         if (/^\d+:[A-Za-z0-9_-]+$/.test(trimmed)) {
                             if (!tokenInput.value) { tokenInput.value = trimmed; autoFetchBotInfo(); }
-                        } else if (/^\d{5,15}$/.test(trimmed)) {
-                            if (!idInput.value) idInput.value = trimmed;
                         }
                     });
                 }
@@ -142,7 +134,6 @@
 
         function autoFetchBotInfo() {
             const tokenInput = document.getElementById('addPanelTokenInput');
-            const nameInput = document.getElementById('addPanelNameInput');
             const token = tokenInput.value.trim();
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) return;
             fetch('/api/bind_bot', { 
@@ -151,35 +142,58 @@
                 body: JSON.stringify({ token: token, telegram_id: '000000', name: '临时获取' }) 
             })
             .then(res => res.json())
-            .then(data => { if (data.ok && data.bot_name && !nameInput.value) { nameInput.value = data.bot_name; } })
+            .then(data => { if (data.ok && data.bot_name) { /* 名字可立刻获取，但最终由 createPanel 保存 */ } })
             .catch(() => { /* 静默 */ });
         }
 
         function markInvalid(input) { if(!input)return; input.style.borderColor='rgba(239,68,68,0.8)'; input.style.boxShadow='0 0 10px rgba(239,68,68,0.3)'; input.focus(); }
         function clearInvalid(input) { if(!input)return; input.style.borderColor=''; input.style.boxShadow=''; }
 
+        // ✅ 核心修改：只保留 Token 和 代号，自动拉取名字、ID和用户名
         window.createPanel = function() {
-            const idInput = document.getElementById('addPanelIdInput');
-            const nameInput = document.getElementById('addPanelNameInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
-            const idVal = idInput.value.trim(); const nameVal = nameInput.value.trim(); const tokenVal = tokenInput.value.trim();
+            const codeInput = document.getElementById('addPanelCodeInput');
+            const tokenVal = tokenInput.value.trim();
+            const codeVal = codeInput.value.trim();
 
-            if (!nameVal) { markInvalid(nameInput); if(typeof showTopToast==='function') showTopToast('请填写机器人名称。'); return; }
-            clearInvalid(nameInput);
-            if (!idVal) { markInvalid(idInput); if(typeof showTopToast==='function') showTopToast('请填写你的 ID（纯数字）。'); return; }
-            if (!/^\d{5,15}$/.test(idVal)) { markInvalid(idInput); if(typeof showTopToast==='function') showTopToast('ID 格式不正确，应为 5~15 位纯数字。'); return; }
-            clearInvalid(idInput);
             if (!tokenVal) { markInvalid(tokenInput); if(typeof showTopToast==='function') showTopToast('请填写机器人 Token。'); return; }
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(tokenVal)) { markInvalid(tokenInput); if(typeof showTopToast==='function') showTopToast('Token 格式不正确。'); return; }
             clearInvalid(tokenInput);
+            if (!codeVal) { markInvalid(codeInput); if(typeof showTopToast==='function') showTopToast('请填写机器人代号。'); return; }
+            clearInvalid(codeInput);
 
-            let cards = [];
-            try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
-            cards.push({ id: idVal, name: nameVal, token: tokenVal });
-            localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
-            idInput.value = ''; nameInput.value = ''; tokenInput.value = '';
-            closeAddPanel();
-            if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
+            // 向服务器请求机器人详细信息（名字、ID、用户名）
+            fetch('/api/bind_bot', { 
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ token: tokenVal, telegram_id: '000000', name: '获取信息' }) 
+            })
+            .then(res => res.json())
+            .then(data => {
+                let cards = [];
+                try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
+                cards.push({ 
+                    token: tokenVal, 
+                    code: codeVal, 
+                    name: data.ok ? data.bot_name : '未命名', 
+                    id: data.ok && data.bot_id ? data.bot_id : '', 
+                    username: data.ok && data.bot_username ? data.bot_username : '' 
+                });
+                localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
+                tokenInput.value = ''; codeInput.value = '';
+                closeAddPanel();
+                if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
+            })
+            .catch(() => {
+                // 即使网络错误，也把 Token 和代号先存进去，名字填"未命名"
+                let cards = [];
+                try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards')) || []; } catch(e) { cards = []; }
+                cards.push({ token: tokenVal, code: codeVal, name: '未命名', id: '', username: '' });
+                localStorage.setItem(window.BOT_REPO_KEY || 'gsbot_bot_repo_cards', JSON.stringify(cards));
+                tokenInput.value = ''; codeInput.value = '';
+                closeAddPanel();
+                if (typeof window.renderBotRepo === 'function') window.renderBotRepo();
+            });
         };
     </script>
 </div>
