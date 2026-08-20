@@ -48,7 +48,7 @@ def settings():
     return render_template('settings.html')
 
 # ==========================================
-# GitHub OAuth 登录
+# GitHub OAuth 登录 (修复硬编码)
 # ==========================================
 oauth.register(
     name='github',
@@ -62,7 +62,9 @@ oauth.register(
 
 @main_bp.route('/login/github')
 def login_github():
-    redirect_uri = 'https://xn--3bts89a.com/auth/github/callback'
+    # ✅ 从环境变量读取 BASE_URL，防止硬编码域名失效
+    base_url = os.getenv('BASE_URL', 'https://xn--3bts89a.com')
+    redirect_uri = f"{base_url}/auth/github/callback"
     return oauth.github.authorize_redirect(redirect_uri)
 
 @main_bp.route('/auth/github/callback')
@@ -174,9 +176,6 @@ def admin_dashboard():
                            today_registered=today_registered,
                            recent_active_users=recent_active_users)
 
-# ==========================================
-# ✅ 新增：管理员赠送星星接口
-# ==========================================
 @main_bp.route('/api/admin/add_stars', methods=['POST'])
 def admin_add_stars():
     if not current_user.is_authenticated or not current_user.is_admin:
@@ -200,12 +199,10 @@ def admin_add_stars():
     if not user:
         return jsonify({'ok': False, 'msg': '用户不存在'})
     
-    # 更新余额
     before_balance = user.stars
     user.stars += amount
     db.session.commit()
     
-    # 记录交易流水
     tx = Transaction(
         user_id=user.id,
         amount=amount,
@@ -218,9 +215,6 @@ def admin_add_stars():
     
     return jsonify({'ok': True, 'new_balance': user.stars})
 
-# ==========================================
-# (后续路由保持不变...)
-# ==========================================
 @main_bp.route('/workspace')
 def workspace():
     return render_template('workspace/workspace.html')
@@ -269,7 +263,7 @@ def execute_bind_bot(token, chat_id, name='宫水编辑器'):
     except Exception as e: return {"ok": False, "msg": f"执行异常: {str(e)}"}
 
 # ==========================================
-# AI 接口 (保持原样)
+# AI 接口 (无变化)
 # ==========================================
 DS_MODEL_MAP = {'discussion': 'deepseek-chat', 'agent': 'deepseek-chat'}
 DS_API_BASE = "https://xh.v1api.cc/v1/chat/completions"
@@ -442,10 +436,14 @@ def register():
     account = request.form.get('email')
     code = request.form.get('code')
     
-    if code == "121100":
+    # ✅【重大安全升级】原硬编码 121100 已废除，改为读取环境变量 ADMIN_SECRET_KEY
+    # 请在宝塔环境变量中添加：ADMIN_SECRET_KEY=你自定义的复杂密码
+    ADMIN_SECRET_KEY = os.getenv('ADMIN_SECRET_KEY')
+    
+    if code == ADMIN_SECRET_KEY:
         admin_user = User.query.filter_by(is_admin=True).first()
         if not admin_user:
-            admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash("121100"), is_admin=True)
+            admin_user = User(email="admin@gsbot.local", password_hash=generate_password_hash(ADMIN_SECRET_KEY), is_admin=True)
             db.session.add(admin_user)
             db.session.commit()
         admin_user.last_login = datetime.utcnow()
@@ -491,6 +489,9 @@ def register():
 @main_bp.route('/tg_webhook', methods=['POST'])
 def tg_webhook():
     data = request.get_json()
+    # ✅ 防御：防止恶意空数据轰炸
+    if not data:
+        return "Bad Request", 400
     if 'message' in data:
         msg = data['message']; chat_id = str(msg['chat']['id']); text = msg.get('text', '')
         if text.startswith('/start qr_'):
