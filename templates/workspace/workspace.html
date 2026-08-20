@@ -3,25 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>开发工作台 - gsbot</title>
+    <title>机器人仓库 - gsbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
-    {% include 'workspace/partials/_styles.html' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/warehouse.css') }}">
+    <style>
+        .top-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 6px 14px; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; user-select: none; outline: none; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 6px; }
+        .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
+
+        /* ✅ 黑卡菜单 - 纯独立 */
+        #botActionMenu {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            display: none; align-items: center; justify-content: center;
+        }
+        #botActionMenu .menu-card {
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 16px; padding: 16px; width: 220px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        #botActionMenu .menu-card button {
+            background: transparent; border: none; color: #c9d1d9;
+            padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+            text-align: left; transition: all 0.15s; cursor: pointer;
+            width: 100%;
+        }
+        #botActionMenu .menu-card button:hover { background: rgba(255, 255, 255, 0.08); }
+        #botActionMenu .menu-card button.danger { color: #f85149; }
+        #botActionMenu .menu-card button.danger:hover { background: rgba(248, 81, 73, 0.15); }
+        #botActionMenu .menu-card hr { border: 0; border-top: 1px solid #30363d; margin: 4px 0; }
+    </style>
 </head>
 <body>
-    {% include 'workspace/partials/_top_btns.html' %}
-
-    <div class="flex w-screen h-screen">
-        {% include 'workspace/partials/_config_panel.html' %}
-        {% include 'workspace/partials/_canvas.html' %}
-        {% include 'workspace/partials/_preview.html' %}
+    
+    <!-- ✅ 黑色操作菜单卡片 -->
+    <div id="botActionMenu" onclick="closeBotActionMenu(event)">
+        <div class="menu-card" onclick="event.stopPropagation()">
+            <button onclick="deleteCurrentBot()" class="danger">🗑️ 删除 bot</button>
+            <button onclick="copyCurrentBot()">📋 复制 bot</button>
+            <hr>
+            <button onclick="window.location.href='/'">🚪 退出工作台</button>
+        </div>
     </div>
 
-    {% include 'workspace/partials/_ctx_menu.html' %}
+    <div class="left-panel-wrapper">
+        <div class="top-box">
+            <div class="flex justify-start items-center w-full h-full pl-2">
+                <span class="text-white text-sm font-medium tracking-wider">仓库管理</span>
+            </div>
+        </div>
 
-    <!-- ✨ 核心修改：这行已经被删除了，现在只走 partials/_scripts.html -->
-    {% include 'components/agent_action_panel.html' %}
-    {% include 'workspace/partials/_scripts.html' %}
+        <div class="bottom-box" id="mainBox" onclick="if(event.target===this) closeBotActionMenu(event)">
+            
+            <button onclick="window.location.href='/'" class="absolute bottom-4 right-4 z-10 top-btn bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] text-white hover:bg-[rgba(255,255,255,0.15)] shadow-md">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                返回主页
+            </button>
+
+            <div class="empty-state" id="emptyState">
+                <div class="text-center flex flex-col items-center gap-2">
+                    <span class="text-4xl mb-1">🏚️</span>
+                    <span class="text-gray-500 text-base">仓库空空如也</span>
+                    <span class="text-gray-400 text-xs">点击右上角「添加bot」开始创建</span>
+                </div>
+            </div>
+
+            <div id="treeContainer" class="tree-container hidden w-full h-full overflow-auto">
+                <div class="file-tree-accordion open">
+                    <div class="file-tree-content"></div>
+                </div>
+            </div>
+
+            <div class="login-form-container" id="loginFormContainer">
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+            var oldMenu = document.getElementById('ctxMenu');
+            if (oldMenu) { oldMenu.parentNode.removeChild(oldMenu); }
+            
+            // ✅ 页面加载时自动渲染卡片
+            renderBotRepo();
+        });
+
+        // ==========================================
+        // 仓库卡片与纯黑菜单逻辑（完整版）
+        // ==========================================
+        window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
+        let currentBotActionIndex = null;
+
+        function renderBotRepo() {
+            var grid = document.getElementById('botRepoGrid');
+            var empty = document.getElementById('botRepoEmpty');
+            if (!grid) return;
+            
+            var cards = [];
+            try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
+            
+            if (cards.length === 0) { 
+                if (empty) empty.style.display = 'block'; 
+                grid.innerHTML = ''; 
+                return; 
+            }
+            
+            if (empty) empty.style.display = 'none';
+            grid.innerHTML = ''; // 清空容器
+
+            // ✅ 循环生成每一个机器人卡片
+            cards.forEach(function(c, index) {
+                var card = document.createElement('div');
+                card.className = 'bot-repo-card cursor-pointer';
+                card.dataset.index = index;
+
+                // ✅ 触发黑菜单
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    showBotActionMenu(index);
+                };
+
+                // 1. 名字（已取消跑马灯）
+                var nameDiv = document.createElement('div');
+                nameDiv.className = 'bot-repo-name';
+                var nameText = c.name || '未命名';
+                if (c.code) nameText += ' (' + c.code + ')';
+                nameDiv.textContent = nameText;
+                card.appendChild(nameDiv);
+
+                // 2. ID
+                var idLine = document.createElement('div');
+                idLine.className = 'bot-repo-line';
+                var idLabel = document.createElement('span');
+                idLabel.className = 'bot-repo-label';
+                idLabel.textContent = 'ID';
+                idLine.appendChild(idLabel);
+                var idVal = document.createElement('span');
+                idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                idVal.textContent = c.id || '';
+                idLine.appendChild(idVal);
+                card.appendChild(idLine);
+
+                // 3. User
+                var usernameLine = document.createElement('div');
+                usernameLine.className = 'bot-repo-line';
+                var userLabel = document.createElement('span');
+                userLabel.className = 'bot-repo-label';
+                userLabel.textContent = 'User';
+                usernameLine.appendChild(userLabel);
+                var userVal = document.createElement('span');
+                userVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                userVal.textContent = c.username ? '@' + c.username : '无';
+                usernameLine.appendChild(userVal);
+                card.appendChild(usernameLine);
+
+                // 4. Token（跑马灯保留）
+                var tokenLine = document.createElement('div');
+                tokenLine.className = 'bot-repo-line';
+                var tokenLabel = document.createElement('span');
+                tokenLabel.className = 'bot-repo-label';
+                tokenLabel.textContent = 'Token';
+                tokenLine.appendChild(tokenLabel);
+
+                var marquee = document.createElement('div');
+                marquee.className = 'bot-repo-marquee';
+                var track = document.createElement('span');
+                track.className = 'bot-repo-track';
+                var tokenStr = c.token || '';
+                track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
+                marquee.appendChild(track);
+                tokenLine.appendChild(marquee);
+                card.appendChild(tokenLine);
+
+                // 加入网格
+                grid.appendChild(card);
+
+                // 检测 Token 是否超长，触发跑马灯
+                requestAnimationFrame(function() {
+                    if (track.scrollWidth > marquee.clientWidth + 1) {
+                        track.classList.add('marquee-run');
+                    }
+                });
+            });
+        }
+
+        // 显示菜单
+        function showBotActionMenu(index) {
+            currentBotActionIndex = index;
+            document.getElementById('botActionMenu').style.display = 'flex';
+        }
+
+        // 点击背景关闭菜单
+        function closeBotActionMenu(e) {
+            if (e && e.target === e.currentTarget) {
+                document.getElementById('botActionMenu').style.display = 'none';
+                currentBotActionIndex = null;
+            }
+        }
+
+        // 删除当前 bot
+        function deleteCurrentBot() {
+            if (currentBotActionIndex === null) return;
+            var cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || [];
+            if (currentBotActionIndex >= 0 && currentBotActionIndex < cards.length) {
+                cards.splice(currentBotActionIndex, 1);
+                localStorage.setItem(window.BOT_REPO_KEY, JSON.stringify(cards));
+                renderBotRepo();
+            }
+            document.getElementById('botActionMenu').style.display = 'none';
+            currentBotActionIndex = null;
+        }
+
+        // 复制当前 bot
+        function copyCurrentBot() {
+            if (currentBotActionIndex === null) return;
+            var cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || [];
+            if (currentBotActionIndex >= 0 && currentBotActionIndex < cards.length) {
+                var original = cards[currentBotActionIndex];
+                var copy = JSON.parse(JSON.stringify(original));
+                copy.id = (parseInt(original.id) + 1) + '';
+                cards.push(copy);
+                localStorage.setItem(window.BOT_REPO_KEY, JSON.stringify(cards));
+                renderBotRepo();
+            }
+            document.getElementById('botActionMenu').style.display = 'none';
+            currentBotActionIndex = null;
+        }
+
+        function addWarehouse() {
+            if (typeof window.addPanel === 'function') {
+                window.addPanel();
+            } else {
+                const name = prompt("请输入新仓库的名称：");
+                if (name && name.trim() !== "") {}
+            }
+        }
+    </script>
 </body>
 </html>
