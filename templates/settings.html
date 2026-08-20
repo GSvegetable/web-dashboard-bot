@@ -8,37 +8,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
-        /* ==========================================
-           背景纹理
-           ========================================== */
-        .bg-container {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #777777 2px, transparent 2px),
-              radial-gradient(circle, #eaeaea 10px, transparent 32px),
-              linear-gradient(-45deg, #eaeaea 0%, transparent 49%, transparent 50%, transparent 51%, #eaeaea 100%),
-              linear-gradient(45deg, #eaeaea 0%, transparent 49%, #777777 50%, transparent 51%, #eaeaea 100%),
-              linear-gradient(-45deg, transparent 49%, #777777 50%, transparent 51%);
-            background-size: 8rem 8rem; background-repeat: repeat;
-        }
-        .bg-paper {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            filter: url(#void-texture);
-            background: linear-gradient(to bottom, rgba(194, 167, 87, 0.241) 0%, rgba(162, 125, 55, 0.255) 100%);
-            background-size: cover;
-        }
+        .bg-container { position: absolute; inset: 0; width: 100%; height: 100%; background: radial-gradient(circle, #777777 2px, transparent 2px), radial-gradient(circle, #eaeaea 10px, transparent 32px), linear-gradient(-45deg, #eaeaea 0%, transparent 49%, transparent 50%, transparent 51%, #eaeaea 100%), linear-gradient(45deg, #eaeaea 0%, transparent 49%, #777777 50%, transparent 51%, #eaeaea 100%), linear-gradient(-45deg, transparent 49%, #777777 50%, transparent 51%); background-size: 8rem 8rem; background-repeat: repeat; }
+        .bg-paper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: url(#void-texture); background: linear-gradient(to bottom, rgba(194, 167, 87, 0.241) 0%, rgba(162, 125, 55, 0.255) 100%); background-size: cover; }
         body { background: transparent !important; }
         .settings-content-wrapper { position: relative; z-index: 10; }
 
-        /* 导航栏、菜单、通用样式 */
         .gh-sidebar-item {
-            display: flex; align-items: center; gap: 12px;
-            width: 100%; padding: 6px 12px; border-radius: 6px;
-            color: #c9d1d9; text-decoration: none; font-size: 14px;
-            transition: background-color 0.2s; cursor: pointer;
+            display: flex; align-items: center; gap: 12px; width: 100%; padding: 6px 12px; border-radius: 6px;
+            color: #c9d1d9; text-decoration: none; font-size: 14px; transition: background-color 0.2s;
             background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(4px);
         }
         .gh-sidebar-item:hover { background-color: rgba(255, 255, 255, 0.05); }
-        .gh-sidebar-item.active { background-color: rgba(255, 255, 255, 0.08); font-weight: 600; }
+        /* ✅ 核心修改：选中时全透明 */
+        .gh-sidebar-item.active { background-color: transparent !important; font-weight: 600; }
         .gh-sidebar-item svg { width: 16px; height: 16px; flex-shrink: 0; fill: #8b949e; }
         .gh-sidebar-item:hover svg { fill: #c9d1d9; }
 
@@ -51,34 +33,22 @@
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #8b949e; }
 
-        @media (max-width: 768px) {
-            .settings-container { flex-direction: column !important; gap: 24px; }
-            .settings-sidebar { width: 100% !important; }
-            .settings-grid { grid-template-columns: 1fr !important; }
-        }
-
+        @media (max-width: 768px) { .settings-container { flex-direction: column !important; gap: 24px; } .settings-sidebar { width: 100% !important; } }
         #avatarModal .cropper-container { width: 100%; height: 100%; }
         #avatarModal .cropper-view-box { border-radius: 50%; }
-
         .animate-item { opacity: 0; transform: translateY(18px); animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
         .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.10s; } .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.20s; } .delay-5 { animation-delay: 0.25s; } .delay-6 { animation-delay: 0.30s; } .delay-7 { animation-delay: 0.35s; } .delay-8 { animation-delay: 0.40s; }
-
         .perspective-800 { perspective: 800px; transform-style: preserve-3d; }
-        .digit { display: inline-block; transform-style: preserve-3d; backface-visibility: hidden; transform: rotateX(0deg); opacity: 0; }
+        .digit { display: inline-block; transform-style: preserve-3d; backface-visibility: hidden; transform: rotateX(0deg); opacity: 0; will-change: transform, opacity; }
         .spin-animate { animation: spinVertical 1s cubic-bezier(0.0, 0.0, 0.2, 1) forwards; }
         @keyframes spinVertical { 0% { transform: rotateX(0deg) scale(0.8); opacity: 0.2; } 100% { transform: rotateX(360deg) scale(1); opacity: 1; } }
-
-        .gh-note { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.65); margin-top: 4px; }
     </style>
 </head>
 <body>
-    
-    <!-- 纹理背景 -->
     <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;">
         <div class="bg-container"></div>
         <div class="bg-paper">
-            <span class="orbit-overlay"></span>
             <svg class="texture-filter" style="position: absolute; width: 0; height: 0;">
                 <filter id="void-texture">
                     <feTurbulence seed="5" result="noise1" numOctaves="8" baseFrequency="0.015" type="fractalNoise"></feTurbulence>
@@ -95,9 +65,7 @@
         </div>
     </div>
 
-    <!-- 设置内容 -->
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item settings-content-wrapper">
-        
         <!-- 左侧导航 -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
@@ -111,38 +79,49 @@
             </div>
 
             <nav class="flex flex-col gap-1" id="sidebarNav">
-                <a href="#" class="gh-sidebar-item active" data-target="profile"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>个人资料</a>
-                <a href="#" class="gh-sidebar-item" data-target="stars"><svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>星星</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
+                <!-- ✅ 所有链接改成真实的跳转路由 -->
+                <a href="/settings/profile" class="gh-sidebar-item {% if active_page == 'profile' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>个人资料</a>
+                <a href="/settings/stars" class="gh-sidebar-item {% if active_page == 'stars' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>星星</a>
+                <a href="/settings/appearance" class="gh-sidebar-item {% if active_page == 'appearance' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M0 8a8 8 0 1016 0A8 8 0 000 8zm8 6.5c-3.58 0-6.5-2.92-6.5-6.5S4.42 1.5 8 1.5 14.5 4.42 14.5 8 11.58 14.5 8 14.5zM7 4h2v6H7V4zm0 7h2v2H7v-2z"/></svg>外观</a>
+                <a href="/settings/accessibility" class="gh-sidebar-item {% if active_page == 'accessibility' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</a>
+                <a href="/settings/notifications" class="gh-sidebar-item {% if active_page == 'notifications' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</a>
                 <hr class="gh-divider">
-                <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">Access</div>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>账单与许可</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>邮箱</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>密码和身份验证</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>会话</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>SSH 和 GPG 密钥</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>凭据</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>组织</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>企业</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>审核</a>
+                <!-- ✅ 小标题改为纯白色 text-white -->
+                <div class="text-xs font-semibold text-white px-2 py-1 mt-1">Access</div>
+                <a href="/settings/billing" class="gh-sidebar-item {% if active_page == 'billing' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>账单与许可</a>
+                <a href="/settings/email" class="gh-sidebar-item {% if active_page == 'email' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>邮箱</a>
+                <a href="/settings/password" class="gh-sidebar-item {% if active_page == 'password' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>密码和身份验证</a>
+                <a href="/settings/sessions" class="gh-sidebar-item {% if active_page == 'sessions' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>会话</a>
+                <a href="/settings/keys" class="gh-sidebar-item {% if active_page == 'keys' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>SSH 和 GPG 密钥</a>
+                <a href="/settings/credentials" class="gh-sidebar-item {% if active_page == 'credentials' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>凭据</a>
+                <a href="/settings/organizations" class="gh-sidebar-item {% if active_page == 'organizations' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>组织</a>
+                <a href="/settings/enterprises" class="gh-sidebar-item {% if active_page == 'enterprises' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>企业</a>
+                <a href="/settings/moderation" class="gh-sidebar-item {% if active_page == 'moderation' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>审核</a>
                 <hr class="gh-divider">
-                <div class="text-xs font-semibold text-[#8b949e] px-2 py-1 mt-1">代码，规划和自动化</div>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>仓库</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>Codespaces</a>
-                <a href="#" class="gh-sidebar-item"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>软件包</a>
+                <div class="text-xs font-semibold text-white px-2 py-1 mt-1">代码，规划和自动化</div>
+                <a href="/settings/repositories" class="gh-sidebar-item {% if active_page == 'repositories' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>仓库</a>
+                <a href="/settings/codespaces" class="gh-sidebar-item {% if active_page == 'codespaces' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>Codespaces</a>
+                <a href="/settings/packages" class="gh-sidebar-item {% if active_page == 'packages' %}active{% endif %}"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>软件包</a>
             </nav>
         </aside>
 
         <!-- 右侧：通过子文件引入 -->
         <main class="flex-1 min-w-0">
+            {% if active_page == 'profile' %}
             <div id="panel-profile" class="panel-content animate-item delay-1">
                 {% include 'settings/gerenziliao.html' %}
             </div>
-            <div id="panel-stars" class="panel-content hidden animate-item delay-1">
+            {% elif active_page == 'stars' %}
+            <div id="panel-stars" class="panel-content animate-item delay-1">
                 {% include 'settings/xingxing.html' %}
             </div>
+            {% else %}
+            <!-- ✅ 其他菜单点击后的空状态占位 -->
+            <div class="panel-content animate-item delay-1 flex items-center justify-center h-64 text-gray-400 text-lg flex-col">
+                <span class="text-4xl mb-2">🚧</span>
+                <span>此页面正在建设中，敬请期待...</span>
+            </div>
+            {% endif %}
         </main>
     </div>
 
@@ -160,64 +139,10 @@
         </div>
     </div>
 
-    <!-- 3D 星星卡片 CSS -->
-    <style>
-        #starToggleCard3D {
-            width: 180px; height: 56px; padding: 0 14px;
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px;
-            position: relative; transform-style: preserve-3d; backface-visibility: hidden;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer;
-            display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-        }
-        #starToggleCard3D.is-active { transform: translateZ(10px) rotateX(8deg) rotateY(12deg); }
-        #starToggleCard3D .avatar {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;
-            flex-shrink: 0; transform-style: preserve-3d; backface-visibility: hidden;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #starToggleCard3D.is-active .avatar { transform: translateZ(200px) translateX(10px) translateY(-4px); }
-        #starToggleCard3D .text-box {
-            flex: 1; pointer-events: none; transform-style: preserve-3d; backface-visibility: hidden;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        #starToggleCard3D.is-active .text-box { transform: translateZ(200px) translateX(20px) translateY(-4px); }
-    </style>
-
     <!-- JS 逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const menuItems = document.querySelectorAll('#sidebarNav .gh-sidebar-item');
-            const panels = { profile: document.getElementById('panel-profile'), stars: document.getElementById('panel-stars') };
-            menuItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault(); const target = this.dataset.target;
-                    if (!target || !panels[target]) return;
-                    menuItems.forEach(m => m.classList.remove('active')); this.classList.add('active');
-                    Object.keys(panels).forEach(key => { panels[key].classList.toggle('hidden', key !== target); });
-                    if (target === 'stars') {
-                        setTimeout(() => {
-                            document.querySelectorAll('#stars-display .digit').forEach(el => {
-                                el.classList.remove('spin-animate'); void el.offsetWidth; el.classList.add('spin-animate');
-                            });
-                        }, 250);
-                    }
-                });
-            });
-
-            const card3d = document.getElementById('starToggleCard3D');
-            if (card3d) {
-                card3d.addEventListener('click', function(e) { e.stopPropagation(); this.classList.toggle('is-active'); });
-                document.addEventListener('click', function(e) {
-                    if (!card3d.contains(e.target) && card3d.classList.contains('is-active')) {
-                        card3d.classList.remove('is-active');
-                    }
-                });
-            }
-
+            // 头像上传裁剪逻辑
             const editBtn = document.getElementById('editAvatarBtn'); const avatarInput = document.getElementById('avatarInput');
             const modal = document.getElementById('avatarModal'); const cropperImg = document.getElementById('avatarCropperImg');
             const cancelBtn = document.getElementById('cancelCropBtn'); const confirmBtn = document.getElementById('confirmCropBtn');
@@ -242,13 +167,4 @@
                 const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
                 canvas.toBlob(function(blob) {
                     const url = URL.createObjectURL(blob);
-                    if(profileImg) { profileImg.src = url; profileImg.style.display = 'block'; if(placeholder) placeholder.style.display = 'none'; }
-                    modal.classList.add('hidden'); cropper.destroy(); avatarInput.value = '';
-                    alert('✅ 头像已更新！（目前为前端预览，刷新页面后将恢复。永久保存需等待后续后端接口）');
-                });
-            });
-            if(modal) modal.addEventListener('click', function(e) { if (e.target === modal && cancelBtn) cancelBtn.click(); });
-        });
-    </script>
-</body>
-</html>
+                    if(profileImg) { profileImg
