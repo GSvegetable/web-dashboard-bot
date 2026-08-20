@@ -1,4 +1,4 @@
-<!-- ✅ 星星余额：使用与下方表单完全一致的 gh-label，对齐和样式绝对统一 -->
+<!-- ✅ 星星余额：只保留标签和数字，删掉了下方充值区和按钮 -->
 <div class="mb-6 animate-item delay-4">
     <label class="gh-label">星星储备</label>
     <div id="stars-display" class="flex items-center gap-0.5 text-8xl font-black text-white perspective-800 tracking-tight mt-2">
@@ -9,39 +9,3 @@
         {% endfor %}
     </div>
 </div>
-
-<!-- 选择充值金额 -->
-<div class="mb-6 animate-item delay-5">
-    <label class="gh-label">选择充值金额</label>
-    <div class="flex flex-wrap gap-3">
-        <button class="stars-amount-btn selected" data-amount="10">10 颗</button>
-        <button class="stars-amount-btn" data-amount="50">50 颗</button>
-        <button class="stars-amount-btn" data-amount="100">100 颗</button>
-        <button class="stars-amount-btn" data-amount="500">500 颗</button>
-    </div>
-</div>
-
-<!-- 支付方式 -->
-<div class="mb-6 animate-item delay-6">
-    <label class="gh-label">选择支付方式</label>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <button class="payment-method-btn selected">
-            <span class="text-2xl">💳</span> <span>OKpay</span>
-        </button>
-        <button class="payment-method-btn">
-            <span class="text-2xl">💚</span> <span>微信</span>
-        </button>
-        <button class="payment-method-btn">
-            <span class="text-2xl">💙</span> <span>支付宝</span>
-        </button>
-        <button class="payment-method-btn">
-            <span class="text-2xl">₮</span> <span>USDT</span>
-        </button>
-    </div>
-</div>
-
-<!-- 立即充值按钮 -->
-<button class="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-semibold rounded-lg transition active:scale-95 shadow-md animate-item delay-7">
-    立即充值
-</button>
-<p class="text-xs text-[#8b949e] text-center mt-2 animate-item delay-8">充值后星星将自动到账，如有问题请联系客服</p>
