@@ -9,14 +9,14 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 添加面板弹出卡片（点击背景自动关闭） -->
-    <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden pointer-events-none" onclick="closeAddPanelIfOutside(event)">
-        <div id="modalWrapper" class="pointer-events-auto w-[360px] max-w-[calc(100vw-48px)] origin-top">
-            <!-- 毛玻璃卡片 + 表单 -->
-            <div class="glass-card p-6">
+    <!-- ✅ 添加面板弹出卡片：点击背景自动关闭（修复 pointer-events 失效问题） -->
+    <div id="customAddPanelModal" class="fixed top-[85px] right-[32px] z-[9999] hidden">
+        <!-- 外层蒙版允许点击 -->
+        <div id="modalWrapper" class="w-[360px] max-w-[calc(100vw-48px)] origin-top">
+            <!-- 毛玻璃卡片 + 表单，正常允许交互 -->
+            <div class="glass-card p-6 cursor-auto">
                 
                 <div class="w-full flex flex-col gap-4">
-                    
                     <!-- 字段 1：你的ID -->
                     <div class="flex flex-col gap-1">
                         <label class="text-white/70 text-sm font-medium tracking-wide">你的ID</label>
@@ -37,7 +37,6 @@
 
                     <!-- 底部：双按钮布局 -->
                     <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                        
                         <button onclick="autoFillClipboard()" class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">
                             自动补齐
                         </button>
@@ -45,7 +44,6 @@
                             创建
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -109,11 +107,21 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 点击外部蒙层关闭
-        function closeAddPanelIfOutside(e) {
+        // ✅ 终极修复：点击外部蒙层关闭
+        document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
-            if (modal && e.target === modal) { closeAddPanel(); }
-        }
+            const wrapper = document.getElementById('modalWrapper');
+            if (modal && !modal.classList.contains('hidden')) {
+                // 如果点击的是 modal 本身（也就是蒙层背景），则关闭
+                if (e.target === modal) {
+                    closeAddPanel();
+                }
+                // 如果点击的是 wrapper 之外的任何地方（比如右边空白），也视为点击外部
+                if (wrapper && !wrapper.contains(e.target)) {
+                    closeAddPanel();
+                }
+            }
+        });
 
         function closeAddPanel() {
             const modal = document.getElementById('customAddPanelModal');
@@ -156,7 +164,6 @@
             }).catch(() => { /* 静默 */ });
         };
 
-        // 自动拉取机器人名字
         function autoFetchBotInfo() {
             const tokenInput = document.getElementById('addPanelTokenInput');
             const nameInput = document.getElementById('addPanelNameInput');
