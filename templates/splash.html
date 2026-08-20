@@ -9,13 +9,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     
     <style>
-        /* ⚠️ 彻底清除所有黑色和背景图片残留 */
+        /* 彻底清除所有黑色和背景图片残留 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         button, a { outline: none; -webkit-tap-highlight-color: transparent; }
         body {
             width: 100vw; min-height: 100vh; overflow-x: hidden; overflow-y: auto;
-            background-color: #ffffff !important; /* 强制纯白背景 */
-            color: #111111; /* 纯黑文字 */
+            background-color: #ffffff !important; /* 纯白背景 */
+            color: #000000; /* 纯黑文字 */
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             display: flex; flex-direction: column;
         }
@@ -24,12 +24,12 @@
         .top-actions { position: fixed; top: 24px; right: 36px; z-index: 9999; display: flex; gap: 14px; align-items: center; }
         .top-btn {
             padding: 6px 16px; border-radius: 30px; background: rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.1); color: #111;
+            border: 1px solid rgba(0, 0, 0, 0.1); color: #000;
             font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
         }
         .top-btn:active { transform: scale(0.95); background: rgba(0, 0, 0, 0.1); }
 
-        /* ⭐ 核心：3D 字体容器 */
+        /* 3D 字体容器 */
         .three-d-container {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 1; perspective: 1200px;
@@ -40,7 +40,7 @@
 
         /* 纯黑大号标题 */
         .main-title {
-            font-size: 8vw; font-weight: 900; color: #000000; /* 纯黑 */
+            font-size: 8vw; font-weight: 900; color: #000000;
             letter-spacing: 6px; line-height: 1.2; margin-bottom: 8px;
         }
         .sub-title {
@@ -48,15 +48,16 @@
             letter-spacing: 2px;
         }
 
-        /* ⭐ 核心：改成白色的球 + 黑色边框 (白底黑圈) */
+        /* ⭐ 核心：改成纯白球（删除黑边，只保留极淡阴影防止隐身） */
         #black-ball {
             position: fixed; z-index: 2; pointer-events: none;
             width: 18vw; height: 18vw;
-            background-color: #ffffff; /* 改为纯白填充 */
-            border: 4px solid #000000; /* 增加纯黑描边，让球清晰可见 */
+            background-color: #ffffff !important; /* 纯白填充 */
+            border: none !important;              /* 彻底删除黑边 */
             border-radius: 50%;
             transform: translate(-50%, -50%) scale(0);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            /* 极浅的阴影，让它能微微察觉到轮廓，如果不想要，可以直接删掉下面这行 */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
             transition: transform 0.01s linear;
         }
 
@@ -94,7 +95,7 @@
         </div>
     </div>
 
-    <!-- 白色实心+黑圈的跟随球 -->
+    <!-- 纯白实心球 -->
     <div id="black-ball"></div>
 
     <!-- 顶部导航与交互按钮 -->
