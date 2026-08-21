@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
     
-    <!-- ✅ 100% 完整复刻你发来的 styles.css 液态玻璃代码 -->
+    <!-- ✅ 100% 原封不动采用您发来的 style.css 液态玻璃样式 -->
     <style>
         .liquidGlass-wrapper {
             position: relative;
@@ -44,7 +44,8 @@
             inset: 0;
             z-index: 2;
             overflow: hidden;
-            box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5), inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+            box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+                inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
         }
 
         .liquidGlass-text {
@@ -53,11 +54,11 @@
             color: black;
         }
 
-        /* 给弹窗包裹适配尺寸 */
+        /* 适配弹窗尺寸，仅调整长宽和圆角，不破坏原版高光 */
         .modal-glass {
-            border-radius: 1.8rem;
-            padding: 1.5rem;
-            width: 100%;
+            border-radius: 2.5rem;
+            padding: 2rem 2.5rem;
+            width: 400px;
         }
     </style>
 </head>
@@ -73,40 +74,38 @@
     {% include 'workspace/partials/_ctx_menu.html' %}
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
-    
-    <!-- ✅ 添加机器人弹窗：应用原版液态玻璃结构 -->
+
+    <!-- ✅ 100% 采用用户提供的 index.html 液体玻璃结构：wrapper > effect > tint > shine > text -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
-                <!-- 100% 使用用户提供的 index.html 结构：wrapper > effect > tint > shine > text -->
+            <div id="modalWrapper" class="pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);">
+                <!-- ⬇️ 这是最核心的液态玻璃容器 -->
                 <div class="liquidGlass-wrapper modal-glass">
                     <div class="liquidGlass-effect"></div>
                     <div class="liquidGlass-tint"></div>
                     <div class="liquidGlass-shine"></div>
-                    
-                    <!-- 内容部分放在 text 里，设置文字大小 -->
                     <div class="liquidGlass-text relative w-full flex flex-col gap-4" style="font-size: 1rem;">
-                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                        
+                        <h3 class="text-xl font-bold">添加机器人</h3>
+
                         <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                            <label class="text-black/60 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
+                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/10 border border-black/20 rounded-lg px-4 py-2.5 text-black text-sm placeholder-gray-500 focus:outline-none focus:border-black/50 focus:ring-1 focus:ring-black/20 transition-all" />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
-                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                            <label class="text-black/60 text-sm font-medium tracking-wide">机器人 Token</label>
+                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/10 border border-black/20 rounded-lg px-4 py-2.5 text-black text-sm placeholder-gray-500 focus:outline-none focus:border-black/50 focus:ring-1 focus:ring-black/20 transition-all" />
                         </div>
-                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
+                        <div class="mt-2 pt-2 border-t border-black/10 flex flex-col gap-2">
+                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-black/5 hover:bg-black/10 border border-black/10 rounded-lg text-black text-sm font-medium transition active:scale-95">绑定</button>
                         </div>
-                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
+                        <div id="bindStatusMsg" class="text-xs text-center text-black/50 hidden"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ✅ 100% 完整复刻你发来的 index.html 中的 SVG 滤镜，这是产生底部折射的核心 -->
+    <!-- ✅ 100% 采用用户提供的 index.html 完整 SVG 滤镜（这是产生折射的核心） -->
     <svg style="display: none">
         <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
             <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
@@ -124,7 +123,7 @@
         </filter>
     </svg>
 
-    <!-- 提交绑定逻辑 -->
+    <!-- ✅ 提交绑定逻辑（保持不变） -->
     <script>
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
@@ -165,6 +164,42 @@
                 statusMsg.className = 'text-xs text-center text-red-400';
             });
         };
+    </script>
+
+    <!-- ✅ 确保联动打开和关闭动画仍然生效（这部分代码不需要改动） -->
+    <script>
+        window.showAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!mainPanel || !modal || !wrapper) return;
+            mainPanel.classList.add('hide-for-modal');
+            modal.classList.remove('hidden');
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => {
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+            }, 200);
+        };
+        window.closeAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!mainPanel || !modal || !wrapper) return;
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                mainPanel.classList.remove('hide-for-modal');
+            }, 450);
+        };
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+                window.closeAddBotModal();
+            }
+        });
     </script>
 </body>
 </html>
