@@ -8,6 +8,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
+    <style>
+        /* ✅ 苹果液态玻璃效果（从你的 style.css 完美移植） */
+        .liquid-glass {
+            position: relative;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(2px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+        .liquid-glass::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            backdrop-filter: blur(1px);
+            box-shadow: inset -10px -8px 0px -11px rgba(255, 255, 255, 1), inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
+            opacity: 0.6;
+            z-index: -1;
+            filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
     {% include 'workspace/partials/_top_btns.html' %}
@@ -22,14 +50,12 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 弹窗结构，同样加上液态玻璃效果 -->
+    <!-- ✅ 添加机器人弹窗：套用液态玻璃效果 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
-                
-                <!-- 添加液态玻璃卡片 -->
-                <div class="glass-card p-6 cursor-auto" style="position: relative; background: rgba(255,255,255,0.15); border: 0.0625rem solid rgba(255,255,255,0.8); box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255,255,255,0.3);">
-                    <div class="w-full flex flex-col gap-4" style="position: relative; z-index: 2;">
+                <div class="liquid-glass">
+                    <div class="w-full flex flex-col gap-4">
                         <h3 class="text-xl font-bold text-white">添加机器人</h3>
                         
                         <div class="flex flex-col gap-1">
@@ -50,7 +76,7 @@
         </div>
     </div>
 
-    <!-- 提交绑定逻辑 -->
+    <!-- 提交绑定逻辑（保持不变） -->
     <script>
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
