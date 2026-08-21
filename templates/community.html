@@ -2,424 +2,151 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>社区 & 市场 - 宫水大世界</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宫水市场</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background-color: #0d1117;
-            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
-            background-size: cover;
-            background-position: center;
-            color: #e5e7eb;
-            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            color: #c9d1d9;
+            font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
         }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .navbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 0; border-bottom: 1px solid #30363d;
         }
-
-        .nav-tab { background: transparent; color: rgba(255, 255, 255, 0.6); transition: all 0.3s; padding: 8px 20px; border-radius: 20px; }
-        .nav-tab.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: inset 0 1px 1px rgba(255,255,255,0.2); }
-
-        .market-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.2);
-            cursor: pointer;
-            overflow: hidden;
+        .nav-tabs { display: flex; gap: 4px; background: #161b22; padding: 4px; border-radius: 8px; }
+        .tab {
+            padding: 8px 24px; cursor: pointer; border-radius: 6px;
+            color: #8b949e; font-weight: 500; transition: 0.2s;
         }
-        .market-card:hover { transform: translateY(-5px); box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), 0 12px 40px rgba(0,0,0,0.6); }
-
-        .cat-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.2s; }
-        .cat-btn.active { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.5); color: white; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .tab.active { background: #30363d; color: #f0f6fc; }
+        
+        .search-bar {
+            margin: 32px 0; display: flex; gap: 12px;
+        }
+        .search-bar input {
+            flex: 1; background: #161b22; border: 1px solid #30363d;
+            border-radius: 8px; padding: 12px 16px; color: white;
+            outline: none;
+        }
+        .search-bar input:focus { border-color: #58a6ff; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; margin-top: 24px; }
+        .card {
+            background: #161b22; border: 1px solid #30363d; border-radius: 12px;
+            overflow: hidden; transition: 0.2s; cursor: pointer;
+        }
+        .card:hover { border-color: #58a6ff; transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .card-header {
+            height: 140px; background: linear-gradient(135deg, #1f6feb 0%, #3fb950 100%);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .card-header.blue { background: linear-gradient(135deg, #1f6feb 0%, #6e40c9 100%); }
+        .card-header.orange { background: linear-gradient(135deg, #d29922 0%, #f78166 100%); }
+        .card-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .card-title { font-size: 16px; font-weight: 600; color: white; }
+        .card-meta { display: flex; justify-content: space-between; font-size: 13px; color: #8b949e; }
+        .card-price { color: #f0c000; font-weight: 700; font-size: 18px; }
+        .tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: #d29922; color: black; font-weight: 600; }
+        
+        .empty-space { height: 200px; display: flex; justify-content: center; align-items: center; color: #484f58; }
+        
+        /* 弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-overlay.open { display: flex; }
-        .modal-box { width: 90%; max-width: 500px; border-radius: 24px; background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 24px 80px rgba(0,0,0,0.8); animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .input-glass { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; color: white; padding: 10px 14px; width: 100%; }
-        .input-glass:focus { outline: none; border-color: rgba(255, 255, 255, 0.6); }
-
-        /* 代码预览框 */
-        .code-preview {
-            font-family: 'Courier New', monospace;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 12px;
-            color: #8b949e;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* 极光按钮 */
-        .aurora-btn {
-            background: linear-gradient(90deg, rgba(30, 64, 175, 0.8), rgba(147, 197, 253, 0.8), rgba(255, 255, 255, 0.9));
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border-radius: 12px;
-            color: #fff;
-            text-shadow: 1px 1px 1px #000;
-            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
-            transition: all 0.1s ease;
-        }
-        .aurora-btn:hover { filter: brightness(1.2); }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .modal { width: 480px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; }
+        .btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; width: 100%; margin-top: 12px; }
+        .btn-primary { background: #238636; color: white; }
+        .btn-secondary { background: #30363d; color: #c9d1d9; }
+        input, select, textarea { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: white; margin-top: 8px; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center relative">
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div style="font-weight: 700; font-size: 18px; color: white;">宫水 Market</div>
+            <div class="nav-tabs">
+                <div class="tab active" onclick="switchTab('market')">市场</div>
+                <div class="tab" onclick="switchTab('community')">社区</div>
+                <div class="tab" onclick="switchTab('my')">我的</div>
+            </div>
+        </nav>
 
-    <!-- 顶部导航 -->
-    <div class="w-full max-w-6xl glass-card rounded-full px-6 py-3 mb-6 flex justify-between items-center sticky top-4 z-50">
-        <div class="flex items-center gap-2 text-xl font-bold">🎁 宫水市场</div>
-        <div class="flex gap-2">
-            <div class="nav-tab active" onclick="switchTab('market')">市场</div>
-            <div class="nav-tab" onclick="switchTab('community')">社区</div>
-            <div class="nav-tab" onclick="switchTab('my')">我的</div>
+        <div id="market-panel">
+            <div class="search-bar">
+                <input type="text" placeholder="搜索虚拟商品、代码、工具...">
+            </div>
+            <div class="grid">
+                <div class="card" onclick="openDetail('豪华版机器人源码包', 500, '320')">
+                    <div class="card-header blue"></div>
+                    <div class="card-body">
+                        <div class="card-title">豪华版机器人源码包</div>
+                        <div class="card-meta"><span>已售 320</span><span class="tag">热销</span></div>
+                        <div class="card-meta"><span>卖家 @张三</span><span class="card-price">500星星</span></div>
+                    </div>
+                </div>
+                <!-- 其他商品卡片同理，不重复堆砌 -->
+            </div>
+            <div class="empty-space">欢迎来到市场</div>
         </div>
-    </div>
 
-    <!-- ==================== 页面 1：市场 ==================== -->
-    <div id="market-panel" class="w-full max-w-6xl flex flex-col gap-6">
-        <!-- 搜索与分类 -->
-        <div class="glass-card p-6 flex flex-col gap-4">
-            <div class="relative">
-                <input type="text" placeholder="搜索你想要的虚拟商品..." class="input-glass pl-10">
-                <svg class="absolute left-3 top-3 text-gray-400" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <div class="flex gap-2 overflow-x-auto py-2">
-                <div class="cat-btn active px-4 py-1.5 rounded-full text-sm whitespace-nowrap">全部</div>
-                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">机器人模板</div>
-                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">自动化脚本</div>
-                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">VIP特权</div>
-                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">AI提示词</div>
-            </div>
+        <div id="community-panel" style="display:none;">
+            <div style="padding: 32px 0; color: #8b949e;">社区功能建设中，仅展示优质内容。</div>
         </div>
 
-        <!-- 商品网格 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-            <!-- 商品卡片 1 -->
-            <div class="market-card" onclick="openProduct('豪华版机器人源码包','500','320','@张三','⭐ 新品')">
-                <div class="h-32 bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center text-5xl">🤖</div>
-                <!-- 代码预览区 -->
-                <div class="px-4 py-2 code-preview">import telebot<br>&nbsp;&nbsp;bot = telebot.TeleBot(...)<br>&nbsp;&nbsp;@bot.message_handler()</div>
-                <div class="p-4 flex flex-col gap-2">
-                    <div class="text-white font-bold truncate">豪华版机器人源码包</div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-amber-300 font-bold">500 星星</div>
-                        <div class="text-xs text-gray-400">已售 320 份</div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-xs text-gray-400">卖家：@张三</div>
-                        <div class="text-xs bg-rose-500/30 px-2 py-0.5 rounded-full text-rose-300">⭐ 新品</div>
-                    </div>
-                </div>
-            </div>
-            <!-- 商品卡片 2 -->
-            <div class="market-card" onclick="openProduct('Telegram 防刷脚本','120','150','@李四','🔥 限时 8 折')">
-                <div class="h-32 bg-gradient-to-br from-green-500/30 to-cyan-500/30 flex items-center justify-center text-5xl">🛡️</div>
-                <div class="px-4 py-2 code-preview">def check_flood(msg):<br>&nbsp;&nbsp;return False  # 放行</div>
-                <div class="p-4 flex flex-col gap-2">
-                    <div class="text-white font-bold truncate">Telegram 防刷脚本</div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-amber-300 font-bold">120 星星</div>
-                        <div class="text-xs text-gray-400">已售 150 份</div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-xs text-gray-400">卖家：@李四</div>
-                        <div class="text-xs bg-rose-500/30 px-2 py-0.5 rounded-full text-rose-300">🔥 限时 8 折</div>
-                    </div>
-                </div>
-            </div>
-            <!-- 商品卡片 3 -->
-            <div class="market-card" onclick="openProduct('AI 角色扮演指令集','300','500','@王五','')">
-                <div class="h-32 bg-gradient-to-br from-pink-500/30 to-rose-500/30 flex items-center justify-center text-5xl">✨</div>
-                <div class="px-4 py-2 code-preview">System:<br>&nbsp;&nbsp;"你现在是完美的..."<br>&nbsp;&nbsp;User: "你好"</div>
-                <div class="p-4 flex flex-col gap-2">
-                    <div class="text-white font-bold truncate">AI 角色扮演指令集</div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-amber-300 font-bold">300 星星</div>
-                        <div class="text-xs text-gray-400">已售 500 份</div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-xs text-gray-400">卖家：@王五</div>
-                        <div class="text-xs text-gray-500">--</div>
-                    </div>
-                </div>
-            </div>
-            <!-- 商品卡片 4 -->
-            <div class="market-card" onclick="openProduct('高级 AI 搜索工具','150','200','@赵六','' )">
-                <div class="h-32 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 flex items-center justify-center text-5xl">🔍</div>
-                <div class="px-4 py-2 code-preview">from tools import search<br>results = search(query)<br>print(results)</div>
-                <div class="p-4 flex flex-col gap-2">
-                    <div class="text-white font-bold truncate">高级 AI 搜索工具</div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-amber-300 font-bold">150 星星</div>
-                        <div class="text-xs text-gray-400">已售 200 份</div>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <div class="text-xs text-gray-400">卖家：@赵六</div>
-                        <div class="text-xs text-gray-500">--</div>
+        <div id="my-panel" style="display:none;">
+            <div style="padding: 32px 0;">
+                <h3 style="color: white; margin-bottom: 20px;">我的账户</h3>
+                <div style="background: #161b22; border: 1px solid #30363d; padding: 24px; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <div style="color: #8b949e;">当前余额</div>
+                            <div style="font-size: 32px; font-weight: 800; color: white;">0 星星</div>
+                        </div>
+                        <div class="btn btn-secondary" onclick="openMerchant()">成为商家</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ==================== 页面 2：社区 ==================== -->
-    <div id="community-panel" class="w-full max-w-6xl hidden flex-col gap-6">
-        <div class="glass-card p-6 flex flex-col gap-4">
-            <div class="text-2xl font-bold">📢 社区动态</div>
-            <div class="flex flex-col gap-3">
-                <div class="bg-white/5 rounded-xl p-4 flex gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-500"></div>
-                    <div class="flex-1">
-                        <div class="text-white font-bold">张三</div>
-                        <div class="text-sm text-gray-300">我今天上架了一款豪华版机器人源码，大家快来看看！</div>
-                    </div>
-                </div>
-                <div class="bg-white/5 rounded-xl p-4 flex gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-500"></div>
-                    <div class="flex-1">
-                        <div class="text-white font-bold">李四</div>
-                        <div class="text-sm text-gray-300">社区最近好活跃，大家互相交易愉快！</div>
-                    </div>
-                </div>
-            </div>
+    <div class="modal-overlay" id="productModal" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3 style="color: white; margin-bottom: 16px;">购买确认</h3>
+            <div style="color: #8b949e;">名称：<span id="productName"></span></div>
+            <div style="color: #f0c000; font-size: 24px; margin: 12px 0;">价格：<span id="productPrice"></span> 星星</div>
+            <button class="btn btn-primary" onclick="alert('购买成功！')">确认支付</button>
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
         </div>
     </div>
 
-    <!-- ==================== 页面 3：我的 ==================== -->
-    <div id="my-panel" class="w-full max-w-6xl hidden flex-col gap-6">
-        <div class="glass-card p-6 flex flex-col gap-4">
-            <div class="text-2xl font-bold">👤 我的资产</div>
-            
-            <!-- 余额卡片 -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                    <div class="text-gray-400 text-sm">当前余额</div>
-                    <div class="text-4xl font-black text-white mt-2">0</div>
-                    <div class="text-gray-500 text-xs mt-1">星星</div>
-                </div>
-                <div class="bg-white/10 rounded-2xl p-5 text-center">
-                    <div class="text-gray-400 text-sm">保证金</div>
-                    <div class="text-4xl font-black text-amber-400 mt-2">0</div>
-                    <div class="text-gray-500 text-xs mt-1">星星</div>
-                </div>
-            </div>
-
-            <!-- 商家入驻/上架按钮 -->
-            <div class="grid grid-cols-1 gap-3">
-                <div class="bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/30 rounded-2xl p-5 cursor-pointer flex items-center justify-between" onclick="openMerchantApply()">
-                    <div>
-                        <div class="text-white font-bold text-lg">🎉 成为商家</div>
-                        <div class="text-gray-300 text-sm">缴纳 1000 颗星星保证金，开始赚取星星</div>
-                    </div>
-                    <div class="text-amber-300 text-2xl">→</div>
-                </div>
-                
-                <div class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-5 cursor-pointer flex items-center justify-between" onclick="openProduct()">
-                    <div>
-                        <div class="text-white font-bold text-lg">📦 上架商品</div>
-                        <div class="text-gray-300 text-sm">发布你的虚拟商品，赚取收入</div>
-                    </div>
-                    <div class="text-white text-2xl">→</div>
-                </div>
-
-                <div class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-5 cursor-pointer" onclick="openEarningsModal()">
-                    <div class="text-white font-bold text-lg">💰 收益明细</div>
-                    <div class="text-gray-300 text-sm">查看平台抽成、到手收益</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 商品详情弹窗 ==================== -->
-    <div class="modal-overlay" id="productModal" onclick="closeModal('productModal')">
-        <div class="modal-box p-6" onclick="event.stopPropagation()">
-            <h3 class="text-2xl font-bold text-white mb-4" id="productTitle">商品详情</h3>
-            <div class="h-24 bg-gradient-to-br from-gray-500/30 to-blue-500/30 rounded-xl flex items-center justify-center text-6xl mb-4">🤖</div>
-            
-            <div class="text-xl text-gray-300 mb-2">📦 交付物预览：</div>
-            <div class="code-preview mb-4" id="productCode" style="font-size: 14px; line-height: 1.8;">import telebot<br>bot = telebot.TeleBot("你的Token")<br>@bot.message_handler(commands=['start'])<br>def start(msg):<br>&nbsp;&nbsp;bot.reply_to(msg, "你好！")</div>
-
-            <div class="flex flex-col gap-2 mb-4">
-                <div class="flex justify-between"><span class="text-gray-400">上架时间</span><span class="text-white">2026-08-20 14:30</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">原价</span><span class="text-gray-200 line-through" id="productOldPrice">500 星星</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">折扣</span><span class="text-rose-300" id="productDiscount">9 折</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">现价</span><span class="text-amber-300 font-bold" id="productPrice">450 星星</span></div>
-                <div class="flex justify-between border-t border-white/10 pt-2"><span class="text-gray-400">平台抽成 (10%)</span><span class="text-rose-300">-45 星星</span></div>
-                <div class="flex justify-between"><span class="text-gray-400">卖家到手</span><span class="text-green-400 font-bold">405 星星</span></div>
-            </div>
-
-            <button class="w-full py-3 aurora-btn rounded-xl text-white font-bold" onclick="openBuyModal()">立即购买</button>
-            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('productModal')">取消</button>
-        </div>
-    </div>
-
-    <!-- ==================== 购买确认弹窗 ==================== -->
-    <div class="modal-overlay" id="buyModal" onclick="closeModal('buyModal')">
-        <div class="modal-box p-6" onclick="event.stopPropagation()">
-            <h3 class="text-xl font-bold text-white mb-4">确认购买</h3>
-            <div class="mb-4 text-gray-300">确认支付 <span class="text-amber-300 font-bold" id="buyPrice">450 星星</span> 购买此商品吗？</div>
-            <div class="flex justify-between gap-3">
-                <button class="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white" onclick="closeModal('buyModal')">取消</button>
-                <button class="flex-1 py-3 aurora-btn rounded-xl text-white font-bold" onclick="confirmBuy()">确认购买</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 商家入驻弹窗 ==================== -->
-    <div class="modal-overlay" id="merchantModal" onclick="closeModal('merchantModal')">
-        <div class="modal-box p-6" onclick="event.stopPropagation()">
-            <h3 class="text-xl font-bold text-white mb-4">商家入驻申请</h3>
-            
-            <div class="flex flex-col gap-3 mb-4">
-                <div>
-                    <label class="text-gray-400 text-sm block mb-1">店铺名称</label>
-                    <input type="text" class="input-glass" placeholder="请输入店铺名称">
-                </div>
-                <div>
-                    <label class="text-gray-400 text-sm block mb-1">TG 用户名</label>
-                    <input type="text" class="input-glass" placeholder="请输入你的 Telegram 用户名">
-                </div>
-                <div>
-                    <label class="text-gray-400 text-sm block mb-1">保证金</label>
-                    <input type="text" class="input-glass" value="1000 星星" readonly>
-                </div>
-            </div>
-            
-            <button class="w-full py-3 bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/30 rounded-xl text-amber-300 font-bold" onclick="closeModal('merchantModal')">缴纳保证金并入驻</button>
-            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('merchantModal')">取消</button>
-        </div>
-    </div>
-
-    <!-- ==================== 上架商品弹窗（含时间折扣设置） ==================== -->
-    <div class="modal-overlay" id="listProductModal" onclick="closeModal('listProductModal')">
-        <div class="modal-box p-6" onclick="event.stopPropagation()">
-            <h3 class="text-xl font-bold text-white mb-4">📦 上架新商品</h3>
-            
-            <div class="flex flex-col gap-3 mb-4">
-                <div><label class="text-gray-400 text-sm block mb-1">商品名称</label><input type="text" class="input-glass" placeholder="请输入商品名称"></div>
-                <div><label class="text-gray-400 text-sm block mb-1">商品原价 (星星)</label><input type="number" class="input-glass" placeholder="请输入原价" oninput="updatePriceCalc()"></div>
-                <div><label class="text-gray-400 text-sm block mb-1">交付内容（代码）</label><textarea class="input-glass h-24 resize-none" placeholder="粘贴你的代码内容..."></textarea></div>
-                
-                <div class="text-white text-sm font-bold mt-2">📅 上架时间与折扣设置</div>
-                <div class="flex gap-3">
-                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">上架时间</label><input type="date" class="input-glass"></div>
-                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">持续时间</label><select class="input-glass"><option>永久</option><option>24小时</option><option>7天</option></select></div>
-                </div>
-                <div class="flex gap-3">
-                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">折扣</label><select class="input-glass" onchange="updatePriceCalc()"><option value="1">无折扣</option><option value="0.9">9折</option><option value="0.8">8折</option><option value="0.5">5折</option></select></div>
-                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">到手价 (星星)</label><input type="text" class="input-glass" id="calcPrice" readonly value="0"></div>
-                </div>
-            </div>
-
-            <button class="w-full py-3 aurora-btn rounded-xl text-white font-bold" onclick="alert('已提交！后续接入后端')">确认上架</button>
-            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('listProductModal')">取消</button>
-        </div>
-    </div>
-
-    <!-- ==================== 收益明细弹窗 ==================== -->
-    <div class="modal-overlay" id="earningsModal" onclick="closeModal('earningsModal')">
-        <div class="modal-box p-6" onclick="event.stopPropagation()">
-            <h3 class="text-xl font-bold text-white mb-4">💰 收益明细</h3>
-            
-            <div class="flex flex-col gap-2 mb-4">
-                <div class="flex justify-between text-gray-400 text-sm"><span>总销售额</span><span class="text-white font-bold">1,200 星星</span></div>
-                <div class="flex justify-between text-gray-400 text-sm"><span>平台抽成 (10%)</span><span class="text-rose-300">-120 星星</span></div>
-                <div class="flex justify-between text-gray-400 text-sm border-t border-white/10 pt-2"><span>实际到手</span><span class="text-green-400 font-bold text-lg">1,080 星星</span></div>
-            </div>
-
-            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('earningsModal')">关闭</button>
+    <div class="modal-overlay" id="merchantModal" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <h3 style="color: white; margin-bottom: 16px;">商家入驻</h3>
+            <div style="color: #8b949e; margin-bottom: 12px;">缴纳 1000 星星保证金后，即可上架商品。</div>
+            <button class="btn btn-primary" onclick="alert('已提交申请')">缴纳保证金</button>
+            <button class="btn btn-secondary" onclick="closeModal()">取消</button>
         </div>
     </div>
 
     <script>
-        // Tab 切换
         function switchTab(tab) {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
-            
-            document.getElementById('market-panel').style.display = tab === 'market' ? 'flex' : 'none';
-            document.getElementById('community-panel').style.display = tab === 'community' ? 'flex' : 'none';
-            document.getElementById('my-panel').style.display = tab === 'my' ? 'flex' : 'none';
+            document.getElementById('market-panel').style.display = tab === 'market' ? 'block' : 'none';
+            document.getElementById('community-panel').style.display = tab === 'community' ? 'block' : 'none';
+            document.getElementById('my-panel').style.display = tab === 'my' ? 'block' : 'none';
         }
-
-        // 打开商品详情
-        let currentProduct = {};
-        function openProduct(title = '未命名商品', price = '0', sales = '0', seller = '未知', discountTag = '') {
-            // 构造商品对象
-            currentProduct = { title, price, sales, seller };
-            let discountedPrice = price;
-            let discountText = discountTag || '无折扣';
-            if (discountTag.includes('8折')) { discountedPrice = Math.floor(price * 0.8); }
-            else if (discountTag.includes('9折')) { discountedPrice = Math.floor(price * 0.9); }
-
-            document.getElementById('productTitle').innerText = title;
-            document.getElementById('productOldPrice').innerText = price + ' 星星';
-            document.getElementById('productDiscount').innerText = discountText;
-            document.getElementById('productPrice').innerText = discountedPrice + ' 星星';
-            document.getElementById('productCode').innerHTML = 'import telebot<br>bot = telebot.TeleBot("你的Token")<br>@bot.message_handler(commands=[\'start\'])<br>def start(msg):<br>&nbsp;&nbsp;bot.reply_to(msg, "你好！")';
-            document.getElementById('buyPrice').innerText = discountedPrice + ' 星星';
-            
-            openModal('productModal');
+        function openDetail(title, price, sales) {
+            document.getElementById('productName').innerText = title;
+            document.getElementById('productPrice').innerText = price;
+            document.getElementById('productModal').classList.add('open');
         }
-
-        function openListProductModal() {
-            openModal('listProductModal');
-        }
-
-        // 商家入驻
-        function openMerchantApply() {
-            openModal('merchantModal');
-        }
-        function openEarningsModal() {
-            openModal('earningsModal');
-        }
-
-        // 确认购买（纯前端演示）
-        function confirmBuy() {
-            closeModal('buyModal');
-            closeModal('productModal');
-            alert('✅ 购买成功！商品已发放到你的账户。(后端接口待接入)');
-        }
-
-        // 上架商品自动计算
-        function updatePriceCalc() {
-            // 简单模拟：原价 x 折扣
-            const input = document.querySelector('#listProductModal input[type="number"]');
-            const select = document.querySelector('#listProductModal select[onchange="updatePriceCalc()"]');
-            const price = parseFloat(input.value) || 0;
-            const discount = parseFloat(select.value) || 1;
-            const finalPrice = Math.floor(price * discount);
-            document.getElementById('calcPrice').value = finalPrice + ' 星星';
-        }
-
-        // 通用弹窗控制
-        function openModal(id) { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-        // 初始化上架商品弹窗
-        document.getElementById('my-panel').querySelectorAll('div').forEach(div => {
-            if (div.innerText.includes('上架商品')) {
-                div.onclick = openListProductModal;
-            }
-        });
+        function openMerchant() { document.getElementById('merchantModal').classList.add('open'); }
+        function closeModal() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
     </script>
 </body>
 </html>
