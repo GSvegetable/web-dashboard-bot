@@ -120,14 +120,13 @@ class Subscription(db.Model):
     __table_args__ = (db.UniqueConstraint('follower_id', 'following_id', name='unique_sub'),)
 
 # ==========================================
-# ✅ 新增：待确认的绑定请求表
+# ✅ 新增：用户绑定的机器人仓库表
 # ==========================================
-class PendingBind(db.Model):
+class MyBot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     token = db.Column(db.String(255), unique=True, nullable=False)
-    telegram_id = db.Column(db.String(50), nullable=False)
     bot_name = db.Column(db.String(100), nullable=True)
     bot_id = db.Column(db.String(50), nullable=True)
     bot_username = db.Column(db.String(50), nullable=True)
-    status = db.Column(db.String(20), default='pending')  # pending, confirmed, canceled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
