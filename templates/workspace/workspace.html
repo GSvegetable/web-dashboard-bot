@@ -9,10 +9,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
     
-    <!-- ✅ 修改背景图片路径 -->
+    <!-- ✅ 核心修改：背景图片从 bg.png 换成 texture.jpg -->
     <style>
         body {
-            background-image: url("{{ url_for('static', filename='mmexport1785791861411.jpg') }}");
+            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -108,7 +108,7 @@
         };
     </script>
 
-    <!-- ✅ 核心动画逻辑 -->
+    <!-- ✅ 核心动画逻辑：从中间展开，且点击外部关闭 -->
     <script>
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
@@ -117,16 +117,21 @@
             const blurLayer = document.getElementById('modalBlurLayer');
             if (!mainPanel || !modal || !wrapper || !blurLayer) return;
 
+            // 主面板滑出
             mainPanel.classList.add('hide-for-modal');
             modal.classList.remove('hidden');
             
+            // 重置动画
             blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
 
             setTimeout(() => {
+                // 卡片从底部上滑
                 wrapper.style.transform = 'translateY(0)';
                 wrapper.style.opacity = '1';
+                
+                // 模糊从中间向四周扩散
                 blurLayer.style.clipPath = 'circle(75% at 50% 50%)'; 
             }, 200);
         };
@@ -138,10 +143,14 @@
             const blurLayer = document.getElementById('modalBlurLayer');
             if (!mainPanel || !modal || !wrapper || !blurLayer) return;
 
+            // 卡片下滑
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
+            
+            // 模糊收缩
             blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
 
+            // 立即让主面板弹上来（提升 z-index 盖住模糊层）
             mainPanel.style.zIndex = '10000';
             mainPanel.classList.remove('hide-for-modal');
 
@@ -151,6 +160,7 @@
             }, 800);
         };
 
+        // 点击卡片外部任意区域（包含模糊层）都能关闭
         document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
             const wrapper = document.getElementById('modalWrapper');
             if (!wrapper.contains(e.target)) {
