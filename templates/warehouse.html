@@ -3,123 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>机器人仓库 - gsbot</title>
+    <title>开发工作台 - gsbot</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/warehouse.css') }}">
-    <style>
-        .top-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; padding: 6px 14px; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; user-select: none; outline: none; -webkit-tap-highlight-color: transparent; display: flex; align-items: center; gap: 6px; }
-        .top-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
-
-        /* ✅ 黑卡菜单 - 纯独立 */
-        #botActionMenu {
-            position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-            display: none; align-items: center; justify-content: center;
-        }
-        #botActionMenu .menu-card {
-            background: #161b22; border: 1px solid #30363d;
-            border-radius: 16px; padding: 16px; width: 220px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        #botActionMenu .menu-card button {
-            background: transparent; border: none; color: #c9d1d9;
-            padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
-            text-align: left; transition: all 0.15s; cursor: pointer;
-            width: 100%;
-        }
-        #botActionMenu .menu-card button:hover { background: rgba(255, 255, 255, 0.08); }
-        #botActionMenu .menu-card button.danger { color: #f85149; }
-        #botActionMenu .menu-card button.danger:hover { background: rgba(248, 81, 73, 0.15); }
-        #botActionMenu .menu-card hr { border: 0; border-top: 1px solid #30363d; margin: 4px 0; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
+    {% include 'workspace/partials/_styles.html' %}
 </head>
 <body>
-    
-    <!-- ✅ 黑色操作菜单卡片 -->
-    <div id="botActionMenu" onclick="closeBotActionMenu(event)">
-        <div class="menu-card" onclick="event.stopPropagation()">
-            <button onclick="deleteCurrentBot()" class="danger">🗑️ 删除 bot</button>
-            <button onclick="copyCurrentBot()">📋 复制 bot</button>
-            <hr>
-            <button onclick="window.location.href='/'">🚪 退出工作台</button>
-        </div>
+    <div class="flex w-screen h-screen">
+        {% include 'workspace/partials/_config_panel.html' %}
+        {% include 'workspace/partials/_canvas.html' %}
+        {% include 'workspace/partials/_preview.html' %}
     </div>
 
-    <div class="left-panel-wrapper">
-        <div class="top-box">
-            <div class="flex justify-start items-center w-full h-full pl-2">
-                <span class="text-white text-sm font-medium tracking-wider">仓库管理</span>
-            </div>
-        </div>
-
-        <div class="bottom-box" id="mainBox" onclick="if(event.target===this) closeBotActionMenu(event)">
-            
-            <button onclick="window.location.href='/'" class="absolute bottom-4 right-4 z-10 top-btn bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.3)] text-white hover:bg-[rgba(255,255,255,0.15)] shadow-md">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                返回主页
-            </button>
-
-            <div class="empty-state" id="emptyState">
-                <div class="text-center flex flex-col items-center gap-2">
-                    <span class="text-4xl mb-1">🏚️</span>
-                    <span class="text-gray-500 text-base">仓库空空如也</span>
-                    <span class="text-gray-400 text-xs">点击右上角「添加bot」开始创建</span>
-                </div>
-            </div>
-
-            <div id="treeContainer" class="tree-container hidden w-full h-full overflow-auto">
-                <div class="file-tree-accordion open">
-                    <div class="file-tree-content"></div>
-                </div>
-            </div>
-
-            <div class="login-form-container" id="loginFormContainer">
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-            var oldMenu = document.getElementById('ctxMenu');
-            if (oldMenu) { oldMenu.parentNode.removeChild(oldMenu); }
-        });
-
-        // ==========================================
-        // 仓库卡片与纯黑菜单逻辑
-        // ==========================================
-        window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
-        let currentBotActionIndex = null;
-
-        function renderBotRepo() {
-            var grid = document.getElementById('botRepoGrid');
-            var empty = document.getElementById('botRepoEmpty');
-            if (!grid) return;
-            var cards = [];
-            try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
-            if (cards.length === 0) { if (empty) empty.style.display = 'block'; grid.innerHTML = ''; return; }
-            if (empty) empty.style.display = 'none';
-            grid.innerHTML = '';
-            cards.forEach(function(c, index) {
-                var card = document.createElement('div');
-                card.className = 'bot-repo-card cursor-pointer';
-                card.dataset.index = index;
-
-                // ✅ 核心触发：点击卡片弹出黑菜单
-                card.onclick = function(e) {
-                    e.stopPropagation();
-                    showBotActionMenu(index);
-                };
-
-                // 后续渲染卡片省略（由于篇幅，用最新版的渲染逻辑，保留卡片内容）
-                // ...
-                // (由于代码太长，我确保 getElementById('botRepoGrid') 成功渲染)
-                // 实际运行中，上面的 renderBotRepo 是完整的
-            });
-        }
-        // (此处省略补充 renderBotRepo 剩余部分，但确认逻辑已存在)
-    </script>
+    {% include 'workspace/partials/_ctx_menu.html' %}
+    {% include 'components/agent_action_panel.html' %}
+    {% include 'workspace/partials/_scripts.html' %}
 </body>
 </html>
