@@ -1,7 +1,6 @@
 import os
 import logging
 from datetime import datetime, timedelta
-from pathlib import Path
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -30,13 +29,11 @@ db.init_app(app)
 with app.app_context():
     try:
         db.create_all()
-        logging.info("✅ 数据库表结构检查/创建成功！")
     except Exception as e:
         try:
             db.session.rollback()
-        except:
-            pass
-        logging.error(f"❌ 建表报错 (已回滚): {e}")
+        except: pass
+        logging.error(f"建表报错: {e}")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -51,15 +48,6 @@ def log_visit():
     if request.path.startswith('/static') or request.path == '/favicon.ico':
         return
     try:
-        # 强制检测：如果表不存在（比如 visit_log 丢失），立刻重新建表
-        with app.app_context():
-            from sqlalchemy import inspect
-            inspector = inspect(db.engine)
-            tables = inspector.get_table_names()
-            if 'visit_log' not in tables:
-                db.create_all()
-                logging.info("✅ 检测到缺表，已自动重建！")
-
         ip = request.remote_addr
         five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
         recent_visit = VisitLog.query.filter(VisitLog.ip_address == ip, VisitLog.visited_at > five_minutes_ago).first()
@@ -69,10 +57,11 @@ def log_visit():
             db.session.commit()
     except Exception as e:
         try:
-            db.session.rollback()
-        except:
-            pass
-        app.logger.error(f"记录访问失败: {e}")
+            db.session.rollback()  # 强制回滚，解开死锁
+        except: pass
+        # 专门处理权限错误：如果没权限就不记录了，绝不阻断网页正常功能
+        if "permission denied" not in str(e):
+            app.logger.error(f"记录访问失败: {e}")
 
 app.register_blueprint(main_bp)
 
