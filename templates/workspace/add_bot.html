@@ -109,11 +109,11 @@
             if (!/^\d+:[A-Za-z0-9_-]+$/.test(token)) { alert('Token 格式不正确。'); tokenInput.focus(); return; }
             tokenInput.style.borderColor = '';
 
-            this.innerText = '发送中...';
+            this.innerText = '绑定中...';
             this.disabled = true;
             statusMsg.classList.remove('hidden');
-            statusMsg.innerText = '已发送请求，等待 Telegram 确认...';
-            statusMsg.className = 'mt-3 text-xs text-center text-yellow-400';
+            statusMsg.innerText = '正在发送请求...';
+            statusMsg.className = 'mt-3 text-xs text-center text-gray-400';
 
             fetch('/api/send_bind_request', {
                 method: 'POST',
@@ -122,55 +122,32 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (!data.ok) {
+                if (data.ok) {
+                    statusMsg.innerText = '✅ 绑定成功！';
+                    statusMsg.className = 'mt-3 text-xs text-center text-green-400';
+                    
+                    // ✅ 直接根据 ID 和 Token 生成卡片放入仓库
+                    let cards = JSON.parse(localStorage.getItem('gsbot_bot_repo_cards')) || [];
+                    const existing = cards.find(c => c.token === token);
+                    if (!existing) {
+                        cards.push({
+                            token: token,
+                            code: '',
+                            name: '未命名',
+                            id: userId,
+                            username: ''
+                        });
+                        localStorage.setItem('gsbot_bot_repo_cards', JSON.stringify(cards));
+                    }
+                    
+                    // 1.5秒后跳转回工作台
+                    setTimeout(() => { window.location.href = '/workspace'; }, 1500);
+                } else {
                     statusMsg.innerText = '❌ 失败: ' + data.msg;
                     statusMsg.className = 'mt-3 text-xs text-center text-red-400';
                     this.innerText = '绑定';
                     this.disabled = false;
-                    return;
                 }
-
-                // ✅ 发起轮询，每隔 1.5 秒检查后端状态
-                const pollInterval = setInterval(() => {
-                    fetch(`/api/bind_status/${encodeURIComponent(token)}`)
-                    .then(res => res.json())
-                    .then(pollData => {
-                        if (pollData.status === 'confirmed') {
-                            clearInterval(pollInterval);
-                            statusMsg.innerText = '✅ 确认成功，正在添加卡片...';
-                            statusMsg.className = 'mt-3 text-xs text-center text-green-400';
-                            
-                            // ✅ 把机器人卡片直接存入 localStorage
-                            let cards = JSON.parse(localStorage.getItem('gsbot_bot_repo_cards')) || [];
-                            // 避免重复添加（清除之前可能残留的）
-                            const existing = cards.find(c => c.token === token);
-                            if (!existing) {
-                                cards.push({
-                                    token: token,
-                                    code: '',
-                                    name: pollData.bot_name || '未命名',
-                                    id: pollData.bot_id || '',
-                                    username: pollData.bot_username || ''
-                                });
-                                localStorage.setItem('gsbot_bot_repo_cards', JSON.stringify(cards));
-                            }
-                            
-                            // 延迟 1.5 秒后跳回工作台（让卡片渲染生效）
-                            setTimeout(() => { window.location.href = '/workspace'; }, 1500);
-                            
-                        } else if (pollData.status === 'canceled') {
-                            clearInterval(pollInterval);
-                            statusMsg.innerText = '❌ 绑定已取消';
-                            statusMsg.className = 'mt-3 text-xs text-center text-red-400';
-                            // 延迟跳回工作台
-                            setTimeout(() => { window.location.href = '/workspace'; }, 2000);
-                        }
-                        // 如果仍是 pending，继续轮询
-                    })
-                    .catch(() => {
-                        // 轮询网络错误，尝试继续
-                    });
-                }, 1500); // 1.5秒轮询一次
             })
             .catch(() => {
                 statusMsg.innerText = '❌ 网络异常，请稍后重试。';
