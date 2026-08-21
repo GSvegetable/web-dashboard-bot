@@ -1,7 +1,7 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="window.location.href='/workspace/add_bot'" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center; transition: transform 0.1s;">
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="window.location.href='/workspace/add_bot'" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
@@ -13,7 +13,8 @@
 
 <style>
     #addPanelBtn:active { transform: scale(0.95); }
-
+    
+    /* 移除所有 hover 和 active 效果，卡片保持静态 */
     .bot-repo-card {
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -26,15 +27,11 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
-        transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
         overflow: hidden;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
     }
-    .bot-repo-card:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.2); }
-    .bot-repo-card:active { transform: scale(0.98); }
 
-    /* 名字普通省略号 */
     .bot-repo-name {
         flex: 1;
         min-width: 0;
@@ -91,75 +88,83 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
+    // ✅ 核心修改：从后端数据库拉取机器人列表，不再使用 localStorage
     window.renderBotRepo = function() {
         var grid = document.getElementById('botRepoGrid');
         var empty = document.getElementById('botRepoEmpty');
         if (!grid) return;
-        var cards = [];
-        try { cards = JSON.parse(localStorage.getItem(window.BOT_REPO_KEY)) || []; } catch(e) { cards = []; }
-        if (cards.length === 0) { if (empty) empty.style.display = 'block'; grid.innerHTML = ''; return; }
-        if (empty) empty.style.display = 'none';
+
         grid.innerHTML = '';
-        cards.forEach(function(c) {
-            var card = document.createElement('div');
-            card.className = 'bot-repo-card';
 
-            var nameDiv = document.createElement('div');
-            nameDiv.className = 'bot-repo-name';
-            var nameText = c.name || '未命名';
-            if (c.code) nameText += ' (' + c.code + ')';
-            nameDiv.textContent = nameText;
-            card.appendChild(nameDiv);
+        fetch('/api/my_bots')
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok && data.bots && data.bots.length > 0) {
+                empty.style.display = 'none';
+                data.bots.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.className = 'bot-repo-card'; // 不绑定任何 onclick
 
-            var idLine = document.createElement('div');
-            idLine.className = 'bot-repo-line';
-            var idLabel = document.createElement('span');
-            idLabel.className = 'bot-repo-label';
-            idLabel.textContent = 'ID';
-            idLine.appendChild(idLabel);
-            var idVal = document.createElement('span');
-            idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-            idVal.textContent = c.id || '';
-            idLine.appendChild(idVal);
-            card.appendChild(idLine);
+                    var nameDiv = document.createElement('div');
+                    nameDiv.className = 'bot-repo-name';
+                    nameDiv.textContent = c.name || '未命名';
+                    card.appendChild(nameDiv);
 
-            var usernameLine = document.createElement('div');
-            usernameLine.className = 'bot-repo-line';
-            var userLabel = document.createElement('span');
-            userLabel.className = 'bot-repo-label';
-            userLabel.textContent = 'User';
-            usernameLine.appendChild(userLabel);
-            var userVal = document.createElement('span');
-            userVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
-            userVal.textContent = c.username ? '@' + c.username : '无';
-            usernameLine.appendChild(userVal);
-            card.appendChild(usernameLine);
+                    var idLine = document.createElement('div');
+                    idLine.className = 'bot-repo-line';
+                    var idLabel = document.createElement('span');
+                    idLabel.className = 'bot-repo-label';
+                    idLabel.textContent = 'ID';
+                    idLine.appendChild(idLabel);
+                    var idVal = document.createElement('span');
+                    idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    idVal.textContent = c.id || '';
+                    idLine.appendChild(idVal);
+                    card.appendChild(idLine);
 
-            var tokenLine = document.createElement('div');
-            tokenLine.className = 'bot-repo-line';
-            var tokenLabel = document.createElement('span');
-            tokenLabel.className = 'bot-repo-label';
-            tokenLabel.textContent = 'Token';
-            tokenLine.appendChild(tokenLabel);
+                    var usernameLine = document.createElement('div');
+                    usernameLine.className = 'bot-repo-line';
+                    var userLabel = document.createElement('span');
+                    userLabel.className = 'bot-repo-label';
+                    userLabel.textContent = 'User';
+                    usernameLine.appendChild(userLabel);
+                    var userVal = document.createElement('span');
+                    userVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    userVal.textContent = c.username ? '@' + c.username : '无';
+                    usernameLine.appendChild(userVal);
+                    card.appendChild(usernameLine);
 
-            var marquee = document.createElement('div');
-            marquee.className = 'bot-repo-marquee';
-            var track = document.createElement('span');
-            track.className = 'bot-repo-track';
-            var tokenStr = c.token || '';
-            track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
-            marquee.appendChild(track);
-            tokenLine.appendChild(marquee);
-            card.appendChild(tokenLine);
+                    var tokenLine = document.createElement('div');
+                    tokenLine.className = 'bot-repo-line';
+                    var tokenLabel = document.createElement('span');
+                    tokenLabel.className = 'bot-repo-label';
+                    tokenLabel.textContent = 'Token';
+                    tokenLine.appendChild(tokenLabel);
 
-            grid.appendChild(card);
+                    var marquee = document.createElement('div');
+                    marquee.className = 'bot-repo-marquee';
+                    var track = document.createElement('span');
+                    track.className = 'bot-repo-track';
+                    var tokenStr = c.token || '';
+                    track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
+                    marquee.appendChild(track);
+                    tokenLine.appendChild(marquee);
+                    card.appendChild(tokenLine);
 
-            requestAnimationFrame(function() {
-                if (track.scrollWidth > marquee.clientWidth + 1) {
-                    track.classList.add('marquee-run');
-                }
-            });
+                    grid.appendChild(card);
+
+                    requestAnimationFrame(function() {
+                        if (track.scrollWidth > marquee.clientWidth + 1) {
+                            track.classList.add('marquee-run');
+                        }
+                    });
+                });
+            } else {
+                empty.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            empty.style.display = 'block';
         });
     };
     window.renderBotRepo();
