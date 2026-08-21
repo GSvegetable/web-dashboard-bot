@@ -22,15 +22,15 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- 核心修改：弹窗 HTML 放在 body 最外层，保证模糊和动画不受遮挡 -->
+    <!-- ✅ 保持弹窗在 body 最外层，避免模糊被遮挡 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%);">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; will-change: transform, opacity;">
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto">
                 <div class="glass-card p-6 cursor-auto" style="background: rgba(255,255,255,0.12);">
                     <div class="w-full flex flex-col gap-4">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                            <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
+                            <button onclick="closeAddBotModal()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
@@ -50,58 +50,8 @@
         </div>
     </div>
 
-    <!-- 核心修改：JS 实现主面板和小卡片交替滑动 -->
+    <!-- ✅ 提交绑定的 JS 放在这里，依赖 _config_home.html 里的 show/close -->
     <script>
-        // 打开弹窗：主面板下滑，小卡片从底部上来
-        window.addPanel = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            
-            if (!mainPanel || !modal || !wrapper) return;
-
-            // 1. 主面板开始往下滑
-            mainPanel.classList.add('hide-for-modal');
-            
-            // 2. 小卡片从底部滑上来（稍微延迟 0.2 秒，产生自然的节奏感）
-            modal.classList.remove('hidden');
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            
-            setTimeout(() => {
-                wrapper.style.transform = 'translateY(0)';
-                wrapper.style.opacity = '1';
-            }, 200);
-        };
-
-        // 关闭弹窗：小卡片下滑，主面板从底部升上来
-        window.closeAddPanel = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            
-            if (!mainPanel || !modal || !wrapper) return;
-
-            // 1. 小卡片先往下滑回底部
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            
-            // 2. 小卡片滑到底后，主面板刚好升上来
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                mainPanel.classList.remove('hide-for-modal');
-            }, 450);
-        };
-
-        // 点击外部遮罩关闭
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
-                window.closeAddPanel();
-            }
-        });
-
-        // 提交绑定
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
