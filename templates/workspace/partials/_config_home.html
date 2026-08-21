@@ -1,7 +1,7 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 按钮直接调用本文件内的 showAddBotModal() -->
+    <!-- ✅ 点击按钮触发弹出 -->
     <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="showAddBotModal()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
@@ -85,19 +85,48 @@
     @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
 </style>
 
-<!-- ✅ 直接把弹窗的显示/隐藏函数写在这里，绝对有反应 -->
+<!-- ✅ 弹窗打开/关闭逻辑 + 动画（底部上滑，原路退回） -->
 <script>
+    // 显示弹窗：卡片从底部滑到中间
     window.showAddBotModal = function() {
         var modal = document.getElementById('customAddPanelModal');
-        if (modal) modal.classList.remove('hidden');
+        var wrapper = document.getElementById('modalWrapper');
+        if (!modal || !wrapper) return;
+
+        // 移除隐藏状态
+        modal.classList.remove('hidden');
+        
+        // 重置到屏幕下方（底部）
+        wrapper.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+        wrapper.style.transform = 'translateY(100vh)';
+        wrapper.style.opacity = '0';
+
+        // 强制重绘后，再移动到中间（触发动画）
+        requestAnimationFrame(function() {
+            setTimeout(function() {
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+            }, 20);
+        });
     };
 
+    // 关闭弹窗：卡片滑回底部，然后隐藏遮罩
     window.closeAddBotModal = function() {
         var modal = document.getElementById('customAddPanelModal');
-        if (modal) modal.classList.add('hidden');
+        var wrapper = document.getElementById('modalWrapper');
+        if (!modal || !wrapper) return;
+
+        wrapper.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+        wrapper.style.transform = 'translateY(100vh)';
+        wrapper.style.opacity = '0';
+
+        // 等待动画结束再完全隐藏
+        setTimeout(function() {
+            modal.classList.add('hidden');
+        }, 400);
     };
 
-    // 点击遮罩层关闭
+    // 点击遮罩外部关闭
     document.addEventListener('click', function(e) {
         var modal = document.getElementById('customAddPanelModal');
         if (modal && !modal.classList.contains('hidden') && e.target === modal) {
@@ -106,7 +135,7 @@
     });
 </script>
 
-<!-- 渲染机器人卡片 -->
+<!-- 渲染机器人卡片（保留原有） -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
