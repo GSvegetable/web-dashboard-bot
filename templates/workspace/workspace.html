@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
     
-    <!-- ✅ 核心修改：引入你提供的液态玻璃 CSS -->
+    <!-- ✅ 100% 完整复刻你发来的 styles.css 液态玻璃代码 -->
     <style>
         .liquidGlass-wrapper {
             position: relative;
@@ -53,7 +53,7 @@
             color: black;
         }
 
-        /* 添加机器人的弹窗卡片样式 */
+        /* 给弹窗包裹适配尺寸 */
         .modal-glass {
             border-radius: 1.8rem;
             padding: 1.5rem;
@@ -74,16 +74,18 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 核心修改：新的液态玻璃添加机器人弹窗 -->
+    <!-- ✅ 添加机器人弹窗：应用原版液态玻璃结构 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
-                <!-- 使用 liquidGlass-wrapper 结构 -->
+                <!-- 100% 使用用户提供的 index.html 结构：wrapper > effect > tint > shine > text -->
                 <div class="liquidGlass-wrapper modal-glass">
                     <div class="liquidGlass-effect"></div>
                     <div class="liquidGlass-tint"></div>
                     <div class="liquidGlass-shine"></div>
-                    <div class="liquidGlass-text relative w-full flex flex-col gap-4" style="font-size: initial;">
+                    
+                    <!-- 内容部分放在 text 里，设置文字大小 -->
+                    <div class="liquidGlass-text relative w-full flex flex-col gap-4" style="font-size: 1rem;">
                         <h3 class="text-xl font-bold text-white">添加机器人</h3>
                         
                         <div class="flex flex-col gap-1">
@@ -104,7 +106,7 @@
         </div>
     </div>
 
-    <!-- ✅ 核心修改：放置 SVG 滤镜定义（必须放在 body 内） -->
+    <!-- ✅ 100% 完整复刻你发来的 index.html 中的 SVG 滤镜，这是产生底部折射的核心 -->
     <svg style="display: none">
         <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
             <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
