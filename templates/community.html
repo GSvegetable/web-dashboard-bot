@@ -3,472 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>社区动态 - 宫水大世界</title>
+    <title>社区 & 市场 - 宫水大世界</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background-color: #0a0c10; 
+        body {
+            background-color: #0d1117;
+            background-image: url("{{ url_for('static', filename='texture.jpg') }}");
+            background-size: cover;
+            background-position: center;
             color: #e5e7eb;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #2a2d35; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-
-        .post-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-            padding: 16px 20px;
-            margin-bottom: 8px;
-        }
-        .post-card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         }
 
-        .code-block {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-top: 10px;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+
+        .nav-tab { background: transparent; color: rgba(255, 255, 255, 0.6); transition: all 0.3s; padding: 8px 20px; border-radius: 20px; }
+        .nav-tab.active { background: rgba(255, 255, 255, 0.15); color: white; font-weight: 600; box-shadow: inset 0 1px 1px rgba(255,255,255,0.2); }
+
+        .market-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.2);
             cursor: pointer;
-            transition: all 0.3s ease;
+            overflow: hidden;
         }
-        .code-block:hover { border-color: #58a6ff; }
-        .code-content { display: none; margin-top: 10px; overflow-x: auto; }
+        .market-card:hover { transform: translateY(-5px); box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), 0 12px 40px rgba(0,0,0,0.6); }
 
-        .action-btn {
+        .cat-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.2s; }
+        .cat-btn.active { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.5); color: white; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { width: 90%; max-width: 500px; border-radius: 24px; background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 24px 80px rgba(0,0,0,0.8); animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .input-glass { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; color: white; padding: 10px 14px; width: 100%; }
+        .input-glass:focus { outline: none; border-color: rgba(255, 255, 255, 0.6); }
+
+        /* 代码预览框 */
+        .code-preview {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
             color: #8b949e;
-            transition: all 0.2s ease;
-            padding: 4px 8px;
-            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .action-btn:hover { background: rgba(255, 255, 255, 0.05); color: #e5e7eb; }
-        .action-btn.liked { color: #f91880; }
 
-        .glass-bg {
-            background: rgba(10, 12, 16, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+        /* 极光按钮 */
+        .aurora-btn {
+            background: linear-gradient(90deg, rgba(30, 64, 175, 0.8), rgba(147, 197, 253, 0.8), rgba(255, 255, 255, 0.9));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 12px;
+            color: #fff;
+            text-shadow: 1px 1px 1px #000;
+            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
+            transition: all 0.1s ease;
         }
+        .aurora-btn:hover { filter: brightness(1.2); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
     </style>
 </head>
-<body>
-    <!-- 移除居中限制，改为 w-full 铺满 -->
-    <div class="w-full px-4 pb-12 relative z-10">
-        
-        <!-- 顶部导航（仅保留返回按钮） -->
-        <div class="glass-bg sticky top-0 border-b border-[#30363d] py-3 px-2 z-20 flex items-center -mx-2">
-            <button onclick="window.location.href='/'" class="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-        </div>
+<body class="p-4 flex flex-col items-center relative">
 
-        <!-- 搜索与过滤 -->
-        <div class="mt-4 flex flex-col sm:flex-row gap-3">
-            <div class="flex-1 relative">
-                <svg class="absolute left-3 top-2.5 text-gray-500" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="searchInput" placeholder="搜索帖子、作者..." class="w-full bg-[#161b22] border border-[#30363d] rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] transition">
-            </div>
-            <select id="timeFilter" class="bg-[#161b22] border border-[#30363d] rounded-full px-4 py-2 text-sm text-white outline-none focus:border-[#58a6ff]">
-                <option value="all">全部时间</option>
-                <option value="today">今日</option>
-                <option value="week">本周</option>
-                <option value="month">本月</option>
-            </select>
-        </div>
-
-        <!-- 帖子信息流（已删除空状态） -->
-        <div id="postFeed" class="mt-4 min-h-[40vh]">
-            <div id="postList" class="flex-col gap-2"></div>
-        </div>
-
-        <!-- 加载更多 -->
-        <div id="loadMoreArea" class="hidden mt-4 text-center">
-            <button id="loadMoreBtn" class="text-gray-400 hover:text-white text-sm border border-[#30363d] px-4 py-1.5 rounded-full transition">加载更多</button>
+    <!-- 顶部导航 -->
+    <div class="w-full max-w-6xl glass-card rounded-full px-6 py-3 mb-6 flex justify-between items-center sticky top-4 z-50">
+        <div class="flex items-center gap-2 text-xl font-bold">🎁 宫水市场</div>
+        <div class="flex gap-2">
+            <div class="nav-tab active" onclick="switchTab('market')">市场</div>
+            <div class="nav-tab" onclick="switchTab('community')">社区</div>
+            <div class="nav-tab" onclick="switchTab('my')">我的</div>
         </div>
     </div>
 
-    <!-- ✅ 右下角浮动加号按钮 -->
-    <button id="composeFloatingBtn" class="fixed bottom-8 right-8 z-40 w-14 h-14 rounded-full bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-4xl font-light shadow-lg flex items-center justify-center transition active:scale-95">
-        +
-    </button>
+    <!-- ==================== 页面 1：市场 ==================== -->
+    <div id="market-panel" class="w-full max-w-6xl flex flex-col gap-6">
+        <!-- 搜索与分类 -->
+        <div class="glass-card p-6 flex flex-col gap-4">
+            <div class="relative">
+                <input type="text" placeholder="搜索你想要的虚拟商品..." class="input-glass pl-10">
+                <svg class="absolute left-3 top-3 text-gray-400" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="flex gap-2 overflow-x-auto py-2">
+                <div class="cat-btn active px-4 py-1.5 rounded-full text-sm whitespace-nowrap">全部</div>
+                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">机器人模板</div>
+                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">自动化脚本</div>
+                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">VIP特权</div>
+                <div class="cat-btn px-4 py-1.5 rounded-full text-sm whitespace-nowrap">AI提示词</div>
+            </div>
+        </div>
 
-    <!-- ✅ 新增：发帖弹窗 -->
-    <div id="composeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center">
-        <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-3">发布动态</h3>
-            <textarea id="modalPostContent" rows="4" class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none" placeholder="今天有什么新鲜事？"></textarea>
+        <!-- 商品网格 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <!-- 商品卡片 1 -->
+            <div class="market-card" onclick="openProduct('豪华版机器人源码包','500','320','@张三','⭐ 新品')">
+                <div class="h-32 bg-gradient-to-br from-blue-500/30 to-purple-500/30 flex items-center justify-center text-5xl">🤖</div>
+                <!-- 代码预览区 -->
+                <div class="px-4 py-2 code-preview">import telebot<br>&nbsp;&nbsp;bot = telebot.TeleBot(...)<br>&nbsp;&nbsp;@bot.message_handler()</div>
+                <div class="p-4 flex flex-col gap-2">
+                    <div class="text-white font-bold truncate">豪华版机器人源码包</div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-amber-300 font-bold">500 星星</div>
+                        <div class="text-xs text-gray-400">已售 320 份</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-400">卖家：@张三</div>
+                        <div class="text-xs bg-rose-500/30 px-2 py-0.5 rounded-full text-rose-300">⭐ 新品</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 商品卡片 2 -->
+            <div class="market-card" onclick="openProduct('Telegram 防刷脚本','120','150','@李四','🔥 限时 8 折')">
+                <div class="h-32 bg-gradient-to-br from-green-500/30 to-cyan-500/30 flex items-center justify-center text-5xl">🛡️</div>
+                <div class="px-4 py-2 code-preview">def check_flood(msg):<br>&nbsp;&nbsp;return False  # 放行</div>
+                <div class="p-4 flex flex-col gap-2">
+                    <div class="text-white font-bold truncate">Telegram 防刷脚本</div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-amber-300 font-bold">120 星星</div>
+                        <div class="text-xs text-gray-400">已售 150 份</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-400">卖家：@李四</div>
+                        <div class="text-xs bg-rose-500/30 px-2 py-0.5 rounded-full text-rose-300">🔥 限时 8 折</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 商品卡片 3 -->
+            <div class="market-card" onclick="openProduct('AI 角色扮演指令集','300','500','@王五','')">
+                <div class="h-32 bg-gradient-to-br from-pink-500/30 to-rose-500/30 flex items-center justify-center text-5xl">✨</div>
+                <div class="px-4 py-2 code-preview">System:<br>&nbsp;&nbsp;"你现在是完美的..."<br>&nbsp;&nbsp;User: "你好"</div>
+                <div class="p-4 flex flex-col gap-2">
+                    <div class="text-white font-bold truncate">AI 角色扮演指令集</div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-amber-300 font-bold">300 星星</div>
+                        <div class="text-xs text-gray-400">已售 500 份</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-400">卖家：@王五</div>
+                        <div class="text-xs text-gray-500">--</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 商品卡片 4 -->
+            <div class="market-card" onclick="openProduct('高级 AI 搜索工具','150','200','@赵六','' )">
+                <div class="h-32 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 flex items-center justify-center text-5xl">🔍</div>
+                <div class="px-4 py-2 code-preview">from tools import search<br>results = search(query)<br>print(results)</div>
+                <div class="p-4 flex flex-col gap-2">
+                    <div class="text-white font-bold truncate">高级 AI 搜索工具</div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-amber-300 font-bold">150 星星</div>
+                        <div class="text-xs text-gray-400">已售 200 份</div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-xs text-gray-400">卖家：@赵六</div>
+                        <div class="text-xs text-gray-500">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页面 2：社区 ==================== -->
+    <div id="community-panel" class="w-full max-w-6xl hidden flex-col gap-6">
+        <div class="glass-card p-6 flex flex-col gap-4">
+            <div class="text-2xl font-bold">📢 社区动态</div>
+            <div class="flex flex-col gap-3">
+                <div class="bg-white/5 rounded-xl p-4 flex gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-500"></div>
+                    <div class="flex-1">
+                        <div class="text-white font-bold">张三</div>
+                        <div class="text-sm text-gray-300">我今天上架了一款豪华版机器人源码，大家快来看看！</div>
+                    </div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 flex gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-500"></div>
+                    <div class="flex-1">
+                        <div class="text-white font-bold">李四</div>
+                        <div class="text-sm text-gray-300">社区最近好活跃，大家互相交易愉快！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 页面 3：我的 ==================== -->
+    <div id="my-panel" class="w-full max-w-6xl hidden flex-col gap-6">
+        <div class="glass-card p-6 flex flex-col gap-4">
+            <div class="text-2xl font-bold">👤 我的资产</div>
             
-            <!-- 进阶发帖选项（可折叠） -->
-            <div class="mt-2 flex flex-col gap-2">
-                <div class="flex gap-2 text-xs text-gray-400">
-                    <button onclick="toggleModalMedia()" class="hover:text-white px-2 py-0.5 rounded bg-[#0d1117] border border-[#30363d]">📷 链接</button>
-                    <button onclick="toggleModalCode()" class="hover:text-white px-2 py-0.5 rounded bg-[#0d1117] border border-[#30363d]">&lt;/&gt; 代码</button>
+            <!-- 余额卡片 -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white/10 rounded-2xl p-5 text-center">
+                    <div class="text-gray-400 text-sm">当前余额</div>
+                    <div class="text-4xl font-black text-white mt-2">0</div>
+                    <div class="text-gray-500 text-xs mt-1">星星</div>
                 </div>
-                <div id="modalMediaArea" class="hidden">
-                    <input id="modalMediaUrls" type="text" placeholder="图片/视频链接 (多个用逗号隔开)" class="w-full bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
-                </div>
-                <div id="modalCodeArea" class="hidden flex flex-col gap-2">
-                    <input id="modalCodeLang" type="text" placeholder="语言 (如 python, json)" class="w-1/2 bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
-                    <textarea id="modalCodeContent" rows="3" placeholder="粘贴代码..." class="w-full bg-[#0d1117] border border-[#30363d] rounded px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff] resize-none"></textarea>
+                <div class="bg-white/10 rounded-2xl p-5 text-center">
+                    <div class="text-gray-400 text-sm">保证金</div>
+                    <div class="text-4xl font-black text-amber-400 mt-2">0</div>
+                    <div class="text-gray-500 text-xs mt-1">星星</div>
                 </div>
             </div>
 
-            <div class="flex justify-end gap-3 mt-4">
-                <button onclick="closeComposeModal()" class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded-full transition">取消</button>
-                <button id="modalSubmitBtn" class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-sm font-medium px-5 py-1.5 rounded-full transition active:scale-95 disabled:opacity-50" disabled>发布</button>
+            <!-- 商家入驻/上架按钮 -->
+            <div class="grid grid-cols-1 gap-3">
+                <div class="bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/30 rounded-2xl p-5 cursor-pointer flex items-center justify-between" onclick="openMerchantApply()">
+                    <div>
+                        <div class="text-white font-bold text-lg">🎉 成为商家</div>
+                        <div class="text-gray-300 text-sm">缴纳 1000 颗星星保证金，开始赚取星星</div>
+                    </div>
+                    <div class="text-amber-300 text-2xl">→</div>
+                </div>
+                
+                <div class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-5 cursor-pointer flex items-center justify-between" onclick="openProduct()">
+                    <div>
+                        <div class="text-white font-bold text-lg">📦 上架商品</div>
+                        <div class="text-gray-300 text-sm">发布你的虚拟商品，赚取收入</div>
+                    </div>
+                    <div class="text-white text-2xl">→</div>
+                </div>
+
+                <div class="bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-5 cursor-pointer" onclick="openEarningsModal()">
+                    <div class="text-white font-bold text-lg">💰 收益明细</div>
+                    <div class="text-gray-300 text-sm">查看平台抽成、到手收益</div>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ==================== 商品详情弹窗 ==================== -->
+    <div class="modal-overlay" id="productModal" onclick="closeModal('productModal')">
+        <div class="modal-box p-6" onclick="event.stopPropagation()">
+            <h3 class="text-2xl font-bold text-white mb-4" id="productTitle">商品详情</h3>
+            <div class="h-24 bg-gradient-to-br from-gray-500/30 to-blue-500/30 rounded-xl flex items-center justify-center text-6xl mb-4">🤖</div>
+            
+            <div class="text-xl text-gray-300 mb-2">📦 交付物预览：</div>
+            <div class="code-preview mb-4" id="productCode" style="font-size: 14px; line-height: 1.8;">import telebot<br>bot = telebot.TeleBot("你的Token")<br>@bot.message_handler(commands=['start'])<br>def start(msg):<br>&nbsp;&nbsp;bot.reply_to(msg, "你好！")</div>
+
+            <div class="flex flex-col gap-2 mb-4">
+                <div class="flex justify-between"><span class="text-gray-400">上架时间</span><span class="text-white">2026-08-20 14:30</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">原价</span><span class="text-gray-200 line-through" id="productOldPrice">500 星星</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">折扣</span><span class="text-rose-300" id="productDiscount">9 折</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">现价</span><span class="text-amber-300 font-bold" id="productPrice">450 星星</span></div>
+                <div class="flex justify-between border-t border-white/10 pt-2"><span class="text-gray-400">平台抽成 (10%)</span><span class="text-rose-300">-45 星星</span></div>
+                <div class="flex justify-between"><span class="text-gray-400">卖家到手</span><span class="text-green-400 font-bold">405 星星</span></div>
+            </div>
+
+            <button class="w-full py-3 aurora-btn rounded-xl text-white font-bold" onclick="openBuyModal()">立即购买</button>
+            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('productModal')">取消</button>
+        </div>
+    </div>
+
+    <!-- ==================== 购买确认弹窗 ==================== -->
+    <div class="modal-overlay" id="buyModal" onclick="closeModal('buyModal')">
+        <div class="modal-box p-6" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4">确认购买</h3>
+            <div class="mb-4 text-gray-300">确认支付 <span class="text-amber-300 font-bold" id="buyPrice">450 星星</span> 购买此商品吗？</div>
+            <div class="flex justify-between gap-3">
+                <button class="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white" onclick="closeModal('buyModal')">取消</button>
+                <button class="flex-1 py-3 aurora-btn rounded-xl text-white font-bold" onclick="confirmBuy()">确认购买</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 商家入驻弹窗 ==================== -->
+    <div class="modal-overlay" id="merchantModal" onclick="closeModal('merchantModal')">
+        <div class="modal-box p-6" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4">商家入驻申请</h3>
+            
+            <div class="flex flex-col gap-3 mb-4">
+                <div>
+                    <label class="text-gray-400 text-sm block mb-1">店铺名称</label>
+                    <input type="text" class="input-glass" placeholder="请输入店铺名称">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm block mb-1">TG 用户名</label>
+                    <input type="text" class="input-glass" placeholder="请输入你的 Telegram 用户名">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-sm block mb-1">保证金</label>
+                    <input type="text" class="input-glass" value="1000 星星" readonly>
+                </div>
+            </div>
+            
+            <button class="w-full py-3 bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/30 rounded-xl text-amber-300 font-bold" onclick="closeModal('merchantModal')">缴纳保证金并入驻</button>
+            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('merchantModal')">取消</button>
+        </div>
+    </div>
+
+    <!-- ==================== 上架商品弹窗（含时间折扣设置） ==================== -->
+    <div class="modal-overlay" id="listProductModal" onclick="closeModal('listProductModal')">
+        <div class="modal-box p-6" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4">📦 上架新商品</h3>
+            
+            <div class="flex flex-col gap-3 mb-4">
+                <div><label class="text-gray-400 text-sm block mb-1">商品名称</label><input type="text" class="input-glass" placeholder="请输入商品名称"></div>
+                <div><label class="text-gray-400 text-sm block mb-1">商品原价 (星星)</label><input type="number" class="input-glass" placeholder="请输入原价" oninput="updatePriceCalc()"></div>
+                <div><label class="text-gray-400 text-sm block mb-1">交付内容（代码）</label><textarea class="input-glass h-24 resize-none" placeholder="粘贴你的代码内容..."></textarea></div>
+                
+                <div class="text-white text-sm font-bold mt-2">📅 上架时间与折扣设置</div>
+                <div class="flex gap-3">
+                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">上架时间</label><input type="date" class="input-glass"></div>
+                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">持续时间</label><select class="input-glass"><option>永久</option><option>24小时</option><option>7天</option></select></div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">折扣</label><select class="input-glass" onchange="updatePriceCalc()"><option value="1">无折扣</option><option value="0.9">9折</option><option value="0.8">8折</option><option value="0.5">5折</option></select></div>
+                    <div class="flex-1"><label class="text-gray-400 text-sm block mb-1">到手价 (星星)</label><input type="text" class="input-glass" id="calcPrice" readonly value="0"></div>
+                </div>
+            </div>
+
+            <button class="w-full py-3 aurora-btn rounded-xl text-white font-bold" onclick="alert('已提交！后续接入后端')">确认上架</button>
+            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('listProductModal')">取消</button>
+        </div>
+    </div>
+
+    <!-- ==================== 收益明细弹窗 ==================== -->
+    <div class="modal-overlay" id="earningsModal" onclick="closeModal('earningsModal')">
+        <div class="modal-box p-6" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-white mb-4">💰 收益明细</h3>
+            
+            <div class="flex flex-col gap-2 mb-4">
+                <div class="flex justify-between text-gray-400 text-sm"><span>总销售额</span><span class="text-white font-bold">1,200 星星</span></div>
+                <div class="flex justify-between text-gray-400 text-sm"><span>平台抽成 (10%)</span><span class="text-rose-300">-120 星星</span></div>
+                <div class="flex justify-between text-gray-400 text-sm border-t border-white/10 pt-2"><span>实际到手</span><span class="text-green-400 font-bold text-lg">1,080 星星</span></div>
+            </div>
+
+            <button class="w-full py-3 bg-white/5 hover:bg-white/10 rounded-xl text-white text-sm mt-2" onclick="closeModal('earningsModal')">关闭</button>
         </div>
     </div>
 
     <script>
-        // ===========================
-        // 状态管理 & 帖子加载
-        // ===========================
-        let currentPage = 1;
-        let hasMore = true;
-        let isLoading = false;
+        // Tab 切换
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('market-panel').style.display = tab === 'market' ? 'flex' : 'none';
+            document.getElementById('community-panel').style.display = tab === 'community' ? 'flex' : 'none';
+            document.getElementById('my-panel').style.display = tab === 'my' ? 'flex' : 'none';
+        }
 
-        function loadPosts(reset = false) {
-            if (isLoading) return;
-            isLoading = true;
+        // 打开商品详情
+        let currentProduct = {};
+        function openProduct(title = '未命名商品', price = '0', sales = '0', seller = '未知', discountTag = '') {
+            // 构造商品对象
+            currentProduct = { title, price, sales, seller };
+            let discountedPrice = price;
+            let discountText = discountTag || '无折扣';
+            if (discountTag.includes('8折')) { discountedPrice = Math.floor(price * 0.8); }
+            else if (discountTag.includes('9折')) { discountedPrice = Math.floor(price * 0.9); }
+
+            document.getElementById('productTitle').innerText = title;
+            document.getElementById('productOldPrice').innerText = price + ' 星星';
+            document.getElementById('productDiscount').innerText = discountText;
+            document.getElementById('productPrice').innerText = discountedPrice + ' 星星';
+            document.getElementById('productCode').innerHTML = 'import telebot<br>bot = telebot.TeleBot("你的Token")<br>@bot.message_handler(commands=[\'start\'])<br>def start(msg):<br>&nbsp;&nbsp;bot.reply_to(msg, "你好！")';
+            document.getElementById('buyPrice').innerText = discountedPrice + ' 星星';
             
-            const keyword = document.getElementById('searchInput').value.trim();
-            const time = document.getElementById('timeFilter').value;
-            
-            if (reset) {
-                currentPage = 1;
-                hasMore = true;
-                document.getElementById('postList').innerHTML = '';
+            openModal('productModal');
+        }
+
+        function openListProductModal() {
+            openModal('listProductModal');
+        }
+
+        // 商家入驻
+        function openMerchantApply() {
+            openModal('merchantModal');
+        }
+        function openEarningsModal() {
+            openModal('earningsModal');
+        }
+
+        // 确认购买（纯前端演示）
+        function confirmBuy() {
+            closeModal('buyModal');
+            closeModal('productModal');
+            alert('✅ 购买成功！商品已发放到你的账户。(后端接口待接入)');
+        }
+
+        // 上架商品自动计算
+        function updatePriceCalc() {
+            // 简单模拟：原价 x 折扣
+            const input = document.querySelector('#listProductModal input[type="number"]');
+            const select = document.querySelector('#listProductModal select[onchange="updatePriceCalc()"]');
+            const price = parseFloat(input.value) || 0;
+            const discount = parseFloat(select.value) || 1;
+            const finalPrice = Math.floor(price * discount);
+            document.getElementById('calcPrice').value = finalPrice + ' 星星';
+        }
+
+        // 通用弹窗控制
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        // 初始化上架商品弹窗
+        document.getElementById('my-panel').querySelectorAll('div').forEach(div => {
+            if (div.innerText.includes('上架商品')) {
+                div.onclick = openListProductModal;
             }
-            
-            let url = `/api/posts?page=${currentPage}&time=${time}`;
-            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-            
-            fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    const list = document.getElementById('postList');
-                    if (reset) {
-                        list.innerHTML = '';
-                        currentPage = 1;
-                    }
-                    
-                    if (data.posts.length > 0) {
-                        data.posts.forEach((post, index) => {
-                            const el = createPostElement(post);
-                            list.appendChild(el);
-                            gsap.fromTo(el, 
-                                { opacity: 0, y: 20, scale: 0.98 },
-                                { opacity: 1, y: 0, scale: 1, duration: 0.5, delay: index * 0.05, ease: "power2.out" }
-                            );
-                        });
-                        
-                        hasMore = data.has_next;
-                        currentPage++;
-                        
-                        const loadArea = document.getElementById('loadMoreArea');
-                        if (hasMore) {
-                            loadArea.classList.remove('hidden');
-                        } else {
-                            loadArea.classList.add('hidden');
-                        }
-                    }
-                }
-            })
-            .catch(err => console.error('加载失败:', err))
-            .finally(() => { isLoading = false; });
-        }
-
-        // ===========================
-        // 创建帖子 DOM
-        // ===========================
-        function createPostElement(post) {
-            const div = document.createElement('div');
-            div.className = 'post-card';
-            div.id = `post-${post.id}`;
-            
-            let mediaHtml = '';
-            if (post.media_urls && post.media_urls.length > 0) {
-                mediaHtml = post.media_urls.map(url => 
-                    `<div class="mt-2 rounded-lg overflow-hidden border border-[#30363d] bg-[#161b22] p-1">
-                        ${url.match(/\.(mp4|webm|ogg)$/i) ? 
-                            `<video src="${url}" controls class="w-full max-h-60 object-contain"></video>` :
-                            `<img src="${url}" class="w-full max-h-60 object-contain" loading="lazy">`
-                        }
-                    </div>`
-                ).join('');
-            }
-            
-            let codeHtml = '';
-            if (post.code_lang && post.code_content) {
-                codeHtml = `
-                    <div class="code-block" onclick="toggleCode(this)">
-                        <div class="flex justify-between items-center text-xs text-gray-400">
-                            <span class="font-mono text-[#58a6ff]">&lt;/&gt; ${post.code_lang}</span>
-                            <span>点击展开</span>
-                        </div>
-                        <div class="code-content font-mono text-xs text-gray-300 whitespace-pre-wrap">${escapeHtml(post.code_content)}</div>
-                    </div>
-                `;
-            }
-            
-            div.innerHTML = `
-                <div class="flex gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex-shrink-0 flex items-center justify-center text-gray-300 text-xs border border-[#30363d]">
-                        ${post.author_name[0] || '?'}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="font-bold text-white text-sm">${escapeHtml(post.author_name)}</span>
-                            <span class="text-xs text-gray-500">@${post.author_display_id}</span>
-                            <span class="text-xs text-gray-600">·</span>
-                            <span class="text-xs text-gray-500">${post.created_at}</span>
-                            ${post.is_subscribed ? '<span class="text-[10px] text-[#1d9bf0] border border-[#1d9bf0] px-1.5 rounded-full">已订阅</span>' : ''}
-                        </div>
-                        <div class="mt-1 text-sm text-white leading-relaxed whitespace-pre-wrap">${escapeHtml(post.content)}</div>
-                        ${mediaHtml}
-                        ${codeHtml}
-                        <div class="mt-3 flex gap-4 text-xs text-gray-500">
-                            <button class="action-btn flex items-center gap-1 ${post.is_liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-                                ${post.is_liked ? '❤️' : '🤍'} <span id="like-count-${post.id}">${post.likes}</span>
-                            </button>
-                            <button class="action-btn flex items-center gap-1" onclick="toggleComment(${post.id})">
-                                💬 <span>${post.comments}</span>
-                            </button>
-                            <button class="action-btn flex items-center gap-1" onclick="toggleSubscribe(${post.user_id}, this)">
-                                ${post.is_subscribed ? '✅ 已订阅' : '+ 订阅'}
-                            </button>
-                        </div>
-                        <div id="comment-area-${post.id}" class="hidden mt-3 border-t border-[#30363d]/50 pt-3">
-                            <div id="comment-list-${post.id}" class="mb-2 max-h-40 overflow-y-auto"></div>
-                            <div class="flex gap-2">
-                                <input type="text" id="comment-input-${post.id}" placeholder="写下你的评论..." class="flex-1 bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#58a6ff]">
-                                <button class="bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white text-xs px-3 py-1.5 rounded-full" onclick="submitComment(${post.id})">发送</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            return div;
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ===========================
-        // 帖子交互
-        // ===========================
-        function toggleCode(el) {
-            const content = el.querySelector('.code-content');
-            const label = el.querySelector('span:last-child');
-            if (content.style.display === 'block') {
-                content.style.display = 'none';
-                label.textContent = '点击展开';
-            } else {
-                content.style.display = 'block';
-                label.textContent = '点击收起';
-            }
-        }
-
-        function toggleLike(postId) {
-            fetch(`/api/posts/${postId}/like`, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    const btn = document.querySelector(`#post-${postId} .action-btn`);
-                    const count = document.getElementById(`like-count-${postId}`);
-                    if (data.action === 'liked') {
-                        btn.classList.add('liked');
-                        btn.innerHTML = `❤️ <span id="like-count-${postId}">${data.count}</span>`;
-                    } else {
-                        btn.classList.remove('liked');
-                        btn.innerHTML = `🤍 <span id="like-count-${postId}">${data.count}</span>`;
-                    }
-                }
-            });
-        }
-
-        function toggleComment(postId) {
-            const area = document.getElementById(`comment-area-${postId}`);
-            const list = document.getElementById(`comment-list-${postId}`);
-            if (area.classList.contains('hidden')) {
-                area.classList.remove('hidden');
-                fetch(`/api/posts/${postId}/comments`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.ok) {
-                        list.innerHTML = '';
-                        data.comments.forEach(c => {
-                            const div = document.createElement('div');
-                            div.className = 'flex gap-2 py-1.5 text-xs';
-                            div.innerHTML = `
-                                <span class="font-bold text-white">${c.author_name}</span>
-                                <span class="text-gray-400">${c.content}</span>
-                            `;
-                            list.appendChild(div);
-                        });
-                    }
-                });
-            } else {
-                area.classList.add('hidden');
-            }
-        }
-
-        function submitComment(postId) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const content = input.value.trim();
-            if (!content) return;
-            fetch(`/api/posts/${postId}/comments`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ content: content })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    input.value = '';
-                    toggleComment(postId);
-                }
-            });
-        }
-
-        function toggleSubscribe(userId, btn) {
-            fetch(`/api/users/${userId}/subscribe`, { method: 'POST' })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    if (data.action === 'subscribed') {
-                        btn.textContent = '✅ 已订阅';
-                    } else {
-                        btn.textContent = '+ 订阅';
-                    }
-                }
-            });
-        }
-
-        // ===========================
-        // 搜索与过滤监听
-        // ===========================
-        let searchTimer;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                currentPage = 1;
-                loadPosts(true);
-            }, 400);
-        });
-
-        document.getElementById('timeFilter').addEventListener('change', function() {
-            currentPage = 1;
-            loadPosts(true);
-        });
-
-        document.getElementById('loadMoreBtn').addEventListener('click', function() {
-            loadPosts(false);
-        });
-
-        // ===========================
-        // 弹窗发帖控制逻辑
-        // ===========================
-        const modal = document.getElementById('composeModal');
-        const floatingBtn = document.getElementById('composeFloatingBtn');
-
-        floatingBtn.addEventListener('click', function() {
-            modal.classList.remove('hidden');
-            document.getElementById('modalPostContent').focus();
-        });
-
-        window.closeComposeModal = function() {
-            modal.classList.add('hidden');
-            document.getElementById('modalPostContent').value = '';
-            document.getElementById('modalMediaUrls').value = '';
-            document.getElementById('modalCodeLang').value = '';
-            document.getElementById('modalCodeContent').value = '';
-            document.getElementById('modalSubmitBtn').disabled = true;
-        };
-
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) closeComposeModal();
-        });
-
-        document.getElementById('modalPostContent').addEventListener('input', function() {
-            document.getElementById('modalSubmitBtn').disabled = !this.value.trim();
-        });
-
-        function toggleModalMedia() {
-            document.getElementById('modalMediaArea').classList.toggle('hidden');
-        }
-        function toggleModalCode() {
-            document.getElementById('modalCodeArea').classList.toggle('hidden');
-        }
-
-        document.getElementById('modalSubmitBtn').addEventListener('click', function() {
-            const content = document.getElementById('modalPostContent').value.trim();
-            if (!content) return;
-            
-            const mediaUrls = document.getElementById('modalMediaUrls').value.trim();
-            const codeLang = document.getElementById('modalCodeLang').value.trim();
-            const codeContent = document.getElementById('modalCodeContent').value.trim();
-            
-            this.innerText = '发布中...';
-            this.disabled = true;
-            
-            fetch('/api/posts', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    content: content,
-                    media_urls: mediaUrls,
-                    code_lang: codeLang,
-                    code_content: codeContent
-                })
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(err => { throw new Error(err.msg || '发布失败'); });
-                }
-                return res.json();
-            })
-            .then(data => {
-                if (data.ok) {
-                    closeComposeModal();
-                    currentPage = 1;
-                    loadPosts(true);
-                } else {
-                    alert('发布失败: ' + data.msg);
-                }
-            })
-            .catch(err => {
-                alert('发布异常: ' + err.message);
-            })
-            .finally(() => {
-                this.innerText = '发布';
-                this.disabled = false;
-            });
-        });
-
-        // ===========================
-        // 初始加载
-        // ===========================
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPosts(true);
         });
     </script>
 </body>
