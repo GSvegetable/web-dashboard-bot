@@ -1,5 +1,5 @@
 <!-- 主面板结构 -->
-<div id="configPanel" class="panel-fullscreen fixed z-30" style="transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);">
+<div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
     <div class="panel-inner">
         {% include 'workspace/partials/_config_home.html' %}
@@ -8,189 +8,151 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
+    <!-- ✅ 极致高斯模糊：40px，纯透明，无任何黑色加深 -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%);">
+        <div class="w-full h-full flex items-center justify-center pointer-events-none">
+            <!-- 使用平滑缓动曲线和 will-change 保证丝滑 -->
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; will-change: transform, opacity;">
+                <div class="glass-card p-6 cursor-auto">
+                    <div class="w-full flex flex-col gap-4">
+                        
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold text-white">添加机器人</h3>
+                            <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
+                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
+                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                        </div>
+
+                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
+                        </div>
+                        
+                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-        .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
-        @media (min-width: 768px) { .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
+        .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
+        @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
+        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+        .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
         .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 15px rgba(255,255,255,0.05); background: rgba(0,0,0,0.5); }
     </style>
-</div>
 
-<!-- 添加 Bot 卡片（独立于主面板，避免 transform 影响 fixed 定位） -->
-<div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="display: none; align-items: center; justify-content: center;">
-    <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;">
-        <div class="glass-card p-6 cursor-auto">
-            <div class="w-full flex flex-col gap-4">
-                
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                    <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
-                </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const panel = document.getElementById('configPanel');
+            panel.classList.remove('panel-collapsed');
+            panel.classList.add('panel-fullscreen');
+        });
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                    <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                </div>
+        window.switchToConfig = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            panel.classList.remove('panel-fullscreen');
+            panel.classList.add('panel-collapsed');
+            setTimeout(() => { home.classList.add('hidden'); form.classList.remove('hidden'); }, 50);
+        };
+        window.switchToHome = function() {
+            const panel = document.getElementById('configPanel');
+            const home = document.getElementById('configHome');
+            const form = document.getElementById('configForm');
+            form.classList.add('hidden'); home.classList.remove('hidden');
+            panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
+        };
 
-                <div class="flex flex-col gap-1">
-                    <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
-                    <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                </div>
-
-                <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                    <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
-                </div>
-                
-                <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const panel = document.getElementById('configPanel');
-        panel.classList.remove('panel-collapsed');
-        panel.classList.add('panel-fullscreen');
-    });
-
-    window.switchToConfig = function() {
-        const panel = document.getElementById('configPanel');
-        const home = document.getElementById('configHome');
-        const form = document.getElementById('configForm');
-        panel.classList.remove('panel-fullscreen');
-        setTimeout(() => { home.classList.add('hidden'); form.classList.remove('hidden'); }, 50);
-    };
-    window.switchToHome = function() {
-        const panel = document.getElementById('configPanel');
-        const home = document.getElementById('configHome');
-        const form = document.getElementById('configForm');
-        form.classList.add('hidden'); home.classList.remove('hidden');
-        panel.classList.add('panel-fullscreen');
-    };
-
-    // ✅ 保护锁：大卡片没完全消失前，禁止任何关闭操作
-    let isPanelAnimating = false;
-
-    // ✅ 点击添加按钮：先锁定，再让大卡片下去
-    window.addPanel = function() {
-        if (isPanelAnimating) return;
-        isPanelAnimating = true;
-
-        const panel = document.getElementById('configPanel');
-        // 主面板向下滑出屏幕底部（120vh 确保完全看不见）
-        panel.style.transform = 'translateY(120vh)';
-
-        // 等待主面板滑出动画完成（0.5s）后隐藏，并显示小卡片
-        setTimeout(() => {
-            panel.style.display = 'none';
-
+        window.addPanel = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
+            if (!modal || !wrapper) return;
 
-            modal.style.display = 'flex';
             modal.classList.remove('hidden');
-
-            // 小卡片初始状态：位于屏幕底部外，透明度 0
+            wrapper.style.transform = 'translateY(100%)';
             wrapper.style.opacity = '0';
-            wrapper.style.transform = 'translateY(100vh)';
+            
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    wrapper.style.transform = 'translateY(0)';
+                    wrapper.style.opacity = '1';
+                }, 30);
+            });
+        };
 
-            // 强制回流，确保过渡动画生效
-            void wrapper.offsetHeight;
+        window.closeAddPanel = function() {
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!modal || !wrapper) return;
 
-            // 小卡片从屏幕底部滑入到屏幕正中央
-            wrapper.style.opacity = '1';
-            wrapper.style.transform = 'translateY(0)';
-
-            // 小卡片过渡完成（0.4s）后解锁
+            wrapper.style.transform = 'translateY(100%)';
+            wrapper.style.opacity = '0';
+            
             setTimeout(() => {
-                isPanelAnimating = false;
-            }, 400);
-        }, 500);
-    };
+                modal.classList.add('hidden');
+            }, 500);
+        };
 
-    // ✅ 关闭：小卡片下滑回底部，同时主面板从底部升回原位
-    window.closeAddPanel = function() {
-        if (isPanelAnimating) return;
-        isPanelAnimating = true;
-
-        const modal = document.getElementById('customAddPanelModal');
-        const wrapper = document.getElementById('modalWrapper');
-        const panel = document.getElementById('configPanel');
-
-        // 小卡片开始下滑（保持可见，直到滑出屏幕底部）
-        wrapper.style.opacity = '1';
-        wrapper.style.transform = 'translateY(100vh)';
-
-        // 同时准备主面板：先显示并设置到屏幕下方，然后强制回流后上滑
-        panel.style.display = 'block';
-        panel.style.transform = 'translateY(120vh)';
-        // 强制回流，确保过渡生效
-        void panel.offsetHeight;
-        // 主面板从底部向上滑回原位
-        panel.style.transform = 'translateY(0)';
-
-        // 等待主面板过渡完成（0.5s）后，隐藏小卡片并解锁
-        setTimeout(() => {
-            modal.style.display = 'none';
-            modal.classList.add('hidden');
-            isPanelAnimating = false;
-        }, 550); // 稍大于主面板过渡时间，确保动画完全结束
-    };
-
-    // ✅ 点击外部关闭：必须穿透判断，防止误触
-    document.addEventListener('click', function(e) {
-        const modal = document.getElementById('customAddPanelModal');
-        const wrapper = document.getElementById('modalWrapper');
-        if (isPanelAnimating) return;
-
-        if (modal && modal.style.display === 'flex' && wrapper && !wrapper.contains(e.target)) {
-            window.closeAddPanel();
-        }
-    });
-
-    // ✅ 提交绑定
-    window.submitBindBot = function() {
-        const userIdInput = document.getElementById('addPanelUserIdInput');
-        const tokenInput = document.getElementById('addPanelTokenInput');
-        const statusMsg = document.getElementById('bindStatusMsg');
-        
-        const userId = userIdInput.value.trim();
-        const token = tokenInput.value.trim();
-
-        if (!userId || !token) {
-            statusMsg.innerText = '❌ 请填写完整';
-            statusMsg.className = 'text-xs text-center text-red-400';
-            return;
-        }
-
-        statusMsg.classList.remove('hidden');
-        statusMsg.innerText = '正在绑定...';
-        statusMsg.className = 'text-xs text-center text-yellow-400';
-
-        fetch('/api/send_bind_request', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: userId, token: token })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.ok) {
-                statusMsg.innerText = '✅ 绑定成功！';
-                statusMsg.className = 'text-xs text-center text-green-400';
-                setTimeout(() => { window.location.href = '/workspace'; }, 1500);
-            } else {
-                statusMsg.innerText = '❌ ' + data.msg;
-                statusMsg.className = 'text-xs text-center text-red-400';
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+                window.closeAddPanel();
             }
-        })
-        .catch(() => {
-            statusMsg.innerText = '❌ 网络异常';
-            statusMsg.className = 'text-xs text-center text-red-400';
         });
-    };
-</script>
+
+        window.submitBindBot = function() {
+            const userIdInput = document.getElementById('addPanelUserIdInput');
+            const tokenInput = document.getElementById('addPanelTokenInput');
+            const statusMsg = document.getElementById('bindStatusMsg');
+            
+            const userId = userIdInput.value.trim();
+            const token = tokenInput.value.trim();
+
+            if (!userId || !token) {
+                statusMsg.innerText = '❌ 请填写完整';
+                statusMsg.className = 'text-xs text-center text-red-400';
+                return;
+            }
+
+            statusMsg.classList.remove('hidden');
+            statusMsg.innerText = '正在绑定...';
+            statusMsg.className = 'text-xs text-center text-yellow-400';
+
+            fetch('/api/send_bind_request', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId, token: token })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    statusMsg.innerText = '✅ 绑定成功！';
+                    statusMsg.className = 'text-xs text-center text-green-400';
+                    setTimeout(() => { window.location.href = '/workspace'; }, 1500);
+                } else {
+                    statusMsg.innerText = '❌ ' + data.msg;
+                    statusMsg.className = 'text-xs text-center text-red-400';
+                }
+            })
+            .catch(() => {
+                statusMsg.innerText = '❌ 网络异常';
+                statusMsg.className = 'text-xs text-center text-red-400';
+            });
+        };
+    </script>
+</div>
