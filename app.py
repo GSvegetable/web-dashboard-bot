@@ -1,6 +1,7 @@
 import os
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -31,7 +32,6 @@ with app.app_context():
         db.create_all()
         logging.info("✅ 数据库表结构检查/创建成功！")
     except Exception as e:
-        # 无论什么错误，先回滚事务，再继续尝试
         try:
             db.session.rollback()
         except:
@@ -51,6 +51,15 @@ def log_visit():
     if request.path.startswith('/static') or request.path == '/favicon.ico':
         return
     try:
+        # 强制检测：如果表不存在（比如 visit_log 丢失），立刻重新建表
+        with app.app_context():
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            tables = inspector.get_table_names()
+            if 'visit_log' not in tables:
+                db.create_all()
+                logging.info("✅ 检测到缺表，已自动重建！")
+
         ip = request.remote_addr
         five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
         recent_visit = VisitLog.query.filter(VisitLog.ip_address == ip, VisitLog.visited_at > five_minutes_ago).first()
@@ -60,7 +69,7 @@ def log_visit():
             db.session.commit()
     except Exception as e:
         try:
-            db.session.rollback()  # 防止卡死
+            db.session.rollback()
         except:
             pass
         app.logger.error(f"记录访问失败: {e}")
