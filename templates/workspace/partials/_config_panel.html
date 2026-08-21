@@ -81,9 +81,10 @@
             isPanelAnimating = true;
 
             const panel = document.getElementById('configPanel');
+            // 主面板向下滑出屏幕底部（120vh 确保完全看不见）
             panel.style.transform = 'translateY(120vh)';
 
-            // 等它滑到底部后，彻底锁死它，然后显示小卡片
+            // 等待主面板滑出动画完成（0.5s）后隐藏，并显示小卡片
             setTimeout(() => {
                 panel.style.display = 'none';
 
@@ -93,19 +94,25 @@
                 modal.style.display = 'flex';
                 modal.classList.remove('hidden');
 
+                // 小卡片初始状态：位于屏幕底部外，透明度 0
                 wrapper.style.opacity = '0';
-                wrapper.style.transform = 'translateY(100px)';
+                wrapper.style.transform = 'translateY(100vh)';
 
+                // 强制回流，确保过渡动画生效
+                void wrapper.offsetHeight;
+
+                // 小卡片从屏幕底部滑入到屏幕正中央
+                wrapper.style.opacity = '1';
+                wrapper.style.transform = 'translateY(0)';
+
+                // 小卡片过渡完成（0.4s）后解锁
                 setTimeout(() => {
-                    wrapper.style.opacity = '1';
-                    wrapper.style.transform = 'translateY(0)';
-                    // 小卡片出来了，解锁
                     isPanelAnimating = false;
-                }, 100);
+                }, 400);
             }, 500);
         };
 
-        // ✅ 关闭：先锁死，小卡片下去，再把大卡片拉回来
+        // ✅ 关闭：小卡片下滑回底部，同时主面板从底部升回原位
         window.closeAddPanel = function() {
             if (isPanelAnimating) return;
             isPanelAnimating = true;
@@ -114,21 +121,24 @@
             const wrapper = document.getElementById('modalWrapper');
             const panel = document.getElementById('configPanel');
 
-            wrapper.style.opacity = '0';
-            wrapper.style.transform = 'translateY(100px)';
+            // 小卡片开始下滑（保持可见，直到滑出屏幕底部）
+            wrapper.style.opacity = '1';
+            wrapper.style.transform = 'translateY(100vh)';
 
+            // 同时准备主面板：先显示并设置到屏幕下方，然后强制回流后上滑
+            panel.style.display = 'block';
+            panel.style.transform = 'translateY(120vh)';
+            // 强制回流，确保过渡生效
+            void panel.offsetHeight;
+            // 主面板从底部向上滑回原位
+            panel.style.transform = 'translateY(0)';
+
+            // 等待主面板过渡完成（0.5s）后，隐藏小卡片并解锁
             setTimeout(() => {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
-
-                panel.style.display = 'block';
-                panel.style.transform = 'translateY(0)';
-
-                // 大卡片完全回来后，解锁
-                setTimeout(() => {
-                    isPanelAnimating = false;
-                }, 500);
-            }, 300);
+                isPanelAnimating = false;
+            }, 550); // 稍大于主面板过渡时间，确保动画完全结束
         };
 
         // ✅ 点击外部关闭：必须穿透判断，防止误触
