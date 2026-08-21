@@ -8,41 +8,6 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 极致高斯模糊：40px，纯透明，无任何黑色加深 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%);">
-        <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <!-- 使用平滑缓动曲线和 will-change 保证丝滑 -->
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; will-change: transform, opacity;">
-                <div class="glass-card p-6 cursor-auto">
-                    <div class="w-full flex flex-col gap-4">
-                        
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                            <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
-                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-
-                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
-                        </div>
-                        
-                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <style>
         .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
         .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
@@ -52,7 +17,6 @@
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
         .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
-        .glass-card input:focus { border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 15px rgba(255,255,255,0.05); background: rgba(0,0,0,0.5); }
     </style>
 
     <script>
@@ -76,83 +40,6 @@
             const form = document.getElementById('configForm');
             form.classList.add('hidden'); home.classList.remove('hidden');
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
-        };
-
-        window.addPanel = function() {
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
-
-            modal.classList.remove('hidden');
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    wrapper.style.transform = 'translateY(0)';
-                    wrapper.style.opacity = '1';
-                }, 30);
-            });
-        };
-
-        window.closeAddPanel = function() {
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
-
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 500);
-        };
-
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
-                window.closeAddPanel();
-            }
-        });
-
-        window.submitBindBot = function() {
-            const userIdInput = document.getElementById('addPanelUserIdInput');
-            const tokenInput = document.getElementById('addPanelTokenInput');
-            const statusMsg = document.getElementById('bindStatusMsg');
-            
-            const userId = userIdInput.value.trim();
-            const token = tokenInput.value.trim();
-
-            if (!userId || !token) {
-                statusMsg.innerText = '❌ 请填写完整';
-                statusMsg.className = 'text-xs text-center text-red-400';
-                return;
-            }
-
-            statusMsg.classList.remove('hidden');
-            statusMsg.innerText = '正在绑定...';
-            statusMsg.className = 'text-xs text-center text-yellow-400';
-
-            fetch('/api/send_bind_request', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: userId, token: token })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    statusMsg.innerText = '✅ 绑定成功！';
-                    statusMsg.className = 'text-xs text-center text-green-400';
-                    setTimeout(() => { window.location.href = '/workspace'; }, 1500);
-                } else {
-                    statusMsg.innerText = '❌ ' + data.msg;
-                    statusMsg.className = 'text-xs text-center text-red-400';
-                }
-            })
-            .catch(() => {
-                statusMsg.innerText = '❌ 网络异常';
-                statusMsg.className = 'text-xs text-center text-red-400';
-            });
         };
     </script>
 </div>
