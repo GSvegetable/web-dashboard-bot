@@ -1,126 +1,91 @@
-from flask import request, jsonify
-from flask_login import current_user
-from datetime import datetime, timedelta
-from models import db, Post, Comment, Like, Subscription, User
+import os
+import io
+import base64
+import uuid
+import random
+import requests
+import logging
+from datetime import datetime
+from flask import Blueprint, request, jsonify, session
+from flask_login import login_user, current_user
+from flask_mail import Message
+from models import db, EmailCode, QrLoginSession, User
+from extensions import mail
 from . import main_bp
 
-@main_bp.route('/api/posts', methods=['GET'])
-def get_posts():
-    keyword = request.args.get('keyword', '').strip()
-    time_filter = request.args.get('time', 'all')
-    page = request.args.get('page', 1, type=int)
-    per_page = 20
-    query = Post.query.filter_by(is_hidden=False).order_by(Post.created_at.desc())
-    if keyword:
-        query = query.filter(Post.content.contains(keyword))
-    now = datetime.utcnow()
-    if time_filter == 'today':
-        query = query.filter(Post.created_at >= now - timedelta(days=1))
-    elif time_filter == 'week':
-        query = query.filter(Post.created_at >= now - timedelta(days=7))
-    elif time_filter == 'month':
-        query = query.filter(Post.created_at >= now - timedelta(days=30))
-    posts = query.paginate(page=page, per_page=per_page)
-    data = []
-    for post in posts.items:
-        author = User.query.get(post.user_id)
-        data.append({
-            'id': post.id,
-            'user_id': post.user_id,
-            'author_name': author.first_name or '匿名',
-            'author_display_id': author.display_id or '000000',
-            'author_avatar': author.avatar_url or '',
-            'content': post.content,
-            'media_urls': post.media_urls.split(',') if post.media_urls else [],
-            'code_lang': post.code_lang,
-            'code_content': post.code_content,
-            'created_at': post.created_at.strftime('%Y-%m-%d %H:%M'),
-            'likes': Like.query.filter_by(post_id=post.id).count(),
-            'comments': Comment.query.filter_by(post_id=post.id).count(),
-            'is_liked': current_user.is_authenticated and Like.query.filter_by(post_id=post.id, user_id=current_user.id).first() is not None,
-            'is_subscribed': current_user.is_authenticated and Subscription.query.filter_by(follower_id=current_user.id, following_id=post.user_id).first() is not None
-        })
-    return jsonify({
-        'ok': True,
-        'posts': data,
-        'has_next': posts.has_next,
-        'total': posts.total
-    })
+logging.basicConfig(level=logging.INFO)
 
-@main_bp.route('/api/posts', methods=['POST'])
-def create_post():
-    if not current_user.is_authenticated:
-        return jsonify({'ok': False, 'msg': '请先登录后再发布动态'}), 401
+@main_bp.route('/api/get_qr_login', methods=['GET'])
+def get_qr_login():
+    try:
+        token = uuid.uuid4().hex[:16]
+        # 适配手机端和PC端
+        deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}" if 'telegram' in request.headers.get('User-Agent', '').lower() else f"https://t.me/gsdsjbot?start=qr_{token}"
+        
+        db.session.add(QrLoginSession(token=token, status='pending'))
+        db.session.commit()
+        
+        import qrcode
+        from PIL import Image, ImageDraw, ImageFont
+
+        qr = qrcode.QRCode(box_size=10, border=2)
+        qr.add_data(deep_link)
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+        d = ImageDraw.Draw(img)
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
+        except:
+            font = ImageFont.load_default()
+        bbox = d.textbbox((0, 0), "GS", font=font)
+        d.text(((img.width - (bbox[2]-bbox[0]))/2, (img.height - (bbox[3]-bbox[1]))/2), "GS", fill=(0,0,0), font=font)
+        
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{img_base64}"})
+    except Exception as e:
+        logging.error(f"生成二维码异常: {e}")
+        # 如果不小心出错，直接调用外部API兜底
+        token = uuid.uuid4().hex[:16]
+        deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
+        db.session.add(QrLoginSession(token=token, status='pending'))
+        db.session.commit()
+        return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"})
+
+@main_bp.route('/api/send_code', methods=['POST'])
+def send_code():
     data = request.get_json()
-    content = data.get('content', '').strip()
-    media_urls = data.get('media_urls', '')
-    code_lang = data.get('code_lang', '')
-    code_content = data.get('code_content', '')
-    if not content and not code_content:
-        return jsonify({'ok': False, 'msg': '内容不能为空'})
-    post = Post(user_id=current_user.id, content=content, media_urls=media_urls, code_lang=code_lang, code_content=code_content)
-    db.session.add(post)
-    db.session.commit()
-    return jsonify({'ok': True, 'msg': '发布成功', 'post_id': post.id})
+    account = data.get('email')
+    if not account:
+        return jsonify({'ok': False, 'msg': '请输入邮箱或电报ID'})
+    
+    code = str(random.randint(100000, 999999))
+    try:
+        if re.match(r"[^@]+@[^@]+\.[^@]+", account):
+            record = EmailCode.query.filter_by(email=account).first()
+            if record:
+                record.code = code
+                record.created_at = datetime.utcnow()
+            else:
+                db.session.add(EmailCode(email=account, code=code))
+            db.session.commit()
+            try:
+                msg = Message('【宫水编辑器】登录/注册验证码', recipients=[account])
+                msg.body = f'您的验证码是：{code}，有效期为5分钟。请勿泄露给他人。'
+                mail.send(msg)
+                return jsonify({'ok': True, 'msg': '验证码已发送至邮箱，请查收。'})
+            except Exception as e:
+                logging.error(f"邮件发送失败: {e}")
+                # 修复：红框显示，这里返回具体的错误原因
+                return jsonify({'ok': False, 'msg': '邮件发送失败，请检查QQ邮箱授权码配置是否正确。'})
+        else:
+            # 电报ID逻辑保持
+            send_verification_code(account, code)
+            return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'})
+    except Exception as e:
+        logging.error(f"发送验证码异常: {e}")
+        return jsonify({'ok': False, 'msg': '发送验证码异常，请稍后重试。'})
 
-@main_bp.route('/api/posts/<int:post_id>/like', methods=['POST'])
-def toggle_like(post_id):
-    if not current_user.is_authenticated:
-        return jsonify({'ok': False, 'msg': '请先登录'}), 401
-    post = Post.query.get_or_404(post_id)
-    like = Like.query.filter_by(post_id=post_id, user_id=current_user.id).first()
-    if like:
-        db.session.delete(like)
-        db.session.commit()
-        return jsonify({'ok': True, 'action': 'unliked', 'count': Like.query.filter_by(post_id=post_id).count()})
-    else:
-        new_like = Like(post_id=post_id, user_id=current_user.id)
-        db.session.add(new_like)
-        db.session.commit()
-        return jsonify({'ok': True, 'action': 'liked', 'count': Like.query.filter_by(post_id=post_id).count()})
-
-@main_bp.route('/api/posts/<int:post_id>/comments', methods=['GET'])
-def get_comments(post_id):
-    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.asc()).all()
-    data = []
-    for c in comments:
-        author = User.query.get(c.user_id)
-        data.append({
-            'id': c.id,
-            'user_id': c.user_id,
-            'author_name': author.first_name or '匿名',
-            'author_display_id': author.display_id or '000000',
-            'content': c.content,
-            'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')
-        })
-    return jsonify({'ok': True, 'comments': data})
-
-@main_bp.route('/api/posts/<int:post_id>/comments', methods=['POST'])
-def create_comment(post_id):
-    if not current_user.is_authenticated:
-        return jsonify({'ok': False, 'msg': '请先登录'}), 401
-    data = request.get_json()
-    content = data.get('content', '').strip()
-    if not content:
-        return jsonify({'ok': False, 'msg': '评论不能为空'})
-    comment = Comment(post_id=post_id, user_id=current_user.id, content=content)
-    db.session.add(comment)
-    db.session.commit()
-    return jsonify({'ok': True, 'msg': '评论成功'})
-
-@main_bp.route('/api/users/<int:user_id>/subscribe', methods=['POST'])
-def toggle_subscribe(user_id):
-    if not current_user.is_authenticated:
-        return jsonify({'ok': False, 'msg': '请先登录'}), 401
-    if user_id == current_user.id:
-        return jsonify({'ok': False, 'msg': '不能订阅自己'})
-    sub = Subscription.query.filter_by(follower_id=current_user.id, following_id=user_id).first()
-    if sub:
-        db.session.delete(sub)
-        db.session.commit()
-        return jsonify({'ok': True, 'action': 'unsubscribed'})
-    else:
-        new_sub = Subscription(follower_id=current_user.id, following_id=user_id)
-        db.session.add(new_sub)
-        db.session.commit()
-        return jsonify({'ok': True, 'action': 'subscribed'})
+import re
+from telegram_bot import send_verification_code
