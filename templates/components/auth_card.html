@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if (switchToQrBtn) switchToQrBtn.addEventListener('click', switchToQrMode);
     if (switchBackBtn) switchBackBtn.addEventListener('click', resetToFormMode);
 
-    // ✅ 发送验证码
+    // ✅ 发送验证码（无论成功失败，全弹窗清晰报错）
     document.getElementById('send-code-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const email = emailInput.value.trim(); const btn = this;
@@ -154,25 +154,32 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!email || (!isEmail && !isTgId)) {
             emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
             setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+            alert('❌ 邮箱或 Telegram ID 格式错误！');
             btn.innerText = '验证'; btn.disabled = false; return;
         }
         
-        btn.innerText = '已发送'; btn.disabled = true;
+        btn.innerText = '发送中...'; btn.disabled = true;
         try {
             const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
-            if (!res.ok) throw new Error('服务器异常');
+            if (!res.ok) {
+                alert('❌ 服务器返回错误，状态码: ' + res.status + '。请检查宝塔日志中的 Permission denied 报错。');
+                btn.innerText = '验证'; btn.disabled = false; return;
+            }
             const data = await res.json();
-            if(!data.ok) {
-                // 格式对但后端失败：静默恢复按钮，无任何弹窗/动画
+            if(data.ok) {
+                alert('✅ 验证码已发送，请查收！');
+                btn.innerText = '已发送'; 
+            } else {
+                alert('❌ 发送失败: ' + (data.msg || '未知错误'));
                 btn.innerText = '验证'; btn.disabled = false;
             }
         } catch (e) {
-            // 网络或后端异常：静默恢复按钮，无任何弹窗/动画
+            alert('❌ 网络请求异常: ' + e.message + '。请检查后台是否正常启动。');
             btn.innerText = '验证'; btn.disabled = false;
         }
     });
 
-    // 注册/登录（后面保持原有逻辑，但如果格式对而失败，也是静默或只刷新）
+    // 注册/登录（报错也全弹窗）
     document.getElementById('submit-btn').addEventListener('click', async function() {
         const emailInput = document.getElementById('reg-email');
         const codeInput = document.getElementById('reg-code');
@@ -183,6 +190,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!email || !code) {
             emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
             setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+            alert('❌ 请输入邮箱和验证码！');
             return;
         }
 
@@ -205,11 +213,12 @@ document.addEventListener("DOMContentLoaded", function() {
             if (text.includes('成功') || res.ok) {
                 setTimeout(() => { window.location.reload(); }, 500);
             } else {
-                // 格式正确但验证码错，不抖动，只刷新按钮
                 btn.innerText = '注册/登录'; btn.disabled = false;
+                alert('❌ ' + text);
             }
         } catch (e) {
             btn.innerText = '注册/登录'; btn.disabled = false;
+            alert('❌ 网络错误: ' + e.message);
         }
     });
 });
