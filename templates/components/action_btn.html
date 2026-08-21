@@ -1,12 +1,6 @@
 <!-- 极光炫彩渐变按钮组件（网格布局：2x2） -->
 <style>
-  .action-flex {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 100%;
-  }
+  .action-flex { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
   .outer-cont {
     padding: 12px 0;
     border: none;
@@ -19,87 +13,47 @@
     border-radius: 12px;
     color: #fff;
     transition: all 0.3s ease;
-    box-shadow:
-      inset 0px 0px 5px rgba(255, 255, 255, 0.6),
-      inset 0px 35px 30px rgba(0, 0, 0, 0.8),
-      0px 5px 10px rgba(0, 0, 0, 0.7);
+    box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
     text-shadow: 1px 1px 1px #000;
     pointer-events: auto !important;
     width: 100%;
   }
-  .outer-cont::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    border-radius: 12px;
-    filter: blur(0);
-    z-index: -1;
-    box-shadow: none;
-    background: conic-gradient(
-      rgba(0,0,0,0) 80deg,
-      #93965F,
-      #493F36,
-      #F5E6CF,
-      rgba(0,0,0,0) 280deg
-    );
-    transition: all 0.3s ease;
-  }
-  .outer-cont:hover::before {
-    filter: blur(15px);
-  }
-  .outer-cont:active::before {
-    filter: blur(5px);
-    transform: translateY(1px);
-  }
-  .outer-cont:active {
-    box-shadow:
-      inset 0px 0px 5px rgba(255, 255, 255, 0.6),
-      inset 0px 35px 30px rgba(0, 0, 0, 0.8);
-    margin-top: 3px;
-  }
+  .outer-cont::before { content: ""; position: absolute; inset: 0; margin: auto; border-radius: 12px; filter: blur(0); z-index: -1; box-shadow: none; background: conic-gradient( rgba(0,0,0,0) 80deg, #93965F, #493F36, #F5E6CF, rgba(0,0,0,0) 280deg ); transition: all 0.3s ease; }
+  .outer-cont:hover::before { filter: blur(15px); }
+  .outer-cont:active::before { filter: blur(5px); transform: translateY(1px); }
+  .outer-cont:active { box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8); margin-top: 3px; }
 </style>
 
 <!-- 2x2 网格布局 -->
 <div class="grid grid-cols-2 gap-[14px] w-full max-w-[240px]">
   
-  <!-- 按钮 1：开发作品（第一行，第一列） -->
+  <!-- ✅ 按钮 1：开发作品（直接进仓库，不跳绑定页） -->
   <div class="outer-cont" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold">
       <span>开发作品</span>
     </span>
   </div>
 
-  <!-- 按钮 2：Agent（第一行，第二列） -->
+  <!-- 按钮 2：Agent -->
   <div class="outer-cont" onclick="if(window.toggleAgentPanel){window.toggleAgentPanel()}else{setTimeout(function(){if(window.toggleAgentPanel)window.toggleAgentPanel()},200)}">
     <span class="action-flex font-bold">
-      <svg viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg">
-        <g fill="none">
-          <path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"></path>
-          <path d="M9.107 5.448c.598-1.75 3.016-1.803 3.725-.159l.06.16l.807 2.36a4 4 0 0 0 2.276 2.411l.217.081l2.36.806c1.75.598 1.803 3.016.16 3.725l-.16.06l-2.36.807a4 4 0 0 0-2.412 2.276l-.081.216l-.806 2.361c-.598 1.75-3.016 1.803-3.724.16l-.062-.16l-.806-2.36a4 4 0 0 0-2.276-2.412l-.216-.081l-2.36-.806c-1.751-.598-1.804-3.016-.16-3.724l.16-.062l2.36-.806A4 4 0 0 0 8.22 8.025l.081-.216zM11 6.094l-.806 2.36a6 6 0 0 1-3.49 3.649l-.25.091l-2.36.806l2.36.806a6 6 0 0 1 3.649 3.49l.091.25l.806 2.36l.806-2.36a6 6 0 0 1 3.49-3.649l.25-.09l2.36-.807l-2.36-.806a6 6 0 0 1-3.649-3.49l-.09-.25zM19 2a1 1 0 0 1 .898.56l.048.117l.35 1.026l1.027.35a1 1 0 0 1 .118 1.845l-.118.048l-1.026.35l-.35 1.027a1 1 0 0 1-1.845.117l-.048-.117l-.35-1.026l-1.027-.35a1 1 0 0 1-.118-1.845l.118-.048l1.026-.35l.35-1.027A1 1 0 0 1 19 2" fill="currentColor"></path>
-        </g>
-      </svg>
+      <svg viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><g fill="none"><path d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"></path><path d="M9.107 5.448c.598-1.75 3.016-1.803 3.725-.159l.06.16l.807 2.36a4 4 0 0 0 2.276 2.411l.217.081l2.36.806c1.75.598 1.803 3.016.16 3.725l-.16.06l-2.36.807a4 4 0 0 0-2.412 2.276l-.081.216l-.806 2.361c-.598 1.75-3.016 1.803-3.724.16l-.062-.16l-.806-2.36a4 4 0 0 0-2.276-2.412l-.216-.081l-2.36-.806c-1.751-.598-1.804-3.016-.16-3.724l.16-.062l2.36-.806A4 4 0 0 0 8.22 8.025l.081-.216zM11 6.094l-.806 2.36a6 6 0 0 1-3.49 3.649l-.25.091l-2.36.806l2.36.806a6 6 0 0 1 3.649 3.49l.091.25l.806 2.36l.806-2.36a6 6 0 0 1 3.49-3.649l.25-.09l2.36-.807l-2.36-.806a6 6 0 0 1-3.649-3.49l-.09-.25zM19 2a1 1 0 0 1 .898.56l.048.117l.35 1.026l1.027.35a1 1 0 0 1 .118 1.845l-.118.048l-1.026.35l-.35 1.027a1 1 0 0 1-1.845.117l-.048-.117l-.35-1.026l-1.027-.35a1 1 0 0 1-.118-1.845l.118-.048l1.026-.35l.35-1.027A1 1 0 0 1 19 2" fill="currentColor"></path></g></svg>
       <span>Agent</span>
     </span>
   </div>
 
-  <!-- 按钮 3：终端（第二行，第一列） -->
+  <!-- 按钮 3：终端 -->
   <div class="outer-cont" onclick="window.location.href='/terminal'">
     <span class="action-flex font-bold">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="4 17 10 11 4 5"></polyline>
-        <line x1="12" y1="19" x2="20" y2="19"></line>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
       <span>终端</span>
     </span>
   </div>
 
-  <!-- ✅ 按钮 4：社区（第二行，第二列） -->
+  <!-- 按钮 4：社区 -->
   <div class="outer-cont" onclick="window.location.href='/community'">
     <span class="action-flex font-bold">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
       <span>社区</span>
     </span>
   </div>
