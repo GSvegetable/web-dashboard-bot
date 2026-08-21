@@ -1,8 +1,8 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 按钮点击触发 addPanel() -->
-    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
+    <!-- ✅ 按钮直接调用本文件内的 showAddBotModal() -->
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="showAddBotModal()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
@@ -85,6 +85,28 @@
     @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
 </style>
 
+<!-- ✅ 直接把弹窗的显示/隐藏函数写在这里，绝对有反应 -->
+<script>
+    window.showAddBotModal = function() {
+        var modal = document.getElementById('customAddPanelModal');
+        if (modal) modal.classList.remove('hidden');
+    };
+
+    window.closeAddBotModal = function() {
+        var modal = document.getElementById('customAddPanelModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    // 点击遮罩层关闭
+    document.addEventListener('click', function(e) {
+        var modal = document.getElementById('customAddPanelModal');
+        if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+            window.closeAddBotModal();
+        }
+    });
+</script>
+
+<!-- 渲染机器人卡片 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
