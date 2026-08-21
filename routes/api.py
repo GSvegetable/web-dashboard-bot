@@ -1,16 +1,11 @@
-import os
-import io
-import base64
-import uuid
-import random
-import requests
-import logging
+import os, io, base64, uuid, random, re, requests, logging
 from datetime import datetime
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from flask_login import login_user, current_user
 from flask_mail import Message
 from models import db, EmailCode, QrLoginSession, User
 from extensions import mail
+from telegram_bot import send_verification_code
 from . import main_bp
 
 logging.basicConfig(level=logging.INFO)
@@ -19,9 +14,9 @@ logging.basicConfig(level=logging.INFO)
 def get_qr_login():
     try:
         token = uuid.uuid4().hex[:16]
-        # 适配手机端和PC端
         deep_link = f"tg://resolve?domain=gsdsjbot&start=qr_{token}" if 'telegram' in request.headers.get('User-Agent', '').lower() else f"https://t.me/gsdsjbot?start=qr_{token}"
         
+        # 写入数据库
         db.session.add(QrLoginSession(token=token, status='pending'))
         db.session.commit()
         
@@ -46,11 +41,9 @@ def get_qr_login():
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"data:image/png;base64,{img_base64}"})
     except Exception as e:
         logging.error(f"生成二维码异常: {e}")
-        # 如果不小心出错，直接调用外部API兜底
+        # 兜底：不写数据库，直接使用外部API生成
         token = uuid.uuid4().hex[:16]
         deep_link = f"https://t.me/gsdsjbot?start=qr_{token}"
-        db.session.add(QrLoginSession(token=token, status='pending'))
-        db.session.commit()
         return jsonify({'success': True, 'token': token, 'url': deep_link, 'img_base64': f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={deep_link}&margin=10"})
 
 @main_bp.route('/api/send_code', methods=['POST'])
@@ -77,15 +70,10 @@ def send_code():
                 return jsonify({'ok': True, 'msg': '验证码已发送至邮箱，请查收。'})
             except Exception as e:
                 logging.error(f"邮件发送失败: {e}")
-                # 修复：红框显示，这里返回具体的错误原因
                 return jsonify({'ok': False, 'msg': '邮件发送失败，请检查QQ邮箱授权码配置是否正确。'})
         else:
-            # 电报ID逻辑保持
             send_verification_code(account, code)
             return jsonify({'ok': True, 'msg': '已通过机器人发送验证码'})
     except Exception as e:
         logging.error(f"发送验证码异常: {e}")
         return jsonify({'ok': False, 'msg': '发送验证码异常，请稍后重试。'})
-
-import re
-from telegram_bot import send_verification_code
