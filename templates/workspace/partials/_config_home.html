@@ -1,104 +1,171 @@
-<!-- 主面板结构 -->
-<div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
-    
-    <div class="panel-inner">
-        {% include 'workspace/partials/_config_home.html' %}
-        {% include 'workspace/partials/_config_form.html' %}
+<div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
+    <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
+
+    <!-- ✅ 点击按钮只负责调用外部的 showAddBotModal() -->
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="showAddBotModal()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
+        <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
-    <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
+    <div id="botRepoEmpty" class="text-center text-gray-500 text-sm py-10 flex-shrink-0">仓库空空如也</div>
 
-    <style>
-        .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-        
-        /* ✅ 核心：主面板默认开启平滑过渡 */
-        #configPanel {
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-
-        /* ✅ 核心：主面板整体下滑到屏幕底部隐藏 */
-        #configPanel.hide-for-modal {
-            transform: translateY(110vh);
-        }
-
-        .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
-        @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
-        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
-        .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
-        .panel-fullscreen #configHome { display: flex !important; }
-        .panel-fullscreen #configForm { display: none !important; }
-        .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
-    </style>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const panel = document.getElementById('configPanel');
-            panel.classList.remove('panel-collapsed');
-            panel.classList.add('panel-fullscreen');
-        });
-
-        window.switchToConfig = function() {
-            const panel = document.getElementById('configPanel');
-            const home = document.getElementById('configHome');
-            const form = document.getElementById('configForm');
-            panel.classList.remove('panel-fullscreen');
-            panel.classList.add('panel-collapsed');
-            setTimeout(() => { home.classList.add('hidden'); form.classList.remove('hidden'); }, 50);
-        };
-        window.switchToHome = function() {
-            const panel = document.getElementById('configPanel');
-            const home = document.getElementById('configHome');
-            const form = document.getElementById('configForm');
-            form.classList.add('hidden'); home.classList.remove('hidden');
-            panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
-        };
-
-        // ✅ 联动打开：主面板滑下，卡片滑上来
-        window.showAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
-
-            // 1. 主面板滑到屏幕底部
-            mainPanel.classList.add('hide-for-modal');
-
-            // 2. 小卡片从底部滑上来（稍微延迟0.2秒）
-            modal.classList.remove('hidden');
-            wrapper.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-
-            setTimeout(() => {
-                wrapper.style.transform = 'translateY(0)';
-                wrapper.style.opacity = '1';
-            }, 200);
-        };
-
-        // ✅ 联动关闭：卡片滑下去，主面板滑回来
-        window.closeAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
-
-            // 1. 小卡片先滑下去
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-
-            // 2. 小卡片滑完后，主面板升回来
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                mainPanel.classList.remove('hide-for-modal');
-            }, 450);
-        };
-
-        // 点击外部遮罩关闭
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
-                window.closeAddBotModal();
-            }
-        });
-    </script>
+    <div id="botRepoGrid" class="grid gap-4" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+    </div>
 </div>
+
+<style>
+    #addPanelBtn:active { transform: scale(0.95); }
+
+    .bot-repo-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 120px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        overflow: hidden;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .bot-repo-name {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+
+    .bot-repo-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 12px;
+    }
+    .bot-repo-line .bot-repo-label { flex-shrink: 0; color: rgba(255, 255, 255, 0.45); }
+
+    .bot-repo-marquee {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        height: 18px;
+        line-height: 18px;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    }
+    .bot-repo-marquee .bot-repo-track {
+        display: inline-block;
+        white-space: nowrap;
+        padding-right: 0;
+        color: rgba(255, 255, 255, 0.8);
+        will-change: transform;
+    }
+    .bot-repo-marquee .bot-repo-track.marquee-run {
+        animation: botMarquee 12s linear infinite;
+    }
+    @keyframes botMarquee {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @media (max-width: 1400px) { #botRepoGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (max-width: 1100px) { #botRepoGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 720px)  { #botRepoGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px)  { #botRepoGrid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    window.BOT_REPO_KEY = 'gsbot_bot_repo_cards';
+    window.renderBotRepo = function() {
+        var grid = document.getElementById('botRepoGrid');
+        var empty = document.getElementById('botRepoEmpty');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        fetch('/api/my_bots')
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok && data.bots && data.bots.length > 0) {
+                empty.style.display = 'none';
+                data.bots.forEach(function(c) {
+                    var card = document.createElement('div');
+                    card.className = 'bot-repo-card';
+
+                    var nameDiv = document.createElement('div');
+                    nameDiv.className = 'bot-repo-name';
+                    nameDiv.textContent = c.name || '未命名';
+                    card.appendChild(nameDiv);
+
+                    var idLine = document.createElement('div');
+                    idLine.className = 'bot-repo-line';
+                    var idLabel = document.createElement('span');
+                    idLabel.className = 'bot-repo-label';
+                    idLabel.textContent = 'ID';
+                    idLine.appendChild(idLabel);
+                    var idVal = document.createElement('span');
+                    idVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    idVal.textContent = c.id || '';
+                    idLine.appendChild(idVal);
+                    card.appendChild(idLine);
+
+                    var usernameLine = document.createElement('div');
+                    usernameLine.className = 'bot-repo-line';
+                    var userLabel = document.createElement('span');
+                    userLabel.className = 'bot-repo-label';
+                    userLabel.textContent = 'User';
+                    usernameLine.appendChild(userLabel);
+                    var userVal = document.createElement('span');
+                    userVal.style.cssText = 'min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+                    userVal.textContent = c.username ? '@' + c.username : '无';
+                    usernameLine.appendChild(userVal);
+                    card.appendChild(usernameLine);
+
+                    var tokenLine = document.createElement('div');
+                    tokenLine.className = 'bot-repo-line';
+                    var tokenLabel = document.createElement('span');
+                    tokenLabel.className = 'bot-repo-label';
+                    tokenLabel.textContent = 'Token';
+                    tokenLine.appendChild(tokenLabel);
+
+                    var marquee = document.createElement('div');
+                    marquee.className = 'bot-repo-marquee';
+                    var track = document.createElement('span');
+                    track.className = 'bot-repo-track';
+                    var tokenStr = c.token || '';
+                    track.innerHTML = tokenStr + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + tokenStr;
+                    marquee.appendChild(track);
+                    tokenLine.appendChild(marquee);
+                    card.appendChild(tokenLine);
+
+                    grid.appendChild(card);
+
+                    requestAnimationFrame(function() {
+                        if (track.scrollWidth > marquee.clientWidth + 1) {
+                            track.classList.add('marquee-run');
+                        }
+                    });
+                });
+            } else {
+                empty.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            empty.style.display = 'block';
+        });
+    };
+    window.renderBotRepo();
+});
+</script>
