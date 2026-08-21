@@ -8,35 +8,33 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- 添加 Bot 卡片 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
-        <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100px); opacity: 0; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform, opacity;">
-                <div class="glass-card p-6 cursor-auto">
-                    <div class="w-full flex flex-col gap-4">
-                        
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                            <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
-                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-
-                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
-                        </div>
-                        
-                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
-
+    <!-- 添加 Bot 卡片（默认隐藏，点击按钮才会出现） -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="display: none; align-items: center; justify-content: center;">
+        <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(20px) scale(0.95); opacity: 0; transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);">
+            <div class="glass-card p-6 cursor-auto">
+                <div class="w-full flex flex-col gap-4">
+                    
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
+                        <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
                     </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
+                        <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
+                        <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
+                    </div>
+
+                    <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                        <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
+                    </div>
+                    
+                    <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
+
                 </div>
             </div>
         </div>
@@ -78,54 +76,52 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 打开：主面板先沉下去，然后新卡片浮现
+        // ✅ 核心：大卡片下去，小卡片立刻上来（逻辑超级简单）
         window.addPanel = function() {
             const panel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!panel || !modal || !wrapper) return;
 
-            // 1. 设置过渡效果，强制下沉
-            panel.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+            // 1. 大卡片强制滑出屏幕
+            panel.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
             panel.style.transform = 'translateY(110vh)';
 
-            // 2. 延迟 0.6 秒后，显示新卡片
+            // 2. 小卡片强制显示在屏幕中央
+            modal.style.display = 'flex';  // 直接改为 flex 居中，不依赖 hidden 类
+            modal.classList.remove('hidden');
+            
+            wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(20px) scale(0.95)';
+            
             setTimeout(() => {
-                modal.classList.remove('hidden');
-                wrapper.style.transform = 'translateY(100px)';
-                wrapper.style.opacity = '0';
-                
-                setTimeout(() => {
-                    wrapper.style.transform = 'translateY(0)';
-                    wrapper.style.opacity = '1';
-                }, 50);
-            }, 600);
+                wrapper.style.opacity = '1';
+                wrapper.style.transform = 'translateY(0) scale(1)';
+            }, 20);
         };
 
-        // ✅ 关闭：新卡片先降下，然后主面板升回来
+        // ✅ 核心：小卡片下去，大卡片回来
         window.closeAddPanel = function() {
             const panel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!panel || !modal || !wrapper) return;
 
-            // 1. 先降下新卡片
-            wrapper.style.transform = 'translateY(100px)';
             wrapper.style.opacity = '0';
+            wrapper.style.transform = 'translateY(20px) scale(0.95)';
             
-            // 2. 等卡片完全消失后，再把主面板升回来
             setTimeout(() => {
+                modal.style.display = 'none';
                 modal.classList.add('hidden');
-                panel.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+                
+                panel.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
                 panel.style.transform = 'translateY(0)';
-            }, 500);
+            }, 400);
         };
 
-        // ✅ 点击外部关闭
+        // ✅ 点击卡片外部关闭
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (modal && !modal.classList.contains('hidden') && wrapper && !wrapper.contains(e.target)) {
+            if (modal && modal.style.display === 'flex' && wrapper && !wrapper.contains(e.target)) {
                 window.closeAddPanel();
             }
         });
