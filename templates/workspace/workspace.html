@@ -22,8 +22,12 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 弹窗容器：背景完全透明，仅添加高斯模糊效果 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);">
+    <!-- ✅ 弹窗容器：背景保持透明，内部使用模糊层模拟从底部蔓延的模糊 -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
+        
+        <!-- ✅ 动态模糊层：从底部向上生长，高度由 JS 控制 -->
+        <div id="modalBlurLayer" style="position: absolute; left: 0; bottom: 0; width: 100%; height: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);"></div>
+
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);">
                 <!-- ✅ 保持最透明玻璃质感的卡片 -->
@@ -92,34 +96,55 @@
         };
     </script>
 
-    <!-- ✅ 联动打开/关闭动画（保持不变） -->
+    <!-- ✅ 核心联动动画：背景模糊从底部往上生长 -->
     <script>
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
+            const blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+
+            // 主面板滑出
             mainPanel.classList.add('hide-for-modal');
             modal.classList.remove('hidden');
+            
+            // 重置模糊层和卡片位置
+            blurLayer.style.height = '0px';
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
+
             setTimeout(() => {
+                // 卡片往上滑
                 wrapper.style.transform = 'translateY(0)';
                 wrapper.style.opacity = '1';
+                
+                // 模糊层从底部向上生长到全屏
+                blurLayer.style.height = '100vh'; 
             }, 200);
         };
+
         window.closeAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
+            const blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+
+            // 卡片往下滑
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
+            
+            // 模糊层从全屏缩回底部
+            blurLayer.style.height = '0px';
+
             setTimeout(() => {
                 modal.classList.add('hidden');
                 mainPanel.classList.remove('hide-for-modal');
             }, 450);
         };
+
+        // 点击外部遮罩关闭
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
             if (modal && !modal.classList.contains('hidden') && e.target === modal) {
