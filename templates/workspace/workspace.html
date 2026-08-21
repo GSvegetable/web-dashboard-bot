@@ -22,11 +22,11 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 弹窗容器（主背景） -->
+    <!-- ✅ 弹窗容器 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
         
-        <!-- ✅ 模糊层：从中心圆形向外扩散，占满全屏 -->
-        <div id="modalBlurLayer" style="position: absolute; inset: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); clip-path: circle(0% at 50% 50%); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: auto;"></div>
+        <!-- ✅ 模糊层：从中心扩散全屏，关闭时直接向上收缩（用 clip-path inset 实现“被顶走”的效果） -->
+        <div id="modalBlurLayer" style="position: absolute; inset: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); clip-path: inset(0 0 0 0); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: auto;"></div>
 
         <!-- ✅ 卡片容器 -->
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
@@ -97,7 +97,7 @@
         };
     </script>
 
-    <!-- ✅ 核心动画逻辑：从中间展开，且点击外部关闭 -->
+    <!-- ✅ 核心动画逻辑：打开从中间扩散，关闭直接向上收缩（被主面板顶走） -->
     <script>
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
@@ -111,7 +111,7 @@
             modal.classList.remove('hidden');
             
             // 重置动画
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+            blurLayer.style.clipPath = 'inset(0 0 0 0)'; // 模糊层全屏显示
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
 
@@ -119,9 +119,6 @@
                 // 卡片从底部上滑
                 wrapper.style.transform = 'translateY(0)';
                 wrapper.style.opacity = '1';
-                
-                // 模糊从中间向四周扩散
-                blurLayer.style.clipPath = 'circle(75% at 50% 50%)'; 
             }, 200);
         };
 
@@ -136,10 +133,10 @@
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
             
-            // 模糊收缩
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+            // ✅ 核心修改：模糊层直接向顶部收缩（等于被主面板往上顶走）
+            blurLayer.style.clipPath = 'inset(0 0 100% 0)'; 
 
-            // ✅ 核心修改：立即让主面板弹上来（提升 z-index 盖住模糊层）
+            // ✅ 主面板同时立刻升上来（盖住模糊层，视觉上像顶走它）
             mainPanel.style.zIndex = '10000'; // 临时提升层级
             mainPanel.classList.remove('hide-for-modal');
 
