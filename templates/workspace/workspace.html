@@ -22,7 +22,7 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 弹窗去掉所有模糊滤镜，背景保持完全透明 -->
+    <!-- ✅ 删除所有模糊滤镜，只保留纯透明背景 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
