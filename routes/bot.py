@@ -3,18 +3,14 @@ import requests
 import socket
 import urllib3.util.connection as urllib3_util_connection
 
-# 强制只走 IPv4，修复 Gunicorn 环境下的 IPv6 超时问题
+# 强制只走 IPv4，禁用 SSL 警告，忽略代理
 urllib3_util_connection.HAS_IPV6 = False
 urllib3_util_connection.allowed_gai_family = lambda: socket.AF_INET
-
-# 禁用 SSL 警告，忽略所有系统环境变量里的代理
 requests.packages.urllib3.disable_warnings()
-from datetime import datetime
+
 from flask import request, jsonify
-from models import db, PendingBind
 from . import main_bp
 
-# 强制忽略环境变量代理
 SESSION = requests.Session()
 SESSION.trust_env = False
 
@@ -29,71 +25,29 @@ def send_bind_request():
     if not token or not token.startswith('') or ':' not in token:
         return jsonify({'ok': False, 'msg': 'Token 格式无效'})
 
-    # 1. 验证 Token 有效并获取机器人信息
+    # 1. 验证 Token 有效
     try:
-        me_resp = SESSION.get(f"https://api.telegram.org/bot{token}/getMe", timeout=30, verify=False)
+        me_resp = SESSION.get(f"https://api.telegram.org/bot{token}/getMe", timeout=15, verify=False)
         if me_resp.status_code != 200:
             return jsonify({'ok': False, 'msg': 'Token 无效或网络错误'})
-        bot_info = me_resp.json().get('result', {})
-        bot_name = bot_info.get('first_name') or '未命名'
-        bot_id = str(bot_info.get('id')) if bot_info.get('id') else ''
-        bot_username = bot_info.get('username', '')
     except Exception as e:
-        print(f"验证异常: {str(e)}")
         return jsonify({'ok': False, 'msg': f'验证异常: {str(e)}'})
 
-    # 2. 存入数据库绑定请求
-    old_bind = PendingBind.query.filter_by(token=token).first()
-    if old_bind:
-        db.session.delete(old_bind)
-        db.session.commit()
-
-    new_bind = PendingBind(
-        token=token,
-        telegram_id=user_id_input,
-        bot_name=bot_name,
-        bot_id=bot_id,
-        bot_username=bot_username,
-        status='pending'
-    )
-    db.session.add(new_bind)
-    db.session.commit()
-    bind_id = new_bind.id
-
-    # 3. 构造新版确认通知消息
-    message_text = (
-        "<b>机器人绑定通知</b>\n"
-        "机器人正在绑定至「宫水大世界」工作台\n"
-        "若此操作非由您本人执行 请忽略本条消息\n\n"
-        "请点击下方按钮 以确认绑定"
-    )
-
-    confirm_cb = f"bind|{bind_id}|confirm"
-    cancel_cb = f"bind|{bind_id}|cancel"
-    
-    reply_markup = {
-        "inline_keyboard": [
-            [
-                {"text": "✅ 确定", "callback_data": confirm_cb},
-                {"text": "❌ 取消", "callback_data": cancel_cb}
-            ]
-        ]
-    }
+    # 2. 发送一条纯通知消息（最简单，只发一次）
+    message_text = "✅ 绑定成功，您的机器人已连接「宫水大世界」"
 
     try:
         send_resp = SESSION.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={
                 "chat_id": user_id_input,
-                "text": message_text,
-                "parse_mode": "HTML",
-                "reply_markup": reply_markup
+                "text": message_text
             },
-            timeout=30,
+            timeout=15,
             verify=False
         )
         if send_resp.status_code == 200:
-            return jsonify({'ok': True, 'msg': '确认通知已发送，请去 Telegram 操作！'})
+            return jsonify({'ok': True, 'msg': '绑定成功！'})
         else:
             error_data = send_resp.json()
             error_desc = error_data.get("description", "")
@@ -102,5 +56,4 @@ def send_bind_request():
             else:
                 return jsonify({'ok': False, 'msg': f'发送失败: {error_desc}'})
     except Exception as e:
-        print(f"发送异常: {str(e)}")
         return jsonify({'ok': False, 'msg': f'发送异常: {str(e)}'})
