@@ -9,26 +9,44 @@
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
-        /* 删除所有 backdrop-filter 模糊效果 */
-        .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-        
-        /* 主面板开启平滑过渡 */
+        /* ✅ 主面板开启平滑过渡 */
         #configPanel {
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 主面板整体下滑到屏幕底部隐藏 */
         #configPanel.hide-for-modal {
             transform: translateY(110vh);
         }
 
+        /* ✅ 苹果玻璃质感：高光边缘 + 折射光晕 */
+        .panel-fullscreen {
+            top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important;
+            background: rgba(255,255,255,0.06) !important;
+            box-shadow: 
+                inset 0 1px 1px rgba(255,255,255,0.25),  /* 顶部内发光 */
+                inset 1px 0 1px rgba(255,255,255,0.08),   /* 左侧内发光 */
+                inset -1px 0 1px rgba(255,255,255,0.08),  /* 右侧内发光 */
+                0 20px 60px rgba(0,0,0,0.5) !important;
+            border: 1px solid rgba(255,255,255,0.18) !important;
+        }
         .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
         @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
-        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.06) !important; box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.18) !important; }
         .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
-        .glass-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
+
+        /* ✅ 小卡片弹窗同样加上苹果玻璃质感 */
+        .glass-card {
+            background: rgba(255,255,255,0.12) !important;
+            border: 1px solid rgba(255,255,255,0.25) !important;
+            border-radius: 1.2rem !important;
+            box-shadow:
+                inset 0 1px 1px rgba(255,255,255,0.3),  /* 顶部内发光 */
+                inset 1px 0 1px rgba(255,255,255,0.1),   /* 左侧内发光 */
+                inset -1px 0 1px rgba(255,255,255,0.1),  /* 右侧内发光 */
+                0 20px 60px rgba(0,0,0,0.4) !important;
+        }
     </style>
 
     <script>
@@ -54,17 +72,14 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // 联动打开：主面板滑下，卡片滑上来
+        // 联动打开
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
             if (!mainPanel || !modal || !wrapper) return;
 
-            // 1. 主面板滑到屏幕底部
             mainPanel.classList.add('hide-for-modal');
-
-            // 2. 小卡片从底部滑上来（稍微延迟0.2秒）
             modal.classList.remove('hidden');
             wrapper.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
             wrapper.style.transform = 'translateY(100vh)';
@@ -76,7 +91,7 @@
             }, 200);
         };
 
-        // 联动关闭：卡片滑下去，主面板滑回来
+        // 联动关闭
         window.closeAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
