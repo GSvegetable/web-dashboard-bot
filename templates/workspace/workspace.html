@@ -8,59 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
-    
-    <!-- ✅ 100% 原封不动采用您发来的 style.css 液态玻璃样式 -->
-    <style>
-        .liquidGlass-wrapper {
-            position: relative;
-            display: flex;
-            font-weight: 600;
-            overflow: hidden;
-            color: black;
-            cursor: pointer;
-            box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
-        }
-
-        .liquidGlass-effect {
-            position: absolute;
-            z-index: 0;
-            inset: 0;
-            backdrop-filter: blur(3px);
-            filter: url(#glass-distortion);
-            overflow: hidden;
-            isolation: isolate;
-        }
-
-        .liquidGlass-tint {
-            z-index: 1;
-            position: absolute;
-            inset: 0;
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .liquidGlass-shine {
-            position: absolute;
-            inset: 0;
-            z-index: 2;
-            overflow: hidden;
-            box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
-                inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
-        }
-
-        .liquidGlass-text {
-            z-index: 3;
-            font-size: 2rem;
-            color: black;
-        }
-
-        /* 适配弹窗尺寸，仅调整长宽和圆角，不破坏原版高光 */
-        .modal-glass {
-            border-radius: 2.5rem;
-            padding: 2rem 2.5rem;
-            width: 400px;
-        }
-    </style>
 </head>
 <body>
     {% include 'workspace/partials/_top_btns.html' %}
@@ -74,54 +21,33 @@
     {% include 'workspace/partials/_ctx_menu.html' %}
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
-
-    <!-- ✅ 100% 采用用户提供的 index.html 液体玻璃结构：wrapper > effect > tint > shine > text -->
+    
+    <!-- ✅ 恢复为最简单的透明玻璃卡片，不带任何液态特效 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);">
-                <!-- ⬇️ 这是最核心的液态玻璃容器 -->
-                <div class="liquidGlass-wrapper modal-glass">
-                    <div class="liquidGlass-effect"></div>
-                    <div class="liquidGlass-tint"></div>
-                    <div class="liquidGlass-shine"></div>
-                    <div class="liquidGlass-text relative w-full flex flex-col gap-4" style="font-size: 1rem;">
-                        <h3 class="text-xl font-bold">添加机器人</h3>
-
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);">
+                <!-- ✅ 简单毛玻璃卡片 -->
+                <div class="rounded-3xl p-6" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                    <div class="w-full flex flex-col gap-4">
+                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
+                        
                         <div class="flex flex-col gap-1">
-                            <label class="text-black/60 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/10 border border-black/20 rounded-lg px-4 py-2.5 text-black text-sm placeholder-gray-500 focus:outline-none focus:border-black/50 focus:ring-1 focus:ring-black/20 transition-all" />
+                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
+                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                         </div>
                         <div class="flex flex-col gap-1">
-                            <label class="text-black/60 text-sm font-medium tracking-wide">机器人 Token</label>
-                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/10 border border-black/20 rounded-lg px-4 py-2.5 text-black text-sm placeholder-gray-500 focus:outline-none focus:border-black/50 focus:ring-1 focus:ring-black/20 transition-all" />
+                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
+                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
                         </div>
-                        <div class="mt-2 pt-2 border-t border-black/10 flex flex-col gap-2">
-                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-black/5 hover:bg-black/10 border border-black/10 rounded-lg text-black text-sm font-medium transition active:scale-95">绑定</button>
+                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
+                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
                         </div>
-                        <div id="bindStatusMsg" class="text-xs text-center text-black/50 hidden"></div>
+                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- ✅ 100% 采用用户提供的 index.html 完整 SVG 滤镜（这是产生折射的核心） -->
-    <svg style="display: none">
-        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
-            <feComponentTransfer in="turbulence" result="mapped">
-                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
-                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
-                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
-            </feComponentTransfer>
-            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
-                <fePointLight x="-200" y="-200" z="300" />
-            </feSpecularLighting>
-            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-    </svg>
 
     <!-- ✅ 提交绑定逻辑（保持不变） -->
     <script>
@@ -166,7 +92,7 @@
         };
     </script>
 
-    <!-- ✅ 确保联动打开和关闭动画仍然生效（这部分代码不需要改动） -->
+    <!-- ✅ 联动打开/关闭动画（保持不变） -->
     <script>
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
