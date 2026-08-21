@@ -7,28 +7,21 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from extensions import mail, oauth
 from models import db, User, VisitLog
-# ✅ 核心修复：只引用 main_bp，不要 auth_bp 和 api_bp
 from routes import main_bp
 
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-if not app.config['SECRET_KEY']:
-    raise ValueError("❌ 严重安全警告：环境变量 SECRET_KEY 未设置！")
 
-# ================== 数据库配置 ==================
-BASE_DIR = Path(__file__).parent.resolve()
-DB_PATH = BASE_DIR / 'local.db'
-db_url = os.getenv('DATABASE_URL')
-if db_url:
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////{DB_PATH}'
+# ✅ 强制硬编码 Secret Key
+app.config['SECRET_KEY'] = 'gsbot-production-secret-key-2026'
 
+# ✅ 强制硬编码 PostgreSQL 连接地址（绝不读环境变量，绝对稳！）
+# 说明：gsbot_user / zhang121100 是你之前填的数据库账号密码
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gsbot_user:zhang121100@127.0.0.1:5432/gsbot'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================== 邮件配置 ==================
+# ================== 邮件配置（从环境变量读取，保持原样） ==================
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -41,7 +34,7 @@ mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
-# ================== 数据库建表（防多进程死锁） ==================
+# ================== 强制创建所有数据库表 ==================
 try:
     with app.app_context():
         db.create_all()
