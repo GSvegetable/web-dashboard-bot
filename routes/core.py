@@ -27,7 +27,3 @@ def settings_page(page):
     if page not in ALLOWED:
         abort(404)
     return render_template('settings.html', active_page=page)
-
-@main_bp.route('/workspace/add_bot')
-def add_bot():
-    return render_template('workspace/add_bot.html')
