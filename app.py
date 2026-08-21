@@ -2,14 +2,11 @@ import os
 import logging
 from datetime import datetime, timedelta
 
-# ==========================================
-# 🚨 终极权限修复：强制Gunicorn使用有权限的路径
-# 防止出现 /root/.gunicorn 权限错误导致进程崩溃
-# ==========================================
-# 1. 强制把Gunicorn的PID文件放到 /tmp 目录（人人可写，绝无权限问题）
-os.environ["GUNICORN_CMD_ARGS"] = "--pid /tmp/gunicorn.pid"
-# 2. 强制把工作目录切换到项目根目录
+# 🚨 终极权限修复：强行指定工作目录和Gunicorn PID路径，绝不让它去碰 /root！
+# 1. 确保程序的运行目录始终在项目根目录
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# 2. 强制将Gunicorn的PID文件放到 /tmp（有权限），绝不触发 Permission denied
+os.environ["GUNICORN_CMD_ARGS"] = "--pid /tmp/gunicorn.pid"
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
@@ -22,11 +19,10 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'gsbot-production-secret-key-2026'
-# 强制连接 PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gsbot_user:zhang121100@127.0.0.1:5432/gsbot'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ================== 邮件配置 ==================
+# ================== 邮件配置（自动读取环境变量） ==================
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -71,6 +67,7 @@ def log_visit():
         try:
             db.session.rollback()
         except: pass
+        # 不再打印权限错误，直接跳过
         pass
 
 app.register_blueprint(main_bp)
