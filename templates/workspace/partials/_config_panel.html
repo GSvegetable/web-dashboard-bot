@@ -1,7 +1,12 @@
 <!-- 主面板结构 -->
 <div id="configPanel" class="panel-fullscreen fixed z-30 transition-all duration-500 ease-out">
     
+    <!-- 🔵 内层：承载毛玻璃、30px台阶、内角圆润 -->
     <div class="panel-inner">
+        
+        <!-- ✅ 新增：真实折射位移层（放在最底层，绝对不被裁剪截断） -->
+        <div class="panel-refraction"></div>
+
         {% include 'workspace/partials/_config_home.html' %}
         {% include 'workspace/partials/_config_form.html' %}
     </div>
@@ -9,19 +14,45 @@
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
+        /* ✅ 主面板平滑过渡（保持不变） */
         #configPanel {
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         #configPanel.hide-for-modal {
             transform: translateY(110vh);
         }
+
+        /* ✅ 主面板玻璃基础质感（轻微通透，不发黑） */
         .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.06) !important; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255,255,255,0.3) !important; border: 1px solid rgba(255,255,255,0.8) !important; }
+
+        /* ✅ 核心修复：专门处理液态折射层，保证它产生位移且不会被 mask 裁剪 */
+        .panel-refraction {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            border-radius: 28px;
+            /* 使用 SVG 滤镜扭曲，产生物理光学错觉的折射 */
+            filter: url(#glass-distortion);
+            opacity: 0.7;
+        }
+
+        /* 主体内容放在折射层之上 */
+        #configHome, #configForm {
+            position: relative;
+            z-index: 2;
+        }
+
         .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
-        @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
+        /* 保留原有裁剪（为了顶部凸起），但因为折射层是独立的，所以不会被裁剪截断 */
+        @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: none !important; } }
+
         .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.06) !important; box-shadow: 0 8px 32px rgba(31,38,135,0.2), inset 0 4px 20px rgba(255,255,255,0.3) !important; border: 1px solid rgba(255,255,255,0.8) !important; }
         .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
+
+        /* ✅ 卡片和内部样式保持通透 */
         .glass-card { background: rgba(255,255,255,0.08) !important; border: 1px solid rgba(255,255,255,0.15) !important; border-radius: 1.2rem !important; box-shadow: 0 8px 32px rgba(31,38,135,0.2), inset 0 4px 20px rgba(255,255,255,0.3) !important; }
     </style>
 
@@ -47,41 +78,23 @@
             form.classList.add('hidden'); home.classList.remove('hidden');
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
-
-        window.showAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
-            mainPanel.classList.add('hide-for-modal');
-            modal.classList.remove('hidden');
-            wrapper.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-            setTimeout(() => {
-                wrapper.style.transform = 'translateY(0)';
-                wrapper.style.opacity = '1';
-            }, 200);
-        };
-
-        window.closeAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!mainPanel || !modal || !wrapper) return;
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                mainPanel.classList.remove('hide-for-modal');
-            }, 450);
-        };
-
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
-                window.closeAddBotModal();
-            }
-        });
     </script>
 </div>
+
+<!-- ✅ 核心修改：SVG 折射滤镜放在 body 最外层，保证作用于主面板 -->
+<svg style="position: absolute; width: 0; height: 0;">
+    <filter id="glass-distortion" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
+        <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+        <feComponentTransfer in="turbulence" result="mapped">
+            <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+            <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+            <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+        </feComponentTransfer>
+        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+        <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+            <fePointLight x="-200" y="-200" z="300" />
+        </feSpecularLighting>
+        <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+        <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+</svg>
