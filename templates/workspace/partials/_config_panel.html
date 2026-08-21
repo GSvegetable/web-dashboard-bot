@@ -8,7 +8,7 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- 添加 Bot 卡片（默认隐藏，点击按钮才会出现） -->
+    <!-- 添加 Bot 卡片 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="display: none; align-items: center; justify-content: center;">
         <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(20px) scale(0.95); opacity: 0; transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);">
             <div class="glass-card p-6 cursor-auto">
@@ -42,13 +42,19 @@
 
     <style>
         .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
-        .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
-        @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
-        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
-        .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
+        
+        /* ✅ 核心：专门用来隐藏主面板的类，彻底移出屏幕 */
+        .panel-hidden {
+            transform: translateY(120vh) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        
+        .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
+        @media (min-width: 768px) { .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
-        
+
         .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 15px rgba(255,255,255,0.05); background: rgba(0,0,0,0.5); }
     </style>
@@ -56,8 +62,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const panel = document.getElementById('configPanel');
-            panel.classList.remove('panel-collapsed');
-            panel.classList.add('panel-fullscreen');
+            panel.classList.remove('panel-hidden'); // 确保初始状态不隐藏
         });
 
         window.switchToConfig = function() {
@@ -65,7 +70,6 @@
             const home = document.getElementById('configHome');
             const form = document.getElementById('configForm');
             panel.classList.remove('panel-fullscreen');
-            panel.classList.add('panel-collapsed');
             setTimeout(() => { home.classList.add('hidden'); form.classList.remove('hidden'); }, 50);
         };
         window.switchToHome = function() {
@@ -73,47 +77,49 @@
             const home = document.getElementById('configHome');
             const form = document.getElementById('configForm');
             form.classList.add('hidden'); home.classList.remove('hidden');
-            panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
+            panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 核心：大卡片下去，小卡片立刻上来（逻辑超级简单）
-        window.addPanel = function() {
+        // ✅ 第一步：先让主面板隐藏
+        window.hideMainPanel = function() {
             const panel = document.getElementById('configPanel');
+            panel.classList.add('panel-hidden');
+        };
+
+        // ✅ 第二步：再显示小卡片
+        window.showAddPanelModal = function() {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-
-            // 1. 大卡片强制滑出屏幕
-            panel.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
-            panel.style.transform = 'translateY(110vh)';
-
-            // 2. 小卡片强制显示在屏幕中央
-            modal.style.display = 'flex';  // 直接改为 flex 居中，不依赖 hidden 类
+            modal.style.display = 'flex';
             modal.classList.remove('hidden');
             
             wrapper.style.opacity = '0';
             wrapper.style.transform = 'translateY(20px) scale(0.95)';
-            
             setTimeout(() => {
                 wrapper.style.opacity = '1';
                 wrapper.style.transform = 'translateY(0) scale(1)';
-            }, 20);
+            }, 50);
         };
 
-        // ✅ 核心：小卡片下去，大卡片回来
+        // ✅ 点击按钮：先隐藏主面板，再显示小卡片
+        window.addPanel = function() {
+            hideMainPanel();
+            showAddPanelModal();
+        };
+
+        // ✅ 关闭：隐藏小卡片，显示主面板
         window.closeAddPanel = function() {
-            const panel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
+            const panel = document.getElementById('configPanel');
 
             wrapper.style.opacity = '0';
             wrapper.style.transform = 'translateY(20px) scale(0.95)';
-            
+
             setTimeout(() => {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
-                
-                panel.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
-                panel.style.transform = 'translateY(0)';
+                panel.classList.remove('panel-hidden'); // 主面板归位
             }, 400);
         };
 
