@@ -8,9 +8,10 @@ from extensions import mail, oauth
 from models import db, User, VisitLog
 from routes import main_bp
 
+logging.basicConfig(level=logging.INFO)
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'gsbot-production-secret-key-2026'
-# 强制连接 PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gsbot_user:zhang121100@127.0.0.1:5432/gsbot'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -25,13 +26,17 @@ mail.init_app(app)
 oauth.init_app(app)
 db.init_app(app)
 
-# 建立所有表
 with app.app_context():
     try:
         db.create_all()
-        print("✅ 数据库表结构检查/创建成功！")
+        logging.info("✅ 数据库表结构检查/创建成功！")
     except Exception as e:
-        print(f"❌ 建表报错（可忽略，继续启动）：{e}")
+        # 无论什么错误，先回滚事务，再继续尝试
+        try:
+            db.session.rollback()
+        except:
+            pass
+        logging.error(f"❌ 建表报错 (已回滚): {e}")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -54,7 +59,11 @@ def log_visit():
             db.session.add(visit)
             db.session.commit()
     except Exception as e:
-        pass
+        try:
+            db.session.rollback()  # 防止卡死
+        except:
+            pass
+        app.logger.error(f"记录访问失败: {e}")
 
 app.register_blueprint(main_bp)
 
