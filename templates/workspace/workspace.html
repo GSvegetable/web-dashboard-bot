@@ -22,16 +22,14 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 保持弹窗在 body 最外层，避免模糊被遮挡 -->
+    <!-- ✅ 弹窗结构：去掉“✕ 关闭”按钮，保留外层模糊和表单 -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%);">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto">
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
                 <div class="glass-card p-6 cursor-auto" style="background: rgba(255,255,255,0.12);">
                     <div class="w-full flex flex-col gap-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                            <button onclick="closeAddBotModal()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
-                        </div>
+                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
+                        
                         <div class="flex flex-col gap-1">
                             <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
                             <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
@@ -50,7 +48,7 @@
         </div>
     </div>
 
-    <!-- ✅ 提交绑定的 JS 放在这里，依赖 _config_home.html 里的 show/close -->
+    <!-- ✅ 提交绑定逻辑（保留） -->
     <script>
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
