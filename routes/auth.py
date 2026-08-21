@@ -1,8 +1,4 @@
-import os
-import re
-import random
-import secrets
-import logging
+import os, re, random, secrets
 from datetime import datetime
 from flask import Blueprint, request, jsonify, redirect, url_for, session
 from flask_login import login_user, logout_user, current_user
@@ -10,8 +6,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, EmailCode, TelegramCode
 from extensions import oauth
 from . import main_bp
-
-logging.basicConfig(level=logging.INFO)
 
 FIRST_NAMES = ['仆', '恶魔用户0323', '天使用户0323', '灰调雪', 'Rely', '该用户名为天使、', '涩骨痣', 'みゃ、？', '活着为了火鸡面', '露水情缘', '我心自有凜冬', '天真流尽泪', '缘如弦断难续', '循环的圆', '泪糸痛', '世間於我無关', '一万篇坏心事', '虚假郁片', '归属哪颗流星', '浅色泪、', '此用户很忧郁', '一滴名为白水', '鉴心永远是多远、', 'github']
 
@@ -21,7 +15,6 @@ def generate_unique_display_id():
         if not User.query.filter_by(display_id=new_id).first():
             return new_id
 
-# 注册 OAuth
 oauth.register(
     name='github',
     client_id=os.getenv('GITHUB_CLIENT_ID'),
@@ -44,8 +37,6 @@ def github_callback():
         token = oauth.github.authorize_access_token()
         resp = oauth.github.get('user', token=token)
         user_info = resp.json()
-
-        # 获取邮箱
         emails_resp = oauth.github.get('user/emails', token=token)
         emails = emails_resp.json()
         primary_email = None
@@ -62,42 +53,23 @@ def github_callback():
 
         user = User.query.filter_by(github_id=github_id).first()
         if not user:
-            if primary_email:
-                existing_user = User.query.filter_by(email=primary_email).first()
-                if existing_user:
-                    existing_user.github_id = github_id
-                    existing_user.avatar_url = avatar_url
-                    db.session.commit()
-                    user = existing_user
-                else:
-                    hashed_pw = generate_password_hash(os.urandom(24).hex())
-                    user = User(
-                        email=primary_email,
-                        github_id=github_id,
-                        password_hash=hashed_pw,
-                        first_name=username,
-                        avatar_url=avatar_url
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-            else:
-                hashed_pw = generate_password_hash(os.urandom(24).hex())
-                user = User(
-                    email=f"{github_id}@github.local",
-                    github_id=github_id,
-                    password_hash=hashed_pw,
-                    first_name=username,
-                    avatar_url=avatar_url
-                )
-                db.session.add(user)
-                db.session.commit()
+            hashed_pw = generate_password_hash(os.urandom(24).hex())
+            user = User(
+                email=primary_email or f"{github_id}@github.local",
+                github_id=github_id,
+                password_hash=hashed_pw,
+                first_name=username,
+                avatar_url=avatar_url
+            )
+            db.session.add(user)
+            db.session.commit()
 
         login_user(user)
         user.last_login = datetime.utcnow()
         db.session.commit()
         return redirect(url_for('main.splash', auth='github_success'))
     except Exception as e:
-        logging.error(f"GitHub 登录异常: {e}")
+        print(f"GitHub 登录失败: {e}")
         return redirect(url_for('main.splash', auth='github_error'))
 
 @main_bp.route('/register', methods=['POST'])
@@ -137,28 +109,15 @@ def register():
         else:
             hashed_password = generate_password_hash(secrets.token_urlsafe(16))
             if is_email:
-                new_user = User(
-                    email=account,
-                    password_hash=hashed_password,
-                    first_name=random.choice(FIRST_NAMES),
-                    display_id=generate_unique_display_id()
-                )
+                new_user = User(email=account, password_hash=hashed_password, first_name=random.choice(FIRST_NAMES), display_id=generate_unique_display_id())
             else:
-                tg_info = fetch_telegram_user_info(account)
-                new_user = User(
-                    telegram_id=account,
-                    password_hash=hashed_password,
-                    first_name=tg_info['first_name'] if tg_info else '',
-                    last_name=tg_info['last_name'] if tg_info else '',
-                    telegram_username=tg_info['username'] if tg_info else '',
-                    avatar_url=tg_info['avatar_url'] if tg_info else None
-                )
+                new_user = User(telegram_id=account, password_hash=hashed_password)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user)
             return "注册成功"
     except Exception as e:
-        logging.error(f"注册时发生异常: {e}")
+        print(f"注册时发生异常: {e}")
         return "SYSTEM_ERROR"
 
 @main_bp.route('/logout')
