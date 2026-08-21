@@ -136,19 +136,22 @@
             wrapper.style.transform = 'translateY(100vh)';
             wrapper.style.opacity = '0';
             
-            // 模糊从四周缩回中间
+            // 模糊收缩
             blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+
+            // ✅ 核心修改：立即让主面板弹上来（提升 z-index 盖住模糊层）
+            mainPanel.style.zIndex = '10000'; // 临时提升层级
+            mainPanel.classList.remove('hide-for-modal');
 
             setTimeout(() => {
                 modal.classList.add('hidden');
-                mainPanel.classList.remove('hide-for-modal');
+                mainPanel.style.zIndex = ''; // 恢复原 z-index
             }, 800);
         };
 
-        // ✅ 核心修复：点击卡片外部任意区域（包含模糊层）都能关闭
+        // 点击卡片外部任意区域（包含模糊层）都能关闭
         document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
             const wrapper = document.getElementById('modalWrapper');
-            // 如果点击的位置不在卡片内部，就关闭
             if (!wrapper.contains(e.target)) {
                 window.closeAddBotModal();
             }
