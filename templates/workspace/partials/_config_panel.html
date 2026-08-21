@@ -46,7 +46,6 @@
         @media (min-width: 768px) { .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
-
         .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 15px rgba(255,255,255,0.05); background: rgba(0,0,0,0.5); }
     </style>
@@ -73,58 +72,71 @@
             panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 第一部分：大卡片彻底滑下去并隐藏（防止弹回）
+        // ✅ 保护锁：大卡片没完全消失前，禁止任何关闭操作
+        let isPanelAnimating = false;
+
+        // ✅ 点击添加按钮：先锁定，再让大卡片下去
         window.addPanel = function() {
+            if (isPanelAnimating) return;
+            isPanelAnimating = true;
+
             const panel = document.getElementById('configPanel');
-            
-            // 1. 先滑出去
             panel.style.transform = 'translateY(120vh)';
-            
-            // 2. 等 0.5 秒（滑出动画结束后），彻底隐藏主面板
+
+            // 等它滑到底部后，彻底锁死它，然后显示小卡片
             setTimeout(() => {
                 panel.style.display = 'none';
-                
-                // 3. 显示添加卡片
+
                 const modal = document.getElementById('customAddPanelModal');
                 const wrapper = document.getElementById('modalWrapper');
-                
+
                 modal.style.display = 'flex';
                 modal.classList.remove('hidden');
-                
+
                 wrapper.style.opacity = '0';
                 wrapper.style.transform = 'translateY(100px)';
-                
+
                 setTimeout(() => {
                     wrapper.style.opacity = '1';
                     wrapper.style.transform = 'translateY(0)';
-                }, 20);
+                    // 小卡片出来了，解锁
+                    isPanelAnimating = false;
+                }, 100);
             }, 500);
         };
 
-        // ✅ 第二部分：小卡片下去，大卡片回来
+        // ✅ 关闭：先锁死，小卡片下去，再把大卡片拉回来
         window.closeAddPanel = function() {
+            if (isPanelAnimating) return;
+            isPanelAnimating = true;
+
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
             const panel = document.getElementById('configPanel');
-            
-            // 1. 小卡片先消失
+
             wrapper.style.opacity = '0';
             wrapper.style.transform = 'translateY(100px)';
-            
+
             setTimeout(() => {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
-                
-                // 2. 恢复主面板显示，并滑回来
+
                 panel.style.display = 'block';
                 panel.style.transform = 'translateY(0)';
-            }, 400);
+
+                // 大卡片完全回来后，解锁
+                setTimeout(() => {
+                    isPanelAnimating = false;
+                }, 500);
+            }, 300);
         };
 
-        // ✅ 点击外部关闭
+        // ✅ 点击外部关闭：必须穿透判断，防止误触
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
+            if (isPanelAnimating) return;
+
             if (modal && modal.style.display === 'flex' && wrapper && !wrapper.contains(e.target)) {
                 window.closeAddPanel();
             }
