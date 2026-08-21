@@ -9,7 +9,8 @@
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
     <style>
-        .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
+        /* 删除所有 backdrop-filter 模糊效果 */
+        .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
         
         /* 主面板开启平滑过渡 */
         #configPanel {
@@ -23,11 +24,11 @@
 
         .panel-fullscreen .panel-inner { width: 100% !important; height: 100% !important; border-radius: 28px !important; }
         @media (min-width: 768px) { .panel-fullscreen .panel-inner { clip-path: polygon(0% 0%, calc(100% - 220px) 0%, calc(100% - 220px) 30px, 100% 30px, 100% 100%, 0% 100%) !important; mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; -webkit-mask-image: radial-gradient(circle at calc(100% - 220px) 30px, transparent 16px, black 18px) !important; } }
-        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
+        .panel-collapsed { top: auto !important; left: 24px !important; bottom: 24px !important; right: 24px !important; width: auto !important; max-width: 480px !important; height: auto !important; max-height: calc(100vh - 48px) !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.08) !important; }
         .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
-        .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
+        .glass-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
     </style>
 
     <script>
@@ -53,7 +54,7 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 联动打开：主面板滑下，卡片滑上来
+        // 联动打开：主面板滑下，卡片滑上来
         window.showAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
@@ -75,7 +76,7 @@
             }, 200);
         };
 
-        // ✅ 联动关闭：卡片滑下去，主面板滑回来
+        // 联动关闭：卡片滑下去，主面板滑回来
         window.closeAddBotModal = function() {
             const mainPanel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
