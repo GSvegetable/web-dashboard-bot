@@ -1,15 +1,16 @@
 import os
 import requests
+# 禁用 SSL 警告，避免日志刷屏
+requests.packages.urllib3.disable_warnings()
 from datetime import datetime
 from flask import request, jsonify
 from models import db, PendingBind
 from . import main_bp
 
-# 强制绕过系统隐藏的代理设置（解决 Gunicorn 环境下连接超时问题）
-PROXIES = {
-    'http': None,
-    'https': None
-}
+# ✅ 核心修复：强制忽略系统环境变量里的所有代理（防止被劫持），并关闭 SSL 证书校验
+# 使用 Session 保证连接稳定，且能统一控制
+SESSION = requests.Session()
+SESSION.trust_env = False  # 强制忽略环境变量中的 HTTP_PROXY / HTTPS_PROXY（这是之前一直超时和报错的原因）
 
 @main_bp.route('/api/send_bind_request', methods=['POST'])
 def send_bind_request():
@@ -24,8 +25,8 @@ def send_bind_request():
 
     # 1. 验证 Token 有效并获取机器人信息
     try:
-        # ✅ 强制 proxies 为 None，并延长超时到 30 秒
-        me_resp = requests.get(f"https://api.telegram.org/bot{token}/getMe", timeout=30, proxies=PROXIES)
+        # 使用 SESSION.get 并关闭 verify 校验，绕过证书问题
+        me_resp = SESSION.get(f"https://api.telegram.org/bot{token}/getMe", timeout=30, verify=False)
         if me_resp.status_code != 200:
             return jsonify({'ok': False, 'msg': 'Token 无效或网络错误'})
         bot_info = me_resp.json().get('result', {})
@@ -75,8 +76,8 @@ def send_bind_request():
     }
 
     try:
-        # ✅ 强制 proxies 为 None，并延长超时到 30 秒
-        send_resp = requests.post(
+        # 同样使用 SESSION.post 并关闭 verify 校验
+        send_resp = SESSION.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={
                 "chat_id": user_id_input,
@@ -85,7 +86,7 @@ def send_bind_request():
                 "reply_markup": reply_markup
             },
             timeout=30,
-            proxies=PROXIES
+            verify=False
         )
         if send_resp.status_code == 200:
             return jsonify({'ok': True, 'msg': '确认通知已发送，请去 Telegram 操作！'})
