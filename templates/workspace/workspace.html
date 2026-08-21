@@ -8,32 +8,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
     {% include 'workspace/partials/_styles.html' %}
+    
+    <!-- ✅ 核心修改：引入你提供的液态玻璃 CSS -->
     <style>
-        /* ✅ 苹果液态玻璃效果（从你的 style.css 完美移植） */
-        .liquid-glass {
+        .liquidGlass-wrapper {
             position: relative;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(2px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 2rem;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2), inset 0 4px 20px rgba(255, 255, 255, 0.3);
+            display: flex;
+            font-weight: 600;
+            overflow: hidden;
+            color: black;
+            cursor: pointer;
+            box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 2.2);
         }
-        .liquid-glass::after {
-            content: '';
+
+        .liquidGlass-effect {
             position: absolute;
-            top: 0;
-            left: 0;
+            z-index: 0;
+            inset: 0;
+            backdrop-filter: blur(3px);
+            filter: url(#glass-distortion);
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .liquidGlass-tint {
+            z-index: 1;
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .liquidGlass-shine {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5), inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+        }
+
+        .liquidGlass-text {
+            z-index: 3;
+            font-size: 2rem;
+            color: black;
+        }
+
+        /* 添加机器人的弹窗卡片样式 */
+        .modal-glass {
+            border-radius: 1.8rem;
+            padding: 1.5rem;
             width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 2rem;
-            backdrop-filter: blur(1px);
-            box-shadow: inset -10px -8px 0px -11px rgba(255, 255, 255, 1), inset 0px -9px 0px -8px rgba(255, 255, 255, 1);
-            opacity: 0.6;
-            z-index: -1;
-            filter: blur(1px) drop-shadow(10px 4px 6px black) brightness(115%);
-            pointer-events: none;
         }
     </style>
 </head>
@@ -50,12 +74,16 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 添加机器人弹窗：套用液态玻璃效果 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
+    <!-- ✅ 核心修改：新的液态玻璃添加机器人弹窗 -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity;">
-                <div class="liquid-glass">
-                    <div class="w-full flex flex-col gap-4">
+                <!-- 使用 liquidGlass-wrapper 结构 -->
+                <div class="liquidGlass-wrapper modal-glass">
+                    <div class="liquidGlass-effect"></div>
+                    <div class="liquidGlass-tint"></div>
+                    <div class="liquidGlass-shine"></div>
+                    <div class="liquidGlass-text relative w-full flex flex-col gap-4" style="font-size: initial;">
                         <h3 class="text-xl font-bold text-white">添加机器人</h3>
                         
                         <div class="flex flex-col gap-1">
@@ -76,7 +104,25 @@
         </div>
     </div>
 
-    <!-- 提交绑定逻辑（保持不变） -->
+    <!-- ✅ 核心修改：放置 SVG 滤镜定义（必须放在 body 内） -->
+    <svg style="display: none">
+        <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+            <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+            <feComponentTransfer in="turbulence" result="mapped">
+                <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+            </feComponentTransfer>
+            <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+            <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                <fePointLight x="-200" y="-200" z="300" />
+            </feSpecularLighting>
+            <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+            <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
+
+    <!-- 提交绑定逻辑 -->
     <script>
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
