@@ -8,11 +8,10 @@
 
     <div id="panelHandle" class="absolute top-0 left-0 w-full h-[60px] cursor-pointer z-50 rounded-t-[28px] hidden" onclick="togglePanel()"></div>
 
-    <!-- ✅ 修复后的添加 Bot 弹窗：纯模糊，不加黑，动画极顺滑 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+    <!-- ✅ 添加 Bot 卡片（不再有背景遮罩，直接替换视图） -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden">
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <!-- 使用平滑缓动曲线和 will-change 保证丝滑 -->
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; will-change: transform, opacity;">
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100px); opacity: 0; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform, opacity;">
                 <div class="glass-card p-6 cursor-auto">
                     <div class="w-full flex flex-col gap-4">
                         
@@ -51,6 +50,14 @@
         .panel-collapsed .panel-inner { clip-path: none !important; mask-image: none !important; }
         .panel-fullscreen #configHome { display: flex !important; }
         .panel-fullscreen #configForm { display: none !important; }
+        
+        /* ✅ 核心：面板下沉动画 */
+        .panel-down {
+            transform: translateY(110vh) !important;
+            opacity: 0.4 !important;
+            pointer-events: none !important;
+        }
+
         .glass-card { background: rgba(255,255,255,0.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); border-radius: 1.2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #bec4cf; }
         .glass-card input:focus { border-color: rgba(255,255,255,0.4) !important; box-shadow: 0 0 15px rgba(255,255,255,0.05); background: rgba(0,0,0,0.5); }
     </style>
@@ -78,42 +85,46 @@
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
 
-        // ✅ 丝滑打开弹窗（平滑缓动，带淡入）
+        // ✅ 打开：主面板下沉，新卡片升起
         window.addPanel = function() {
+            const panel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
+            if (!panel || !modal || !wrapper) return;
 
+            panel.classList.add('panel-down');
             modal.classList.remove('hidden');
-            wrapper.style.transform = 'translateY(100%)';
+            wrapper.style.transform = 'translateY(100px)';
             wrapper.style.opacity = '0';
             
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    wrapper.style.transform = 'translateY(0)';
-                    wrapper.style.opacity = '1';
-                }, 30);
-            });
+            setTimeout(() => {
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+            }, 30);
         };
 
-        // ✅ 丝滑关闭弹窗（原路平滑返回，带淡出）
+        // ✅ 关闭：新卡片降下，主面板升回
         window.closeAddPanel = function() {
+            const panel = document.getElementById('configPanel');
             const modal = document.getElementById('customAddPanelModal');
             const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
+            if (!panel || !modal || !wrapper) return;
 
-            wrapper.style.transform = 'translateY(100%)';
+            wrapper.style.transform = 'translateY(100px)';
             wrapper.style.opacity = '0';
             
             setTimeout(() => {
                 modal.classList.add('hidden');
+                panel.classList.remove('panel-down');
             }, 500);
         };
 
-        // ✅ 点击外部遮罩关闭
+        // ✅ 点击外部遮罩（实际上因为没有遮罩，这里通过点击非卡片区域触发）
+        // 由于没有遮罩层，这里改用监听整个屏幕的点击，如果点击不在卡片内则关闭
         document.addEventListener('click', function(e) {
             const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+            const wrapper = document.getElementById('modalWrapper');
+            if (modal && !modal.classList.contains('hidden') && wrapper && !wrapper.contains(e.target)) {
                 window.closeAddPanel();
             }
         });
