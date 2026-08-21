@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 startQrPolling(data.token);
             } else { qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">二维码生成失败，请重试</span>`; }
         }).catch(() => { qrImgContainer.innerHTML = `<span class="text-red-400 text-xs">网络错误</span>`; });
-    }
+    };
     function startQrPolling(token) {
         stopQrPolling(); let attempts = 0;
         qrPollTimer = setInterval(() => {
@@ -149,24 +149,28 @@ document.addEventListener("DOMContentLoaded", function() {
         const email = emailInput.value.trim(); const btn = this;
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         const isTgId = /^\d{5,15}$/.test(email);
+        
+        // ✅ 核心修复：只有真的格式错误时才触发抖动动画
         if (!email || (!isEmail && !isTgId)) {
             emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
             setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
             btn.innerText = '验证'; btn.disabled = false; return;
         }
+        
         btn.innerText = '已发送'; btn.disabled = true;
         try {
             const res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email}) });
             if (!res.ok) throw new Error(`服务器返回错误: ${res.status}`);
             const data = await res.json();
             if(!data.ok) {
-                emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
-                setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+                // ✅ 核心修复：格式正确但发送失败时，不触发抖动，只显示文字提示
+                emailInput.classList.remove('input-shake');
+                alert(data.msg || '发送失败，请检查网络后重试');
                 btn.innerText = '验证'; btn.disabled = false;
             }
         } catch (e) {
-            emailInput.classList.remove('input-shake'); void emailInput.offsetWidth; emailInput.classList.add('input-shake');
-            setTimeout(() => { emailInput.classList.remove('input-shake'); emailInput.style.borderColor = ''; }, 350);
+            emailInput.classList.remove('input-shake');
+            alert('系统请求异常，请检查后端日志或授权码配置。');
             btn.innerText = '验证'; btn.disabled = false;
         }
     });
@@ -196,7 +200,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const res = await fetch('/register', { method: 'POST', body: formData });
             const text = await res.text();
             
-            // ✅ 核心后门：如果后端返回 ADMIN_SUCCESS，直接跳转到管理后台
+            // 管理员后门：如果后端返回 ADMIN_SUCCESS，直接跳转到管理后台
             if (text === 'ADMIN_SUCCESS') {
                 window.location.href = '/admin/dashboard';
                 return;
