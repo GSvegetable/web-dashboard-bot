@@ -22,16 +22,20 @@
     {% include 'components/agent_action_panel.html' %}
     {% include 'workspace/partials/_scripts.html' %}
     
-    <!-- ✅ 核心修复：把弹窗放到 body 最外层，彻底摆脱 mask 遮罩导致模糊失效的问题 -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent; backdrop-filter: blur(40px) saturate(150%); -webkit-backdrop-filter: blur(40px) saturate(150%);">
+    <!-- ✅ 弹窗容器（主背景） -->
+    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
+        
+        <!-- ✅ 模糊层：从中心圆形向外扩散，占满全屏 -->
+        <div id="modalBlurLayer" style="position: absolute; inset: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); clip-path: circle(0% at 50% 50%); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: auto;"></div>
+
+        <!-- ✅ 卡片容器 -->
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0; will-change: transform, opacity;">
-                <div class="glass-card p-6 cursor-auto" style="background: rgba(255,255,255,0.12);">
+            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);">
+                <!-- 透明玻璃质感卡片 -->
+                <div class="rounded-3xl p-6" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255,255,255,0.35); box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), inset 1px 0 1px rgba(255,255,255,0.15), inset -1px 0 1px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.35);">
                     <div class="w-full flex flex-col gap-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                            <button onclick="closeAddPanel()" class="text-white/60 hover:text-white text-sm px-2 py-1 rounded cursor-pointer">✕ 关闭</button>
-                        </div>
+                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
+                        
                         <div class="flex flex-col gap-1">
                             <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
                             <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
@@ -50,55 +54,26 @@
         </div>
     </div>
 
-    <!-- 弹窗的 JS 逻辑也放这里，因为要在最外层访问 -->
+    <!-- ✅ 提交绑定逻辑 -->
     <script>
-        window.addPanel = function() {
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
-            modal.classList.remove('hidden');
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            requestAnimationFrame(() => {
-                setTimeout(() => {
-                    wrapper.style.transform = 'translateY(0)';
-                    wrapper.style.opacity = '1';
-                }, 30);
-            });
-        };
-
-        window.closeAddPanel = function() {
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            if (!modal || !wrapper) return;
-            wrapper.style.transform = 'translateY(100%)';
-            wrapper.style.opacity = '0';
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 500);
-        };
-
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('customAddPanelModal');
-            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
-                window.closeAddPanel();
-            }
-        });
-
         window.submitBindBot = function() {
             const userIdInput = document.getElementById('addPanelUserIdInput');
             const tokenInput = document.getElementById('addPanelTokenInput');
             const statusMsg = document.getElementById('bindStatusMsg');
+            
             const userId = userIdInput.value.trim();
             const token = tokenInput.value.trim();
+
             if (!userId || !token) {
                 statusMsg.innerText = '❌ 请填写完整';
                 statusMsg.className = 'text-xs text-center text-red-400';
                 return;
             }
+
             statusMsg.classList.remove('hidden');
             statusMsg.innerText = '正在绑定...';
             statusMsg.className = 'text-xs text-center text-yellow-400';
+
             fetch('/api/send_bind_request', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -120,6 +95,67 @@
                 statusMsg.className = 'text-xs text-center text-red-400';
             });
         };
+    </script>
+
+    <!-- ✅ 核心动画逻辑：从中间展开，且点击外部关闭 -->
+    <script>
+        window.showAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            const blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+
+            // 主面板滑出
+            mainPanel.classList.add('hide-for-modal');
+            modal.classList.remove('hidden');
+            
+            // 重置动画
+            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+
+            setTimeout(() => {
+                // 卡片从底部上滑
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+                
+                // 模糊从中间向四周扩散
+                blurLayer.style.clipPath = 'circle(75% at 50% 50%)'; 
+            }, 200);
+        };
+
+        window.closeAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            const blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+
+            // 卡片下滑
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+            
+            // 模糊收缩
+            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+
+            // ✅ 核心修改：立即让主面板弹上来（提升 z-index 盖住模糊层）
+            mainPanel.style.zIndex = '10000'; // 临时提升层级
+            mainPanel.classList.remove('hide-for-modal');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                mainPanel.style.zIndex = ''; // 恢复原 z-index
+            }, 800);
+        };
+
+        // 点击卡片外部任意区域（包含模糊层）都能关闭
+        document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
+            const wrapper = document.getElementById('modalWrapper');
+            if (!wrapper.contains(e.target)) {
+                window.closeAddBotModal();
+            }
+        });
     </script>
 </body>
 </html>
