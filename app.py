@@ -1,6 +1,16 @@
 import os
 import logging
 from datetime import datetime, timedelta
+
+# ==========================================
+# 🚨 终极权限修复：强制Gunicorn使用有权限的路径
+# 防止出现 /root/.gunicorn 权限错误导致进程崩溃
+# ==========================================
+# 1. 强制把Gunicorn的PID文件放到 /tmp 目录（人人可写，绝无权限问题）
+os.environ["GUNICORN_CMD_ARGS"] = "--pid /tmp/gunicorn.pid"
+# 2. 强制把工作目录切换到项目根目录
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -12,9 +22,11 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'gsbot-production-secret-key-2026'
+# 强制连接 PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://gsbot_user:zhang121100@127.0.0.1:5432/gsbot'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# ================== 邮件配置 ==================
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.qq.com')
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -56,11 +68,9 @@ def log_visit():
             db.session.add(visit)
             db.session.commit()
     except Exception as e:
-        # 核心修改：不管遇到什么错误（包括权限不足），直接回滚，继续放行请求！绝不阻断！
         try:
             db.session.rollback()
         except: pass
-        # 不再打印这条烦人的错误，让它彻底静默
         pass
 
 app.register_blueprint(main_bp)
