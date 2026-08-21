@@ -75,14 +75,14 @@
         </div>
     </div>
 
-    <!-- ✅ 底部按钮组：保存 + 退出登录（并排同款外观） -->
+    <!-- ✅ 核心修改：两个按钮固定等长（180px），并排，保存恢复适中大小 -->
     <div class="animate-item delay-7 w-full flex gap-3 mt-2">
-        <!-- 保存按钮（保持原来的宽度比例） -->
-        <button class="flex-1 py-2 bg-[rgba(255,255,255,0.08)] backdrop-blur-md border border-[rgba(255,255,255,0.25)] rounded-lg text-white text-sm font-semibold hover:bg-[rgba(255,255,255,0.12)] transition duration-75 active:scale-95">
+        <!-- 保存按钮（固定宽度，不再拉伸） -->
+        <button class="w-[180px] py-2 bg-[rgba(255,255,255,0.08)] backdrop-blur-md border border-[rgba(255,255,255,0.25)] rounded-lg text-white text-sm font-semibold hover:bg-[rgba(255,255,255,0.12)] transition duration-75 active:scale-95">
             保存
         </button>
-        <!-- 退出登录按钮（同款外观） -->
-        <button class="flex-1 py-2 bg-[rgba(255,255,255,0.08)] backdrop-blur-md border border-[rgba(255,255,255,0.25)] rounded-lg text-white text-sm font-semibold hover:bg-[rgba(255,255,255,0.12)] transition duration-75 active:scale-95" onclick="window.location.href='/logout'">
+        <!-- 退出登录按钮（与保存完全等长） -->
+        <button class="w-[180px] py-2 bg-[rgba(255,255,255,0.08)] backdrop-blur-md border border-[rgba(255,255,255,0.25)] rounded-lg text-white text-sm font-semibold hover:bg-[rgba(255,255,255,0.12)] transition duration-75 active:scale-95" onclick="window.location.href='/logout'">
             退出登录
         </button>
     </div>
