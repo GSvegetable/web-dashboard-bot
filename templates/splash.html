@@ -7,15 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        button, a, input, textarea, select { outline: none; -webkit-tap-highlight-color: transparent; }
         body {
             width: 100vw;
             min-height: 100vh;
-            background-color: #000000;  /* 纯黑背景 */
+            background-color: #000000;
             font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
             overflow-x: hidden;
         }
 
-        /* 中间的大白圆（作为背景装饰，层级最低） */
+        /* 中间大白圆 */
         .big-white-circle {
             position: fixed;
             top: 50%;
@@ -24,12 +25,12 @@
             width: 70vmin;
             height: 70vmin;
             border-radius: 50%;
-            background-color: #ffffff;
+            background: #ffffff;
             z-index: 0;
             pointer-events: none;
         }
 
-        /* 顶部按钮区域（位置不变） */
+        /* 顶部按钮 */
         .top-actions {
             position: fixed;
             top: 20px;
@@ -56,16 +57,16 @@
         }
         .top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.15); }
 
-        /* 主内容区域（保持在左侧，不居中） */
+        /* 主内容区：恢复原始位置（左上角） */
         .content-area {
             position: relative;
-            z-index: 2;
+            z-index: 1;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: flex-start;
-            padding-top: 18vh;
+            padding-top: 15vh;
             padding-left: 12%;
             pointer-events: none;
         }
@@ -102,10 +103,10 @@
 </head>
 <body>
     
-    <!-- 最底层的白色大圆 -->
+    <!-- 中间大白圆 -->
     <div class="big-white-circle"></div>
 
-    <!-- 顶部按钮（完全保留原逻辑和位置） -->
+    <!-- 顶部按钮（保持在右上角） -->
     <div class="top-actions">
         <button class="top-btn" onclick="openUpdateLogModal()">更新日志</button>
         <button class="top-btn" onclick="openContactModal()">联系我们</button>
@@ -120,7 +121,7 @@
         </button>
     </div>
 
-    <!-- 内容区（位置恢复原样，在左侧） -->
+    <!-- 主内容（文字和按钮在左上角） -->
     <div class="content-area">
         <div class="text-group">
             <h1 class="main-title">宫水大世界</h1>
@@ -131,7 +132,7 @@
         </div>
     </div>
 
-    <!-- 保留所有原弹窗组件 -->
+    <!-- 保留原有弹窗组件 -->
     {% include 'components/toast.html' %}
     {% include 'components/auth_card.html' %}
     {% include 'components/music_card.html' %}
@@ -142,6 +143,5 @@
     
     {% include 'components/plan_detail_modal.html' %}
     {% include 'components/3d_card.html' %}
-    
 </body>
 </html>
