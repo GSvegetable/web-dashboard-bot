@@ -1,16 +1,22 @@
 import os
 import requests
-# 禁用 SSL 警告，避免日志刷屏
+import socket
+import urllib3.util.connection as urllib3_util_connection
+
+# 强制只走 IPv4，修复 Gunicorn 环境下的 IPv6 超时问题
+urllib3_util_connection.HAS_IPV6 = False
+urllib3_util_connection.allowed_gai_family = lambda: socket.AF_INET
+
+# 禁用 SSL 警告，忽略所有系统环境变量里的代理
 requests.packages.urllib3.disable_warnings()
 from datetime import datetime
 from flask import request, jsonify
 from models import db, PendingBind
 from . import main_bp
 
-# ✅ 核心修复：强制忽略系统环境变量里的所有代理（防止被劫持），并关闭 SSL 证书校验
-# 使用 Session 保证连接稳定，且能统一控制
+# 强制忽略环境变量代理
 SESSION = requests.Session()
-SESSION.trust_env = False  # 强制忽略环境变量中的 HTTP_PROXY / HTTPS_PROXY（这是之前一直超时和报错的原因）
+SESSION.trust_env = False
 
 @main_bp.route('/api/send_bind_request', methods=['POST'])
 def send_bind_request():
@@ -25,7 +31,6 @@ def send_bind_request():
 
     # 1. 验证 Token 有效并获取机器人信息
     try:
-        # 使用 SESSION.get 并关闭 verify 校验，绕过证书问题
         me_resp = SESSION.get(f"https://api.telegram.org/bot{token}/getMe", timeout=30, verify=False)
         if me_resp.status_code != 200:
             return jsonify({'ok': False, 'msg': 'Token 无效或网络错误'})
@@ -76,7 +81,6 @@ def send_bind_request():
     }
 
     try:
-        # 同样使用 SESSION.post 并关闭 verify 校验
         send_resp = SESSION.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={
