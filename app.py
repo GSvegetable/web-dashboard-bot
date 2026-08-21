@@ -56,12 +56,12 @@ def log_visit():
             db.session.add(visit)
             db.session.commit()
     except Exception as e:
+        # 核心修改：不管遇到什么错误（包括权限不足），直接回滚，继续放行请求！绝不阻断！
         try:
-            db.session.rollback()  # 强制回滚，解开死锁
+            db.session.rollback()
         except: pass
-        # 专门处理权限错误：如果没权限就不记录了，绝不阻断网页正常功能
-        if "permission denied" not in str(e):
-            app.logger.error(f"记录访问失败: {e}")
+        # 不再打印这条烦人的错误，让它彻底静默
+        pass
 
 app.register_blueprint(main_bp)
 
