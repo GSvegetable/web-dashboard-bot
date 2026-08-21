@@ -1,8 +1,8 @@
 <div id="configHome" class="flex flex-col items-stretch justify-start h-full w-full p-6 relative overflow-y-auto">
     <h2 class="text-white text-3xl font-bold tracking-wider drop-shadow-md mb-6 flex-shrink-0">机器人仓库</h2>
 
-    <!-- ✅ 按钮点击后无任何反应 -->
-    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="event.preventDefault(); return false;" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
+    <!-- ✅ 按钮点击触发 addPanel() -->
+    <div id="addPanelBtn" class="absolute top-[32px] right-[32px] z-20 cursor-pointer" onclick="addPanel()" style="padding: 8px 16px; border-radius: 10px; background: linear-gradient(90deg, rgba(30, 64, 175, 0.6), rgba(147, 197, 253, 0.7), rgba(255, 255, 255, 0.8)); box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7); text-shadow: 1px 1px 1px #000; display: flex; align-items: center; justify-content: center;">
         <span class="font-bold text-white text-sm">+ 添加bot</span>
     </div>
 
