@@ -12,7 +12,10 @@
     -webkit-backdrop-filter: blur(6px);
     border-radius: 12px;
     color: #fff;
-    transition: all 0.3s ease;
+    
+    /* 核心修复：只对 transform 做极速 0.1s 过渡，保证按下和回弹都非常快 */
+    transition: transform 0.1s ease;
+    
     box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
     text-shadow: 1px 1px 1px #000;
     pointer-events: auto !important;
@@ -21,13 +24,19 @@
   .outer-cont::before { content: ""; position: absolute; inset: 0; margin: auto; border-radius: 12px; filter: blur(0); z-index: -1; box-shadow: none; background: conic-gradient( rgba(0,0,0,0) 80deg, #93965F, #493F36, #F5E6CF, rgba(0,0,0,0) 280deg ); transition: all 0.3s ease; }
   .outer-cont:hover::before { filter: blur(15px); }
   .outer-cont:active::before { filter: blur(5px); transform: translateY(1px); }
-  .outer-cont:active { box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8); margin-top: 3px; }
+  
+  /* 核心修复：按下瞬间缩小，松开后0.1s立刻回弹 */
+  .outer-cont:active {
+    transform: scale(0.95);
+    box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8);
+    margin-top: 3px;
+  }
 </style>
 
 <!-- 2x2 网格布局 -->
 <div class="grid grid-cols-2 gap-[14px] w-full max-w-[240px]">
   
-  <!-- ✅ 按钮 1：开发作品（直接进仓库，不跳绑定页） -->
+  <!-- 按钮 1：开发作品 -->
   <div class="outer-cont" onclick="window.location.href='/workspace'">
     <span class="action-flex font-bold">
       <span>开发作品</span>
