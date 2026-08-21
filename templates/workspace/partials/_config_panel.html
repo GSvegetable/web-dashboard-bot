@@ -11,12 +11,12 @@
     <style>
         .panel-fullscreen { top: 20px !important; left: 32px !important; right: 32px !important; bottom: 32px !important; width: auto !important; height: auto !important; border-radius: 28px !important; background: rgba(255,255,255,0.04) !important; backdrop-filter: blur(24px) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
         
-        /* ✅ 核心修改：主面板默认开启平滑过渡 */
+        /* ✅ 核心：主面板默认开启平滑过渡 */
         #configPanel {
             transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* ✅ 主面板整体下滑到屏幕底部隐藏 */
+        /* ✅ 核心：主面板整体下滑到屏幕底部隐藏 */
         #configPanel.hide-for-modal {
             transform: translateY(110vh);
         }
@@ -52,5 +52,53 @@
             form.classList.add('hidden'); home.classList.remove('hidden');
             panel.classList.remove('panel-collapsed'); panel.classList.add('panel-fullscreen');
         };
+
+        // ✅ 联动打开：主面板滑下，卡片滑上来
+        window.showAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!mainPanel || !modal || !wrapper) return;
+
+            // 1. 主面板滑到屏幕底部
+            mainPanel.classList.add('hide-for-modal');
+
+            // 2. 小卡片从底部滑上来（稍微延迟0.2秒）
+            modal.classList.remove('hidden');
+            wrapper.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+
+            setTimeout(() => {
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+            }, 200);
+        };
+
+        // ✅ 联动关闭：卡片滑下去，主面板滑回来
+        window.closeAddBotModal = function() {
+            const mainPanel = document.getElementById('configPanel');
+            const modal = document.getElementById('customAddPanelModal');
+            const wrapper = document.getElementById('modalWrapper');
+            if (!mainPanel || !modal || !wrapper) return;
+
+            // 1. 小卡片先滑下去
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+
+            // 2. 小卡片滑完后，主面板升回来
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                mainPanel.classList.remove('hide-for-modal');
+            }, 450);
+        };
+
+        // 点击外部遮罩关闭
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('customAddPanelModal');
+            if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+                window.closeAddBotModal();
+            }
+        });
     </script>
 </div>
