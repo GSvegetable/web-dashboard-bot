@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background-color: #000000;
+            background-color: #000000 !important;
             color: #ffffff;
             font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
@@ -16,140 +16,39 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ==================== 顶部导航栏 ==================== */
-        .navbar {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 10px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
+        /* 顶部导航栏 */
+        .navbar { position: fixed; top: 0; width: 100%; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .logo { font-weight: 800; font-size: 24px; letter-spacing: 2px; }
         .nav-links { display: flex; gap: 30px; }
         .nav-links a { color: #ffffff; text-decoration: none; font-size: 14px; opacity: 0.8; transition: opacity 0.2s; }
         .nav-links a:hover { opacity: 1; }
 
-        /* ==================== 玻璃按钮 ==================== */
-        .btn-glass {
-            display: inline-block;
-            padding: 12px 30px;
-            border-radius: 999px;
-            color: #ffffff;
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px) saturate(160%);
-            -webkit-backdrop-filter: blur(12px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2);
-        }
-        .btn-glass:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: scale(1.02);
-        }
+        /* 玻璃按钮 */
+        .btn-glass { display: inline-block; padding: 12px 30px; border-radius: 999px; color: #ffffff; font-weight: 600; text-decoration: none; font-size: 14px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(255, 255, 255, 0.1); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2); }
+        .btn-glass:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.5); transform: scale(1.02); }
 
-        /* ==================== 第一屏：Hero 区 ==================== */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            position: relative;
-            margin-top: -10vh;
-        }
+        /* 第一屏 Hero */
+        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: relative; margin-top: -10vh; }
         .hero-text { max-width: 700px; }
+        .hero-title { font-weight: 900; letter-spacing: -1px; line-height: 1.3; }
 
-        .hero-title {
-            font-weight: 900;
-            letter-spacing: -1px;
-            line-height: 1.3;
-        }
-
-        /* 核心修改：模糊横向展开 + 上移 */
-        .line {
-            display: block;
-            color: transparent;
-            background: linear-gradient(90deg, #93965F, #493F36, #000000);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0px 0px 1px rgba(255,255,255,0.2));
-            
-            opacity: 0;
-            transform: translateY(50px);
-            
-            /* ✅ 使用 mask-image 渐变来实现羽化边缘的横向展开 */
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%);
-            mask-image: linear-gradient(to right, transparent 0%, black 40%);
-            -webkit-mask-size: 0% 100%;
-            mask-size: 0% 100%;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-position: left center;
-            mask-position: left center;
-            
-            /* ✅ 同时进行：向上 + 横向模糊展开 */
-            animation: riseAndReveal 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
+        /* 大标题动画 */
+        .line { display: block; color: transparent; background: linear-gradient(90deg, #93965F, #493F36, #000000); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0px 0px 1px rgba(255,255,255,0.2)); opacity: 0; transform: translateY(50px); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%); mask-image: linear-gradient(to right, transparent 0%, black 40%); -webkit-mask-size: 0% 100%; mask-size: 0% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: left center; mask-position: left center; animation: riseAndReveal 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
         .line-1 { font-size: 30px; animation-delay: 0.2s; }
         .line-2 { font-size: 88px; animation-delay: 0.55s; }
-
-        @keyframes riseAndReveal {
-            0% {
-                opacity: 0;
-                transform: translateY(50px);
-                -webkit-mask-size: 0% 100%;
-                mask-size: 0% 100%;
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-                -webkit-mask-size: 100% 100%;
-                mask-size: 100% 100%;
-            }
-        }
+        @keyframes riseAndReveal { 0% { opacity: 0; transform: translateY(50px); -webkit-mask-size: 0% 100%; mask-size: 0% 100%; } 100% { opacity: 1; transform: translateY(0); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; } }
 
         .hero-image { flex: 1; max-width: 400px; height: 400px; }
 
-        /* ==================== 第二屏：白色卡片滚动区 ==================== */
-        .cards-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 40px;
-        }
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1000px;
-            width: 100%;
-        }
-        .white-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 32px;
-            height: 220px;
-            box-shadow: 0 20px 60px rgba(255,255,255,0.1);
-            opacity: 0;
-            will-change: transform, opacity;
-        }
-        .white-card h3 { color: #000000; font-size: 18px; font-weight: 700; margin-bottom: 12px; }
-        .white-card p { color: #333333; font-size: 14px; line-height: 1.6; }
+        /* 第二屏：卡片区域（使用内联样式，绝对不受任何文件干扰！） */
+        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1000px; width: 100%; }
 
+        /* 只控制动画的位置，颜色全部用内联写好 */
         .card-left { transform: translateX(-120px); }
         .card-right { transform: translateX(120px); }
         .card-center { transform: translateY(80px); }
 
-        /* 响应式 */
         @media (max-width: 768px) {
             .navbar { padding: 10px 20px; }
             .nav-links { display: none; }
@@ -158,7 +57,6 @@
             .line-2 { font-size: 48px; }
             .hero-image { display: none; }
             .cards-grid { grid-template-columns: 1fr; gap: 16px; }
-            .white-card { height: auto; padding: 24px; }
         }
     </style>
 </head>
@@ -175,7 +73,7 @@
         <a href="/workspace" class="btn-glass">开始探索</a>
     </nav>
 
-    <!-- 第一屏：Hero -->
+    <!-- 第一屏 Hero -->
     <section class="hero">
         <div class="hero-text">
             <h1 class="hero-title">
@@ -186,33 +84,29 @@
         <div class="hero-image"></div>
     </section>
 
-    <!-- 第二屏：滚动时卡片横向滑入 -->
+    <!-- 第二屏：滚动卡片，内联样式+!important 强行写死白色背景 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
-            <div class="white-card card-left" id="card1">
-                <h3>一键部署</h3>
-                <p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+            <div class="card-left" id="card1" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">一键部署</h3>
+                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
             </div>
-            <div class="white-card card-center" id="card2">
-                <h3>功能扩展</h3>
-                <p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
+            <div class="card-center" id="card2" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">功能扩展</h3>
+                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
             </div>
-            <div class="white-card card-right" id="card3">
-                <h3>安全托管</h3>
-                <p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+            <div class="card-right" id="card3" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">安全托管</h3>
+                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
             </div>
         </div>
     </section>
 
-    <!-- 核心逻辑：滚动时实时控制卡片滑入/缩回 -->
+    <!-- 滚动逻辑 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const section = document.getElementById('cardsSection');
-            const cards = [
-                document.getElementById('card1'),
-                document.getElementById('card2'),
-                document.getElementById('card3')
-            ];
+            const cards = [ document.getElementById('card1'), document.getElementById('card2'), document.getElementById('card3') ];
 
             window.addEventListener('scroll', function() {
                 const rect = section.getBoundingClientRect();
