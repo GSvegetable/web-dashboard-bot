@@ -16,7 +16,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ==================== 顶部导航栏 ==================== */
+        /* 顶部导航栏 */
         .navbar {
             position: fixed;
             top: 0;
@@ -32,7 +32,7 @@
         .nav-links a { color: #ffffff; text-decoration: none; font-size: 14px; opacity: 0.8; transition: opacity 0.2s; }
         .nav-links a:hover { opacity: 1; }
 
-        /* ==================== 玻璃质感按钮 ==================== */
+        /* 玻璃按钮 */
         .btn-glass {
             display: inline-block;
             padding: 12px 30px;
@@ -54,7 +54,7 @@
             transform: scale(1.02);
         }
 
-        /* ==================== 主内容区 ==================== */
+        /* 主内容区：内容整体往上抬 */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -62,30 +62,18 @@
             justify-content: space-between;
             padding: 0 40px;
             position: relative;
+            /* ✅ 核心修改：往上抬一指高度，用负 margin-top 实现 */
+            margin-top: -10vh;
         }
         .hero-text { max-width: 700px; }
 
-        /* ✅ 高级数字营销解决方案：改成白色，去掉紫色 */
-        .hero-subtitle {
-            font-size: 14px;
-            letter-spacing: 5px;
-            color: #ffffff;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            opacity: 0;
-            animation: fadeIn 1s ease 0.1s forwards;
-        }
-
-        /* ==================== 大标题：保证永远可见 ==================== */
+        /* 大标题：字体加大，颜色渐变，动画放慢 */
         .hero-title {
-            font-size: 80px;
+            font-size: 88px;
             font-weight: 900;
             line-height: 1.2;
-            margin-bottom: 0;
             letter-spacing: -1px;
         }
-        
-        /* 深绿黑渐变，直接作用于整块文字，保证渲染 */
         .line {
             display: block;
             color: transparent;
@@ -94,27 +82,27 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             opacity: 0;
-            transform: translateY(30px);
-            animation: lineUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            /* 增加一点点发光效果，防止黑字在黑背景上看不清 */
+            transform: translateY(40px);
+            /* ✅ 动画从 0.8s 放慢到 1.5s，延迟也相应拉长 */
+            animation: lineUp 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             filter: drop-shadow(0px 0px 1px rgba(255,255,255,0.2));
         }
-        .line-1 { animation-delay: 0.2s; }
-        .line-2 { animation-delay: 0.5s; }
+        .line-1 { animation-delay: 0.3s; }
+        .line-2 { animation-delay: 0.7s; }
 
         .hero-image { flex: 1; max-width: 400px; height: 400px; }
 
-        /* ==================== 动画定义 ==================== */
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* 动画定义：滑动距离和速度调整更柔缓 */
         @keyframes lineUp {
-            from { opacity: 0; transform: translateY(40px); }
+            from { opacity: 0; transform: translateY(50px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* 响应式 */
         @media (max-width: 768px) {
             .navbar { padding: 10px 20px; }
             .nav-links { display: none; }
-            .hero { padding: 0 20px; flex-direction: column; justify-content: center; text-align: left; }
+            .hero { padding: 0 20px; flex-direction: column; justify-content: center; text-align: left; margin-top: -8vh; }
             .hero-title { font-size: 48px; }
             .hero-image { display: none; }
         }
@@ -136,18 +124,14 @@
     <!-- 主内容 -->
     <section class="hero">
         <div class="hero-text">
-            <div class="hero-subtitle">高级数字营销解决方案</div>
-            <!-- ✅ 两行字直接显示，线条动画从下往上滑入，不再拆字，绝对可见 -->
+            <!-- ✅ 高级数字营销解决方案，已删除 -->
             <h1 class="hero-title">
                 <span class="line line-1">将创意</span>
                 <span class="line line-2">变为现实</span>
             </h1>
-            <!-- ✅ 删除了“我们的愿景” -->
         </div>
-        
-        <!-- 右侧留白区，鸟先留着空位 -->
+        <!-- 右侧留白 -->
         <div class="hero-image"></div>
     </section>
-
 </body>
 </html>
