@@ -1,9 +1,37 @@
-html, body { 
-    width: 100%; height: 100%;
+/* 修复：将全局 body 样式隔离到工作台专属类，防止污染首页 */
+
+/* ✅ 仅当页面有 .workspace-container 时才生效（工作台专用） */
+body.workspace-container {
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; 
-    background-color: #0f0f10; 
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    background-color: #0f0f10;
+}
+
+/* ✅ 修复：给首页的卡片强制加白色背景，优先级拉到最高！ */
+html body .card-left,
+html body .card-center,
+html body .card-right {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-radius: 16px;
+    padding: 32px;
+    height: 220px;
+    box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+}
+
+html body .card-left h3,
+html body .card-center h3,
+html body .card-right h3 {
+    color: #000000 !important;
+}
+
+html body .card-left p,
+html body .card-center p,
+html body .card-right p {
+    color: #333333 !important;
 }
 
 .glass-panel {
