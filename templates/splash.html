@@ -9,17 +9,19 @@
         body {
             background-color: #000000;
             color: #ffffff;
-            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* 顶部导航栏 */
+        /* ==================== 顶部导航栏 ==================== */
         .navbar {
             position: fixed;
             top: 0;
             width: 100%;
-            padding: 10px 40px;
+            padding: 12px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -29,6 +31,7 @@
             font-weight: 800;
             font-size: 24px;
             letter-spacing: 2px;
+            color: #ffffff;
         }
         .nav-links {
             display: flex;
@@ -44,28 +47,32 @@
         }
         .nav-links a:hover { opacity: 1; }
 
-        /* 开始探索按钮：深绿棕色渐变 + 玻璃质感 */
-        .btn-capsule {
+        /* ==================== 玻璃质感胶囊按钮 ==================== */
+        .btn-glass {
             display: inline-block;
-            padding: 14px 32px;
+            padding: 12px 30px;
             border-radius: 999px;
-            background: linear-gradient(90deg, rgba(147, 150, 95, 0.8), rgba(73, 63, 54, 0.8), rgba(245, 230, 207, 0.8));
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             color: #ffffff;
-            font-weight: 700;
+            font-weight: 600;
             text-decoration: none;
-            font-size: 15px;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-            box-shadow: inset 0px 0px 5px rgba(255, 255, 255, 0.6), inset 0px 35px 30px rgba(0, 0, 0, 0.8), 0px 5px 10px rgba(0, 0, 0, 0.7);
-            text-shadow: 1px 1px 1px #000;
+            font-size: 14px;
+            position: relative;
+            /* 核心：玻璃质感 = 半透明背景 + 背景模糊 + 白色内发光 */
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2);
         }
-        .btn-capsule:hover {
-            filter: brightness(1.2);
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 8px 32px rgba(255,255,255,0.1);
+            transform: scale(1.02);
         }
 
-        /* 主内容区 */
+        /* ==================== 主内容区 ==================== */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -80,77 +87,90 @@
             max-width: 700px;
         }
         .hero-subtitle {
-            font-size: 16px;
+            font-size: 14px;
             letter-spacing: 5px;
-            color: #8b2fc9;
+            color: #a04ee0;
             text-transform: uppercase;
             margin-bottom: 20px;
             opacity: 0.9;
-            font-weight: 600;
+            animation: fadeIn 1s ease 0.1s forwards;
+            opacity: 0;
         }
 
-        /* 中间大字：放大 + 圆润 + 英文副标题 */
+        /* ==================== 核心修改：超大圆润字体 + 深绿黑渐变 + 逐排动画 ==================== */
         .hero-title {
             font-size: 80px;
             font-weight: 900;
             line-height: 1.15;
-            margin-bottom: 12px;
-            letter-spacing: -2px;
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeInUp 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
-            font-family: -apple-system, "SF Pro Display", "Helvetica Neue", "PingFang SC", sans-serif;
-        }
-        .hero-title span {
-            color: #8b2fc9;
-        }
-        .hero-english {
-            font-size: 22px;
-            font-weight: 500;
-            letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 30px;
+            letter-spacing: -1px;
+            /* 极其圆润的字体：使用 PingFang SC 并加粗，系统会渲染圆角 */
+            font-family: "PingFang SC", "Arial Rounded MT Bold", "Helvetica Neue", sans-serif;
+            font-weight: 800;
+        }
+        .hero-title .line {
+            display: block;
             opacity: 0;
-            transform: translateY(30px);
-            animation: fadeInUp 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+            transform: translateY(40px);
+            animation: lineUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .hero-title .line-1 { animation-delay: 0.3s; }
+        .hero-title .line-2 { animation-delay: 0.8s; }
+
+        /* ✅ 深绿色到黑色的渐变（匹配原有大按钮配色） */
+        .hero-title .gradient-green {
+            background: linear-gradient(90deg, #2e7d32, #1b5e20, #000000);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
 
         .hero-bottom {
             display: flex;
             align-items: center;
             gap: 15px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #ffffff;
             opacity: 0;
             transform: translateY(30px);
-            animation: fadeInUp 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+            animation: fadeInUp 1s cubic-bezier(0.22, 1, 0.36, 1) 1.3s forwards;
         }
         .hero-bottom .arrow {
-            font-size: 20px;
-            color: #8b2fc9;
+            font-size: 18px;
+            color: #a04ee0;
         }
 
-        /* 右侧留白 */
+        /* 右侧留白（鸟先不做，保持空） */
         .hero-image {
             flex: 1;
             max-width: 400px;
             height: 400px;
         }
 
-        /* 丝滑入场动画 */
+        /* ==================== 动画定义 ==================== */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        /* 逐行上移动画：每行从下方滑入 */
+        @keyframes lineUp {
+            from { opacity: 0; transform: translateY(50px); filter: blur(2px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
 
         /* 响应式 */
         @media (max-width: 768px) {
-            .navbar { padding: 8px 20px; }
+            .navbar { padding: 10px 20px; }
             .nav-links { display: none; }
             .hero { padding: 0 20px; flex-direction: column; justify-content: center; text-align: left; }
-            .hero-title { font-size: 52px; }
-            .hero-english { font-size: 16px; }
+            .hero-title { font-size: 48px; }
             .hero-image { display: none; }
         }
     </style>
@@ -165,15 +185,18 @@
             <a href="#">理念</a>
             <a href="#">联系</a>
         </div>
-        <a href="/workspace" class="btn-capsule">开始探索</a>
+        <a href="/workspace" class="btn-glass">开始探索</a>
     </nav>
 
     <!-- 主内容 -->
     <section class="hero">
         <div class="hero-text">
-            <div class="hero-subtitle">宫水大世界</div>
-            <h1 class="hero-title">将创意<br><span>变为现实</span></h1>
-            <div class="hero-english">From Idea to Reality</div>
+            <div class="hero-subtitle">高级数字营销解决方案</div>
+            <!-- ✅ 逐排动画：两行文字先后出现 -->
+            <h1 class="hero-title">
+                <span class="line line-1">将创意</span>
+                <span class="line line-2"><span class="gradient-green">变为现实</span></span>
+            </h1>
             <div class="hero-bottom">
                 <span>我们的愿景</span>
                 <span class="arrow">→</span>
