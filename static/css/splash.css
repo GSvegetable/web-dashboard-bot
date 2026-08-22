@@ -93,6 +93,46 @@ video::-webkit-media-controls-overlay-play-button {
 .card-center { transform: translateY(100px); }
 .card-right { transform: translateX(150px); }
 
+/* 🌙 夜晚模式按钮样式 */
+#night-mode-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    transition: transform 0.3s, background 0.3s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+#night-mode-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255,255,255,0.2);
+}
+
+/* 🌙 夜晚模式：整体反色 + 色相旋转，保持色彩自然 */
+html.night-mode {
+    filter: invert(1) hue-rotate(180deg);
+    background: #ffffff; /* 反色后底变黑 */
+}
+html.night-mode body {
+    background: #ffffff; /* 反色后为黑 */
+}
+/* 可选：让按钮在夜晚模式下保持原样（反色后变成亮色） */
+html.night-mode #night-mode-toggle {
+    filter: invert(1) hue-rotate(180deg); /* 抵消全局反色，使按钮保持原色 */
+}
+
+/* 响应式 */
 @media (max-width: 768px) {
     .cards-grid { grid-template-columns: 1fr; gap: 16px; }
     .card-item { height: 200px; padding: 24px; }
