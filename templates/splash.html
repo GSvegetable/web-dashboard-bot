@@ -3,144 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foldcraft - Brand & Visual Storytelling</title>
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Geist Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Custom CSS (keyframes + reset) -->
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .font-geist { font-family: 'Geist', sans-serif; }
-    </style>
+    <title>Terranova — Signals from the Deep Green</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 </head>
 <body>
-    <!-- Root container -->
-    <div class="relative h-screen w-full overflow-hidden bg-black font-geist">
+    <!-- Background Video -->
+    <video id="bg-video" class="bg-video" aria-hidden="true"
+           autoplay muted loop playsinline preload="auto"
+           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260816_125506_3a597378-ec85-4ebd-bd22-03b45508ac62.mp4"></video>
 
-        <!-- Background Video (absolute) -->
-        <!-- ✅ 核心修复 1：加了 id，并且通过 style="pointer-events: none;" 屏蔽所有视频原生控件 -->
-        <video
-            id="bgVideo"
-            autoPlay
-            muted
-            loop
-            playsInline
-            disablePictureInPicture
-            controlsList="nodownload noplaybackrate noremoteplayback"
-            class="absolute top-0 left-0 w-full h-full object-cover"
-            style="object-position: 70% center; pointer-events: none;"
-            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_204221_5339e40b-e73d-4ab0-9c65-79c18c66fd50.mp4"
-        ></video>
+    <!-- Liquid Glass SVG Filter Definition -->
+    <svg class="glass-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="liquid-glass-refraction"
+                    x="-30%" y="-30%" width="160%" height="160%"
+                    color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.012 0.015" numOctaves="3" result="noise" />
+                <feColorMatrix in="SourceAlpha" type="matrix" result="boosted_alpha"
+                    values="0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 100 0" />
+                <feGaussianBlur in="boosted_alpha" stdDeviation="45" result="blurred_alpha" />
+                <feComponentTransfer in="blurred_alpha" result="edge_mask">
+                    <feFuncA type="linear" slope="-1.3" intercept="1" />
+                </feComponentTransfer>
+                <feComposite in="noise" in2="edge_mask" operator="arithmetic"
+                             k1="1" k2="0" k3="0" k4="0" result="masked_noise" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="65"
+                                   xChannelSelector="R" yChannelSelector="G" result="red_displaced" />
+                <feColorMatrix in="red_displaced" type="matrix" result="red"
+                    values="1 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 1 0" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="56"
+                                   xChannelSelector="R" yChannelSelector="G" result="green_displaced" />
+                <feColorMatrix in="green_displaced" type="matrix" result="green"
+                    values="0 0 0 0 0
+                            0 1 0 0 0
+                            0 0 0 0 0
+                            0 0 0 1 0" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="47"
+                                   xChannelSelector="R" yChannelSelector="G" result="blue_displaced" />
+                <feColorMatrix in="blue_displaced" type="matrix" result="blue"
+                    values="0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 1 0 0
+                            0 0 0 1 0" />
+                <feBlend in="red" in2="green" mode="screen" result="rg" />
+                <feBlend in="rg" in2="blue" mode="screen" result="chromatic_dispersion" />
+            </filter>
+        </defs>
+    </svg>
 
-        <!-- Navbar (z-30) -->
-        <nav class="absolute top-0 left-0 w-full z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
-            <div class="flex items-center gap-8">
-                <span class="text-lg font-semibold tracking-tight text-white sm:text-xl">Foldcraft</span>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Home</a>
-                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Projects</a>
-                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Studio</a>
-                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Reach Us</a>
-                </div>
-            </div>
-            <a href="#" class="hidden md:inline-block rounded-lg bg-white px-5 py-2 text-sm font-medium text-black hover:scale-105 transition-transform">Let's Talk</a>
-            <button id="menuBtn" class="md:hidden relative z-50 w-10 h-10 flex items-center justify-center text-white active:scale-90 transition-transform duration-300">
-                <svg id="iconMenu" class="w-6 h-6 absolute transition-all duration-300 rotate-0 scale-100 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
-                <svg id="iconX" class="w-6 h-6 absolute transition-all duration-300 rotate-90 scale-0 opacity-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <!-- Main Hero Area -->
+    <main class="hero">
+        <!-- Desktop-only vertical rules -->
+        <div class="rule rule--left" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
+        </div>
+        <div class="rule rule--right" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
+        </div>
+
+        <!-- Navbar -->
+        <nav class="nav">
+            <button id="menu-open" class="nav__item" aria-expanded="false" aria-controls="menu">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+                <span class="nav__label nav__label--menu">Menu</span>
             </button>
+            <a href="#" class="nav__item">
+                <span class="nav__dot" aria-hidden="true"></span>
+                <span class="nav__label">Book a call</span>
+            </a>
         </nav>
 
-        <!-- Mobile Menu Overlay (z-20) -->
-        <div id="mobileMenu" class="absolute inset-x-0 top-0 z-20 h-0 opacity-0 pointer-events-none bg-black/98 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden">
-            <div class="flex h-full flex-col justify-center px-8">
-                <div class="transition-all duration-500 delay-100 translate-y-8 opacity-0">
-                    <div class="flex flex-col gap-6">
-                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Home</a>
-                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Projects</a>
-                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Studio</a>
-                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Reach Us</a>
-                        <a href="#" class="mt-6 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black hover:scale-105 transition-transform" onclick="closeMenu()">Let's Talk</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Hero Content (z-10) -->
-        <div class="relative z-10 flex flex-col justify-between h-[calc(100vh-80px)] px-6 pb-10 pt-12 sm:pb-12 sm:pt-16 md:px-12 md:pb-16 md:pt-20 lg:px-16">
-            <div class="max-w-3xl">
-                <p class="text-xs sm:text-sm text-white/90 mb-4 sm:mb-6 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">Brand & Visual Storytelling</p>
-                <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-white animate-[fadeSlideUp_0.8s_ease_0.4s_both]">
-                    Shaping visual<br>narratives,<br>one pixel at a time.
-                </h1>
-            </div>
-            <div>
-                <p class="text-sm sm:text-base md:text-lg leading-relaxed text-white/60 max-w-sm sm:max-w-lg mb-5 sm:mb-6 animate-[fadeSlideUp_0.8s_ease_0.7s_both]">
-                    Turning vision into reality through craft, motion, and an endless pursuit of beauty.
+        <!-- Bottom Row -->
+        <div class="hero-bottom">
+            <!-- Left Column: Copy -->
+            <div class="lede">
+                <h1 class="lede__title">Signals from<br />the Deep Green</h1>
+                <p class="lede__body">
+                    An open research collective mapping, decoding, and archiving the silent
+                    vibrations that bind our planet's ecological networks.
                 </p>
-                <a href="#" class="rounded-lg bg-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-medium text-black hover:scale-105 transition-transform inline-flex items-center gap-2 animate-[fadeSlideUp_0.8s_ease_0.9s_both]">
-                    Explore Work
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                <a class="chamfer" href="#">
+                    <span class="chamfer__glass" aria-hidden="true"></span>
+                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true">
+                        <polygon points="14,0 260,0 260,34 246,48 0,48 0,14"
+                                 fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                    </svg>
+                    <span class="chamfer__label">Start listening</span>
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
                 </a>
             </div>
+
+            <!-- Right Column: Liquid Glass Card -->
+            <aside class="card group" data-glass-card>
+                <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
+                <div class="card__frost" aria-hidden="true"></div>
+
+                <div class="card__head">
+                    <h2 class="card__title">Latest findings</h2>
+                    <span class="card__index">//02</span>
+                </div>
+
+                <div class="card__body">
+                    <div class="finding">
+                        <h3 class="finding__title">Canopy Pulse Analysis 09.17</h3>
+                        <p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p>
+                    </div>
+                    <div class="finding">
+                        <h3 class="finding__title">Watershed Harmonic Index 11.06</h3>
+                        <p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p>
+                    </div>
+                </div>
+
+                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true">
+                    <path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28"
+                          stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                </svg>
+            </aside>
         </div>
+    </main>
 
-        <!-- Mobile Menu JS -->
-        <script>
-            const menuBtn = document.getElementById('menuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const iconMenu = document.getElementById('iconMenu');
-            const iconX = document.getElementById('iconX');
-
-            function openMenu() {
-                mobileMenu.classList.remove('h-0', 'opacity-0', 'pointer-events-none');
-                mobileMenu.classList.add('h-screen', 'opacity-100');
-                iconMenu.classList.add('rotate-90', 'scale-0', 'opacity-0');
-                iconX.classList.remove('rotate-90', 'scale-0', 'opacity-0');
-                document.querySelector('#mobileMenu > div > div').classList.remove('translate-y-8', 'opacity-0');
-            }
-
-            function closeMenu() {
-                mobileMenu.classList.add('h-0', 'opacity-0', 'pointer-events-none');
-                mobileMenu.classList.remove('h-screen', 'opacity-100');
-                iconMenu.classList.remove('rotate-90', 'scale-0', 'opacity-0');
-                iconX.classList.add('rotate-90', 'scale-0', 'opacity-0');
-                document.querySelector('#mobileMenu > div > div').classList.add('translate-y-8', 'opacity-0');
-            }
-
-            menuBtn.addEventListener('click', () => {
-                if (mobileMenu.classList.contains('h-screen')) {
-                    closeMenu();
-                } else {
-                    openMenu();
-                }
-            });
-
-            document.querySelectorAll('#mobileMenu a').forEach(link => {
-                link.addEventListener('click', closeMenu);
-            });
-
-            // ✅ 核心修复 2：手动平滑无缝循环（避免视频硬切回开头）
-            const bgVideo = document.getElementById('bgVideo');
-            bgVideo.addEventListener('timeupdate', function() {
-                // 当播放到离结尾只剩0.1秒时，强制重置到开头，避免跳变
-                if (bgVideo.currentTime > bgVideo.duration - 0.1) {
-                    bgVideo.currentTime = 0;
-                }
-            });
-        </script>
+    <!-- Slide-in Menu -->
+    <div class="menu" id="menu">
+        <div class="menu__backdrop" id="menu-backdrop"></div>
+        <div class="menu__panel">
+            <button id="menu-close" class="menu__close" aria-label="Close menu">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+                <span>Close</span>
+            </button>
+            <nav class="menu__nav">
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">About</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Research</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Projects</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Journal</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Contact</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+            </nav>
+            <div class="menu__foot">
+                <span class="menu__footLabel">Get in touch</span>
+                <a class="menu__mail" href="mailto:hello@terranova.earth">hello@terranova.earth</a>
+            </div>
+        </div>
     </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
+    <script>
+        // Menu Logic (previously in ui.js, now inline to avoid conflicts with existing ui.js)
+        const menu = document.getElementById('menu');
+        const menuOpenBtn = document.getElementById('menu-open');
+        const menuCloseBtn = document.getElementById('menu-close');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+        const menuLinks = document.querySelectorAll('.menu__link');
+
+        function setMenu(open) {
+            menu.classList.toggle('is-open', open);
+            menuOpenBtn.setAttribute('aria-expanded', String(open));
+            if (open) {
+                menuCloseBtn.focus({ preventScroll: true });
+            } else {
+                menuOpenBtn.focus({ preventScroll: true });
+            }
+        }
+
+        menuOpenBtn.addEventListener('click', () => setMenu(true));
+        menuCloseBtn.addEventListener('click', () => setMenu(false));
+        menuBackdrop.addEventListener('click', () => setMenu(false));
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => setMenu(false));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                setMenu(false);
+            }
+        });
+    </script>
 </body>
 </html>
