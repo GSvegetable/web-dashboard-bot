@@ -40,15 +40,15 @@
 
         .hero-image { flex: 1; max-width: 400px; height: 400px; }
 
-        /* 第二屏：卡片区域 */
-        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; /* ✅ 核心修改：整体上移 */ margin-top: -12vh; }
-        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1000px; width: 100%; }
+        /* 第二屏：卡片区域，大幅上移 */
+        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; /* ✅ 大幅上移，直接放在文字下方 */ margin-top: -30vh; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; /* 稍微加大间距 */ max-width: 1000px; width: 100%; }
 
         .card-left { transform: translateX(-120px); }
         .card-right { transform: translateX(120px); }
         .card-center { transform: translateY(80px); }
 
-        /* ✅ 核心修改：卡片背景模糊处理 */
+        /* 卡片样式 */
         .card-left, .card-center, .card-right {
             position: relative;
             border-radius: 16px;
@@ -66,11 +66,11 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-size: cover;
             background-position: center;
-            filter: blur(5px); /* ✅ 高斯模糊强度 */
-            transform: scale(1.1); /* 防止边缘模糊露白边 */
+            filter: blur(5px);
+            transform: scale(1.1);
             z-index: 0;
         }
-        /* 文字层：清晰显示 */
+        /* 文字层 */
         .card-left h3, .card-center h3, .card-right h3,
         .card-left p, .card-center p, .card-right p {
             position: relative;
@@ -85,7 +85,7 @@
             .line-2 { font-size: 48px; }
             .hero-image { display: none; }
             .cards-grid { grid-template-columns: 1fr; gap: 16px; }
-            .cards-section { margin-top: -8vh; }
+            .cards-section { margin-top: -20vh; }
         }
     </style>
 </head>
@@ -113,7 +113,7 @@
         <div class="hero-image"></div>
     </section>
 
-    <!-- 第二屏：卡片区域，背景设置为模糊图片 -->
+    <!-- 第二屏：卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -131,20 +131,29 @@
         </div>
     </section>
 
-    <!-- 滚动逻辑：✅ 修改分母，滚动更长距离才能完全展示 -->
+    <!-- 滚动逻辑：增强阻尼感 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const section = document.getElementById('cardsSection');
             const cards = [ document.getElementById('card1'), document.getElementById('card2'), document.getElementById('card3') ];
 
+            // 阻尼缓动函数：easeOutCubic
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
             window.addEventListener('scroll', function() {
                 const rect = section.getBoundingClientRect();
                 const viewportHeight = window.innerHeight;
-                const progress = Math.min(1, Math.max(0, (viewportHeight - rect.top) / (viewportHeight * 1.2))); // 改成1.2，滚动更长距离
+                const progress = Math.min(1, Math.max(0, (viewportHeight - rect.top) / (viewportHeight * 1.2))); // 滚动更长距离
                 
-                const offset1 = Math.max(0, Math.min(1, (progress - 0.1) / 0.8));
-                const offset2 = Math.max(0, Math.min(1, (progress - 0.25) / 0.8));
-                const offset3 = Math.max(0, Math.min(1, (progress - 0.4) / 0.8));
+                // 应用阻尼缓动
+                const easedProgress = easeOutCubic(progress);
+
+                // 交错偏移
+                const offset1 = Math.max(0, Math.min(1, (easedProgress - 0.1) / 0.8));
+                const offset2 = Math.max(0, Math.min(1, (easedProgress - 0.25) / 0.8));
+                const offset3 = Math.max(0, Math.min(1, (easedProgress - 0.4) / 0.8));
 
                 cards[0].style.transform = `translateX(${-120 * (1 - offset1)}px)`;
                 cards[0].style.opacity = offset1;
