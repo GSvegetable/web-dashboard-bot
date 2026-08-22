@@ -40,11 +40,10 @@
 
         .hero-image { flex: 1; max-width: 400px; height: 400px; }
 
-        /* 第二屏：卡片区域（使用内联样式，绝对不受任何文件干扰！） */
+        /* 第二屏：卡片区域 */
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1000px; width: 100%; }
 
-        /* 只控制动画的位置，颜色全部用内联写好 */
         .card-left { transform: translateX(-120px); }
         .card-right { transform: translateX(120px); }
         .card-center { transform: translateY(80px); }
@@ -84,18 +83,18 @@
         <div class="hero-image"></div>
     </section>
 
-    <!-- 第二屏：滚动卡片，内联样式+!important 强行写死白色背景 -->
+    <!-- 第二屏：卡片区域，背景写成图片，保证绝对变白！ -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
-            <div class="card-left" id="card1" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+            <div class="card-left" id="card1" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">一键部署</h3>
                 <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
             </div>
-            <div class="card-center" id="card2" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+            <div class="card-center" id="card2" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">功能扩展</h3>
                 <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
             </div>
-            <div class="card-right" id="card3" style="background-color: #ffffff !important; color: #000000 !important; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+            <div class="card-right" id="card3" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">安全托管</h3>
                 <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
             </div>
