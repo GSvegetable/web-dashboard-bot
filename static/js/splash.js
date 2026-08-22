@@ -67,7 +67,7 @@ document.addEventListener('keydown', (e) => {
     updateCards();
 })();
 
-// 🌙 水波纹夜晚模式切换（核心修正：先切主题，再遮罩扩散）
+// 🌙 水波纹夜晚模式切换（边扩散边切换）
 (function() {
     const toggleBtn = document.getElementById('night-mode-toggle');
     const ripple = document.getElementById('theme-ripple');
@@ -83,31 +83,28 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        // 当前是白天，要切黑夜 => 遮罩颜色设为白色（白天背景色）
-        // 当前是黑夜，要切白天 => 遮罩颜色设为黑色（夜晚背景色）
         const currentIsNight = document.documentElement.classList.contains('night-mode');
+        const nextIsNight = !currentIsNight;
+
+        // 1. 先给底层切换到新主题
+        document.documentElement.classList.toggle('night-mode', nextIsNight);
+        localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
+
+        // 2. 设置遮罩层颜色 = 旧主题颜色
+        //    旧主题是白天(白色背景) → 遮罩设为白色；旧主题是夜晚(黑色背景) → 遮罩设为黑色
         ripple.style.background = currentIsNight ? '#000' : '#fff';
-        
-        // 遮罩初始半径0，位于点击位置（这里用中心点，因为按钮在中心）
-        const x = e.clientX || window.innerWidth / 2;
-        const y = e.clientY || window.innerHeight / 2;
-        ripple.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+
+        // 3. 初始遮罩完全覆盖屏幕（半径 150%）
+        ripple.style.clipPath = 'circle(150% at 50% 50%)';
         ripple.style.display = 'block';
 
-        // 强制重绘
+        // 4. 强制重绘后，让遮罩收缩到0（露出新主题）
         void ripple.offsetWidth;
+        ripple.style.clipPath = 'circle(0% at 50% 50%)';
 
-        // 立即切换主题（此时底层已经变成新主题）
-        document.documentElement.classList.toggle('night-mode', !currentIsNight);
-        localStorage.setItem('gsbot-night-mode', (!currentIsNight) ? '1' : '0');
-
-        // 让遮罩层扩散到最大，然后隐藏
-        requestAnimationFrame(() => {
-            ripple.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-        });
-
+        // 5. 动画结束后隐藏遮罩
         setTimeout(() => {
             ripple.style.display = 'none';
-        }, 650);
+        }, 1300); // 与 CSS 1.2s 动画时长一致，稍加缓冲
     });
 })();
