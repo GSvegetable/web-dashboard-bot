@@ -8,15 +8,88 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
+
+    <!-- 修复滚动 -->
+    <style>
+        html, body {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        .hero { height: auto !important; min-height: 100vh !important; }
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button {
+            display: none !important; opacity: 0 !important; pointer-events: none !important;
+        }
+        .bg-video { pointer-events: none !important; }
+    </style>
+
+    <!-- 新增：主题背景层（默认隐藏） -->
+    <style>
+        #theme-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            pointer-events: none;
+            display: none; /* 默认隐藏 */
+        }
+        /* 保证内容在背景之上 */
+        .hero, .nav, .cards-section, .menu {
+            position: relative;
+            z-index: 1;
+        }
+        /* 月亮按钮 */
+        #night-mode-toggle {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+    </style>
+
+    <!-- 卡片样式（内联） -->
+    <style>
+        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 1; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
+        .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
+        .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
+        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+        .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+        .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+        .card-left { transform: translateX(-150px); }
+        .card-center { transform: translateY(100px); }
+        .card-right { transform: translateX(150px); }
+    </style>
 </head>
 <body>
-    <!-- 背景图片层（默认隐藏，点击按钮后扩散显示） -->
+    <!-- 背景视频（已移除，纯黑） -->
+    <body style="background: #000000 !important;"></body>
+
+    <!-- 主题背景层 -->
     <div id="theme-bg"></div>
 
-    <!-- 原有代码内容不变 -->
+    <!-- 主内容 -->
     <main class="hero">
-        <!-- Desktop-only vertical rules -->
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span>
             <span class="rule__plus">+</span>
@@ -32,11 +105,9 @@
             <span class="rule__seg rule__seg--end"></span>
         </div>
 
-        <!-- Navbar -->
         <nav class="nav">
             <button id="menu-open" class="nav__item" aria-expanded="false" aria-controls="menu">
-                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="4" y1="6" x2="20" y2="6" />
                     <line x1="4" y1="12" x2="20" y2="12" />
                     <line x1="4" y1="18" x2="20" y2="18" />
@@ -49,7 +120,6 @@
             </a>
         </nav>
 
-        <!-- Bottom Row -->
         <div class="hero-bottom">
             <div class="lede">
                 <h1 class="lede__title">Signals from<br />the Deep Green</h1>
@@ -60,12 +130,10 @@
                 <a class="chamfer" href="#">
                     <span class="chamfer__glass" aria-hidden="true"></span>
                     <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true">
-                        <polygon points="14,0 260,0 260,34 246,48 0,48 0,14"
-                                 fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                        <polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" />
                     </svg>
                     <span class="chamfer__label">Start listening</span>
-                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14" />
                         <path d="m12 5 7 7-7 7" />
                     </svg>
@@ -75,12 +143,10 @@
             <aside class="card group" data-glass-card>
                 <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
                 <div class="card__frost" aria-hidden="true"></div>
-
                 <div class="card__head">
                     <h2 class="card__title">Latest findings</h2>
                     <span class="card__index">//02</span>
                 </div>
-
                 <div class="card__body">
                     <div class="finding">
                         <h3 class="finding__title">Canopy Pulse Analysis 09.17</h3>
@@ -91,16 +157,14 @@
                         <p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p>
                     </div>
                 </div>
-
                 <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true">
-                    <path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28"
-                          stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                    <path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28" stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" />
                 </svg>
             </aside>
         </div>
     </main>
 
-    <!-- 新增三卡片区域 -->
+    <!-- 三卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -129,54 +193,17 @@
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
             <button id="menu-close" class="menu__close" aria-label="Close menu">
-                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M18 6 6 18" />
-                    <path d="m6 6 12 12" />
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
                 </svg>
                 <span>Close</span>
             </button>
             <nav class="menu__nav">
-                <a href="#" class="menu__link">
-                    <span class="menu__linkText">About</span>
-                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </a>
-                <a href="#" class="menu__link">
-                    <span class="menu__linkText">Research</span>
-                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </a>
-                <a href="#" class="menu__link">
-                    <span class="menu__linkText">Projects</span>
-                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </a>
-                <a href="#" class="menu__link">
-                    <span class="menu__linkText">Journal</span>
-                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </a>
-                <a href="#" class="menu__link">
-                    <span class="menu__linkText">Contact</span>
-                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                    </svg>
-                </a>
+                <a href="#" class="menu__link"><span class="menu__linkText">About</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Research</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Projects</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Journal</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Contact</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
             </nav>
             <div class="menu__foot">
                 <span class="menu__footLabel">Get in touch</span>
@@ -185,16 +212,69 @@
         </div>
     </div>
 
-    <!-- 小尺寸月亮图标按钮 -->
+    <!-- 月亮按钮 -->
     <button id="night-mode-toggle" title="切换主题背景">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
     </button>
 
-    <!-- 原页面玻璃卡片脚本（必须保留） -->
+    <!-- 原有脚本（菜单等） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-    <!-- 新增脚本（菜单+卡片动画+主题切换） -->
-    <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
+    <script>
+        // 菜单逻辑
+        const menu = document.getElementById('menu');
+        const menuOpenBtn = document.getElementById('menu-open');
+        const menuCloseBtn = document.getElementById('menu-close');
+        const menuBackdrop = document.getElementById('menu-backdrop');
+        const menuLinks = document.querySelectorAll('.menu__link');
+        function setMenu(open) { menu.classList.toggle('is-open', open); menuOpenBtn.setAttribute('aria-expanded', String(open)); }
+        menuOpenBtn.addEventListener('click', () => setMenu(true));
+        menuCloseBtn.addEventListener('click', () => setMenu(false));
+        menuBackdrop.addEventListener('click', () => setMenu(false));
+        menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
+
+        // 三卡片滚动动画
+        (function() {
+            const section = document.getElementById('cardsSection');
+            const card1 = document.getElementById('card1');
+            const card2 = document.getElementById('card2');
+            const card3 = document.getElementById('card3');
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+            function updateCards() {
+                if (!section || !card1 || !card2 || !card3) return;
+                const rect = section.getBoundingClientRect();
+                const vh = window.innerHeight;
+                let progress = (vh - rect.top) / (vh * 0.8);
+                progress = Math.max(0, Math.min(1, progress));
+                const eased = easeOutCubic(progress);
+                const offset1 = Math.max(0, Math.min(1, (eased - 0.05) / 0.9));
+                const offset2 = Math.max(0, Math.min(1, (eased - 0.15) / 0.9));
+                const offset3 = Math.max(0, Math.min(1, (eased - 0.25) / 0.9));
+                card1.style.transform = `translateX(${-150 * (1 - offset1)}px)`; card1.style.opacity = offset1;
+                card2.style.transform = `translateY(${100 * (1 - offset2)}px)`; card2.style.opacity = offset2;
+                card3.style.transform = `translateX(${150 * (1 - offset3)}px)`; card3.style.opacity = offset3;
+            }
+            window.addEventListener('scroll', updateCards, { passive: true });
+            window.addEventListener('resize', updateCards);
+            window.addEventListener('load', updateCards);
+            updateCards();
+        })();
+
+        // 🌙 主题切换（直接切换，无动画）
+        (function() {
+            const toggleBtn = document.getElementById('night-mode-toggle');
+            const themeBg = document.getElementById('theme-bg');
+            if (!toggleBtn || !themeBg) return;
+            let isImageShown = false;
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                isImageShown = !isImageShown;
+                themeBg.style.display = isImageShown ? 'block' : 'none';
+            });
+        })();
+    </script>
 </body>
 </html>
