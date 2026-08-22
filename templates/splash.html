@@ -64,67 +64,52 @@
             position: relative;
         }
         .hero-text { max-width: 700px; }
+
+        /* ✅ 高级数字营销解决方案：改成白色，去掉紫色 */
         .hero-subtitle {
             font-size: 14px;
             letter-spacing: 5px;
-            color: #a04ee0;
+            color: #ffffff;
             text-transform: uppercase;
             margin-bottom: 20px;
             opacity: 0;
             animation: fadeIn 1s ease 0.1s forwards;
         }
 
-        /* ==================== 核心修改：大标题效果 ==================== */
+        /* ==================== 大标题：保证永远可见 ==================== */
         .hero-title {
             font-size: 80px;
             font-weight: 900;
             line-height: 1.2;
-            margin-bottom: 30px;
+            margin-bottom: 0;
             letter-spacing: -1px;
         }
-
-        /* 每行的外层容器（快动画，先整行出现） */
-        .title-row {
+        
+        /* 深绿黑渐变，直接作用于整块文字，保证渲染 */
+        .line {
             display: block;
-            opacity: 0;
-            filter: blur(4px);
-            animation: lineIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-        .title-row:nth-child(1) { animation-delay: 0.1s; }
-        .title-row:nth-child(2) { animation-delay: 0.45s; }
-
-        /* ✅ 深绿黑渐变（完全照搬首页按钮配色） */
-        .gradient-text {
+            color: transparent;
             background: linear-gradient(90deg, #93965F, #493F36, #000000);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
-
-        /* 每个字的内层容器（慢动画，整行出现后再逐字出来） */
-        .char {
-            display: inline-block;
             opacity: 0;
-            transform: translateY(20px);
-            animation: charIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            transform: translateY(30px);
+            animation: lineUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            /* 增加一点点发光效果，防止黑字在黑背景上看不清 */
+            filter: drop-shadow(0px 0px 1px rgba(255,255,255,0.2));
         }
-
-        .hero-bottom {
-            display: flex; align-items: center; gap: 15px;
-            font-size: 14px; font-weight: 600; color: #ffffff;
-            opacity: 0; transform: translateY(30px);
-            animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.2s forwards;
-        }
-        .hero-bottom .arrow { font-size: 18px; color: #a04ee0; }
+        .line-1 { animation-delay: 0.2s; }
+        .line-2 { animation-delay: 0.5s; }
 
         .hero-image { flex: 1; max-width: 400px; height: 400px; }
 
         /* ==================== 动画定义 ==================== */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes lineIn { from { opacity: 0; filter: blur(4px); transform: translateY(10px); } to { opacity: 1; filter: blur(0); transform: translateY(0); } }
-        @keyframes charIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes lineUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         @media (max-width: 768px) {
             .navbar { padding: 10px 20px; }
@@ -152,51 +137,17 @@
     <section class="hero">
         <div class="hero-text">
             <div class="hero-subtitle">高级数字营销解决方案</div>
-            
-            <!-- ✅ 使用JS自动拆字，实现“整行快出，单字慢出” -->
-            <h1 class="hero-title" id="titleContainer">
-                <span class="title-row gradient-text">将创意</span>
-                <span class="title-row gradient-text">变为现实</span>
+            <!-- ✅ 两行字直接显示，线条动画从下往上滑入，不再拆字，绝对可见 -->
+            <h1 class="hero-title">
+                <span class="line line-1">将创意</span>
+                <span class="line line-2">变为现实</span>
             </h1>
-            
-            <div class="hero-bottom">
-                <span>我们的愿景</span>
-                <span class="arrow">→</span>
-            </div>
+            <!-- ✅ 删除了“我们的愿景” -->
         </div>
         
         <!-- 右侧留白区，鸟先留着空位 -->
         <div class="hero-image"></div>
     </section>
 
-    <!-- ✅ 核心逻辑：拆分每一行的字，赋予不同的慢动画延迟 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('.title-row');
-            
-            rows.forEach((row, rowIndex) => {
-                const text = row.textContent.trim();
-                row.innerHTML = '';
-                
-                // 行动画的基准延迟（由CSS控制，快慢通过animationDelay决定）
-                // 这里我们只处理字的动画延迟
-                text.split('').forEach((char, charIndex) => {
-                    const span = document.createElement('span');
-                    span.className = 'char';
-                    span.textContent = char;
-                    
-                    // 行快（0.1s 和 0.45s 出现完）
-                    // 字慢：每个字的动画延迟 = 行动画的结束时间 + 字的索引 * 0.12秒
-                    // 第一行：0.1s + 0.4s(行动画时长) + 字索引 * 0.12s = 0.5s + ...
-                    // 第二行：0.45s + 0.4s + 字索引 * 0.12s = 0.85s + ...
-                    const baseDelay = rowIndex === 0 ? 0.5 : 0.85;
-                    const charDelay = baseDelay + (charIndex * 0.12); 
-                    span.style.animationDelay = charDelay + 's';
-                    
-                    row.appendChild(span);
-                });
-            });
-        });
-    </script>
 </body>
 </html>
