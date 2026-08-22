@@ -43,27 +43,20 @@
         /* 第二屏：卡片区域 */
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; margin-top: -30vh; }
 
-        /* 核心修改：所有卡片作为一个整体容器，初始向下偏移，等待滚动激活 */
-        #cardsGridWrap {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            max-width: 1000px;
-            width: 100%;
-            opacity: 0;
-            transform: translateY(80px);
-            will-change: transform, opacity;
-        }
+        /* 固定网格：间距永远32px，绝对不变 */
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1000px; width: 100%; }
 
-        /* 卡片样式（背景模糊 + 圆角） */
+        /* 卡片基础样式 */
         .card-item {
             position: relative;
             border-radius: 16px;
             padding: 32px;
             height: 220px;
             box-shadow: 0 20px 60px rgba(255,255,255,0.1);
+            opacity: 0;
             overflow: hidden;
         }
+        /* 背景层：模糊图片 */
         .card-item::before {
             content: '';
             position: absolute;
@@ -74,10 +67,16 @@
             transform: scale(1.1);
             z-index: 0;
         }
+        /* 文字层 */
         .card-item h3, .card-item p {
             position: relative;
             z-index: 1;
         }
+
+        /* 初始位置：从不同方向准备好 */
+        .card-left { transform: translateX(-120px); }
+        .card-center { transform: translateY(80px); }
+        .card-right { transform: translateX(120px); }
 
         @media (max-width: 768px) {
             .navbar { padding: 10px 20px; }
@@ -86,7 +85,7 @@
             .line-1 { font-size: 20px; }
             .line-2 { font-size: 48px; }
             .hero-image { display: none; }
-            #cardsGridWrap { grid-template-columns: 1fr; gap: 16px; }
+            .cards-grid { grid-template-columns: 1fr; gap: 16px; }
             .cards-section { margin-top: -20vh; }
         }
     </style>
@@ -115,31 +114,33 @@
         <div class="hero-image"></div>
     </section>
 
-    <!-- 第二屏：卡片区域（作为一个整体） -->
+    <!-- 第二屏：卡片区域（从左、下、右合拢） -->
     <section class="cards-section" id="cardsSection">
-        <div id="cardsGridWrap">
-            <div class="card-item" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
+        <div class="cards-grid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">一键部署</h3>
                 <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
             </div>
-            <div class="card-item" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">功能扩展</h3>
                 <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
             </div>
-            <div class="card-item" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
                 <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">安全托管</h3>
                 <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
             </div>
         </div>
     </section>
 
-    <!-- 滚动逻辑：整体一起滑入，阻尼感强，间距绝对一致 -->
+    <!-- 滚动逻辑：左右下三种方向滑入，阻尼感强，保证最终全对齐 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const section = document.getElementById('cardsSection');
-            const cardsWrap = document.getElementById('cardsGridWrap');
+            const card1 = document.getElementById('card1');
+            const card2 = document.getElementById('card2');
+            const card3 = document.getElementById('card3');
 
-            // 阻尼缓动函数：easeOutCubic，先快后慢
+            // 阻尼缓动：easeOutCubic，先快后慢，阻尼感明显
             function easeOutCubic(t) {
                 return 1 - Math.pow(1 - t, 3);
             }
@@ -147,14 +148,29 @@
             window.addEventListener('scroll', function() {
                 const rect = section.getBoundingClientRect();
                 const viewportHeight = window.innerHeight;
-                // 需要滚动更长距离才能完全展示
-                const progress = Math.min(1, Math.max(0, (viewportHeight - rect.top) / (viewportHeight * 1.2)));
                 
-                const easedProgress = easeOutCubic(progress);
+                // 滚动足够长距离，让动画慢慢展开
+                const baseProgress = Math.min(1, Math.max(0, (viewportHeight - rect.top) / (viewportHeight * 1.2)));
+                
+                // 将 baseProgress 先做阻尼处理，再分流给三张卡片
+                const easedProgress = easeOutCubic(baseProgress);
 
-                // 整体容器一起滑动和淡入，自然保证三个卡片永远对齐！
-                cardsWrap.style.transform = `translateY(${80 * (1 - easedProgress)}px)`;
-                cardsWrap.style.opacity = easedProgress;
+                // 三张卡片按顺序依次合拢，但都要在完全展开时归位
+                const offset1 = Math.max(0, Math.min(1, (easedProgress - 0.05) / 0.9));
+                const offset2 = Math.max(0, Math.min(1, (easedProgress - 0.15) / 0.9));
+                const offset3 = Math.max(0, Math.min(1, (easedProgress - 0.25) / 0.9));
+
+                // 左卡片：从左边滑入
+                card1.style.transform = `translateX(${-120 * (1 - offset1)}px)`;
+                card1.style.opacity = offset1;
+
+                // 中间卡片：从下方滑入
+                card2.style.transform = `translateY(${80 * (1 - offset2)}px)`;
+                card2.style.opacity = offset2;
+
+                // 右卡片：从右边滑入
+                card3.style.transform = `translateX(${120 * (1 - offset3)}px)`;
+                card3.style.opacity = offset3;
             });
         });
     </script>
