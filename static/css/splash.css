@@ -5,28 +5,12 @@ html, body {
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
-
-/* Hero 相对定位，视频只在这个区域内显示 */
 .hero {
-    position: relative !important;
-    min-height: 100vh !important;
-    overflow: hidden !important;
     height: auto !important;
+    min-height: 100vh !important;
 }
 
-/* 视频强制隐藏在 Hero 内，跟随滚动 */
-.bg-video {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    z-index: 0 !important;
-    pointer-events: none !important;
-}
-
-/* 隐藏视频原生控件 */
+/* 强制隐藏视频原生控件（iOS Safari 等） */
 video::-webkit-media-controls,
 video::-webkit-media-controls-enclosure,
 video::-webkit-media-controls-panel,
@@ -37,8 +21,13 @@ video::-webkit-media-controls-overlay-play-button {
     opacity: 0 !important;
     pointer-events: none !important;
 }
+.bg-video {
+    pointer-events: none !important;
+    -webkit-user-select: none;
+    user-select: none;
+}
 
-/* 卡片区域：黑色背景，与 Hero 视觉分隔 */
+/* 三卡片区域样式 */
 .cards-section {
     min-height: 100vh;
     display: flex;
@@ -47,10 +36,7 @@ video::-webkit-media-controls-overlay-play-button {
     padding: 80px 40px;
     position: relative;
     z-index: 10;
-    background-color: #000000 !important;  /* 确保水球消失后背景干净 */
 }
-
-/* 卡片网格 */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -58,8 +44,6 @@ video::-webkit-media-controls-overlay-play-button {
     max-width: 1100px;
     width: 100%;
 }
-
-/* 卡片样式（背景模糊图片） */
 .card-item {
     position: relative;
     border-radius: 20px;
