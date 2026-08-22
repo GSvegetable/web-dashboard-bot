@@ -1,161 +1,248 @@
-/* 页面滚动修复与视频控件隐藏 */
-html, body {
-    height: auto !important;
-    min-height: 100% !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-.hero {
-    height: auto !important;
-    min-height: 100vh !important;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宫水大世界 宫水.com － Professional Telegram bot development services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
+</head>
+<body>
+    <!-- 背景视频（已禁用控件） -->
+    <video id="bg-video" class="bg-video" aria-hidden="true"
+           autoplay muted loop playsinline preload="auto"
+           controlslist="nodownload noplaybackrate"
+           disableremoteplayback
+           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260816_125506_3a597378-ec85-4ebd-bd22-03b45508ac62.mp4"></video>
 
-/* 强制隐藏视频原生控件（iOS Safari 等） */
-video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel,
-video::-webkit-media-controls-play-button,
-video::-webkit-media-controls-start-playback-button,
-video::-webkit-media-controls-overlay-play-button {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-.bg-video {
-    pointer-events: none !important;
-    -webkit-user-select: none;
-    user-select: none;
-}
+    <!-- Liquid Glass SVG Filter Definition -->
+    <svg class="glass-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="liquid-glass-refraction"
+                    x="-30%" y="-30%" width="160%" height="160%"
+                    color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.012 0.015" numOctaves="3" result="noise" />
+                <feColorMatrix in="SourceAlpha" type="matrix" result="boosted_alpha"
+                    values="0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 100 0" />
+                <feGaussianBlur in="boosted_alpha" stdDeviation="45" result="blurred_alpha" />
+                <feComponentTransfer in="blurred_alpha" result="edge_mask">
+                    <feFuncA type="linear" slope="-1.3" intercept="1" />
+                </feComponentTransfer>
+                <feComposite in="noise" in2="edge_mask" operator="arithmetic"
+                             k1="1" k2="0" k3="0" k4="0" result="masked_noise" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="65"
+                                   xChannelSelector="R" yChannelSelector="G" result="red_displaced" />
+                <feColorMatrix in="red_displaced" type="matrix" result="red"
+                    values="1 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 0 1 0" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="56"
+                                   xChannelSelector="R" yChannelSelector="G" result="green_displaced" />
+                <feColorMatrix in="green_displaced" type="matrix" result="green"
+                    values="0 0 0 0 0
+                            0 1 0 0 0
+                            0 0 0 0 0
+                            0 0 0 1 0" />
+                <feDisplacementMap in="SourceGraphic" in2="masked_noise" scale="47"
+                                   xChannelSelector="R" yChannelSelector="G" result="blue_displaced" />
+                <feColorMatrix in="blue_displaced" type="matrix" result="blue"
+                    values="0 0 0 0 0
+                            0 0 0 0 0
+                            0 0 1 0 0
+                            0 0 0 1 0" />
+                <feBlend in="red" in2="green" mode="screen" result="rg" />
+                <feBlend in="rg" in2="blue" mode="screen" result="chromatic_dispersion" />
+            </filter>
+        </defs>
+    </svg>
 
-/* 三卡片区域样式 */
-.cards-section {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 40px;
-    position: relative;
-    z-index: 10;
-}
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    max-width: 1100px;
-    width: 100%;
-}
-.card-item {
-    position: relative;
-    border-radius: 20px;
-    padding: 32px;
-    height: 260px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    opacity: 0;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.05);
-    transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
-}
-.card-item::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-size: cover;
-    background-position: center;
-    filter: blur(8px) brightness(0.7);
-    transform: scale(1.1);
-    z-index: 0;
-}
-.card-content {
-    position: relative;
-    z-index: 1;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-}
-.card-content h3 {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #ffffff;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-}
-.card-content p {
-    font-size: 14px;
-    line-height: 1.7;
-    color: rgba(255,255,255,0.9);
-    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-}
-.card-left { transform: translateX(-150px); }
-.card-center { transform: translateY(100px); }
-.card-right { transform: translateX(150px); }
+    <!-- Main Hero Area -->
+    <main class="hero">
+        <!-- Desktop-only vertical rules -->
+        <div class="rule rule--left" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
+        </div>
+        <div class="rule rule--right" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
+        </div>
 
-/* 🌙 夜晚模式按钮样式 */
-#night-mode-toggle {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.5);
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    color: white;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 9999;
-    transition: transform 0.3s, background 0.3s;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-    /* 去除蓝色高亮 */
-    outline: none !important;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    user-select: none;
-}
-#night-mode-toggle:hover {
-    transform: scale(1.1);
-    background: rgba(255,255,255,0.2);
-}
+        <!-- Navbar -->
+        <nav class="nav">
+            <button id="menu-open" class="nav__item" aria-expanded="false" aria-controls="menu">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+                <span class="nav__label nav__label--menu">Menu</span>
+            </button>
+            <a href="#" class="nav__item">
+                <span class="nav__dot" aria-hidden="true"></span>
+                <span class="nav__label">Book a call</span>
+            </a>
+        </nav>
 
-/* 🌙 夜晚模式：整体反色 + 色相旋转，保持色彩自然 */
-html.night-mode {
-    filter: invert(1) hue-rotate(180deg);
-    background: #ffffff; /* 反色后底变黑 */
-}
-html.night-mode body {
-    background: #ffffff; /* 反色后为黑 */
-}
-/* 🌙 抵消反色：让三个卡片永远保持原来的颜色状态 */
-html.night-mode .card-item {
-    filter: invert(1) hue-rotate(180deg);
-}
-/* 按钮在夜晚模式下保持原样（抵消全局反色） */
-html.night-mode #night-mode-toggle {
-    filter: invert(1) hue-rotate(180deg);
-}
+        <!-- Bottom Row -->
+        <div class="hero-bottom">
+            <div class="lede">
+                <h1 class="lede__title">Signals from<br />the Deep Green</h1>
+                <p class="lede__body">
+                    An open research collective mapping, decoding, and archiving the silent
+                    vibrations that bind our planet's ecological networks.
+                </p>
+                <a class="chamfer" href="#">
+                    <span class="chamfer__glass" aria-hidden="true"></span>
+                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true">
+                        <polygon points="14,0 260,0 260,34 246,48 0,48 0,14"
+                                 fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                    </svg>
+                    <span class="chamfer__label">Start listening</span>
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
 
-/* 💧 水波纹遮罩层 */
-#theme-ripple {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: #000;
-    z-index: 99999;
-    pointer-events: none;
-    display: none;
-    clip-path: circle(0% at 50% 50%);
-    transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
+            <aside class="card group" data-glass-card>
+                <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
+                <div class="card__frost" aria-hidden="true"></div>
 
-/* 响应式 */
-@media (max-width: 768px) {
-    .cards-grid { grid-template-columns: 1fr; gap: 16px; }
-    .card-item { height: 200px; padding: 24px; }
-}
+                <div class="card__head">
+                    <h2 class="card__title">Latest findings</h2>
+                    <span class="card__index">//02</span>
+                </div>
+
+                <div class="card__body">
+                    <div class="finding">
+                        <h3 class="finding__title">Canopy Pulse Analysis 09.17</h3>
+                        <p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p>
+                    </div>
+                    <div class="finding">
+                        <h3 class="finding__title">Watershed Harmonic Index 11.06</h3>
+                        <p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p>
+                    </div>
+                </div>
+
+                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true">
+                    <path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28"
+                          stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                </svg>
+            </aside>
+        </div>
+    </main>
+
+    <!-- 新增三卡片区域 -->
+    <section class="cards-section" id="cardsSection">
+        <div class="cards-grid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
+                <div class="card-content">
+                    <h3>一键部署</h3>
+                    <p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+                </div>
+            </div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
+                <div class="card-content">
+                    <h3>功能扩展</h3>
+                    <p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
+                </div>
+            </div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
+                <div class="card-content">
+                    <h3>安全托管</h3>
+                    <p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu -->
+    <div class="menu" id="menu">
+        <div class="menu__backdrop" id="menu-backdrop"></div>
+        <div class="menu__panel">
+            <button id="menu-close" class="menu__close" aria-label="Close menu">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+                <span>Close</span>
+            </button>
+            <nav class="menu__nav">
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">About</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Research</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Projects</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Journal</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+                <a href="#" class="menu__link">
+                    <span class="menu__linkText">Contact</span>
+                    <svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+            </nav>
+            <div class="menu__foot">
+                <span class="menu__footLabel">Get in touch</span>
+                <a class="menu__mail" href="mailto:hello@terranova.earth">hello@terranova.earth</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌙 夜晚模式切换按钮（移到屏幕中央） -->
+    <button id="night-mode-toggle" title="切换夜晚模式">🌙</button>
+
+    <!-- 水波纹遮罩层（由 JS 动态控制） -->
+    <div id="theme-ripple"></div>
+
+    <!-- 原页面玻璃卡片脚本（必须保留） -->
+    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
+    <!-- 新增脚本（菜单+卡片动画+夜晚模式） -->
+    <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
+</body>
+</html>
