@@ -4,7 +4,7 @@ html, body {
     min-height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    background: #000000 !important; /* 默认黑色背景 */
+    background: #000000 !important; /* 默认纯黑背景 */
 }
 .hero {
     height: auto !important;
@@ -36,7 +36,7 @@ video::-webkit-media-controls-overlay-play-button {
     justify-content: center;
     padding: 80px 40px;
     position: relative;
-    z-index: 10;
+    z-index: 1;
 }
 .cards-grid {
     display: grid;
@@ -94,7 +94,13 @@ video::-webkit-media-controls-overlay-play-button {
 .card-center { transform: translateY(100px); }
 .card-right { transform: translateX(150px); }
 
-/* 🌙 夜晚模式按钮样式：小尺寸，放在中央偏下 */
+/* 确保所有正文内容在背景层之上 */
+.hero, .nav, .cards-section, .menu {
+    position: relative;
+    z-index: 1;
+}
+
+/* 🌙 小尺寸月亮按钮 */
 #night-mode-toggle {
     position: fixed;
     bottom: 40px;
@@ -104,7 +110,7 @@ video::-webkit-media-controls-overlay-play-button {
     height: 36px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.6);
-    background: rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.3);
     backdrop-filter: blur(10px);
     color: white;
     display: flex;
@@ -128,32 +134,17 @@ video::-webkit-media-controls-overlay-play-button {
     fill: currentColor;
 }
 
-/* 白天模式（无滤镜）和夜晚模式（反色滤镜） */
-html.night-mode {
-    filter: invert(1) hue-rotate(180deg);
-    background: #ffffff; /* 反色后背景变白 */
-}
-html.night-mode body {
-    background: #ffffff;
-}
-/* 抵消反色：让三个卡片永远保持原来的颜色状态 */
-html.night-mode .card-item {
-    filter: invert(1) hue-rotate(180deg);
-}
-/* 按钮在夜晚模式下保持原样（抵消全局反色） */
-html.night-mode #night-mode-toggle {
-    filter: invert(1) hue-rotate(180deg);
-}
-
-/* 💧 水波纹遮罩层 */
-#theme-ripple {
+/* 💧 背景图片层（初始隐藏，通过 clip-path 扩散显示） */
+#theme-bg {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    z-index: 99998;
+    background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
     pointer-events: none;
-    display: none;
-    clip-path: circle(150% at 50% 50%);
+    clip-path: circle(0% at 50% 50%);
     transition: clip-path 2s cubic-bezier(0.4, 0, 0.2, 1); /* 2秒缓慢扩散 */
 }
 
