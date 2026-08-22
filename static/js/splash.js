@@ -67,9 +67,9 @@ document.addEventListener('keydown', (e) => {
     updateCards();
 })();
 
-// 🌙 水波纹夜晚模式切换（边扩散边切换）
+// 🌙 完美复刻原版的夜晚模式切换（从按钮位置扩散）
 (function() {
-    const toggleBtn = document.getElementById('night-mode-toggle');
+    const toggleBtn = document.getElementById('theme-toggle-btn');
     const ripple = document.getElementById('theme-ripple');
     if (!toggleBtn || !ripple) return;
 
@@ -83,28 +83,34 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         e.stopPropagation();
 
+        // 1. 获取按钮在屏幕上的精确坐标
+        const rect = toggleBtn.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+
         const currentIsNight = document.documentElement.classList.contains('night-mode');
         const nextIsNight = !currentIsNight;
 
-        // 1. 先给底层切换到新主题
-        document.documentElement.classList.toggle('night-mode', nextIsNight);
-        localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
-
         // 2. 设置遮罩层颜色 = 旧主题颜色
-        //    旧主题是白天(白色背景) → 遮罩设为白色；旧主题是夜晚(黑色背景) → 遮罩设为黑色
         ripple.style.background = currentIsNight ? '#000' : '#fff';
 
-        // 3. 初始遮罩完全覆盖屏幕（半径 150%）
-        ripple.style.clipPath = 'circle(150% at 50% 50%)';
+        // 3. 把遮罩初始化为从按钮位置展开的 0% 圆
+        ripple.style.clipPath = `circle(0% at ${x}px ${y}px)`;
         ripple.style.display = 'block';
 
-        // 4. 强制重绘后，让遮罩收缩到0（露出新主题）
+        // 4. 强制重绘后，扩散到 150%（覆盖全屏）
         void ripple.offsetWidth;
-        ripple.style.clipPath = 'circle(0% at 50% 50%)';
+        ripple.style.clipPath = `circle(150% at ${x}px ${y}px)`;
 
-        // 5. 动画结束后隐藏遮罩
+        // 5. 在扩散动画进行到一半时（0.4s）切换主题，产生原版“新背景从按钮蔓延”的效果
+        setTimeout(() => {
+            document.documentElement.classList.toggle('night-mode', nextIsNight);
+            localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
+        }, 400);
+
+        // 6. 动画结束后隐藏遮罩
         setTimeout(() => {
             ripple.style.display = 'none';
-        }, 1300); // 与 CSS 1.2s 动画时长一致，稍加缓冲
+        }, 850); // 与 0.8s 动画时长一致，稍加缓冲
     });
 })();
