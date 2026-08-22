@@ -83,20 +83,20 @@
         <div class="hero-image"></div>
     </section>
 
-    <!-- 第二屏：卡片区域，背景写成图片，保证绝对变白！ -->
+    <!-- 第二屏：卡片区域，背景改为你上传的三张图片 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
-            <div class="card-left" id="card1" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">一键部署</h3>
-                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+            <div class="card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">一键部署</h3>
+                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
             </div>
-            <div class="card-center" id="card2" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">功能扩展</h3>
-                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
+            <div class="card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">功能扩展</h3>
+                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
             </div>
-            <div class="card-right" id="card3" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%25%22 height=%22100%25%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23ffffff%22/%3E%3C/svg%3E'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px;">安全托管</h3>
-                <p style="color: #333333 !important; font-size: 14px; line-height: 1.6;">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+            <div class="card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}'); background-size: cover; background-position: center; border-radius: 16px; padding: 32px; height: 220px; box-shadow: 0 20px 60px rgba(255,255,255,0.1); opacity: 0; will-change: transform, opacity;">
+                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">安全托管</h3>
+                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
             </div>
         </div>
     </section>
