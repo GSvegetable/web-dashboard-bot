@@ -1,5 +1,17 @@
 {% if current_user.is_authenticated %}
 <style>
+    /* ✅ 全局强制隔离：不管什么文件干扰，这几张卡片必须永远是白的！ */
+    .card-left, .card-center, .card-right {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    .card-left h3, .card-center h3, .card-right h3 {
+        color: #000000 !important;
+    }
+    .card-left p, .card-center p, .card-right p {
+        color: #333333 !important;
+    }
+
     .cards {
         perspective: 500px;
         position: fixed;
@@ -74,7 +86,6 @@
         transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    /* ✅ 核心修改：去掉了黑色描边，改为纯白色带极轻微底部透光 */
     .card-name {
         color: #fff;
         font-size: 18px;
