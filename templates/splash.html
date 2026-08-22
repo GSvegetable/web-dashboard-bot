@@ -1,178 +1,168 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>宫水大世界</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foldcraft - Brand & Visual Storytelling</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Geist Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS (keyframes + reset) -->
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #000000 !important;
-            color: #ffffff;
-            font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* 顶部导航栏 */
-        .navbar { position: fixed; top: 0; width: 100%; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .logo { font-weight: 800; font-size: 24px; letter-spacing: 2px; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { color: #ffffff; text-decoration: none; font-size: 14px; opacity: 0.8; transition: opacity 0.2s; }
-        .nav-links a:hover { opacity: 1; }
-
-        /* 玻璃按钮 */
-        .btn-glass { display: inline-block; padding: 12px 30px; border-radius: 999px; color: #ffffff; font-weight: 600; text-decoration: none; font-size: 14px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 1px rgba(255, 255, 255, 0.1); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 2.2); }
-        .btn-glass:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.5); transform: scale(1.02); }
-
-        /* 第一屏 Hero */
-        .hero { min-height: 100vh; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: relative; margin-top: -10vh; }
-        .hero-text { max-width: 700px; }
-        .hero-title { font-weight: 900; letter-spacing: -1px; line-height: 1.3; }
-
-        /* 大标题动画 */
-        .line { display: block; color: transparent; background: linear-gradient(90deg, #93965F, #493F36, #000000); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0px 0px 1px rgba(255,255,255,0.2)); opacity: 0; transform: translateY(50px); -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%); mask-image: linear-gradient(to right, transparent 0%, black 40%); -webkit-mask-size: 0% 100%; mask-size: 0% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: left center; mask-position: left center; animation: riseAndReveal 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-        .line-1 { font-size: 30px; animation-delay: 0.2s; }
-        .line-2 { font-size: 88px; animation-delay: 0.55s; }
-        @keyframes riseAndReveal { 0% { opacity: 0; transform: translateY(50px); -webkit-mask-size: 0% 100%; mask-size: 0% 100%; } 100% { opacity: 1; transform: translateY(0); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; } }
-
-        .hero-image { flex: 1; max-width: 400px; height: 400px; }
-
-        /* 第二屏：卡片区域 */
-        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 60px 40px; margin-top: -30vh; }
-
-        /* 固定网格：间距永远32px，绝对不变 */
-        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1000px; width: 100%; }
-
-        /* 卡片基础样式 */
-        .card-item {
-            position: relative;
-            border-radius: 16px;
-            padding: 32px;
-            height: 220px;
-            box-shadow: 0 20px 60px rgba(255,255,255,0.1);
-            opacity: 0;
-            overflow: hidden;
-        }
-        /* 背景层：模糊图片 */
-        .card-item::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-size: cover;
-            background-position: center;
-            filter: blur(5px);
-            transform: scale(1.1);
-            z-index: 0;
-        }
-        /* 文字层 */
-        .card-item h3, .card-item p {
-            position: relative;
-            z-index: 1;
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* 初始位置：从不同方向准备好 */
-        .card-left { transform: translateX(-120px); }
-        .card-center { transform: translateY(80px); }
-        .card-right { transform: translateX(120px); }
-
-        @media (max-width: 768px) {
-            .navbar { padding: 10px 20px; }
-            .nav-links { display: none; }
-            .hero { padding: 0 20px; flex-direction: column; justify-content: center; text-align: left; margin-top: -8vh; }
-            .line-1 { font-size: 20px; }
-            .line-2 { font-size: 48px; }
-            .hero-image { display: none; }
-            .cards-grid { grid-template-columns: 1fr; gap: 16px; }
-            .cards-section { margin-top: -20vh; }
+        .font-geist {
+            font-family: 'Geist', sans-serif;
         }
     </style>
 </head>
 <body>
-    <!-- 顶部导航 -->
-    <nav class="navbar">
-        <div class="logo">宫水大世界</div>
-        <div class="nav-links">
-            <a href="#">作品</a>
-            <a href="#">服务</a>
-            <a href="#">理念</a>
-            <a href="#">联系</a>
-        </div>
-        <a href="/workspace" class="btn-glass">开始探索</a>
-    </nav>
+    <!-- Root container -->
+    <div class="relative h-screen w-full overflow-hidden bg-black font-geist">
 
-    <!-- 第一屏 Hero -->
-    <section class="hero">
-        <div class="hero-text">
-            <h1 class="hero-title">
-                <span class="line line-1">Professional Telegram bot<br>development services.</span>
-                <span class="line line-2">创作 搭建 部署</span>
-            </h1>
-        </div>
-        <div class="hero-image"></div>
-    </section>
+        <!-- Background Video (absolute, no z-index) -->
+        <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            class="absolute top-0 left-0 w-full h-full object-cover object-center"
+            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_204221_5339e40b-e73d-4ab0-9c65-79c18c66fd50.mp4"
+            style="object-position: 70% center;"
+        ></video>
 
-    <!-- 第二屏：卡片区域（从左、下、右合拢） -->
-    <section class="cards-section" id="cardsSection">
-        <div class="cards-grid">
-            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">一键部署</h3>
-                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+        <!-- Navbar (z-30) -->
+        <nav class="absolute top-0 left-0 w-full z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
+            <!-- Logo -->
+            <div class="flex items-center gap-8">
+                <span class="text-lg font-semibold tracking-tight text-white sm:text-xl">Foldcraft</span>
+
+                <!-- Desktop links -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Home</a>
+                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Projects</a>
+                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Studio</a>
+                    <a href="#" class="text-sm text-white/80 hover:text-white transition-colors">Reach Us</a>
+                </div>
             </div>
-            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">功能扩展</h3>
-                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
-            </div>
-            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
-                <h3 style="color: #000000 !important; font-size: 18px; font-weight: 700; margin-bottom: 12px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">安全托管</h3>
-                <p style="color: #000000 !important; font-size: 14px; line-height: 1.6; text-shadow: 1px 1px 3px rgba(255,255,255,0.8);">专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+
+            <!-- Desktop CTA -->
+            <a href="#" class="hidden md:inline-block rounded-lg bg-white px-5 py-2 text-sm font-medium text-black hover:scale-105 transition-transform">Let's Talk</a>
+
+            <!-- Mobile Menu Toggle -->
+            <button id="menuBtn" class="md:hidden relative z-50 w-10 h-10 flex items-center justify-center text-white active:scale-90 transition-transform duration-300">
+                <svg id="iconMenu" class="w-6 h-6 absolute transition-all duration-300 rotate-0 scale-100 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="6" x2="20" y2="6"></line>
+                    <line x1="4" y1="12" x2="20" y2="12"></line>
+                    <line x1="4" y1="18" x2="20" y2="18"></line>
+                </svg>
+                <svg id="iconX" class="w-6 h-6 absolute transition-all duration-300 rotate-90 scale-0 opacity-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu Overlay (z-20) -->
+        <div id="mobileMenu" class="absolute inset-x-0 top-0 z-20 h-0 opacity-0 pointer-events-none bg-black/98 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden">
+            <div class="flex h-full flex-col justify-center px-8">
+                <div class="transition-all duration-500 delay-100 translate-y-8 opacity-0">
+                    <div class="flex flex-col gap-6">
+                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Home</a>
+                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Projects</a>
+                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Studio</a>
+                        <a href="#" class="text-3xl font-medium text-white/90 hover:text-white" onclick="closeMenu()">Reach Us</a>
+                        <a href="#" class="mt-6 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black hover:scale-105 transition-transform" onclick="closeMenu()">Let's Talk</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
 
-    <!-- 滚动逻辑：左右下三种方向滑入，阻尼感强，保证最终全对齐 -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const section = document.getElementById('cardsSection');
-            const card1 = document.getElementById('card1');
-            const card2 = document.getElementById('card2');
-            const card3 = document.getElementById('card3');
+        <!-- Hero Content (z-10) -->
+        <div class="relative z-10 flex flex-col justify-between h-[calc(100vh-80px)] px-6 pb-10 pt-12 sm:pb-12 sm:pt-16 md:px-12 md:pb-16 md:pt-20 lg:px-16">
 
-            // 阻尼缓动：easeOutCubic，先快后慢，阻尼感明显
-            function easeOutCubic(t) {
-                return 1 - Math.pow(1 - t, 3);
+            <!-- Top Section -->
+            <div class="max-w-3xl">
+                <p class="text-xs sm:text-sm text-white/90 mb-4 sm:mb-6 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">Brand & Visual Storytelling</p>
+                <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-medium leading-[1.1] tracking-tight text-white animate-[fadeSlideUp_0.8s_ease_0.4s_both]">
+                    Shaping visual<br>narratives,<br>one pixel at a time.
+                </h1>
+            </div>
+
+            <!-- Bottom Section -->
+            <div>
+                <p class="text-sm sm:text-base md:text-lg leading-relaxed text-white/60 max-w-sm sm:max-w-lg mb-5 sm:mb-6 animate-[fadeSlideUp_0.8s_ease_0.7s_both]">
+                    Turning vision into reality through craft, motion, and an endless pursuit of beauty.
+                </p>
+                <a href="#" class="rounded-lg bg-white px-5 py-2.5 sm:px-6 sm:py-3 text-sm font-medium text-black hover:scale-105 transition-transform inline-flex items-center gap-2 animate-[fadeSlideUp_0.8s_ease_0.9s_both]">
+                    Explore Work
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Mobile Menu JS -->
+        <script>
+            const menuBtn = document.getElementById('menuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const iconMenu = document.getElementById('iconMenu');
+            const iconX = document.getElementById('iconX');
+
+            function openMenu() {
+                mobileMenu.classList.remove('h-0', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.add('h-screen', 'opacity-100');
+                iconMenu.classList.add('rotate-90', 'scale-0', 'opacity-0');
+                iconX.classList.remove('rotate-90', 'scale-0', 'opacity-0');
+                document.querySelector('#mobileMenu > div > div').classList.remove('translate-y-8', 'opacity-0');
             }
 
-            window.addEventListener('scroll', function() {
-                const rect = section.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                
-                // 滚动足够长距离，让动画慢慢展开
-                const baseProgress = Math.min(1, Math.max(0, (viewportHeight - rect.top) / (viewportHeight * 1.2)));
-                
-                // 将 baseProgress 先做阻尼处理，再分流给三张卡片
-                const easedProgress = easeOutCubic(baseProgress);
+            function closeMenu() {
+                mobileMenu.classList.add('h-0', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.remove('h-screen', 'opacity-100');
+                iconMenu.classList.remove('rotate-90', 'scale-0', 'opacity-0');
+                iconX.classList.add('rotate-90', 'scale-0', 'opacity-0');
+                document.querySelector('#mobileMenu > div > div').classList.add('translate-y-8', 'opacity-0');
+            }
 
-                // 三张卡片按顺序依次合拢，但都要在完全展开时归位
-                const offset1 = Math.max(0, Math.min(1, (easedProgress - 0.05) / 0.9));
-                const offset2 = Math.max(0, Math.min(1, (easedProgress - 0.15) / 0.9));
-                const offset3 = Math.max(0, Math.min(1, (easedProgress - 0.25) / 0.9));
-
-                // 左卡片：从左边滑入
-                card1.style.transform = `translateX(${-120 * (1 - offset1)}px)`;
-                card1.style.opacity = offset1;
-
-                // 中间卡片：从下方滑入
-                card2.style.transform = `translateY(${80 * (1 - offset2)}px)`;
-                card2.style.opacity = offset2;
-
-                // 右卡片：从右边滑入
-                card3.style.transform = `translateX(${120 * (1 - offset3)}px)`;
-                card3.style.opacity = offset3;
+            menuBtn.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('h-screen')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
             });
-        });
-    </script>
+
+            // 点击菜单内链接后自动关闭
+            document.querySelectorAll('#mobileMenu a').forEach(link => {
+                link.addEventListener('click', closeMenu);
+            });
+        </script>
+    </div>
 </body>
 </html>
