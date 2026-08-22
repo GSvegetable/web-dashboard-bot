@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
 </head>
 <body>
+    <!-- 背景视频（已禁用控件） -->
+    <video id="bg-video" class="bg-video" aria-hidden="true"
+           autoplay muted loop playsinline preload="auto"
+           controlslist="nodownload noplaybackrate"
+           disableremoteplayback
+           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260816_125506_3a597378-ec85-4ebd-bd22-03b45508ac62.mp4"></video>
+
     <!-- Liquid Glass SVG Filter Definition -->
     <svg class="glass-defs" width="0" height="0" aria-hidden="true" focusable="false">
         <defs>
@@ -56,16 +63,9 @@
         </defs>
     </svg>
 
-    <!-- Main Hero Area（视频移入内部，跟随滚动） -->
+    <!-- Main Hero Area -->
     <main class="hero">
-        <!-- 背景视频（现在在 Hero 内，会随 Hero 滚出视口消失） -->
-        <video id="bg-video" class="bg-video" aria-hidden="true"
-               autoplay muted loop playsinline preload="auto"
-               controlslist="nodownload noplaybackrate"
-               disableremoteplayback
-               src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260816_125506_3a597378-ec85-4ebd-bd22-03b45508ac62.mp4"></video>
-
-        <!-- 左右装饰线 -->
+        <!-- Desktop-only vertical rules -->
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span>
             <span class="rule__plus">+</span>
@@ -81,7 +81,7 @@
             <span class="rule__seg rule__seg--end"></span>
         </div>
 
-        <!-- 导航栏 -->
+        <!-- Navbar -->
         <nav class="nav">
             <button id="menu-open" class="nav__item" aria-expanded="false" aria-controls="menu">
                 <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -98,7 +98,7 @@
             </a>
         </nav>
 
-        <!-- 底部主内容 -->
+        <!-- Bottom Row -->
         <div class="hero-bottom">
             <div class="lede">
                 <h1 class="lede__title">Signals from<br />the Deep Green</h1>
@@ -149,7 +149,7 @@
         </div>
     </main>
 
-    <!-- 卡片区域（背景黑色，与 Hero 分隔） -->
+    <!-- 新增三卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -173,7 +173,7 @@
         </div>
     </section>
 
-    <!-- 菜单（和之前一样） -->
+    <!-- Menu -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
@@ -234,9 +234,9 @@
         </div>
     </div>
 
-    <!-- 原玻璃卡片脚本（必须保留） -->
+    <!-- 原页面玻璃卡片脚本（必须保留） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-    <!-- 新增脚本 -->
+    <!-- 新增脚本（菜单+卡片动画） -->
     <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
 </body>
 </html>
