@@ -21,9 +21,25 @@
             height: auto !important;
             min-height: 100vh !important;
         }
+        /* 隐藏视频控件 */
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        .bg-video {
+            pointer-events: none !important;
+            -webkit-user-select: none;
+            user-select: none;
+        }
     </style>
 
-    <!-- 新增卡片区域样式 -->
+    <!-- 新增卡片区域样式（如果之前加过可保留，没加也保持原样） -->
     <style>
         .cards-section {
             min-height: 100vh;
@@ -55,7 +71,6 @@
             background: rgba(255,255,255,0.05);
             transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
         }
-        /* 背景图片层（模糊） */
         .card-item::before {
             content: '';
             position: absolute;
@@ -66,7 +81,6 @@
             transform: scale(1.1);
             z-index: 0;
         }
-        /* 内容层 */
         .card-content {
             position: relative;
             z-index: 1;
@@ -88,7 +102,6 @@
             color: rgba(255,255,255,0.9);
             text-shadow: 0 1px 6px rgba(0,0,0,0.6);
         }
-        /* 初始位置 */
         .card-left { transform: translateX(-150px); }
         .card-center { transform: translateY(100px); }
         .card-right { transform: translateX(150px); }
@@ -100,10 +113,11 @@
     </style>
 </head>
 <body>
-    <!-- 原有所有内容不变（背景视频、滤镜、菜单等） -->
-    <!-- Background Video -->
+    <!-- 背景视频（已禁用控件） -->
     <video id="bg-video" class="bg-video" aria-hidden="true"
            autoplay muted loop playsinline preload="auto"
+           controlslist="nodownload noplaybackrate"
+           disableremoteplayback
            src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260816_125506_3a597378-ec85-4ebd-bd22-03b45508ac62.mp4"></video>
 
     <!-- Liquid Glass SVG Filter Definition -->
@@ -188,7 +202,6 @@
 
         <!-- Bottom Row -->
         <div class="hero-bottom">
-            <!-- Left Column: Copy -->
             <div class="lede">
                 <h1 class="lede__title">Signals from<br />the Deep Green</h1>
                 <p class="lede__body">
@@ -210,7 +223,6 @@
                 </a>
             </div>
 
-            <!-- Right Column: Liquid Glass Card -->
             <aside class="card group" data-glass-card>
                 <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
                 <div class="card__frost" aria-hidden="true"></div>
@@ -239,7 +251,7 @@
         </div>
     </main>
 
-    <!-- ========== 新增：三卡片滚动进入区域 ========== -->
+    <!-- 新增三卡片区域（如不需要可删除） -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -263,7 +275,7 @@
         </div>
     </section>
 
-    <!-- Slide-in Menu -->
+    <!-- Menu -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
@@ -326,7 +338,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // 原有菜单逻辑
+        // 菜单逻辑
         const menu = document.getElementById('menu');
         const menuOpenBtn = document.getElementById('menu-open');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -356,14 +368,13 @@
             }
         });
 
-        // ========== 新增：三卡片滚动动画 ==========
+        // 三卡片滚动动画
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
 
-            // 阻尼缓动函数
             function easeOutCubic(t) {
                 return 1 - Math.pow(1 - t, 3);
             }
@@ -371,12 +382,10 @@
             function updateCards() {
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                // 计算进度：卡片区域进入视口时开始，完全进入后结束
                 let progress = (vh - rect.top) / (vh * 0.8);
                 progress = Math.max(0, Math.min(1, progress));
                 const eased = easeOutCubic(progress);
 
-                // 三张卡片依次错开
                 const offset1 = Math.max(0, Math.min(1, (eased - 0.05) / 0.9));
                 const offset2 = Math.max(0, Math.min(1, (eased - 0.15) / 0.9));
                 const offset3 = Math.max(0, Math.min(1, (eased - 0.25) / 0.9));
@@ -393,7 +402,7 @@
 
             window.addEventListener('scroll', updateCards, { passive: true });
             window.addEventListener('resize', updateCards);
-            updateCards(); // 初始化
+            updateCards();
         })();
     </script>
 </body>
