@@ -127,9 +127,26 @@ html.night-mode {
 html.night-mode body {
     background: #ffffff; /* 反色后为黑 */
 }
-/* 可选：让按钮在夜晚模式下保持原样（反色后变成亮色） */
+/* 🌙 抵消反色：让三个卡片永远保持原来的颜色状态 */
+html.night-mode .card-item {
+    filter: invert(1) hue-rotate(180deg);
+}
+/* 按钮在夜晚模式下保持原样（抵消全局反色） */
 html.night-mode #night-mode-toggle {
-    filter: invert(1) hue-rotate(180deg); /* 抵消全局反色，使按钮保持原色 */
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* 💧 水波纹遮罩层 */
+#theme-ripple {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: #000;
+    z-index: 99999;
+    pointer-events: none;
+    display: none;
+    clip-path: circle(0% at 50% 50%);
+    transition: clip-path 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 响应式 */
