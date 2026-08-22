@@ -4,7 +4,7 @@ html, body {
     min-height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    background: #000000 !important; /* 纯黑背景 */
+    background: #000000 !important; /* 默认黑色背景 */
 }
 .hero {
     height: auto !important;
@@ -94,46 +94,54 @@ video::-webkit-media-controls-overlay-play-button {
 .card-center { transform: translateY(100px); }
 .card-right { transform: translateX(150px); }
 
-/* 🌙 夜晚模式按钮样式：小圆按钮，居中偏右 */
-#theme-toggle-btn {
-    position: absolute;
-    top: 1.5rem;
-    right: 20%; /* 从贴近边缘改为居中偏右 */
-    width: 30px;
-    height: 30px;
-    padding: 0;
+/* 🌙 夜晚模式按钮样式：小尺寸，放在中央偏下 */
+#night-mode-toggle {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
-    touch-action: manipulation;
-    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 5;
+    cursor: pointer;
+    z-index: 9999;
+    transition: transform 0.2s, background 0.2s;
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
 }
-#theme-toggle-btn:hover { background: rgba(255, 255, 255, 0.15); }
-#theme-toggle-btn:active { transform: scale(0.94); }
+#night-mode-toggle:hover {
+    transform: translateX(-50%) scale(1.1);
+    background: rgba(255,255,255,0.2);
+}
+#night-mode-toggle svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
 
-/* 🌙 夜晚模式：整体反色 + 色相旋转，保持色彩自然 */
+/* 白天模式（无滤镜）和夜晚模式（反色滤镜） */
 html.night-mode {
     filter: invert(1) hue-rotate(180deg);
-    background: #ffffff; /* 反色后底变黑 */
+    background: #ffffff; /* 反色后背景变白 */
 }
 html.night-mode body {
-    background: #ffffff; /* 反色后为黑 */
+    background: #ffffff;
 }
-/* 🌙 抵消反色：让三个卡片永远保持原来的颜色状态 */
+/* 抵消反色：让三个卡片永远保持原来的颜色状态 */
 html.night-mode .card-item {
     filter: invert(1) hue-rotate(180deg);
 }
 /* 按钮在夜晚模式下保持原样（抵消全局反色） */
-html.night-mode #theme-toggle-btn {
+html.night-mode #night-mode-toggle {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -142,17 +150,16 @@ html.night-mode #theme-toggle-btn {
     position: fixed;
     top: 0; left: 0;
     width: 100vw; height: 100vh;
-    background: #ffffff; /* 默认白色（白天遮罩） */
     z-index: 99998;
     pointer-events: none;
     display: none;
-    clip-path: circle(0% at 50% 50%);
-    transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); /* 恢复 0.8s */
+    clip-path: circle(150% at 50% 50%);
+    transition: clip-path 2s cubic-bezier(0.4, 0, 0.2, 1); /* 2秒缓慢扩散 */
 }
 
 /* 响应式 */
 @media (max-width: 768px) {
     .cards-grid { grid-template-columns: 1fr; gap: 16px; }
     .card-item { height: 200px; padding: 24px; }
-    #theme-toggle-btn { right: 10%; }
+    #night-mode-toggle { bottom: 20px; }
 }
