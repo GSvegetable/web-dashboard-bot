@@ -234,8 +234,11 @@
         </div>
     </div>
 
-    <!-- 🌙 夜晚模式切换按钮 -->
+    <!-- 🌙 夜晚模式切换按钮（移到屏幕中央） -->
     <button id="night-mode-toggle" title="切换夜晚模式">🌙</button>
+
+    <!-- 水波纹遮罩层（由 JS 动态控制） -->
+    <div id="theme-ripple"></div>
 
     <!-- 原页面玻璃卡片脚本（必须保留） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
