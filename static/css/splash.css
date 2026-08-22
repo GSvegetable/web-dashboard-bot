@@ -113,6 +113,11 @@ video::-webkit-media-controls-overlay-play-button {
     z-index: 9999;
     transition: transform 0.3s, background 0.3s;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    /* 去除蓝色高亮 */
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
 }
 #night-mode-toggle:hover {
     transform: scale(1.1);
