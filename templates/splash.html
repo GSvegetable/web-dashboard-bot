@@ -9,13 +9,15 @@
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
-    <!-- 修复滚动 -->
+    <!-- 修复滚动、隐藏视频控件 -->
     <style>
         html, body {
             height: auto !important;
             min-height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
+            /* 删除纯黑背景 */
+            background: transparent !important;
         }
         .hero { height: auto !important; min-height: 100vh !important; }
         video::-webkit-media-controls,
@@ -29,18 +31,18 @@
         .bg-video { pointer-events: none !important; }
     </style>
 
-    <!-- 新增：主题背景层（默认隐藏） -->
+    <!-- 主题背景层（默认显示海浪图） -->
     <style>
         #theme-bg {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover;
             background-position: center;
             z-index: 0;
             pointer-events: none;
-            display: none; /* 默认隐藏 */
+            display: block; /* 默认显示 */
         }
         /* 保证内容在背景之上 */
         .hero, .nav, .cards-section, .menu {
@@ -82,10 +84,9 @@
     </style>
 </head>
 <body>
-    <!-- 背景视频（已移除，纯黑） -->
-    <body style="background: #000000 !important;"></body>
+    <!-- 背景视频（已移除，用图片代替） -->
 
-    <!-- 主题背景层 -->
+    <!-- 主题背景层（默认海浪图） -->
     <div id="theme-bg"></div>
 
     <!-- 主内容 -->
@@ -262,17 +263,23 @@
             updateCards();
         })();
 
-        // 🌙 主题切换（直接切换，无动画）
+        // 🌙 主题切换（在海浪图和另一张图之间直接切换）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
             if (!toggleBtn || !themeBg) return;
-            let isImageShown = false;
+            
+            // 定义两张背景图的 URL
+            const IMG_1 = "{{ url_for('static', filename='IMG_20260823_040708.png') }}";
+            const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
+            
+            let isFirstImage = true; // 当前是否显示第一张（海浪图）
+
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                isImageShown = !isImageShown;
-                themeBg.style.display = isImageShown ? 'block' : 'none';
+                isFirstImage = !isFirstImage;
+                themeBg.style.backgroundImage = `url('${isFirstImage ? IMG_1 : IMG_2}')`;
             });
         })();
     </script>
