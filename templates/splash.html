@@ -3,114 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terranova — Signals from the Deep Green</title>
+    <title>宫水大世界 宫水.com － Professional Telegram bot development services</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
-
-    <!-- 修复滚动 -->
-    <style>
-        html, body {
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-        }
-        .hero {
-            height: auto !important;
-            min-height: 100vh !important;
-        }
-        /* 隐藏视频控件 */
-        video::-webkit-media-controls,
-        video::-webkit-media-controls-enclosure,
-        video::-webkit-media-controls-panel,
-        video::-webkit-media-controls-play-button,
-        video::-webkit-media-controls-start-playback-button,
-        video::-webkit-media-controls-overlay-play-button {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        .bg-video {
-            pointer-events: none !important;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-    </style>
-
-    <!-- 新增卡片区域样式（如果之前加过可保留，没加也保持原样） -->
-    <style>
-        .cards-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 40px;
-            position: relative;
-            z-index: 10;
-        }
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 32px;
-            max-width: 1100px;
-            width: 100%;
-        }
-        .card-item {
-            position: relative;
-            border-radius: 20px;
-            padding: 32px;
-            height: 260px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            opacity: 0;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.05);
-            transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
-        }
-        .card-item::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-size: cover;
-            background-position: center;
-            filter: blur(8px) brightness(0.7);
-            transform: scale(1.1);
-            z-index: 0;
-        }
-        .card-content {
-            position: relative;
-            z-index: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-        .card-content h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: #ffffff;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-        }
-        .card-content p {
-            font-size: 14px;
-            line-height: 1.7;
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-        }
-        .card-left { transform: translateX(-150px); }
-        .card-center { transform: translateY(100px); }
-        .card-right { transform: translateX(150px); }
-
-        @media (max-width: 768px) {
-            .cards-grid { grid-template-columns: 1fr; gap: 16px; }
-            .card-item { height: 200px; padding: 24px; }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
 </head>
 <body>
     <!-- 背景视频（已禁用控件） -->
@@ -251,7 +149,7 @@
         </div>
     </main>
 
-    <!-- 新增三卡片区域（如不需要可删除） -->
+    <!-- 新增三卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -336,74 +234,9 @@
         </div>
     </div>
 
+    <!-- 原页面玻璃卡片脚本（必须保留） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-    <script>
-        // 菜单逻辑
-        const menu = document.getElementById('menu');
-        const menuOpenBtn = document.getElementById('menu-open');
-        const menuCloseBtn = document.getElementById('menu-close');
-        const menuBackdrop = document.getElementById('menu-backdrop');
-        const menuLinks = document.querySelectorAll('.menu__link');
-
-        function setMenu(open) {
-            menu.classList.toggle('is-open', open);
-            menuOpenBtn.setAttribute('aria-expanded', String(open));
-            if (open) {
-                menuCloseBtn.focus({ preventScroll: true });
-            } else {
-                menuOpenBtn.focus({ preventScroll: true });
-            }
-        }
-
-        menuOpenBtn.addEventListener('click', () => setMenu(true));
-        menuCloseBtn.addEventListener('click', () => setMenu(false));
-        menuBackdrop.addEventListener('click', () => setMenu(false));
-        menuLinks.forEach(link => {
-            link.addEventListener('click', () => setMenu(false));
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                setMenu(false);
-            }
-        });
-
-        // 三卡片滚动动画
-        (function() {
-            const section = document.getElementById('cardsSection');
-            const card1 = document.getElementById('card1');
-            const card2 = document.getElementById('card2');
-            const card3 = document.getElementById('card3');
-
-            function easeOutCubic(t) {
-                return 1 - Math.pow(1 - t, 3);
-            }
-
-            function updateCards() {
-                const rect = section.getBoundingClientRect();
-                const vh = window.innerHeight;
-                let progress = (vh - rect.top) / (vh * 0.8);
-                progress = Math.max(0, Math.min(1, progress));
-                const eased = easeOutCubic(progress);
-
-                const offset1 = Math.max(0, Math.min(1, (eased - 0.05) / 0.9));
-                const offset2 = Math.max(0, Math.min(1, (eased - 0.15) / 0.9));
-                const offset3 = Math.max(0, Math.min(1, (eased - 0.25) / 0.9));
-
-                card1.style.transform = `translateX(${-150 * (1 - offset1)}px)`;
-                card1.style.opacity = offset1;
-
-                card2.style.transform = `translateY(${100 * (1 - offset2)}px)`;
-                card2.style.opacity = offset2;
-
-                card3.style.transform = `translateX(${150 * (1 - offset3)}px)`;
-                card3.style.opacity = offset3;
-            }
-
-            window.addEventListener('scroll', updateCards, { passive: true });
-            window.addEventListener('resize', updateCards);
-            updateCards();
-        })();
-    </script>
+    <!-- 新增脚本（菜单+卡片动画） -->
+    <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
 </body>
 </html>
