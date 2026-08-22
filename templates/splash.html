@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
-    <!-- ✅ 唯一新增：强制允许页面向下滑动（覆盖外部CSS可能的隐藏设置） -->
+    <!-- 修复滚动 -->
     <style>
         html, body {
             height: auto !important;
@@ -22,10 +22,85 @@
             min-height: 100vh !important;
         }
     </style>
-    <!-- ✅ 新增结束 -->
 
+    <!-- 新增卡片区域样式 -->
+    <style>
+        .cards-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            position: relative;
+            z-index: 10;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            max-width: 1100px;
+            width: 100%;
+        }
+        .card-item {
+            position: relative;
+            border-radius: 20px;
+            padding: 32px;
+            height: 260px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            opacity: 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease;
+        }
+        /* 背景图片层（模糊） */
+        .card-item::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) brightness(0.7);
+            transform: scale(1.1);
+            z-index: 0;
+        }
+        /* 内容层 */
+        .card-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .card-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+        .card-content p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+        }
+        /* 初始位置 */
+        .card-left { transform: translateX(-150px); }
+        .card-center { transform: translateY(100px); }
+        .card-right { transform: translateX(150px); }
+
+        @media (max-width: 768px) {
+            .cards-grid { grid-template-columns: 1fr; gap: 16px; }
+            .card-item { height: 200px; padding: 24px; }
+        }
+    </style>
 </head>
 <body>
+    <!-- 原有所有内容不变（背景视频、滤镜、菜单等） -->
     <!-- Background Video -->
     <video id="bg-video" class="bg-video" aria-hidden="true"
            autoplay muted loop playsinline preload="auto"
@@ -164,6 +239,30 @@
         </div>
     </main>
 
+    <!-- ========== 新增：三卡片滚动进入区域 ========== -->
+    <section class="cards-section" id="cardsSection">
+        <div class="cards-grid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
+                <div class="card-content">
+                    <h3>一键部署</h3>
+                    <p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+                </div>
+            </div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
+                <div class="card-content">
+                    <h3>功能扩展</h3>
+                    <p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
+                </div>
+            </div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
+                <div class="card-content">
+                    <h3>安全托管</h3>
+                    <p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Slide-in Menu -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
@@ -227,7 +326,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // Menu Logic (previously in ui.js, now inline to avoid conflicts with existing ui.js)
+        // 原有菜单逻辑
         const menu = document.getElementById('menu');
         const menuOpenBtn = document.getElementById('menu-open');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -256,6 +355,46 @@
                 setMenu(false);
             }
         });
+
+        // ========== 新增：三卡片滚动动画 ==========
+        (function() {
+            const section = document.getElementById('cardsSection');
+            const card1 = document.getElementById('card1');
+            const card2 = document.getElementById('card2');
+            const card3 = document.getElementById('card3');
+
+            // 阻尼缓动函数
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+
+            function updateCards() {
+                const rect = section.getBoundingClientRect();
+                const vh = window.innerHeight;
+                // 计算进度：卡片区域进入视口时开始，完全进入后结束
+                let progress = (vh - rect.top) / (vh * 0.8);
+                progress = Math.max(0, Math.min(1, progress));
+                const eased = easeOutCubic(progress);
+
+                // 三张卡片依次错开
+                const offset1 = Math.max(0, Math.min(1, (eased - 0.05) / 0.9));
+                const offset2 = Math.max(0, Math.min(1, (eased - 0.15) / 0.9));
+                const offset3 = Math.max(0, Math.min(1, (eased - 0.25) / 0.9));
+
+                card1.style.transform = `translateX(${-150 * (1 - offset1)}px)`;
+                card1.style.opacity = offset1;
+
+                card2.style.transform = `translateY(${100 * (1 - offset2)}px)`;
+                card2.style.opacity = offset2;
+
+                card3.style.transform = `translateX(${150 * (1 - offset3)}px)`;
+                card3.style.opacity = offset3;
+            }
+
+            window.addEventListener('scroll', updateCards, { passive: true });
+            window.addEventListener('resize', updateCards);
+            updateCards(); // 初始化
+        })();
     </script>
 </body>
 </html>
