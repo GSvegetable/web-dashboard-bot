@@ -64,3 +64,22 @@ document.addEventListener('keydown', (e) => {
     window.addEventListener('resize', updateCards);
     updateCards();
 })();
+
+// 🌙 夜晚模式切换
+(function() {
+    const toggleBtn = document.getElementById('night-mode-toggle');
+    if (!toggleBtn) return;
+
+    toggleBtn.addEventListener('click', function() {
+        document.documentElement.classList.toggle('night-mode');
+        // 可选：保存偏好到本地存储，下次访问自动生效
+        const isNight = document.documentElement.classList.contains('night-mode');
+        localStorage.setItem('gsbot-night-mode', isNight ? '1' : '0');
+    });
+
+    // 页面加载时根据本地存储自动恢复
+    const saved = localStorage.getItem('gsbot-night-mode');
+    if (saved === '1') {
+        document.documentElement.classList.add('night-mode');
+    }
+})();
