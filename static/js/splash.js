@@ -1,43 +1,35 @@
-// ==========================================
-// 菜单逻辑（放在最外层，防止报错阻断后续）
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const menu = document.getElementById('menu');
-    const menuOpenBtn = document.getElementById('menu-open');
-    const menuCloseBtn = document.getElementById('menu-close');
-    const menuBackdrop = document.getElementById('menu-backdrop');
-    const menuLinks = document.querySelectorAll('.menu__link');
+// 菜单逻辑
+const menu = document.getElementById('menu');
+const menuOpenBtn = document.getElementById('menu-open');
+const menuCloseBtn = document.getElementById('menu-close');
+const menuBackdrop = document.getElementById('menu-backdrop');
+const menuLinks = document.querySelectorAll('.menu__link');
 
-    if (menu && menuOpenBtn && menuCloseBtn && menuBackdrop) {
-        function setMenu(open) {
-            menu.classList.toggle('is-open', open);
-            menuOpenBtn.setAttribute('aria-expanded', String(open));
-            if (open) {
-                menuCloseBtn.focus({ preventScroll: true });
-            } else {
-                menuOpenBtn.focus({ preventScroll: true });
-            }
-        }
+function setMenu(open) {
+    menu.classList.toggle('is-open', open);
+    menuOpenBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+        menuCloseBtn.focus({ preventScroll: true });
+    } else {
+        menuOpenBtn.focus({ preventScroll: true });
+    }
+}
 
-        menuOpenBtn.addEventListener('click', () => setMenu(true));
-        menuCloseBtn.addEventListener('click', () => setMenu(false));
-        menuBackdrop.addEventListener('click', () => setMenu(false));
-        menuLinks.forEach(link => {
-            link.addEventListener('click', () => setMenu(false));
-        });
+menuOpenBtn.addEventListener('click', () => setMenu(true));
+menuCloseBtn.addEventListener('click', () => setMenu(false));
+menuBackdrop.addEventListener('click', () => setMenu(false));
+menuLinks.forEach(link => {
+    link.addEventListener('click', () => setMenu(false));
+});
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                setMenu(false);
-            }
-        });
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+        setMenu(false);
     }
 });
 
-// ==========================================
 // 三卡片滚动动画
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     const section = document.getElementById('cardsSection');
     const card1 = document.getElementById('card1');
     const card2 = document.getElementById('card2');
@@ -73,20 +65,19 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', updateCards);
     window.addEventListener('load', updateCards);
     updateCards();
-});
+})();
 
-// ==========================================
-// 主题切换按钮（完美复刻原版扩散效果）
-// ==========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('theme-toggle-btn');
+// 🌙 水波纹夜晚模式切换（正确逻辑：先切主题，遮罩收缩露出新主题）
+(function() {
+    const toggleBtn = document.getElementById('night-mode-toggle');
     const ripple = document.getElementById('theme-ripple');
-    
     if (!toggleBtn || !ripple) return;
 
-    // 初始化夜晚模式状态
-    let isNight = localStorage.getItem('gsbot-night-mode') === '1';
-    if (isNight) {
+    // 初始化：默认黑色（夜晚），如果本地存储标记为白天，则移除反色
+    let isNight = localStorage.getItem('gsbot-night-mode') !== '0'; // 默认夜晚
+    if (!isNight) {
+        document.documentElement.classList.remove('night-mode');
+    } else {
         document.documentElement.classList.add('night-mode');
     }
 
@@ -94,33 +85,28 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         e.stopPropagation();
 
-        const rect = toggleBtn.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-
         const currentIsNight = document.documentElement.classList.contains('night-mode');
         const nextIsNight = !currentIsNight;
 
-        // 设置遮罩颜色 = 旧主题颜色
+        // 1. 立即切换底层主题
+        document.documentElement.classList.toggle('night-mode', nextIsNight);
+        localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
+
+        // 2. 设置遮罩颜色 = 旧主题颜色（黑色或白色）
+        //    当前是夜晚（黑色背景）→ 遮罩为黑色；当前是白天（白色背景）→ 遮罩为白色
         ripple.style.background = currentIsNight ? '#000' : '#fff';
 
-        // 从按钮位置扩散
-        ripple.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+        // 3. 初始遮罩完全覆盖屏幕（半径 150%），强制重绘
+        ripple.style.clipPath = 'circle(150% at 50% 50%)';
         ripple.style.display = 'block';
-
-        // 强制重绘
         void ripple.offsetWidth;
-        ripple.style.clipPath = `circle(150% at ${x}px ${y}px)`;
 
-        // 在扩散中段切换主题
-        setTimeout(() => {
-            document.documentElement.classList.toggle('night-mode', nextIsNight);
-            localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
-        }, 400);
+        // 4. 收缩遮罩到 0，露出新主题
+        ripple.style.clipPath = 'circle(0% at 50% 50%)';
 
-        // 动画结束后隐藏遮罩
+        // 5. 动画结束后隐藏遮罩
         setTimeout(() => {
             ripple.style.display = 'none';
-        }, 850);
+        }, 2100); // 2秒动画 + 0.1秒缓冲
     });
-});
+})();
