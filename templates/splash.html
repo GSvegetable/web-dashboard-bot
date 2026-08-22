@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}" />
 </head>
 <body>
-    <!-- 背景视频已移除，改为纯黑色 -->
-
     <!-- Liquid Glass SVG Filter Definition -->
     <svg class="glass-defs" width="0" height="0" aria-hidden="true" focusable="false">
         <defs>
@@ -115,13 +113,6 @@
                     </svg>
                 </a>
             </div>
-
-            <!-- 夜晚模式切换按钮（居中偏右，放在hero底部右侧） -->
-            <button id="theme-toggle-btn" title="切换夜晚模式">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-            </button>
 
             <aside class="card group" data-glass-card>
                 <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
@@ -235,6 +226,13 @@
             </div>
         </div>
     </div>
+
+    <!-- 🌙 夜晚模式切换按钮（小尺寸，月亮图标） -->
+    <button id="night-mode-toggle" title="切换夜晚模式">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
 
     <!-- 水波纹遮罩层（由 JS 动态控制） -->
     <div id="theme-ripple"></div>
