@@ -94,11 +94,11 @@ video::-webkit-media-controls-overlay-play-button {
 .card-center { transform: translateY(100px); }
 .card-right { transform: translateX(150px); }
 
-/* 🌙 夜晚模式按钮样式：小圆按钮，放在标题旁边 */
+/* 🌙 夜晚模式按钮样式：小圆按钮，居中偏右 */
 #theme-toggle-btn {
     position: absolute;
     top: 1.5rem;
-    right: 1.5rem;
+    right: 20%; /* 从贴近边缘改为居中偏右 */
     width: 30px;
     height: 30px;
     padding: 0;
@@ -154,4 +154,5 @@ html.night-mode #theme-toggle-btn {
 @media (max-width: 768px) {
     .cards-grid { grid-template-columns: 1fr; gap: 16px; }
     .card-item { height: 200px; padding: 24px; }
+    #theme-toggle-btn { right: 10%; }
 }
