@@ -67,46 +67,33 @@ document.addEventListener('keydown', (e) => {
     updateCards();
 })();
 
-// 🌙 水波纹夜晚模式切换（正确逻辑：先切主题，遮罩收缩露出新主题）
+// 🌙 背景图片扩散切换（完美逻辑，不再改）
 (function() {
     const toggleBtn = document.getElementById('night-mode-toggle');
-    const ripple = document.getElementById('theme-ripple');
-    if (!toggleBtn || !ripple) return;
+    const themeBg = document.getElementById('theme-bg');
+    if (!toggleBtn || !themeBg) return;
 
-    // 初始化：默认黑色（夜晚），如果本地存储标记为白天，则移除反色
-    let isNight = localStorage.getItem('gsbot-night-mode') !== '0'; // 默认夜晚
-    if (!isNight) {
-        document.documentElement.classList.remove('night-mode');
-    } else {
-        document.documentElement.classList.add('night-mode');
-    }
+    // 初始状态：图片隐藏（黑色背景）
+    let isImageShown = false;
 
     toggleBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        const currentIsNight = document.documentElement.classList.contains('night-mode');
-        const nextIsNight = !currentIsNight;
+        // 切换状态
+        isImageShown = !isImageShown;
 
-        // 1. 立即切换底层主题
-        document.documentElement.classList.toggle('night-mode', nextIsNight);
-        localStorage.setItem('gsbot-night-mode', nextIsNight ? '1' : '0');
-
-        // 2. 设置遮罩颜色 = 旧主题颜色（黑色或白色）
-        //    当前是夜晚（黑色背景）→ 遮罩为黑色；当前是白天（白色背景）→ 遮罩为白色
-        ripple.style.background = currentIsNight ? '#000' : '#fff';
-
-        // 3. 初始遮罩完全覆盖屏幕（半径 150%），强制重绘
-        ripple.style.clipPath = 'circle(150% at 50% 50%)';
-        ripple.style.display = 'block';
-        void ripple.offsetWidth;
-
-        // 4. 收缩遮罩到 0，露出新主题
-        ripple.style.clipPath = 'circle(0% at 50% 50%)';
-
-        // 5. 动画结束后隐藏遮罩
-        setTimeout(() => {
-            ripple.style.display = 'none';
-        }, 2100); // 2秒动画 + 0.1秒缓冲
+        // 核心：强制重绘后，改变 clip-path 触发 2 秒过渡动画
+        if (isImageShown) {
+            // 显示图片：从0扩散到150%
+            themeBg.style.clipPath = 'circle(0% at 50% 50%)';
+            void themeBg.offsetWidth; // 强制重绘
+            themeBg.style.clipPath = 'circle(150% at 50% 50%)';
+        } else {
+            // 隐藏图片：从150%收缩到0%
+            themeBg.style.clipPath = 'circle(150% at 50% 50%)';
+            void themeBg.offsetWidth; // 强制重绘
+            themeBg.style.clipPath = 'circle(0% at 50% 50%)';
+        }
     });
 })();
