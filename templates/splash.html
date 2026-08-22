@@ -9,15 +9,14 @@
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
-    <!-- 修复滚动、隐藏视频控件 -->
+    <!-- 修复滚动、隐藏视频控件、删除黑底 -->
     <style>
         html, body {
             height: auto !important;
             min-height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            /* 删除纯黑背景 */
-            background: transparent !important;
+            background: transparent !important; /* 关键：不要黑色底 */
         }
         .hero { height: auto !important; min-height: 100vh !important; }
         video::-webkit-media-controls,
@@ -31,7 +30,7 @@
         .bg-video { pointer-events: none !important; }
     </style>
 
-    <!-- 主题背景层（默认显示海浪图） -->
+    <!-- 主题背景层（默认海浪图，加兜底色） -->
     <style>
         #theme-bg {
             position: fixed;
@@ -40,6 +39,7 @@
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover;
             background-position: center;
+            background-color: #333333; /* 兜底：即使图片加载慢，也是深灰色而不是全黑 */
             z-index: 0;
             pointer-events: none;
             display: block; /* 默认显示 */
