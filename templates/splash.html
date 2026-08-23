@@ -33,14 +33,46 @@
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
 
         /* 卡片绝对定位，初始重叠在中心 */
-        .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
-        .card-item { position: absolute; left: 50%; top: 50%; width: calc(33.33% - 22px); max-width: 340px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); }
+        .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; perspective: 1200px; }
+        .card-item {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: calc(33.33% - 22px);
+            max-width: 340px;
+            height: 180px;
+            border-radius: 32px;
+            padding: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            background-color: rgba(255,255,255,0.05);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255,255,255,0.15);
+            will-change: transform, opacity;
+            /* 关键：放大背景图并定位到左上角 */
+            background-size: 350% auto;
+            background-position: 0% 0%;
+            background-repeat: no-repeat;
+            transform-style: preserve-3d;
+        }
         .card-left { z-index: 1; transform: translate(-50%, -50%); }
         .card-center { z-index: 3; transform: translate(-50%, -50%); }
         .card-right { z-index: 2; transform: translate(-50%, -50%); }
 
-        .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
-        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+        /* 移除原 ::before 模糊，改为 ::after 暗化渐变 */
+        .card-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .card-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
     </style>
@@ -139,7 +171,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 三卡片动画（严格按照你的描述）
+        // ✅ 重新设计的三卡片动画（更复杂、更流畅）
         (function() {
             const section = document.getElementById('cardsSection');
             const grid = document.getElementById('cardsGrid');
@@ -147,37 +179,83 @@
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
 
-            let vw = window.innerWidth;
-            window.addEventListener('resize', () => { vw = window.innerWidth; });
-            const distance = () => vw * 0.4; // 拉开距离（视口宽度的40%）
+            // 距离计算基于视口宽度，限制最大偏移避免超出容器
+            function getOffset() {
+                const containerWidth = grid.offsetWidth;
+                const cardWidth = Math.min(containerWidth * 0.33, 340);
+                return Math.min(window.innerWidth * 0.35, (containerWidth - cardWidth) / 2 - 20);
+            }
+
+            // 缓动函数
+            const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+            const easeInOutQuad = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
             function updateCards() {
                 if (!section || !card1 || !card2 || !card3) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
+                const offset = getOffset();
 
-                // 总进度：section 顶部从 vh（屏幕底）到 0（屏幕顶），设为 1.5*vh 范围，让动画更从容
-                let progress = (vh - rect.top) / (vh * 1.5);
+                // 进度范围：section 顶部从 vh 到 -0.3vh，映射到 0~1
+                let progress = (vh - rect.top) / (vh * 1.3);
                 progress = Math.max(0, Math.min(1, progress));
 
-                // 阶段1（0 ~ 0.6）：中间卡片从底部滑到中心
-                let midProgress = Math.min(1, progress / 0.6);
-                let midTranslateY = (1 - midProgress) * vh; // 初始在屏幕底，滑到0
+                // 阶段1：中间卡片从底部滑入并缩放淡入 (progress 0 ~ 0.55)
+                const pMid = easeOutCubic(Math.min(1, progress / 0.55));
+                const midY = (1 - pMid) * (vh * 0.8); // 从屏幕下方 80vh 处滑入
+                const midScale = 0.85 + 0.15 * pMid;
+                const midOpacity = pMid;
 
-                // 阶段2（0.6 ~ 1）：左右卡片从中心向两边拉开
-                let sideProgress = Math.max(0, (progress - 0.6) / 0.4);
-                let sideOffset = distance() * sideProgress;
+                // 阶段2：左右卡片展开 (progress 0.45 ~ 0.85)
+                const leftProgress = easeInOutQuad(Math.max(0, Math.min(1, (progress - 0.45) / 0.4)));
+                const rightProgress = easeInOutQuad(Math.max(0, Math.min(1, (progress - 0.5) / 0.4))); // 右卡片稍晚
 
-                // 中间卡片：上下移动
-                card2.style.transform = `translate(-50%, calc(-50% + ${midTranslateY}px))`;
+                const leftOffsetX = leftProgress * offset;
+                const rightOffsetX = rightProgress * offset;
+                const leftRotate = (1 - leftProgress) * 12; // 从12度旋转到0度
+                const rightRotate = (1 - rightProgress) * -12;
+                const leftY = (1 - leftProgress) * 30; // 展开同时轻微上移
+                const rightY = (1 - rightProgress) * 30;
+                const leftOpacity = 0.8 + 0.2 * leftProgress;
+                const rightOpacity = 0.8 + 0.2 * rightProgress;
 
-                // 左右卡片：左右移动（初始在中间，与中间重叠，被中间卡片z-index遮挡）
-                card1.style.transform = `translate(calc(-50% - ${sideOffset}px), -50%)`;
-                card3.style.transform = `translate(calc(-50% + ${sideOffset}px), -50%)`;
+                // 阶段3：所有卡片展开后的视差浮动 (progress 0.85 ~ 1)
+                const floatProgress = easeInOutQuad(Math.max(0, Math.min(1, (progress - 0.85) / 0.15)));
+                const floatY = floatProgress * 15; // 向下浮动15px
+                const floatScale = 1 - floatProgress * 0.05; // 略微缩小
+
+                // 应用中间卡片变换
+                card2.style.transform = `translate(-50%, calc(-50% + ${midY}px)) scale(${midScale * floatScale})`;
+                card2.style.opacity = midOpacity;
+                card2.style.zIndex = 3;
+
+                // 应用左卡片变换
+                card1.style.transform = `translate(calc(-50% - ${leftOffsetX}px), calc(-50% - ${leftY}px + ${floatY}px)) rotate(${leftRotate}deg) scale(${floatScale})`;
+                card1.style.opacity = leftOpacity;
+                card1.style.zIndex = leftProgress > 0.1 ? 1 : 0; // 展开后降低层级
+
+                // 应用右卡片变换
+                card3.style.transform = `translate(calc(-50% + ${rightOffsetX}px), calc(-50% - ${rightY}px + ${floatY}px)) rotate(${rightRotate}deg) scale(${floatScale})`;
+                card3.style.opacity = rightOpacity;
+                card3.style.zIndex = rightProgress > 0.1 ? 2 : 0;
             }
 
-            window.addEventListener('scroll', updateCards, { passive: true });
-            window.addEventListener('resize', updateCards);
+            // 使用 requestAnimationFrame 优化滚动性能
+            let ticking = false;
+            function onScroll() {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        updateCards();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', () => {
+                updateCards();
+            });
             window.addEventListener('load', updateCards);
             updateCards();
         })();
