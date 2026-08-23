@@ -10,29 +10,69 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: transparent !important; }
-        .hero { height: auto !important; min-height: 100vh !important; }
-        video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
-        video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
-        video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        .bg-video { pointer-events: none !important; }
-
-        #theme-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #333333; z-index: 0; pointer-events: none; }
-        
-        /* ✅ 核心修复：纯 CSS 扩散层，绝不出错 */
-        #theme-ring {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 0;
-            background-size: cover; background-position: center;
-            clip-path: circle(0% at 50% 50%);
-            transition: clip-path 0.8s ease-in-out;
+        /* 基础滚动修复 */
+        html, body {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            background: #1a1a1a !important; /* 兜底深灰色 */
         }
-        #theme-ring.active { clip-path: circle(150% at 50% 50%); }
+        .hero { height: auto !important; min-height: 100vh !important; }
 
-        .hero, .nav, .cards-section, .menu { position: relative; z-index: 1; }
-        #night-mode-toggle { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent; user-select: none; }
+        /* 背景层（默认海浪图） */
+        #theme-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-color: #1a1a1a;
+            z-index: 0;
+            pointer-events: none;
+        }
 
+        /* 背景层2（切换目标，默认隐藏） */
+        #theme-bg2 {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-color: #1a1a1a;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* 内容层保持在背景上方 */
+        .hero, .nav, .cards-section, .menu {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 月亮按钮（小尺寸） */
+        #night-mode-toggle {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* 卡片样式 */
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 1; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
         .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
@@ -46,9 +86,11 @@
     </style>
 </head>
 <body>
+    <!-- 两层背景图片：默认显示第一张，切换时第二张淡入/淡出 -->
     <div id="theme-bg"></div>
-    <div id="theme-ring"></div>
+    <div id="theme-bg2"></div>
 
+    <!-- 主内容（原样保留） -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -119,6 +161,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
+        // 菜单逻辑
         const menu = document.getElementById('menu');
         const menuOpenBtn = document.getElementById('menu-open');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -131,6 +174,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
+        // 三卡片滚动动画
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -157,16 +201,14 @@
             updateCards();
         })();
 
-        // ✅ 纯 CSS 方案：切换类名驱动扩散，双向100%有效
+        // ✅ 图片切换（纯 DOM 切换，绝无扩散失败问题）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
-            const themeRing = document.getElementById('theme-ring');
-            if (!toggleBtn || !themeBg || !themeRing) return;
+            const themeBg2 = document.getElementById('theme-bg2');
+            if (!toggleBtn || !themeBg || !themeBg2) return;
 
-            const IMG_1 = "{{ url_for('static', filename='IMG_20260823_040708.png') }}";
-            const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
-
+            // 初始状态：第一张图显示，第二张图隐藏
             let isFirstImage = true;
 
             toggleBtn.addEventListener('click', function(e) {
@@ -174,23 +216,16 @@
                 e.stopPropagation();
 
                 isFirstImage = !isFirstImage;
-                const nextBg = isFirstImage ? IMG_1 : IMG_2;
 
-                // 1. 强制重置圆环：设为0大小，换成新图
-                themeRing.style.backgroundImage = `url('${nextBg}')`;
-                themeRing.classList.remove('active');
-                
-                // 2. 强制重绘，确保重置生效
-                void themeRing.offsetWidth;
-
-                // 3. 浏览器会通过 CSS transition 自动从 0 扩散到 150%
-                themeRing.classList.add('active');
-
-                // 4. 等待动画结束后，更新背景并隐藏圆环
-                setTimeout(() => {
-                    themeBg.style.backgroundImage = `url('${nextBg}')`;
-                    themeRing.classList.remove('active');
-                }, 800); // 与 CSS transition 时长一致
+                if (isFirstImage) {
+                    // 显示第一张，隐藏第二张
+                    themeBg.style.opacity = '1';
+                    themeBg2.style.opacity = '0';
+                } else {
+                    // 显示第二张，隐藏第一张
+                    themeBg.style.opacity = '0';
+                    themeBg2.style.opacity = '1';
+                }
             });
         })();
     </script>
