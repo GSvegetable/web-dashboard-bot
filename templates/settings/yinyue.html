@@ -1,0 +1,60 @@
+<!-- 音乐设置面板：播放器 -->
+<h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">音乐</h1>
+
+<div class="mt-6 flex flex-col gap-6">
+    <div class="animate-item delay-2 w-full bg-[#161b22] border border-[#30363d] rounded-lg p-6 flex flex-col items-center gap-4">
+        <img src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" class="w-32 h-32 rounded-lg object-cover" />
+        <div class="text-center">
+            <div class="text-lg font-semibold text-[#f0f6fc]">你的名字</div>
+            <div class="text-sm text-[#8b949e]">纯音乐</div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="play-pause-btn" class="gh-edit-btn">播放</button>
+        </div>
+        <div class="w-full">
+            <input type="range" id="music-progress" value="0" min="0" max="100" class="w-full">
+        </div>
+        <div class="flex justify-between w-full text-xs text-[#8b949e]">
+            <span id="music-current-time">0:00</span>
+            <span id="music-total-time">0:00</span>
+        </div>
+    </div>
+</div>
+
+<!-- 音乐播放器逻辑（如果主文件中未包含，可在此处添加） -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('bg-audio');
+    const playBtn = document.getElementById('play-pause-btn');
+    const progress = document.getElementById('music-progress');
+    const currentTimeEl = document.getElementById('music-current-time');
+    const totalTimeEl = document.getElementById('music-total-time');
+
+    if (audio && playBtn) {
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
+        }
+        audio.addEventListener('loadedmetadata', () => {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        });
+        audio.addEventListener('timeupdate', () => {
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+            progress.value = (audio.currentTime / audio.duration) * 100;
+        });
+        playBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '暂停';
+            } else {
+                audio.pause();
+                playBtn.textContent = '播放';
+            }
+        });
+        progress.addEventListener('input', () => {
+            audio.currentTime = (progress.value / 100) * audio.duration;
+        });
+    }
+});
+</script>
