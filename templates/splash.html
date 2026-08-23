@@ -55,67 +55,65 @@
         .nav__label { color: var(--text-color) !important; }
 
         /* ==========================================
-           汉堡菜单（直接使用你给的原版 Uiverse 源码）
+           汉堡菜单（原版 Uiverse 结构，已改白色且缩小）
            ========================================== */
         #menuToggle {
             position: fixed;
             top: 16px;
             left: 20px;
-            z-index: 100000; /* 保证浮在最上层，不会被菜单面板遮挡 */
+            z-index: 100000; /* 保证浮在最上层 */
             pointer-events: auto !important;
         }
-        #checkbox {
-            display: none;
-        }
+        #checkbox { display: none; }
         .toggle {
             position: relative;
-            width: 40px;
+            width: 32px; /* 缩小宽度 */
             cursor: pointer;
             margin: auto;
             display: block;
-            height: calc(4px * 3 + 11px * 2);
+            height: calc(3px * 3 + 9px * 2); /* 缩小高度 */
         }
         .bar {
             position: absolute;
             left: 0;
             right: 0;
-            height: 4px;
-            border-radius: calc(4px / 2);
-            background: #7b52b9;
+            height: 3px; /* 缩小杠高 */
+            border-radius: calc(3px / 2);
+            background: #ffffff; /* 纯白色 */
             color: inherit;
             opacity: 1;
             transition: none 0.35s cubic-bezier(.5,-0.35,.35,1.5) 0s;
         }
         .bar--top {
-            bottom: calc(50% + 11px + 4px/ 2);
+            bottom: calc(50% + 9px + 3px / 2);
             transition-property: bottom,margin,transform;
             transition-delay: calc(0s + 0.35s),0s,0s;
         }
         .bar--middle {
-            top: calc(50% - 4px/ 2);
+            top: calc(50% - 3px / 2);
             transition-property: top,opacity;
             transition-duration: 0.35s,0s;
             transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
         }
         .bar--bottom {
-            top: calc(50% + 11px + 4px/ 2);
+            top: calc(50% + 9px + 3px / 2);
             transition-property: top,transform;
             transition-delay: 0s;
         }
         #checkbox:checked + .toggle .bar--top {
-            bottom: calc(50% - 11px - 4px);
-            margin-bottom: calc(11px + 4px/ 2);
+            bottom: calc(50% - 9px - 3px);
+            margin-bottom: calc(9px + 3px / 2);
             transform: rotate(45deg);
             transition-delay: calc(0s + 0.35s * .3),calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
         }
         #checkbox:checked + .toggle .bar--middle {
-            top: calc(50% + 11px);
+            top: calc(50% + 9px);
             opacity: 0;
             transition-duration: 0.35s,0s;
             transition-delay: 0s,calc(0s + 0.35s);
         }
         #checkbox:checked + .toggle .bar--bottom {
-            top: calc(50% - 4px/ 2);
+            top: calc(50% - 3px / 2);
             transform: rotate(-45deg);
             transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
         }
@@ -151,6 +149,11 @@
         .card__head { border-bottom-color: var(--border-color) !important; }
         .menu__panel { background: #f5f4f0 !important; }
 
+        /* 菜单项往下移，并设置底部联系区域样式 */
+        .menu__nav {
+            margin-top: 50px !important; /* 全部往下移 */
+        }
+        
         /* ===== 提示 Toast 样式 ===== */
         #toast {
             position: fixed;
@@ -178,7 +181,7 @@
     <div id="theme-bg-white"></div>
     <div id="theme-bg-black"></div>
 
-    <!-- 汉堡菜单（原版 Uiverse 结构） -->
+    <!-- 汉堡菜单（原版结构，已改色缩小） -->
     <div id="menuToggle">
         <input id="checkbox" type="checkbox">
         <label class="toggle" for="checkbox">
@@ -250,13 +253,16 @@
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
             <nav class="menu__nav">
-                <a href="#" class="menu__link"><span class="menu__linkText">About</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">Research</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">Projects</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">Journal</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">Contact</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">创作</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">社区</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">终端</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">日志</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">联系</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
             </nav>
-            <div class="menu__foot"><span class="menu__footLabel">Get in touch</span><a class="menu__mail" href="mailto:hello@terranova.earth">hello@terranova.earth</a></div>
+            <div class="menu__foot">
+                <span class="menu__footLabel">联系我们</span>
+                <a class="menu__mail" href="https://t.me/gsyxyc">宫水.com @gsyxyc</a>
+            </div>
         </div>
     </div>
 
@@ -295,7 +301,6 @@
                 var menuBackdrop = document.getElementById('menu-backdrop');
                 var menuLinks = document.querySelectorAll('.menu__link');
 
-                // checkbox 状态变化时，控制菜单开合
                 checkbox.addEventListener('change', function() {
                     if (this.checked) {
                         menu.classList.add('is-open');
@@ -304,21 +309,18 @@
                     }
                 });
 
-                // 点击背景关闭
                 menuBackdrop.addEventListener('click', function() {
-                    checkbox.checked = false; // 触发 change 事件，自动关闭
+                    checkbox.checked = false;
                     menu.classList.remove('is-open');
                 });
 
-                // 点击菜单链接关闭
                 menuLinks.forEach(function(link) {
                     link.addEventListener('click', function() {
-                        checkbox.checked = false; // 触发 change 事件，自动关闭
+                        checkbox.checked = false;
                         menu.classList.remove('is-open');
                     });
                 });
 
-                // Esc 关闭
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && menu.classList.contains('is-open')) {
                         checkbox.checked = false;
