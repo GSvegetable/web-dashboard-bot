@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* ✅ 全局去除蓝色高亮和所有点击反馈 */
+        /* 全局去除点击反馈 */
         * {
             -webkit-tap-highlight-color: transparent !important;
             -webkit-touch-callout: none !important;
@@ -19,12 +19,11 @@
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
-        /* 隐藏视频控件 */
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 黑色底层：永远模糊，默认隐藏（0%） */
+        /* 黑色底层（模糊，初始隐藏） */
         #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -34,10 +33,10 @@
             filter: blur(5px);
             z-index: 0; pointer-events: none;
             clip-path: circle(0% at 48px 48px);
-            transition: clip-path 0.8s ease-in-out;
+            transition: clip-path 0.6s ease-in-out;
         }
 
-        /* 白色底层：清晰，默认覆盖全屏（150%） */
+        /* 白色底层（清晰，默认全屏显示） */
         #theme-bg-white {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -46,12 +45,12 @@
             background-color: #fff;
             z-index: 1; pointer-events: none;
             clip-path: circle(150% at 48px 48px);
-            transition: clip-path 0.8s ease-in-out;
+            transition: clip-path 0.6s ease-in-out;
         }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 2; }
 
-        /* 月亮按钮（左上角，彻底去除点击反馈） */
+        /* 月亮按钮（左上角） */
         #night-mode-toggle {
             position: fixed; top: 24px; left: 24px;
             width: 36px; height: 36px; border-radius: 50%;
@@ -62,41 +61,45 @@
             outline: none !important;
             -webkit-tap-highlight-color: transparent !important;
             user-select: none !important;
-            touch-action: manipulation; /* 消除点击延迟 */
+            touch-action: manipulation;
         }
-        #night-mode-toggle:active { background: rgba(0,0,0,0.3); } /* 按下保持原样 */
+        #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区域：上移，保证最终对齐 */
+        /* 卡片区域（往上提） */
         .cards-section {
-            min-height: 60vh; /* 减小最小高度，让卡片更靠上 */
+            min-height: 80vh; /* 保证滚动区域存在 */
             display: flex; align-items: center; justify-content: center;
-            padding: 20px 40px 80px 40px; /* 调整 padding 上移 */
+            padding: 40px 40px 120px; /* 顶部留白，但整体靠上 */
+            margin-top: -15vh; /* 关键：往上提 */
             position: relative; z-index: 2;
         }
+
         .cards-grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 32px; max-width: 1100px; width: 100%;
-            /* 确保 grid 里元素对齐 */
         }
+
         .card-item {
             position: relative;
             border-radius: 32px;
             padding: 24px;
-            height: 180px; /* 固定高度 */
+            height: 180px;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            opacity: 0; /* 初始隐藏，动画时显示 */
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.15);
-            /* 这里的 transition 不用于滚动动画，滚动动画由 JS 直接控制 transform，所以这里不写 transition */
+            opacity: 1; /* 由 JS 控制 transform，但初始 opacity 不为 0 */
+            will-change: transform, opacity;
         }
+
         .card-item::before {
             content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
             background-size: cover; background-position: center;
             filter: blur(8px) brightness(0.7);
             transform: scale(1.1); z-index: 0;
         }
+
         .card-content {
             position: relative; z-index: 1; height: 100%;
             display: flex; flex-direction: column; justify-content: flex-end;
@@ -110,12 +113,7 @@
             color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6);
         }
 
-        /* ✅ 初始状态：三张卡片全部重叠在中间（位置居中） */
-        .card-left, .card-center, .card-right {
-            transform: translateX(0) !important;
-            opacity: 0 !important;
-        }
-        /* 最终对齐由 JS 控制，确保归零 */
+        /* 三个卡片最终都没问题，通过 JS 控制 transform 和 opacity */
     </style>
 </head>
 <body>
@@ -168,11 +166,8 @@
     <!-- 三张卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
-            <!-- 左卡片：初始在中间，向左移 -->
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
-            <!-- 中间卡片：不动，作为中心 -->
             <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
-            <!-- 右卡片：初始在中间，向右移 -->
             <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
         </div>
     </section>
@@ -209,78 +204,107 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 三卡片滚动动画（从中间往两边展开，无阻尼，线性同步）
+        // 三张卡片滚动动画：从中心向两侧线性展开
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
-            
-            // 获取视口宽度，用于左右卡片展开距离
+
+            // 计算展开距离：视口宽度的 40%
             let vw = window.innerWidth;
             window.addEventListener('resize', () => { vw = window.innerWidth; });
+            const distance = () => vw * 0.4;
 
             function updateCards() {
-                if (!section || !card1 || !card2 || !card3) return;
-                
+                if (!section) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                
-                // ✅ 线性计算进度：卡片区进入视口时开始，完全进入时结束
-                // 没有缓动函数，滑多快动多快
-                let progress = (vh - rect.top) / vh;
+
+                // 线性进度：卡片区域进入视口时开始（从 0 到 1）
+                let progress = (vh - rect.top) / (vh * 0.8); // 0.8 表示进入过程占 80% 视口高度
                 progress = Math.max(0, Math.min(1, progress)); // 限制在 0~1
-                
-                // 左右卡片展开距离 = 视口宽度 * 百分比，这里取 0.45 * vw，防止太宽
-                const distance = vw * 0.45;
-                
-                // 中间卡片不动，左右卡片从中间向两边展开
-                // 当 progress=0 时，左右卡片在中间（重叠）
-                // 当 progress=1 时，左右卡片分别位于左右两边
-                card1.style.transform = `translateX(${-distance * progress}px)`;
+
+                // 左右两张卡片从中间往两边移动，中间卡片不动
+                card1.style.transform = `translateX(${-distance() * progress}px)`;
                 card1.style.opacity = progress;
-                
-                card2.style.transform = `translateX(0px)`; // 中间不动
+
+                card2.style.transform = `translateX(0px)`;
                 card2.style.opacity = progress;
-                
-                card3.style.transform = `translateX(${distance * progress}px)`;
+
+                card3.style.transform = `translateX(${distance() * progress}px)`;
                 card3.style.opacity = progress;
             }
-            
+
             window.addEventListener('scroll', updateCards, { passive: true });
             window.addEventListener('resize', updateCards);
             window.addEventListener('load', updateCards);
-            updateCards(); // 初始化
+            updateCards(); // 初始化（防止一打开就不可见）
         })();
 
-        // 主题切换逻辑（保持不变）
+        // 主题切换：支持中途反向（利用 CSS transition 的“从当前状态过渡”特性）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
             const whiteLayer = document.getElementById('theme-bg-white');
+
             if (!toggleBtn || !blackLayer || !whiteLayer) return;
 
-            let isWhiteTheme = true;
+            // 当前显示的是哪个层（'white' 或 'black'）
+            let currentLayer = 'white'; // 初始白色全屏显示
+            let animatingLayer = null;  // 正在扩散或收缩的层
+
+            function onTransitionEnd(e) {
+                if (e.propertyName !== 'clip-path') return;
+                if (animatingLayer && e.target === animatingLayer) {
+                    // 动画结束，更新当前显示层
+                    currentLayer = (animatingLayer === blackLayer) ? 'black' : 'white';
+                    animatingLayer = null;
+                    // 确保目标层覆盖层顺序正确（扩散层要在最上面）
+                    if (currentLayer === 'black') {
+                        blackLayer.style.zIndex = 2;
+                        whiteLayer.style.zIndex = 1;
+                    } else {
+                        whiteLayer.style.zIndex = 2;
+                        blackLayer.style.zIndex = 1;
+                    }
+                }
+            }
+
+            blackLayer.addEventListener('transitionend', onTransitionEnd);
+            whiteLayer.addEventListener('transitionend', onTransitionEnd);
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (isWhiteTheme) {
-                    blackLayer.style.zIndex = 2;
-                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    void blackLayer.offsetWidth;
-                    blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                    setTimeout(() => { whiteLayer.style.clipPath = 'circle(0% at 48px 48px)'; }, 850);
-                } else {
-                    whiteLayer.style.zIndex = 2;
-                    whiteLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    void whiteLayer.offsetWidth;
-                    whiteLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                    setTimeout(() => { blackLayer.style.clipPath = 'circle(0% at 48px 48px)'; }, 850);
+                // 获取当前正在扩散的层
+                const targetLayer = (currentLayer === 'white') ? blackLayer : whiteLayer;
+                const currentActiveLayer = (currentLayer === 'white') ? whiteLayer : blackLayer;
+
+                // 如果正在动画中（有 animatingLayer），说明要“原路返回”
+                if (animatingLayer) {
+                    // 正在扩散的层收缩回 0
+                    animatingLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    // 把当前显示的层恢复
+                    currentActiveLayer.style.zIndex = 2;
+                    targetLayer.style.zIndex = 1;
+                    animatingLayer = null;
+                    return;
                 }
 
-                isWhiteTheme = !isWhiteTheme;
+                // 开始扩散目标层
+                // 先把目标层的 clip-path 设为 0（初始），强制重绘
+                targetLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                void targetLayer.offsetWidth;
+
+                // 设置目标层在最上面
+                targetLayer.style.zIndex = 2;
+                currentActiveLayer.style.zIndex = 1;
+
+                // 触发扩散动画到 150%
+                targetLayer.style.clipPath = 'circle(150% at 48px 48px)';
+                animatingLayer = targetLayer;
             });
         })();
     </script>
