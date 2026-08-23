@@ -10,11 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent !important;
-            -webkit-touch-callout: none !important;
-            user-select: none !important;
-        }
+        * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
@@ -22,75 +18,29 @@
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 白色底层：永远在最下层，永远全屏 */
-        #theme-bg-white {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
-            background-size: cover; background-position: center;
-            background-color: #fff;
-            z-index: 1; /* 永远在下层 */
-            pointer-events: none;
-        }
-
-        /* 黑色底层：永远在最上层，用clip-path控制显示范围 */
-        #theme-bg-black {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
-            background-size: cover; background-position: center;
-            background-color: #1a1a1a;
-            filter: blur(5px);
-            z-index: 2; /* 永远在最上层 */
-            pointer-events: none;
-            clip-path: circle(0% at 48px 48px); /* 初始隐藏 */
-            transition: clip-path 0.6s ease-in-out; /* 动画时长 */
-        }
+        /* 白色底层（永远在下） */
+        #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #fff; z-index: 1; pointer-events: none; }
+        /* 黑色底层（永远在上，用clip-path控制） */
+        #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
-        /* 月亮按钮（左上角） */
-        #night-mode-toggle {
-            position: fixed; top: 24px; left: 24px;
-            width: 36px; height: 36px; border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.6);
-            background: rgba(0,0,0,0.3);
-            color: white; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 9999;
-            outline: none !important; -webkit-tap-highlight-color: transparent !important;
-            user-select: none !important; touch-action: manipulation;
-        }
+        /* 月亮按钮 */
+        #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区域（往上提） */
-        .cards-section {
-            min-height: 80vh;
-            display: flex; align-items: center; justify-content: center;
-            padding: 40px 40px 100px;
-            margin-top: -10vh;
-            position: relative; z-index: 3;
-        }
-        .cards-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 32px; max-width: 1100px; width: 100%;
-        }
-        .card-item {
-            position: relative; border-radius: 32px; padding: 24px;
-            height: 180px; overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.15);
-            opacity: 1; will-change: transform;
-        }
-        .card-item::before {
-            content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
-            background-size: cover; background-position: center;
-            filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0;
-        }
-        .card-content {
-            position: relative; z-index: 1; height: 100%;
-            display: flex; flex-direction: column; justify-content: flex-end;
-        }
+        /* 卡片区域（上移） */
+        .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
+
+        /* 卡片绝对定位，初始重叠在中心 */
+        .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
+        .card-item { position: absolute; left: 50%; top: 50%; width: calc(33.33% - 22px); max-width: 340px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); }
+        .card-left { z-index: 1; transform: translate(-50%, -50%); }
+        .card-center { z-index: 3; transform: translate(-50%, -50%); }
+        .card-right { z-index: 2; transform: translate(-50%, -50%); }
+
+        .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
+        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
     </style>
@@ -142,12 +92,18 @@
         </div>
     </main>
 
-    <!-- 三张卡片区域 -->
+    <!-- 三张卡片区域：绝对定位，初始重叠 -->
     <section class="cards-section" id="cardsSection">
-        <div class="cards-grid">
-            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
-            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
-            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
+        <div class="cards-grid" id="cardsGrid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
+                <div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div>
+            </div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
+                <div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div>
+            </div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
+                <div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div>
+            </div>
         </div>
     </section>
 
@@ -170,7 +126,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // 菜单逻辑
+        // 菜单逻辑（不动）
         const menu = document.getElementById('menu');
         const menuOpenBtn = document.getElementById('menu-open');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -183,29 +139,41 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 卡片动画：初始重叠（只显示中间一张），滚动到中下方开始展开，顶部完全展开
+        // ✅ 三卡片动画（严格按照你的描述）
         (function() {
             const section = document.getElementById('cardsSection');
+            const grid = document.getElementById('cardsGrid');
             const card1 = document.getElementById('card1');
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
 
             let vw = window.innerWidth;
             window.addEventListener('resize', () => { vw = window.innerWidth; });
-            const distance = () => vw * 0.4;
+            const distance = () => vw * 0.4; // 拉开距离（视口宽度的40%）
 
             function updateCards() {
-                if (!section) return;
+                if (!section || !card1 || !card2 || !card3) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                // 当卡片顶部到达屏幕60%高度时开始，到达顶部时结束
-                let progress = (vh * 0.6 - rect.top) / (vh * 0.6);
+
+                // 总进度：section 顶部从 vh（屏幕底）到 0（屏幕顶），设为 1.5*vh 范围，让动画更从容
+                let progress = (vh - rect.top) / (vh * 1.5);
                 progress = Math.max(0, Math.min(1, progress));
 
-                // 左右两张卡片从中间往两边移动，中间卡片不动
-                card1.style.transform = `translateX(${-distance() * progress}px)`;
-                card2.style.transform = `translateX(0px)`;
-                card3.style.transform = `translateX(${distance() * progress}px)`;
+                // 阶段1（0 ~ 0.6）：中间卡片从底部滑到中心
+                let midProgress = Math.min(1, progress / 0.6);
+                let midTranslateY = (1 - midProgress) * vh; // 初始在屏幕底，滑到0
+
+                // 阶段2（0.6 ~ 1）：左右卡片从中心向两边拉开
+                let sideProgress = Math.max(0, (progress - 0.6) / 0.4);
+                let sideOffset = distance() * sideProgress;
+
+                // 中间卡片：上下移动
+                card2.style.transform = `translate(-50%, calc(-50% + ${midTranslateY}px))`;
+
+                // 左右卡片：左右移动（初始在中间，与中间重叠，被中间卡片z-index遮挡）
+                card1.style.transform = `translate(calc(-50% - ${sideOffset}px), -50%)`;
+                card3.style.transform = `translate(calc(-50% + ${sideOffset}px), -50%)`;
             }
 
             window.addEventListener('scroll', updateCards, { passive: true });
@@ -214,25 +182,21 @@
             updateCards();
         })();
 
-        // 主题切换：白色层永远在底，黑色层永远在顶，只控制黑色层的clip-path，支持中途反向
+        // 主题切换（保持现状，白底黑底固定）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
             if (!toggleBtn || !blackLayer) return;
 
-            let isBlack = false; // 当前是否显示黑色主题
-
+            let isBlack = false;
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
                 if (isBlack) {
-                    // 收起黑色层（收回动画，从150%到0%，白色层露出来）
                     blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
                     isBlack = false;
                 } else {
-                    // 展开黑色层（扩散动画，从0%到150%）
-                    // 强制重绘，确保从0%开始
                     blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
                     void blackLayer.offsetWidth;
                     blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
