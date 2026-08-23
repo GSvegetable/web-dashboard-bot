@@ -34,7 +34,7 @@
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         /* 强制开启导航栏点击 */
-        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 60px; pointer-events: auto !important; }
+        .nav { display: flex; align-items: center; justify-content: flex-end; padding: 1rem 1.5rem 1rem 60px; pointer-events: auto !important; }
         .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
 
         /* 月亮按钮 */
@@ -54,12 +54,12 @@
 
         .nav__label { color: var(--text-color) !important; }
 
-        /* 汉堡菜单：固定定位，永远浮在最上层 */
+        /* 汉堡菜单：移出 nav，固定在 body 最外层，保证永远在最上面 */
         .menu-btn {
             position: fixed;
             top: 16px;
             left: 20px;
-            z-index: 9999; /* 高于菜单面板的50，永远可见可点 */
+            z-index: 100000; /* 最高层级，浮在菜单面板上面 */
             width: 40px;
             height: 30px;
             cursor: pointer;
@@ -143,7 +143,13 @@
     <div id="theme-bg-white"></div>
     <div id="theme-bg-black"></div>
 
-    <!-- 汉堡按钮被移到 nav 里，但因为 fixed 定位，会浮在面板上面 -->
+    <!-- 汉堡按钮移到这里：永远浮在最上层，菜单打开时变成叉号 -->
+    <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
+        <span class="bar bar--top"></span>
+        <span class="bar bar--middle"></span>
+        <span class="bar bar--bottom"></span>
+    </button>
+
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -153,12 +159,6 @@
         </div>
 
         <nav class="nav">
-            <!-- 汉堡按钮（fixed定位，浮在菜单上面） -->
-            <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
-                <span class="bar bar--top"></span>
-                <span class="bar bar--middle"></span>
-                <span class="bar bar--bottom"></span>
-            </button>
             <div class="nav__right">
                 <button id="night-mode-toggle" title="切换主题背景">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -211,7 +211,6 @@
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
-            <!-- 已删除内部关闭按钮，用汉堡按钮关闭 -->
             <nav class="menu__nav">
                 <a href="#" class="menu__link"><span class="menu__linkText">About</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
                 <a href="#" class="menu__link"><span class="menu__linkText">Research</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
@@ -223,7 +222,6 @@
         </div>
     </div>
 
-    <!-- 底部提示 Toast -->
     <div id="toast"></div>
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
