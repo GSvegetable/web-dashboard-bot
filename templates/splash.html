@@ -2,172 +2,299 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>gsbot - 开源机器人平台</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宫水大世界 宫水.com － Professional Telegram bot development services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
-            background-color: #f2f2f2; /* 米白/浅灰背景 */
-            width: 100vw; height: 100vh; 
-            overflow: hidden;
-            color: #333;
+        :root {
+            --text-color: #000000;
+            --border-color: rgba(0,0,0,0.3);
+            --line-color: #000000;
+        }
+        body.theme-black {
+            --text-color: #ffffff;
+            --border-color: rgba(255,255,255,0.3);
+            --line-color: #ffffff;
         }
 
-        /* 顶部导航栏 */
-        .top-nav {
-            position: fixed; top: 0; left: 0; right: 0;
-            height: 60px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px;
-            z-index: 100;
+        * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
+        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #ffffff !important; }
+        .hero { height: auto !important; min-height: 100vh !important; pointer-events: auto !important; }
+
+        video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+
+        #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #ffffff; z-index: 1; pointer-events: none; }
+        #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 50% 50%); transition: clip-path 0.6s ease-in-out; }
+
+        .nav { display: flex; align-items: center; justify-content: flex-end; padding: 1rem 1.5rem 1rem 60px; pointer-events: auto !important; }
+        .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
+
+        #night-mode-toggle { background: none; border: none; cursor: pointer; color: var(--text-color); display: flex; align-items: center; justify-content: center; padding: 5px; outline: none !important; -webkit-tap-highlight-color: transparent !important; pointer-events: auto !important; }
+        .nav__label { color: var(--text-color) !important; }
+
+        #menuToggle { position: fixed; top: 16px; left: 20px; z-index: 100000; pointer-events: auto !important; }
+        #checkbox { display: none; }
+        .toggle { position: relative; width: 32px; cursor: pointer; margin: auto; display: block; height: calc(3px * 3 + 9px * 2); }
+        
+        /* 默认黑色 */
+        .bar {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: calc(3px / 2);
+            background: #000 !important;
+            color: inherit;
+            opacity: 1;
+            transition: none 0.35s cubic-bezier(.5,-0.35,.35,1.5) 0s;
         }
-        .nav-left { display: flex; align-items: center; gap: 12px; }
-        .nav-left svg { width: 32px; height: 32px; color: #333; }
-        .menu-btn { cursor: pointer; width: 32px; height: 32px; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
-        .menu-line { width: 100%; height: 2px; background-color: #333; border-radius: 2px; transition: all 0.3s; }
-        .nav-left span { font-size: 14px; font-weight: 600; color: #333; }
-        .nav-right a { font-size: 14px; color: #555; text-decoration: none; font-weight: 500; }
-
-        /* 主体内容 */
-        .main-content {
-            display: flex; align-items: center; justify-content: flex-start;
-            width: 100%; height: 100%;
-            padding: 0 10vw;
+        /* 勾选后变白（菜单展开） */
+        #checkbox:checked + .toggle .bar {
+            background: #fff !important;
         }
+        .bar--top { bottom: calc(50% + 9px + 3px / 2); transition-property: bottom,margin,transform; transition-delay: calc(0s + 0.35s),0s,0s; }
+        .bar--middle { top: calc(50% - 3px / 2); transition-property: top,opacity; transition-duration: 0.35s,0s; transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
+        .bar--bottom { top: calc(50% + 9px + 3px / 2); transition-property: top,transform; transition-delay: 0s; }
+        #checkbox:checked + .toggle .bar--top { bottom: calc(50% - 9px - 3px); margin-bottom: calc(9px + 3px / 2); transform: rotate(45deg); transition-delay: calc(0s + 0.35s * .3),calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
+        #checkbox:checked + .toggle .bar--middle { top: calc(50% + 9px); opacity: 0; transition-duration: 0.35s,0s; transition-delay: 0s,calc(0s + 0.35s); }
+        #checkbox:checked + .toggle .bar--bottom { top: calc(50% - 3px / 2); transform: rotate(-45deg); transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
 
-        /* 左侧内容区 */
-        .left-content { flex: 1; max-width: 600px; }
-        .main-title { font-size: 48px; font-weight: 700; color: #111; line-height: 1.2; }
-        .main-subtitle { font-size: 48px; font-weight: 700; color: #111; line-height: 1.2; margin-bottom: 40px; }
-        .feature-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 60px; }
-        .feature-item { font-size: 16px; color: #555; }
+        /* 卡片区 */
+        .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
+        .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 260px; margin: 0 auto; }
+        .card-item { position: absolute; left: 50%; top: 50%; width: calc(30% - 10px); max-width: 320px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); will-change: transform, opacity; backface-visibility: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 12px 24px rgba(0,0,0,0.4), 0 24px 48px rgba(0,0,0,0.5); opacity: 0; }
+        .card-left { z-index: 1; } .card-center { z-index: 3; } .card-right { z-index: 2; }
+        .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
+        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
+        .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+        .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* Start listening 按钮 */
-        .start-btn {
-            display: inline-flex; align-items: center; justify-content: space-between;
-            width: 280px; height: 60px;
-            border: 2px solid #ccc; border-radius: 12px;
-            padding: 0 20px; margin-top: 20px;
-            color: #333; text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .start-btn:hover { border-color: #333; background: #fff; }
-        .start-btn span { font-size: 16px; font-weight: 500; }
-        .start-btn svg { width: 16px; height: 16px; }
+        .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title, .menu__link, .card__head, .card__index { color: var(--text-color) !important; }
+        .nav svg, .chamfer svg, .card svg, .menu svg, .card__wave path { stroke: var(--line-color) !important; fill: none !important; }
+        .chamfer__glass { border-color: var(--border-color) !important; }
+        .card__head { border-bottom-color: var(--border-color) !important; }
+        .menu__panel { background: #f5f4f0 !important; }
 
-        /* 右侧更新日志卡片 */
-        .right-content { width: 380px; margin-left: 80px; }
-        .log-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-        }
-        .log-card h2 { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 24px; }
-        .log-item { margin-bottom: 24px; }
-        .log-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 4px; }
-        .log-desc { font-size: 12px; color: #666; line-height: 1.5; }
+        .menu__nav { margin-top: 50px !important; }
+        .menu__link { justify-content: flex-start; }
 
-        /* 底部波形图 */
-        .waveform { display: flex; align-items: center; justify-content: center; margin-top: 20px; width: 100%; }
-        .waveform svg { width: 100%; height: 40px; color: #333; }
-
-        /* 响应式调整 */
-        @media (max-width: 800px) {
-            .main-content { flex-direction: column; padding: 0 6vw; justify-content: center; }
-            .left-content { width: 100%; text-align: left; }
-            .main-title, .main-subtitle { font-size: 32px; }
-            .right-content { width: 100%; margin-left: 0; margin-top: 40px; }
-        }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 99999; transition: bottom 0.3s ease-out; pointer-events: none; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        #toast.show { bottom: 40px; opacity: 1; }
     </style>
 </head>
 <body>
+    <div id="theme-bg-white"></div>
+    <div id="theme-bg-black"></div>
 
-    <!-- 顶部导航 -->
-    <div class="top-nav">
-        <div class="nav-left">
-            <!-- 圆形月牙图标 (模拟截图左上角图标) -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            <!-- 汉堡菜单（三线黑色） -->
-            <div class="menu-btn" onclick="toggleMenu()">
-                <div class="menu-line"></div>
-                <div class="menu-line"></div>
-                <div class="menu-line"></div>
-            </div>
-            <span>设置</span>
+    <div id="menuToggle">
+        <input id="checkbox" type="checkbox">
+        <label class="toggle" for="checkbox">
+            <div class="bar bar--top"></div>
+            <div class="bar bar--middle"></div>
+            <div class="bar bar--bottom"></div>
+        </label>
+    </div>
+
+    <main class="hero">
+        <div class="rule rule--left" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
         </div>
-        <div class="nav-right">
-            <a href="/login">Login</a>
+        <div class="rule rule--right" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
+        </div>
+
+        <nav class="nav">
+            <div class="nav__right">
+                <button id="night-mode-toggle" title="切换主题背景">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <a href="#" class="nav__item"><span class="nav__label">Login</span></a>
+            </div>
+        </nav>
+
+        <div class="hero-bottom">
+            <div class="lede">
+                <h1 class="lede__title">Explore More<br />Open Source Bots</h1>
+                <p class="lede__body">专注电报机器人搭建部署<br />从开源社区中直接获取源代码<br />连接AI - 让办公更轻松</p>
+                <a class="chamfer" href="#">
+                    <span class="chamfer__glass" aria-hidden="true"></span>
+                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true"><polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>
+                    <span class="chamfer__label">Start listening</span>
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                </a>
+            </div>
+
+            <aside class="card group" data-glass-card>
+                <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
+                <div class="card__frost" aria-hidden="true"></div>
+                <div class="card__head"><h2 class="card__title">更新日志</h2><span class="card__index"></span></div>
+                <div class="card__body">
+                    <div class="finding"><h3 class="finding__title">Canopy Pulse Analysis 09.17</h3><p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p></div>
+                    <div class="finding"><h3 class="finding__title">Watershed Harmonic Index 11.06</h3><p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p></div>
+                </div>
+                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true"><path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" /></svg>
+            </aside>
+        </div>
+    </main>
+
+    <section class="cards-section" id="cardsSection">
+        <div class="cards-grid" id="cardsGrid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
+        </div>
+    </section>
+
+    <div class="menu" id="menu">
+        <div class="menu__backdrop" id="menu-backdrop"></div>
+        <div class="menu__panel">
+            <nav class="menu__nav">
+                <a href="#" class="menu__link"><span class="menu__linkText">创作</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">社区</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">终端</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">日志</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">联系</span></a>
+            </nav>
+            <div class="menu__foot">
+                <span class="menu__footLabel">联系我们</span>
+                <a class="menu__mail" href="https://t.me/gsyxyc">宫水.com @gsyxyc</a>
+            </div>
         </div>
     </div>
 
-    <!-- 主体内容 -->
-    <div class="main-content">
-        <!-- 左侧：文字与按钮 -->
-        <div class="left-content">
-            <h1 class="main-title">Explore More</h1>
-            <h1 class="main-subtitle">Open Source Bots</h1>
-            
-            <div class="feature-list">
-                <div class="feature-item">专注电报机器人搭建部署</div>
-                <div class="feature-item">从开源社区中直接获取源代码</div>
-                <div class="feature-item">连接AI - 让办公更轻松</div>
-            </div>
+    <div id="toast"></div>
 
-            <a href="/workspace" class="start-btn">
-                <span>Start listening</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-            </a>
-        </div>
-
-        <!-- 右侧：更新日志卡片 -->
-        <div class="right-content">
-            <div class="log-card">
-                <h2>更新日志</h2>
-                
-                <div class="log-item">
-                    <div class="log-title">Canopy Pulse Analysis 09.17</div>
-                    <div class="log-desc">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</div>
-                </div>
-                
-                <div class="log-item">
-                    <div class="log-title">Watershed Harmonic Index 11.06</div>
-                    <div class="log-desc">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</div>
-                </div>
-
-                <!-- 底部波形线 -->
-                <div class="waveform">
-                    <svg viewBox="0 0 300 40" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M0 20 Q 15 5, 30 20 T 60 20 T 90 20 T 120 20 T 150 20 T 180 20 T 210 20 T 240 20 T 270 20 T 300 20" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // 简单的汉堡菜单开关效果（将三条线变成叉号）
-        function toggleMenu() {
-            const menu = document.querySelector('.menu-btn');
-            const lines = document.querySelectorAll('.menu-line');
-            
-            // 简单的动画逻辑
-            if (menu.dataset.open === 'true') {
-                menu.dataset.open = 'false';
-                lines[0].style.transform = 'rotate(0deg) translateY(0)';
-                lines[1].style.opacity = '1';
-                lines[2].style.transform = 'rotate(0deg) translateY(0)';
-            } else {
-                menu.dataset.open = 'true';
-                lines[0].style.transform = 'rotate(45deg) translateY(7px)';
-                lines[1].style.opacity = '0';
-                lines[2].style.transform = 'rotate(-45deg) translateY(-7px)';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toast 提示
+            var toast = document.getElementById('toast');
+            var toastTimer = null;
+            function showToast(msg) {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2000);
             }
-        }
+            document.addEventListener('click', function(e) {
+                var isButton = e.target.closest('button, a, .nav__item, #night-mode-toggle, .toggle');
+                showToast(isButton ? '我点击的是按钮' : '你点击的是空白');
+            });
+
+            // 汉堡菜单
+            var checkbox = document.getElementById('checkbox');
+            var menu = document.getElementById('menu');
+            var menuBackdrop = document.getElementById('menu-backdrop');
+            var menuLinks = document.querySelectorAll('.menu__link');
+            checkbox.addEventListener('change', function() {
+                if (this.checked) { menu.classList.add('is-open'); }
+                else { menu.classList.remove('is-open'); }
+            });
+            menuBackdrop.addEventListener('click', function() {
+                checkbox.checked = false; menu.classList.remove('is-open');
+            });
+            menuLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    checkbox.checked = false; menu.classList.remove('is-open');
+                });
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                    checkbox.checked = false; menu.classList.remove('is-open');
+                }
+            });
+
+            // 主题切换 - 动态获取按钮坐标
+            var toggleBtn = document.getElementById('night-mode-toggle');
+            var blackLayer = document.getElementById('theme-bg-black');
+            if (toggleBtn && blackLayer) {
+                var isBlack = false;
+                var btnX = 0, btnY = 0;
+
+                function updateBtnPos() {
+                    var rect = toggleBtn.getBoundingClientRect();
+                    btnX = rect.left + rect.width / 2;
+                    btnY = rect.top + rect.height / 2;
+                    blackLayer.style.clipPath = `circle(0% at ${btnX}px ${btnY}px)`;
+                }
+                updateBtnPos();
+                window.addEventListener('resize', updateBtnPos);
+
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var rect = toggleBtn.getBoundingClientRect();
+                    var x = rect.left + rect.width / 2;
+                    var y = rect.top + rect.height / 2;
+                    if (isBlack) {
+                        blackLayer.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                        void blackLayer.offsetWidth;
+                        blackLayer.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                        document.body.classList.remove('theme-black');
+                        isBlack = false;
+                    } else {
+                        blackLayer.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                        void blackLayer.offsetWidth;
+                        blackLayer.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                        document.body.classList.add('theme-black');
+                        isBlack = true;
+                    }
+                });
+            }
+
+            // 卡片动画
+            var section = document.getElementById('cardsSection');
+            var card1 = document.getElementById('card1');
+            var card2 = document.getElementById('card2');
+            var card3 = document.getElementById('card3');
+            if (section && card1 && card2 && card3) {
+                var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
+                var lerp = function(a, b, t) { return a + (b - a) * t; };
+                var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
+                function makeInitials() {
+                    var vw = window.innerWidth, vh = window.innerHeight;
+                    return { cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 };
+                }
+                var current = makeInitials(), target = makeInitials(), running = false;
+                function updateTargets() {
+                    var rect = section.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+                    var offset = (rect.top + rect.height * 0.5) - vh * 0.5;
+                    var progress = clamp(1 - offset / (vh * 0.85), 0, 1), t = easeOutCubic(progress), distance = vw * 0.28, ini = makeInitials();
+                    target.cX = 0; target.cY = lerp(ini.cY, 0, t); target.cR = 0; target.cS = lerp(ini.cS, 1, t); target.cO = lerp(ini.cO, 1, t);
+                    target.lX = lerp(ini.lX, -distance, t); target.lY = lerp(ini.lY, 0, t); target.lR = lerp(ini.lR, -6, t); target.lS = lerp(ini.lS, 1, t); target.lO = lerp(ini.lO, 1, t);
+                    target.rX = lerp(ini.rX, distance, t); target.rY = lerp(ini.rY, 0, t); target.rR = lerp(ini.rR, 6, t); target.rS = lerp(ini.rS, 1, t); target.rO = lerp(ini.rO, 1, t);
+                }
+                function apply() {
+                    card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
+                    card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
+                    card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
+                    card1.style.opacity = current.lO; card2.style.opacity = current.cO; card3.style.opacity = current.rO;
+                }
+                function frame() {
+                    updateTargets();
+                    var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
+                    var delta = 0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var k = keys[i], old = current[k];
+                        current[k] = lerp(old, target[k], 0.09);
+                        delta += Math.abs(current[k] - old);
+                    }
+                    apply();
+                    if (delta > 0.001) requestAnimationFrame(frame);
+                    else running = false;
+                }
+                function start() { if (!running) { running = true; requestAnimationFrame(frame); } }
+                window.addEventListener('scroll', start, { passive: true });
+                window.addEventListener('resize', start);
+                start();
+            }
+        });
     </script>
 </body>
 </html>
