@@ -19,11 +19,12 @@
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
+        /* 隐藏视频控件 */
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 黑色底层（模糊，初始隐藏） */
+        /* 黑色底层（模糊，隐藏） */
         #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -31,24 +32,26 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             filter: blur(5px);
-            z-index: 0; pointer-events: none;
+            z-index: 1; /* 初始在下层 */
+            pointer-events: none;
             clip-path: circle(0% at 48px 48px);
-            transition: clip-path 0.6s ease-in-out;
+            transition: clip-path 0.6s ease-in-out, z-index 0s;
         }
 
-        /* 白色底层（清晰，默认全屏显示） */
+        /* 白色底层（清晰，永远全屏） */
         #theme-bg-white {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
             background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
             background-size: cover; background-position: center;
             background-color: #fff;
-            z-index: 1; pointer-events: none;
-            clip-path: circle(150% at 48px 48px);
-            transition: clip-path 0.6s ease-in-out;
+            z-index: 2; /* 初始在上层 */
+            pointer-events: none;
+            clip-path: circle(150% at 48px 48px); /* 永远全屏 */
+            transition: z-index 0s;
         }
 
-        .hero, .nav, .cards-section, .menu { position: relative; z-index: 2; }
+        .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
         /* 月亮按钮（左上角） */
         #night-mode-toggle {
@@ -65,20 +68,18 @@
         }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区域（往上提） */
+        /* 卡片区域（靠上） */
         .cards-section {
-            min-height: 80vh; /* 保证滚动区域存在 */
+            min-height: 60vh;
             display: flex; align-items: center; justify-content: center;
-            padding: 40px 40px 120px; /* 顶部留白，但整体靠上 */
-            margin-top: -15vh; /* 关键：往上提 */
-            position: relative; z-index: 2;
+            padding: 20px 40px 80px;
+            margin-top: -10vh; /* 微微上移 */
+            position: relative; z-index: 3;
         }
-
         .cards-grid {
             display: grid; grid-template-columns: repeat(3, 1fr);
             gap: 32px; max-width: 1100px; width: 100%;
         }
-
         .card-item {
             position: relative;
             border-radius: 32px;
@@ -89,31 +90,21 @@
             background: rgba(255,255,255,0.05);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.15);
-            opacity: 1; /* 由 JS 控制 transform，但初始 opacity 不为 0 */
-            will-change: transform, opacity;
+            opacity: 1; /* 始终可见 */
+            will-change: transform;
         }
-
         .card-item::before {
             content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
             background-size: cover; background-position: center;
             filter: blur(8px) brightness(0.7);
             transform: scale(1.1); z-index: 0;
         }
-
         .card-content {
             position: relative; z-index: 1; height: 100%;
             display: flex; flex-direction: column; justify-content: flex-end;
         }
-        .card-content h3 {
-            font-size: 20px; font-weight: 700; margin-bottom: 10px;
-            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-        }
-        .card-content p {
-            font-size: 14px; line-height: 1.7;
-            color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6);
-        }
-
-        /* 三个卡片最终都没问题，通过 JS 控制 transform 和 opacity */
+        .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
+        .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
@@ -204,14 +195,13 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 三张卡片滚动动画：从中心向两侧线性展开
+        // 三卡片滚动动画：从中间向两侧线性展开，始终可见
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
 
-            // 计算展开距离：视口宽度的 40%
             let vw = window.innerWidth;
             window.addEventListener('resize', () => { vw = window.innerWidth; });
             const distance = () => vw * 0.4;
@@ -220,91 +210,56 @@
                 if (!section) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
+                // 线性进度：卡片区域进入视口时开始
+                let progress = (vh - rect.top) / (vh * 0.8);
+                progress = Math.max(0, Math.min(1, progress));
 
-                // 线性进度：卡片区域进入视口时开始（从 0 到 1）
-                let progress = (vh - rect.top) / (vh * 0.8); // 0.8 表示进入过程占 80% 视口高度
-                progress = Math.max(0, Math.min(1, progress)); // 限制在 0~1
-
-                // 左右两张卡片从中间往两边移动，中间卡片不动
+                // 始终控制 transform，不控制 opacity
                 card1.style.transform = `translateX(${-distance() * progress}px)`;
-                card1.style.opacity = progress;
-
                 card2.style.transform = `translateX(0px)`;
-                card2.style.opacity = progress;
-
                 card3.style.transform = `translateX(${distance() * progress}px)`;
-                card3.style.opacity = progress;
             }
 
             window.addEventListener('scroll', updateCards, { passive: true });
             window.addEventListener('resize', updateCards);
             window.addEventListener('load', updateCards);
-            updateCards(); // 初始化（防止一打开就不可见）
+            updateCards();
         })();
 
-        // 主题切换：支持中途反向（利用 CSS transition 的“从当前状态过渡”特性）
+        // 主题切换：白层固定，黑层切换，支持中途反向
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
             const whiteLayer = document.getElementById('theme-bg-white');
-
             if (!toggleBtn || !blackLayer || !whiteLayer) return;
 
-            // 当前显示的是哪个层（'white' 或 'black'）
-            let currentLayer = 'white'; // 初始白色全屏显示
-            let animatingLayer = null;  // 正在扩散或收缩的层
-
-            function onTransitionEnd(e) {
-                if (e.propertyName !== 'clip-path') return;
-                if (animatingLayer && e.target === animatingLayer) {
-                    // 动画结束，更新当前显示层
-                    currentLayer = (animatingLayer === blackLayer) ? 'black' : 'white';
-                    animatingLayer = null;
-                    // 确保目标层覆盖层顺序正确（扩散层要在最上面）
-                    if (currentLayer === 'black') {
-                        blackLayer.style.zIndex = 2;
-                        whiteLayer.style.zIndex = 1;
-                    } else {
-                        whiteLayer.style.zIndex = 2;
-                        blackLayer.style.zIndex = 1;
-                    }
-                }
-            }
-
-            blackLayer.addEventListener('transitionend', onTransitionEnd);
-            whiteLayer.addEventListener('transitionend', onTransitionEnd);
+            // 当前是否显示黑色主题
+            let isBlack = false;
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // 获取当前正在扩散的层
-                const targetLayer = (currentLayer === 'white') ? blackLayer : whiteLayer;
-                const currentActiveLayer = (currentLayer === 'white') ? whiteLayer : blackLayer;
-
-                // 如果正在动画中（有 animatingLayer），说明要“原路返回”
-                if (animatingLayer) {
-                    // 正在扩散的层收缩回 0
-                    animatingLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    // 把当前显示的层恢复
-                    currentActiveLayer.style.zIndex = 2;
-                    targetLayer.style.zIndex = 1;
-                    animatingLayer = null;
-                    return;
+                if (isBlack) {
+                    // 当前是黑，要切白（收回）
+                    // 黑色层收缩回 0%（从当前值平滑过渡）
+                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    // 黑色层降级，白色层升级
+                    blackLayer.style.zIndex = 1;
+                    whiteLayer.style.zIndex = 2;
+                    isBlack = false;
+                } else {
+                    // 当前是白，要切黑（扩散）
+                    // 先把黑色层设为 0，强制重绘
+                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    void blackLayer.offsetWidth;
+                    // 黑色层升级，白色层降级
+                    blackLayer.style.zIndex = 2;
+                    whiteLayer.style.zIndex = 1;
+                    // 黑色层扩散到全屏
+                    blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
+                    isBlack = true;
                 }
-
-                // 开始扩散目标层
-                // 先把目标层的 clip-path 设为 0（初始），强制重绘
-                targetLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                void targetLayer.offsetWidth;
-
-                // 设置目标层在最上面
-                targetLayer.style.zIndex = 2;
-                currentActiveLayer.style.zIndex = 1;
-
-                // 触发扩散动画到 150%
-                targetLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                animatingLayer = targetLayer;
             });
         })();
     </script>
