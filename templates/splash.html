@@ -102,7 +102,7 @@
         /* 强制文字颜色跟随主题 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
         .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title,
-        .menu__close, .menu__link, .card__head, .card__index {
+        .menu__link, .card__head, .card__index {
             color: var(--text-color) !important;
         }
         .nav svg, .chamfer svg, .card svg, .menu svg, .card__wave path {
@@ -113,7 +113,7 @@
         .card__head { border-bottom-color: var(--border-color) !important; }
         .menu__panel { background: #f5f4f0 !important; }
 
-        /* ===== 新增：底部提示 Toast 样式 ===== */
+        /* ===== 提示 Toast 样式 ===== */
         #toast {
             position: fixed;
             bottom: -100px;
@@ -149,6 +149,7 @@
         </div>
 
         <nav class="nav">
+            <!-- 汉堡按钮（点击后变成叉号，可控制菜单开合） -->
             <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
                 <span class="bar bar--top"></span>
                 <span class="bar bar--middle"></span>
@@ -206,7 +207,7 @@
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
-            <button id="menu-close" class="menu__close" aria-label="Close menu"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg><span>Close</span></button>
+            <!-- 已经删除了内部的 menu-close 按钮，直接用汉堡叉号控制关闭 -->
             <nav class="menu__nav">
                 <a href="#" class="menu__link"><span class="menu__linkText">About</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
                 <a href="#" class="menu__link"><span class="menu__linkText">Research</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
@@ -224,7 +225,7 @@
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            /* ====== 新增：全局点击判断 & 底部提示 ====== */
+            /* ====== 全局点击判断 & 底部提示 ====== */
             var toast = document.getElementById('toast');
             var toastTimer = null;
 
@@ -238,21 +239,18 @@
             }
 
             document.addEventListener('click', function(e) {
-                // 判断是否点击了“按钮”（包含菜单按钮、月亮、登录、菜单链接等）
                 var isButton = e.target.closest('button, a, .nav__item, #night-mode-toggle, .menu-btn');
                 if (isButton) {
                     showToast('我点击的是按钮');
                 } else {
-                    // 点击空白区域
                     showToast('你点击的是空白');
                 }
             });
 
-            /* ====== 原有功能：汉堡菜单、主题切换、卡片动画 ====== */
+            /* ====== 汉堡菜单（点击叉号关闭，已移除内部close） ====== */
             try {
                 var menuBtn = document.getElementById('menu-btn');
                 var menu = document.getElementById('menu');
-                var menuClose = document.getElementById('menu-close');
                 var menuBackdrop = document.getElementById('menu-backdrop');
                 var menuLinks = document.querySelectorAll('.menu__link');
 
@@ -267,10 +265,6 @@
                     }
                 });
 
-                menuClose.addEventListener('click', function() {
-                    menu.classList.remove('is-open');
-                    menuBtn.classList.remove('active');
-                });
                 menuBackdrop.addEventListener('click', function() {
                     menu.classList.remove('is-open');
                     menuBtn.classList.remove('active');
@@ -289,6 +283,7 @@
                 });
             } catch (e) { console.log(e); }
 
+            /* ====== 主题切换 ====== */
             try {
                 var toggleBtn = document.getElementById('night-mode-toggle');
                 var blackLayer = document.getElementById('theme-bg-black');
@@ -312,6 +307,7 @@
                 }
             } catch (e) { console.log(e); }
 
+            /* ====== 卡片动画 ====== */
             try {
                 var section = document.getElementById('cardsSection');
                 var card1 = document.getElementById('card1');
