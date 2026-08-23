@@ -18,9 +18,9 @@
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 白色底层（永远在下） */
+        /* 白色底层 */
         #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #fff; z-index: 1; pointer-events: none; }
-        /* 黑色底层（永远在上，用clip-path控制） */
+        /* 黑色底层（带模糊） */
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
@@ -32,10 +32,9 @@
         /* 卡片区域（上移） */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
 
-        /* 卡片绝对定位，初始重叠在中心 */
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
-        
-        /* 缩小卡片尺寸：宽度约 30%，高度不变，视觉更紧凑 */
+
+        /* 卡片基础样式 + 立体阴影 */
         .card-item { 
             position: absolute; left: 50%; top: 50%; 
             width: calc(30% - 10px); 
@@ -44,13 +43,16 @@
             border-radius: 32px; 
             padding: 24px; 
             overflow: hidden; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4); 
             background: rgba(255,255,255,0.05); 
             backdrop-filter: blur(8px); 
             border: 1px solid rgba(255,255,255,0.15);
-            /* 开启 GPU 加速 */
             will-change: transform;
             transform: translate3d(-50%, -50%, 0);
+            /* 升级为三层阴影，立体感更强 */
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.3),
+                0 12px 24px rgba(0,0,0,0.4),
+                0 24px 48px rgba(0,0,0,0.5);
         }
         .card-left { z-index: 1; }
         .card-center { z-index: 3; }
@@ -109,18 +111,12 @@
         </div>
     </main>
 
-    <!-- 三张卡片区域：绝对定位，初始重叠 -->
+    <!-- 三张卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid" id="cardsGrid">
-            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
-                <div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div>
-            </div>
-            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
-                <div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div>
-            </div>
-            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
-                <div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div>
-            </div>
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
         </div>
     </section>
 
@@ -143,7 +139,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // 菜单逻辑（不动）
+        // 菜单逻辑
         const menu = document.getElementById('menu');
         const menuOpenBtn = document.getElementById('menu-open');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -156,7 +152,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 丝滑卡片动画 + 惯性吸附
+        // 丝滑卡片动画（提升平滑度：降低插值系数）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -166,32 +162,24 @@
 
             let vw = window.innerWidth;
             window.addEventListener('resize', () => { vw = window.innerWidth; });
-
-            // 缩小拉开距离（从40%改为30%）
             const distance = () => vw * 0.3;
 
-            let currentProgress = 0;   // 当前平滑进度
-            let targetProgress = 0;    // 目标进度
-            let scrollTimeout;         // 用于检测滚动是否停止（模拟 scrollend）
+            let currentProgress = 0;
+            let targetProgress = 0;
+            let scrollTimeout;
 
             function updateAnimation() {
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-
-                // 计算原始进度：0（卡片在屏幕底外） 到 1（卡片到屏幕顶）
                 let raw = (vh - rect.top) / vh;
                 raw = Math.max(0, Math.min(1, raw));
                 targetProgress = raw;
             }
 
-            // 滚轮事件：实时更新目标进度（只改变变量，不触发重绘）
             window.addEventListener('scroll', () => {
                 updateAnimation();
-                // 每次滚动都重置计时器，判断是否滚动结束（包含惯性）
                 clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
-                    // 滚动结束了！处理吸附逻辑
-                    // 如果进度在 0.25 到 0.75 之间，自动补齐或退回
                     if (targetProgress >= 0.25 && targetProgress < 0.75) {
                         targetProgress = targetProgress >= 0.5 ? 1 : 0;
                     } else if (targetProgress < 0.25) {
@@ -199,25 +187,17 @@
                     } else if (targetProgress >= 0.75) {
                         targetProgress = 1;
                     }
-                }, 50); // 50毫秒后确认滚动停止
+                }, 50);
             }, { passive: true });
 
-            // 渲染循环（使用插值平滑逼近目标，GPU 加速）
             function renderLoop() {
-                // 平滑过渡：每帧向目标靠近 20%
-                currentProgress += (targetProgress - currentProgress) * 0.2;
+                // 平滑系数从0.2降低到0.12，过渡更舒缓
+                currentProgress += (targetProgress - currentProgress) * 0.12;
 
-                // 设置中间卡片位置（第一阶段：上滑）
-                let midY = (1 - Math.min(1, currentProgress / 0.5)) * vw; // 注意这里用 vw 等同 vh 不行，得用 vh，所以传入 window.innerHeight
-
-                // 重新计算 vh
                 let vh = window.innerHeight;
-                midY = (1 - Math.min(1, currentProgress / 0.5)) * vh;
-
-                // 设置左右卡片位置（第二阶段：拉开）
+                let midY = (1 - Math.min(1, currentProgress / 0.5)) * vh;
                 let sideOffset = Math.max(0, (currentProgress - 0.5) / 0.5) * distance();
 
-                // 应用 transform (translate3d 开启 GPU 加速)
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
                 card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px), -50%, 0)`;
                 card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px), -50%, 0)`;
@@ -225,11 +205,10 @@
                 requestAnimationFrame(renderLoop);
             }
 
-            // 启动渲染循环
             requestAnimationFrame(renderLoop);
         })();
 
-        // 主题切换（保持现状）
+        // 主题切换
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
