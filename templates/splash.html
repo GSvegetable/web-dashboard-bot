@@ -106,7 +106,6 @@
             <div class="lede">
                 <h1 class="lede__title">Explore More<br />Open Source Bots</h1>
                 <p class="lede__body">专注电报机器人搭建部署<br />从开源社区中直接获取源代码<br />连接AI - 让办公更轻松</p>
-                <!-- 点击跳转到仓库页面，路径 /warehouse -->
                 <a class="chamfer" href="/warehouse">
                     <span class="chamfer__glass" aria-hidden="true"></span>
                     <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true"><polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>
@@ -140,11 +139,16 @@
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
             <nav class="menu__nav">
+                <!-- 创作：未指定，保留 # -->
                 <a href="#" class="menu__link"><span class="menu__linkText">创作</span></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">社区</span></a>
+                <!-- 社区：跳转到社区页面 -->
+                <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
+                <!-- 终端：未指定，保留 # -->
                 <a href="#" class="menu__link"><span class="menu__linkText">终端</span></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">日志</span></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">联系</span></a>
+                <!-- 日志改为设置，跳转到设置页面 -->
+                <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
+                <!-- 联系：跳转到 Telegram -->
+                <a href="https://t.me/gsyxyc" class="menu__link"><span class="menu__linkText">联系</span></a>
             </nav>
             <div class="menu__foot">
                 <span class="menu__footLabel">联系我们</span>
