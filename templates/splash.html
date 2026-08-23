@@ -55,33 +55,38 @@
 
         .nav__label { color: var(--text-color) !important; }
 
-        /* 汉堡菜单（完全使用你给的源码） */
-        #checkbox { display: none; }
-        .toggle {
+        /* 汉堡菜单（改用普通按钮 + JS控制动画） */
+        .menu-btn {
             position: relative;
             width: 40px;
+            height: 30px;
             cursor: pointer;
-            margin: auto;
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0;
+        }
+        .menu-btn .bar {
             display: block;
-            height: calc(4px * 3 + 11px * 2);
-        }
-        .bar {
-            position: absolute;
-            left: 0;
-            right: 0;
+            width: 100%;
             height: 4px;
-            border-radius: calc(4px / 2);
             background: #7b52b9;
-            color: inherit;
-            opacity: 1;
-            transition: none 0.35s cubic-bezier(.5,-0.35,.35,1.5) 0s;
+            border-radius: 2px;
+            transition: transform 0.35s ease, opacity 0.35s ease, top 0.35s ease;
+            position: relative;
+            top: 0;
         }
-        .bar--top { bottom: calc(50% + 11px + 4px/ 2); transition-property: bottom,margin,transform; transition-delay: calc(0s + 0.35s),0s,0s; }
-        .bar--middle { top: calc(50% - 4px/ 2); transition-property: top,opacity; transition-duration: 0.35s,0s; transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
-        .bar--bottom { top: calc(50% + 11px + 4px/ 2); transition-property: top,transform; transition-delay: 0s; }
-        #checkbox:checked + .toggle .bar--top { bottom: calc(50% - 11px - 4px); margin-bottom: calc(11px + 4px/ 2); transform: rotate(45deg); transition-delay: calc(0s + 0.35s * .3),calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
-        #checkbox:checked + .toggle .bar--middle { top: calc(50% + 11px); opacity: 0; transition-duration: 0.35s,0s; transition-delay: 0s,calc(0s + 0.35s); }
-        #checkbox:checked + .toggle .bar--bottom { top: calc(50% - 4px/ 2); transform: rotate(-45deg); transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
+        .menu-btn.active .bar--top {
+            transform: translateY(13px) rotate(45deg);
+        }
+        .menu-btn.active .bar--middle {
+            opacity: 0;
+        }
+        .menu-btn.active .bar--bottom {
+            transform: translateY(-13px) rotate(-45deg);
+        }
 
         /* 卡片区 */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
@@ -128,15 +133,12 @@
         </div>
 
         <nav class="nav">
-            <!-- 汉堡菜单 -->
-            <div id="menuToggle">
-                <input id="checkbox" type="checkbox">
-                <label class="toggle" for="checkbox">
-                    <div class="bar bar--top"></div>
-                    <div class="bar bar--middle"></div>
-                    <div class="bar bar--bottom"></div>
-                </label>
-            </div>
+            <!-- 汉堡菜单按钮（普通按钮，不依赖checkbox） -->
+            <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
+                <span class="bar bar--top"></span>
+                <span class="bar bar--middle"></span>
+                <span class="bar bar--bottom"></span>
+            </button>
 
             <div class="nav__right">
                 <button id="night-mode-toggle" title="切换主题背景">
@@ -204,55 +206,80 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
 
-    <!-- ✅ 所有 JS 内联，直接写在页面底部，不依赖外部文件 -->
+    <!-- 所有 JS 内联，直接控制 -->
     <script>
-        // 确保DOM完全加载后执行
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== 1. 汉堡菜单逻辑 ==========
-            var checkbox = document.getElementById('checkbox');
+            // ========== 汉堡菜单 ==========
+            var menuBtn = document.getElementById('menu-btn');
             var menu = document.getElementById('menu');
             var menuClose = document.getElementById('menu-close');
             var menuBackdrop = document.getElementById('menu-backdrop');
             var menuLinks = document.querySelectorAll('.menu__link');
 
-            // 点击汉堡：切换菜单状态
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    menu.classList.add('is-open');
-                } else {
+            // 点击汉堡：切换菜单开合
+            menuBtn.addEventListener('click', function() {
+                var isOpen = menu.classList.contains('is-open');
+                if (isOpen) {
                     menu.classList.remove('is-open');
+                    menuBtn.classList.remove('active');
+                } else {
+                    menu.classList.add('is-open');
+                    menuBtn.classList.add('active');
                 }
             });
 
             // 关闭按钮
             menuClose.addEventListener('click', function() {
-                checkbox.checked = false;
                 menu.classList.remove('is-open');
+                menuBtn.classList.remove('active');
             });
 
-            // 点击背景
+            // 背景
             menuBackdrop.addEventListener('click', function() {
-                checkbox.checked = false;
                 menu.classList.remove('is-open');
+                menuBtn.classList.remove('active');
             });
 
-            // 点击菜单链接
+            // 链接
             menuLinks.forEach(function(link) {
                 link.addEventListener('click', function() {
-                    checkbox.checked = false;
                     menu.classList.remove('is-open');
+                    menuBtn.classList.remove('active');
                 });
             });
 
             // Esc关闭
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                    checkbox.checked = false;
                     menu.classList.remove('is-open');
+                    menuBtn.classList.remove('active');
                 }
             });
 
-            // ========== 2. 三张卡片滚动动画 ==========
+            // ========== 主题切换 ==========
+            var toggleBtn = document.getElementById('night-mode-toggle');
+            var blackLayer = document.getElementById('theme-bg-black');
+            if (toggleBtn && blackLayer) {
+                var isBlack = false;
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (isBlack) {
+                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                        document.body.classList.remove('theme-black');
+                        isBlack = false;
+                    } else {
+                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                        void blackLayer.offsetWidth;
+                        blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
+                        document.body.classList.add('theme-black');
+                        isBlack = true;
+                    }
+                });
+            }
+
+            // ========== 卡片滚动动画（保持不变） ==========
             var section = document.getElementById('cardsSection');
             var card1 = document.getElementById('card1');
             var card2 = document.getElementById('card2');
@@ -345,29 +372,6 @@
                 window.addEventListener('scroll', start, { passive: true });
                 window.addEventListener('resize', start);
                 start();
-            }
-
-            // ========== 3. 主题切换 ==========
-            var toggleBtn = document.getElementById('night-mode-toggle');
-            var blackLayer = document.getElementById('theme-bg-black');
-            if (toggleBtn && blackLayer) {
-                var isBlack = false;
-                toggleBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isBlack) {
-                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                        document.body.classList.remove('theme-black');
-                        isBlack = false;
-                    } else {
-                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                        void blackLayer.offsetWidth;
-                        blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                        document.body.classList.add('theme-black');
-                        isBlack = true;
-                    }
-                });
             }
         });
     </script>
