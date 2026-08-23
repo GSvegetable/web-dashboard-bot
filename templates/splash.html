@@ -11,13 +11,7 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
-        
-        /* ✅ 修正：默认背景设为纯白，避免图片没加载时变成深色 */
-        html, body { 
-            height: auto !important; min-height: 100% !important; 
-            overflow-y: auto !important; overflow-x: hidden !important; 
-            background: #ffffff !important; 
-        }
+        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #ffffff !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
@@ -52,13 +46,22 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* ✅ 文字颜色反转规则：默认纯黑，黑色主题下变纯白 */
+        /* ✅ 核心：文字颜色直接取自图片（图片裁剪文字），不再是纯黑纯白 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
         .menu__linkText, .menu__mail, .finding__title, .finding__text {
-            color: #222222 !important; /* 默认白色背景下的深色文字 */
-            transition: color 0.3s ease;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); /* 白色主题时用深色图片作为文字颜色 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background-image 0.3s ease;
         }
-        /* 黑色主题下所有文字反转为白色 */
+
+        /* 黑色主题时，文字改用浅色图片作为颜色，保证清晰 */
         body.theme-black .lede__title,
         body.theme-black .lede__body,
         body.theme-black .chamfer__label,
@@ -68,9 +71,8 @@
         body.theme-black .menu__mail,
         body.theme-black .finding__title,
         body.theme-black .finding__text {
-            color: #ffffff !important;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); /* 黑色主题时用浅色图片作为文字颜色 */
         }
-        /* 卡片内部文字（.card-content）保持白色 */
     </style>
 </head>
 <body>
@@ -195,7 +197,6 @@
                 const vw = window.innerWidth;
                 const vh = window.innerHeight;
 
-                // 根据 section 中心与视口中心的距离计算进度
                 const sectionCenter = rect.top + rect.height * 0.5;
                 const offset = sectionCenter - vh * 0.5;
                 const startDistance = vh * 0.85;
@@ -205,21 +206,18 @@
                 const distance = vw * 0.28;
                 const ini = makeInitials();
 
-                // 中间卡片：从下方滑入
                 target.cX = 0;
                 target.cY = lerp(ini.cY, 0, t);
                 target.cR = 0;
                 target.cS = lerp(ini.cS, 1, t);
                 target.cO = lerp(ini.cO, 1, t);
 
-                // 左侧卡片：从左侧滑入
                 target.lX = lerp(ini.lX, -distance, t);
                 target.lY = lerp(ini.lY, 0, t);
                 target.lR = lerp(ini.lR, -6, t);
                 target.lS = lerp(ini.lS, 1, t);
                 target.lO = lerp(ini.lO, 1, t);
 
-                // 右侧卡片：从右侧滑入
                 target.rX = lerp(ini.rX, distance, t);
                 target.rY = lerp(ini.rY, 0, t);
                 target.rR = lerp(ini.rR, 6, t);
