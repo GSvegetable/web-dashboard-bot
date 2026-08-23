@@ -30,12 +30,12 @@
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
         /* 卡片区域（上移） */
-        .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
+        .cards-section { min-height: 120vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
 
         /* 卡片绝对定位，初始重叠在中心 */
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
         
-        /* 缩小卡片尺寸：宽度约 30%，高度不变，视觉更紧凑 */
+        /* 缩小卡片尺寸 */
         .card-item { 
             position: absolute; left: 50%; top: 50%; 
             width: calc(30% - 10px); 
@@ -48,7 +48,6 @@
             background: rgba(255,255,255,0.05); 
             backdrop-filter: blur(8px); 
             border: 1px solid rgba(255,255,255,0.15);
-            /* 开启 GPU 加速 */
             will-change: transform;
             transform: translate3d(-50%, -50%, 0);
         }
@@ -156,7 +155,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 丝滑卡片动画 + 惯性吸附
+        // ✅ 极致丝滑卡片动画（纯跟随滚动，绝不干扰原生滚动/惯性）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -165,57 +164,26 @@
             if (!section || !card1 || !card2 || !card3) return;
 
             let vw = window.innerWidth;
-            window.addEventListener('resize', () => { vw = window.innerWidth; });
+            let vh = window.innerHeight;
+            window.addEventListener('resize', () => {
+                vw = window.innerWidth;
+                vh = window.innerHeight;
+            });
 
             // 缩小拉开距离（从40%改为30%）
             const distance = () => vw * 0.3;
 
-            let currentProgress = 0;   // 当前平滑进度
-            let targetProgress = 0;    // 目标进度
-            let scrollTimeout;         // 用于检测滚动是否停止（模拟 scrollend）
-
-            function updateAnimation() {
-                const rect = section.getBoundingClientRect();
-                const vh = window.innerHeight;
-
-                // 计算原始进度：0（卡片在屏幕底外） 到 1（卡片到屏幕顶）
-                let raw = (vh - rect.top) / vh;
-                raw = Math.max(0, Math.min(1, raw));
-                targetProgress = raw;
-            }
-
-            // 滚轮事件：实时更新目标进度（只改变变量，不触发重绘）
-            window.addEventListener('scroll', () => {
-                updateAnimation();
-                // 每次滚动都重置计时器，判断是否滚动结束（包含惯性）
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    // 滚动结束了！处理吸附逻辑
-                    // 如果进度在 0.25 到 0.75 之间，自动补齐或退回
-                    if (targetProgress >= 0.25 && targetProgress < 0.75) {
-                        targetProgress = targetProgress >= 0.5 ? 1 : 0;
-                    } else if (targetProgress < 0.25) {
-                        targetProgress = 0;
-                    } else if (targetProgress >= 0.75) {
-                        targetProgress = 1;
-                    }
-                }, 50); // 50毫秒后确认滚动停止
-            }, { passive: true });
-
-            // 渲染循环（使用插值平滑逼近目标，GPU 加速）
+            // 渲染循环：每一帧都读取当前滚动位置，直接应用
             function renderLoop() {
-                // 平滑过渡：每帧向目标靠近 20%
-                currentProgress += (targetProgress - currentProgress) * 0.2;
+                const rect = section.getBoundingClientRect();
+                // 进度 0 ~ 1：卡片在屏幕底部（或以下）时为 0，在屏幕顶部（或以上）时为 1
+                let progress = (vh - rect.top) / (vh * 0.8);
+                progress = Math.max(0, Math.min(1, progress));
 
-                // 设置中间卡片位置（第一阶段：上滑）
-                let midY = (1 - Math.min(1, currentProgress / 0.5)) * vw; // 注意这里用 vw 等同 vh 不行，得用 vh，所以传入 window.innerHeight
-
-                // 重新计算 vh
-                let vh = window.innerHeight;
-                midY = (1 - Math.min(1, currentProgress / 0.5)) * vh;
-
-                // 设置左右卡片位置（第二阶段：拉开）
-                let sideOffset = Math.max(0, (currentProgress - 0.5) / 0.5) * distance();
+                // 阶段1：中间卡片从底部上滑（0~0.5）
+                let midY = (1 - Math.min(1, progress / 0.5)) * vh;
+                // 阶段2：左右卡片拉开（0.5~1）
+                let sideOffset = Math.max(0, (progress - 0.5) / 0.5) * distance();
 
                 // 应用 transform (translate3d 开启 GPU 加速)
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
