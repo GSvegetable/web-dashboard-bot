@@ -59,18 +59,17 @@
                     请扫描二维码<br>或将二维码直接发送给宫水机器人
                 </p>
             </div>
-
         </div>
     </div>
 </div>
 
 <style>
-/* 原有卡片样式（保持与之前完全一致） */
-.login-card { position: relative; width: 100%; max-width: 320px; margin: 0 12px; padding: 24px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
+/* ===== 原版卡片样式（严格按你的描述） ===== */
+.login-card { position: relative; width: 100%; max-width: 320px; margin: 0 12px; padding: 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.35); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1); color: #e5e7eb; display: flex; flex-direction: column; gap: 14px; }
 @keyframes shakeError { 0% { transform: translateX(0); } 12.5% { transform: translateX(-4px); } 25% { transform: translateX(4px); } 37.5% { transform: translateX(-3px); } 50% { transform: translateX(3px); } 62.5% { transform: translateX(-2px); } 75% { transform: translateX(2px); } 87.5% { transform: translateX(-1px); } 100% { transform: translateX(0); } }
 .input-shake { animation: shakeError 0.35s ease-in-out 1; border-color: #ef4444 !important; }
 
-/* ===== 底部弹出样式（只改外层容器，保持内部 .login-card 原样） ===== */
+/* ===== 底部弹出样式（纯外层控制，不干扰内部卡片） ===== */
 #loginModal {
     display: none;
     position: fixed;
@@ -79,6 +78,8 @@
     align-items: flex-end;
     justify-content: center;
     background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 #loginModal.active {
     display: flex;
@@ -87,13 +88,12 @@
     width: 100%;
     max-width: 400px;
     margin-bottom: 0;
+    padding: 20px 20px 0; /* 仅给内边距让卡片有呼吸感 */
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    /* 不设置背景、圆角、内边距，让内部 .login-card 的样式完全生效 */
     background: transparent;
-    border-radius: 0;
-    padding: 0;
     box-shadow: none;
+    border-radius: 0;
 }
 #loginModal.active .modal-box {
     transform: translateY(0);
