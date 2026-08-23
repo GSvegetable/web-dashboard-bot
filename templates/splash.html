@@ -27,7 +27,7 @@
             background-color: #1a1a1a;
             filter: blur(5px);
             z-index: 0; pointer-events: none;
-            clip-path: circle(0% at 48px 48px); /* 初始：中心点 */
+            clip-path: circle(0% at 48px 48px);
             transition: clip-path 0.8s ease-in-out;
         }
 
@@ -39,7 +39,7 @@
             background-size: cover; background-position: center;
             background-color: #fff;
             z-index: 1; pointer-events: none;
-            clip-path: circle(150% at 48px 48px); /* 初始：全屏 */
+            clip-path: circle(150% at 48px 48px);
             transition: clip-path 0.8s ease-in-out;
         }
 
@@ -56,17 +56,53 @@
             outline: none !important; -webkit-tap-highlight-color: transparent; user-select: none;
         }
 
-        /* 卡片样式保持不变 */
-        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 2; }
-        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
-        .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
-        .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
-        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
-        .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
-        .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
-        .card-left { transform: translateX(-150px); }
-        .card-center { transform: translateY(100px); }
-        .card-right { transform: translateX(150px); }
+        /* 卡片区域：上移、调整为长方形、圆润边缘 */
+        .cards-section {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 40px 80px 40px; /* 调整 padding 上移 */
+            position: relative; z-index: 2;
+        }
+        .cards-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 32px; max-width: 1100px; width: 100%;
+        }
+        .card-item {
+            position: relative;
+            border-radius: 32px; /* 更圆润 */
+            padding: 24px;
+            height: 180px; /* 变矮变长方形 */
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            opacity: 0;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: transform 1.2s cubic-bezier(0.22,1,0.36,1), opacity 1.2s ease; /* 拉长动画 */
+        }
+        .card-item::before {
+            content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+            background-size: cover; background-position: center;
+            filter: blur(8px) brightness(0.7);
+            transform: scale(1.1); z-index: 0;
+        }
+        .card-content {
+            position: relative; z-index: 1; height: 100%;
+            display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .card-content h3 {
+            font-size: 20px; font-weight: 700; margin-bottom: 10px;
+            color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+        .card-content p {
+            font-size: 14px; line-height: 1.7;
+            color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+        }
+
+        /* 初始状态：完全移出屏幕外面 */
+        .card-left { transform: translateX(-100vw); }
+        .card-center { transform: translateY(100vh); }
+        .card-right { transform: translateX(100vw); }
     </style>
 </head>
 <body>
@@ -86,9 +122,9 @@
                 <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
                 </svg>
-                <span class="nav__label nav__label--menu">Menu</span>
+                <span class="nav__label nav__label--menu">设置</span>
             </button>
-            <a href="#" class="nav__item"><span class="nav__dot" aria-hidden="true"></span><span class="nav__label">Book a call</span></a>
+            <a href="#" class="nav__item"><span class="nav__dot" aria-hidden="true"></span><span class="nav__label">Login</span></a>
         </nav>
 
         <div class="hero-bottom">
@@ -116,6 +152,7 @@
         </div>
     </main>
 
+    <!-- 三张卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
@@ -156,7 +193,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 三卡片滚动动画
+        // 三卡片滚动动画（拉长效果，从屏幕外慢慢缩进来）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -167,15 +204,24 @@
                 if (!section || !card1 || !card2 || !card3) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                let progress = (vh - rect.top) / (vh * 0.8);
+                const vw = window.innerWidth;
+                // 除以更大的数，让进度增长变慢，拉长动画
+                let progress = (vh - rect.top) / (vh * 2.5);
                 progress = Math.max(0, Math.min(1, progress));
                 const eased = easeOutCubic(progress);
                 const offset1 = Math.max(0, Math.min(1, (eased - 0.05) / 0.9));
                 const offset2 = Math.max(0, Math.min(1, (eased - 0.15) / 0.9));
                 const offset3 = Math.max(0, Math.min(1, (eased - 0.25) / 0.9));
-                card1.style.transform = `translateX(${-150 * (1 - offset1)}px)`; card1.style.opacity = offset1;
-                card2.style.transform = `translateY(${100 * (1 - offset2)}px)`; card2.style.opacity = offset2;
-                card3.style.transform = `translateX(${150 * (1 - offset3)}px)`; card3.style.opacity = offset3;
+
+                // 从屏幕外拉回
+                card1.style.transform = `translateX(${-vw * (1 - offset1)}px)`;
+                card1.style.opacity = offset1;
+
+                card2.style.transform = `translateY(${vh * (1 - offset2)}px)`;
+                card2.style.opacity = offset2;
+
+                card3.style.transform = `translateX(${vw * (1 - offset3)}px)`;
+                card3.style.opacity = offset3;
             }
             window.addEventListener('scroll', updateCards, { passive: true });
             window.addEventListener('resize', updateCards);
@@ -183,14 +229,13 @@
             updateCards();
         })();
 
-        // ✅ 终极方案：新层扩散，模糊永久生效
+        // 主题切换逻辑（保持不变）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
             const whiteLayer = document.getElementById('theme-bg-white');
             if (!toggleBtn || !blackLayer || !whiteLayer) return;
 
-            // 初始状态：白色主题（白色层全屏，黑色层隐藏）
             let isWhiteTheme = true;
 
             toggleBtn.addEventListener('click', function(e) {
@@ -198,27 +243,17 @@
                 e.stopPropagation();
 
                 if (isWhiteTheme) {
-                    // 切黑色：黑色层扩散，模糊生效！
-                    blackLayer.style.zIndex = 2; // 提升层级，盖住白色
+                    blackLayer.style.zIndex = 2;
                     blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    void blackLayer.offsetWidth; // 强制重绘
+                    void blackLayer.offsetWidth;
                     blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
-
-                    // 动画后白色层完全隐藏
-                    setTimeout(() => {
-                        whiteLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    }, 850);
+                    setTimeout(() => { whiteLayer.style.clipPath = 'circle(0% at 48px 48px)'; }, 850);
                 } else {
-                    // 切白色：白色层扩散
                     whiteLayer.style.zIndex = 2;
                     whiteLayer.style.clipPath = 'circle(0% at 48px 48px)';
                     void whiteLayer.offsetWidth;
                     whiteLayer.style.clipPath = 'circle(150% at 48px 48px)';
-
-                    // 动画后黑色层完全隐藏
-                    setTimeout(() => {
-                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    }, 850);
+                    setTimeout(() => { blackLayer.style.clipPath = 'circle(0% at 48px 48px)'; }, 850);
                 }
 
                 isWhiteTheme = !isWhiteTheme;
