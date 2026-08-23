@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 全局强制白色文字，不随主题变化 */
+        /* 全局强制白色文字 */
         * {
             color: #ffffff !important;
             -webkit-tap-highlight-color: transparent !important;
@@ -42,7 +42,7 @@
             pointer-events: none !important;
         }
 
-        /* 两层背景：白色层和黑色层（带模糊） */
+        /* 两层背景 */
         #theme-bg-white, #theme-bg-black {
             position: fixed;
             top: 0;
@@ -53,7 +53,7 @@
             background-position: center;
             z-index: 1;
             pointer-events: none;
-            transition: opacity 0.5s ease; /* 平滑切换 */
+            transition: opacity 1s ease; /* ⚡ 放慢到 1s（原来0.5s的一半速度） */
         }
         #theme-bg-white {
             background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
@@ -64,7 +64,7 @@
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-color: #000000;
             filter: blur(8px);
-            opacity: 0; /* 默认隐藏 */
+            opacity: 0;
         }
 
         /* 内容层在背景之上 */
@@ -114,7 +114,7 @@
         /* 登录按钮 */
         .nav__label { font-size: 0.875rem; }
 
-        /* 汉堡菜单（三条杠） */
+        /* 汉堡菜单 */
         #menuToggle {
             position: fixed;
             top: 16px;
@@ -149,7 +149,7 @@
         #checkbox:checked + .toggle .bar--middle { top: calc(50% + 9px); opacity: 0; transition-duration: 0.35s,0s; transition-delay: 0s,calc(0s + 0.35s); }
         #checkbox:checked + .toggle .bar--bottom { top: calc(50% - 3px / 2); transform: rotate(-45deg); transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
 
-        /* 卡片区域（保持原样） */
+        /* 卡片区域 */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 260px; margin: 0 auto; }
         .card-item { position: absolute; left: 50%; top: 50%; width: calc(30% - 10px); max-width: 320px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); will-change: transform, opacity; backface-visibility: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 12px 24px rgba(0,0,0,0.4), 0 24px 48px rgba(0,0,0,0.5); opacity: 0; }
@@ -160,7 +160,7 @@
         .card-content p { font-size: 14px; line-height: 1.7; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
         /* 侧边菜单 */
-        .menu__panel { background: #1a1a1a !important; } /* 改为深色背景，配合白字 */
+        .menu__panel { background: #1a1a1a !important; }
         .menu__link { border-bottom-color: rgba(255,255,255,0.1) !important; }
         .menu__footLabel { color: rgba(255,255,255,0.5) !important; }
 
@@ -209,11 +209,9 @@
 
         <nav class="nav">
             <div class="nav__right">
-                <!-- 登录按钮 -->
                 <a href="#" class="nav__item" onclick="window.openLoginModal(); return false;">
                     <span class="nav__label">Login</span>
                 </a>
-                <!-- 主题切换按钮 -->
                 <button id="night-mode-toggle" title="切换主题背景">
                     <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 18v-6m0 0V6m0 6h6m-6 0H6m13.5-2.5L14 10m-2 5l4.5 4.5M10 10l-4.5-4.5M10 10l4.5 4.5M10 10L5.5 5.5"/></svg>
@@ -254,7 +252,7 @@
         </div>
     </section>
 
-    <!-- 侧边菜单（文字全部白色，背景深色） -->
+    <!-- 侧边菜单 -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
@@ -275,13 +273,13 @@
     <!-- Toast -->
     <div id="toast"></div>
 
-    <!-- 登录卡片（组件引用） -->
+    <!-- 登录卡片 -->
     {% include 'components/auth_card.html' %}
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toast 逻辑（简略）
+            // Toast 逻辑
             var toast = document.getElementById('toast');
             var toastTimer = null;
             function showToast(msg) {
@@ -318,7 +316,7 @@
                 }
             });
 
-            // 主题切换（改为 opacity 控制，消除闪屏）
+            // 主题切换（opacity 过渡，1s）
             var toggleBtn = document.getElementById('night-mode-toggle');
             var whiteLayer = document.getElementById('theme-bg-white');
             var blackLayer = document.getElementById('theme-bg-black');
@@ -339,7 +337,7 @@
                 });
             }
 
-            // 卡片动画（保留原逻辑）
+            // 卡片动画
             var section = document.getElementById('cardsSection');
             var card1 = document.getElementById('card1');
             var card2 = document.getElementById('card2');
