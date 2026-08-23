@@ -20,7 +20,7 @@
 
         /* 白色底层（永远在下） */
         #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #fff; z-index: 1; pointer-events: none; }
-        /* 黑色底层（永远在上，用clip-path控制） */
+        /* 黑色底层（永远在上） */
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
@@ -29,28 +29,12 @@
         #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区域（上移） */
-        .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
+        /* 卡片区域 */
+        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -10vh; position: relative; z-index: 3; }
 
-        /* 卡片绝对定位，初始重叠在中心 */
+        /* 卡片绝对定位，初始重叠 */
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
-        
-        /* 缩小卡片尺寸：宽度约 30%，高度不变，视觉更紧凑 */
-        .card-item { 
-            position: absolute; left: 50%; top: 50%; 
-            width: calc(30% - 10px); 
-            max-width: 320px; 
-            height: 180px; 
-            border-radius: 32px; 
-            padding: 24px; 
-            overflow: hidden; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4); 
-            background: rgba(255,255,255,0.05); 
-            backdrop-filter: blur(8px); 
-            border: 1px solid rgba(255,255,255,0.15);
-            will-change: transform;
-            transform: translate3d(-50%, -50%, 0);
-        }
+        .card-item { position: absolute; left: 50%; top: 50%; width: calc(30% - 10px); max-width: 320px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); will-change: transform; transform: translate3d(-50%, -50%, 0); }
         .card-left { z-index: 1; }
         .card-center { z-index: 3; }
         .card-right { z-index: 2; }
@@ -108,7 +92,7 @@
         </div>
     </main>
 
-    <!-- 三张卡片区域：绝对定位，初始重叠 -->
+    <!-- 三张卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid" id="cardsGrid">
             <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
@@ -155,7 +139,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 丝滑卡片动画，完全跟随滚动惯性（无 lerp，无 setTimeout，无卡顿）
+        // ✅ 卡片动画：进度直接绑定滚动位置，惯性滑动自然带动，绝不卡中间
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -163,43 +147,35 @@
             const card3 = document.getElementById('card3');
             if (!section || !card1 || !card2 || !card3) return;
 
-            // 记录卡片区域在文档中的绝对位置（初始化时算一次）
-            let sectionDocTop = section.getBoundingClientRect().top + window.scrollY;
-            // 动态更新距离（视口大小变化时）
-            window.addEventListener('resize', () => {
-                sectionDocTop = section.getBoundingClientRect().top + window.scrollY;
-            });
+            let vw = window.innerWidth;
+            window.addEventListener('resize', () => { vw = window.innerWidth; });
+            const distance = () => vw * 0.3;
 
-            const distance = () => window.innerWidth * 0.3; // 拉开距离：视口宽度30%
-
-            function renderLoop() {
+            function updateCards() {
+                const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                const currentY = window.scrollY;
-                // 计算卡片区域当前距视口顶部的距离
-                const rectTop = sectionDocTop - currentY;
-                
-                // 进度：0表示卡片在底部，1表示到达顶部
-                // 除以 vh * 1.5 让动画区间更长更从容
-                let progress = (vh - rectTop) / (vh * 1.5);
+
+                // 进度 0 → 1：卡片区域从底部进入视口到顶部
+                // 当 rect.top 从 vh 变到 0，progress 从 0 变到 1
+                let progress = (vh - rect.top) / vh;
                 progress = Math.max(0, Math.min(1, progress));
 
-                // 第一阶段 (0 ~ 0.5)：中间卡片从底部升起
-                const midY = (1 - Math.min(1, progress / 0.5)) * vh;
+                // 第一阶段：中间卡片上移（0 ~ 0.5）
+                let midY = (1 - Math.min(1, progress / 0.5)) * vh;
+                // 第二阶段：左右卡片拉开（0.5 ~ 1）
+                let sideOffset = Math.max(0, (progress - 0.5) / 0.5) * distance();
 
-                // 第二阶段 (0.5 ~ 1)：左右卡片向两边匀速拉开
-                const sideOffset = Math.max(0, (progress - 0.5) / 0.5) * distance();
-
-                // 应用变换（translate3d 开启 GPU 加速）
+                // 直接同步，不插值，滚动时完全跟手
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
                 card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px), -50%, 0)`;
                 card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px), -50%, 0)`;
-
-                // 使用 requestAnimationFrame 持续渲染，完美跟随惯性
-                requestAnimationFrame(renderLoop);
             }
 
-            // 启动渲染循环
-            requestAnimationFrame(renderLoop);
+            // 直接用 scroll 监听，实时更新，无任何吸附/停顿逻辑
+            window.addEventListener('scroll', updateCards, { passive: true });
+            window.addEventListener('resize', updateCards);
+            window.addEventListener('load', updateCards);
+            updateCards();
         })();
 
         // 主题切换（保持现状）
