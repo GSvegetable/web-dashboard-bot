@@ -33,9 +33,17 @@
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 50% 50%); transition: clip-path 0.6s ease-in-out; }
 
         .nav { display: flex; align-items: center; justify-content: flex-end; padding: 1rem 1.5rem 1rem 60px; pointer-events: auto !important; }
-        .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
+        /* 间距放大一点点 */
+        .nav__right { display: flex; align-items: center; gap: 1.5rem; margin-top: -10px; margin-right: 15px; }
 
         #night-mode-toggle { background: none; border: none; cursor: pointer; color: var(--text-color); display: flex; align-items: center; justify-content: center; padding: 5px; outline: none !important; -webkit-tap-highlight-color: transparent !important; pointer-events: auto !important; }
+
+        /* 月亮/太阳图标动画 */
+        #night-mode-toggle svg { transition: transform 0.5s ease, opacity 0.5s ease; }
+        #night-mode-toggle .icon-sun { display: none; transform: rotate(180deg); }
+        body.theme-black #night-mode-toggle .icon-moon { display: none; }
+        body.theme-black #night-mode-toggle .icon-sun { display: block; transform: rotate(0deg); }
+
         .nav__label { color: var(--text-color) !important; }
 
         #menuToggle { position: fixed; top: 16px; left: 20px; z-index: 100000; pointer-events: auto !important; }
@@ -70,6 +78,22 @@
 
         #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 99999; transition: bottom 0.3s ease-out; pointer-events: none; opacity: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         #toast.show { bottom: 40px; opacity: 1; }
+
+        /* ===== 登录卡片底部弹出动画 ===== */
+        #loginModal { display: none !important; }
+        #loginModal.active { display: flex !important; align-items: flex-end; justify-content: center; }
+        #loginModal .modal-box {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 0;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+        }
+        #loginModal.active .modal-box { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -95,10 +119,15 @@
 
         <nav class="nav">
             <div class="nav__right">
+                <!-- 登录按钮（触发 openLoginModal），间距已加大 -->
+                <a href="#" class="nav__item" onclick="window.openLoginModal(); return false;">
+                    <span class="nav__label">Login</span>
+                </a>
+                <!-- 主题切换按钮（月亮/太阳） -->
                 <button id="night-mode-toggle" title="切换主题背景">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 18v-6m0 0V6m0 6h6m-6 0H6m13.5-2.5L14 10m-2 5l4.5 4.5M10 10l-4.5-4.5M10 10l4.5 4.5M10 10L5.5 5.5"/></svg>
                 </button>
-                <a href="#" class="nav__item"><span class="nav__label">Login</span></a>
             </div>
         </nav>
 
@@ -143,10 +172,8 @@
                 <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
                 <a href="#" class="menu__link"><span class="menu__linkText">终端</span></a>
                 <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
-                <!-- 联系改为 Agent，此处暂时保留 #，后文可扩展链接 -->
                 <a href="#" class="menu__link"><span class="menu__linkText">Agent</span></a>
             </nav>
-            <!-- 点击整体跳转到 Telegram -->
             <a href="https://t.me/gsyxyc" class="menu__foot" style="text-decoration: none; color: inherit; display: block;">
                 <span class="menu__footLabel">联系我们</span>
                 <span class="menu__mail">宫水.com @gsyxyc</span>
@@ -155,6 +182,9 @@
     </div>
 
     <div id="toast"></div>
+
+    <!-- 引入登录卡片 -->
+    {% include 'components/auth_card.html' %}
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
