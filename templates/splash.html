@@ -24,7 +24,7 @@
 
         * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #ffffff !important; }
-        .hero { height: auto !important; min-height: 100vh !important; }
+        .hero { height: auto !important; min-height: 100vh !important; **pointer-events: auto !important;** }
 
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
@@ -33,10 +33,8 @@
         #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #ffffff; z-index: 1; pointer-events: none; }
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
-        .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
-
-        /* 导航栏 */
-        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 1.25rem; }
+        /* 强制开启导航栏点击 */
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 1.25rem; **pointer-events: auto !important;** }
         .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
 
         /* 月亮按钮 */
@@ -51,11 +49,12 @@
             padding: 5px;
             outline: none !important;
             -webkit-tap-highlight-color: transparent !important;
+            pointer-events: auto !important;
         }
 
         .nav__label { color: var(--text-color) !important; }
 
-        /* 汉堡菜单（改用普通按钮 + JS控制动画） */
+        /* 汉堡菜单（普通按钮） */
         .menu-btn {
             position: relative;
             width: 40px;
@@ -67,6 +66,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 0;
+            pointer-events: auto !important; /* 关键：让按钮可点击 */
         }
         .menu-btn .bar {
             display: block;
@@ -78,15 +78,9 @@
             position: relative;
             top: 0;
         }
-        .menu-btn.active .bar--top {
-            transform: translateY(13px) rotate(45deg);
-        }
-        .menu-btn.active .bar--middle {
-            opacity: 0;
-        }
-        .menu-btn.active .bar--bottom {
-            transform: translateY(-13px) rotate(-45deg);
-        }
+        .menu-btn.active .bar--top { transform: translateY(13px) rotate(45deg); }
+        .menu-btn.active .bar--middle { opacity: 0; }
+        .menu-btn.active .bar--bottom { transform: translateY(-13px) rotate(-45deg); }
 
         /* 卡片区 */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
@@ -133,7 +127,7 @@
         </div>
 
         <nav class="nav">
-            <!-- 汉堡菜单按钮（普通按钮，不依赖checkbox） -->
+            <!-- 汉堡菜单按钮 -->
             <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
                 <span class="bar bar--top"></span>
                 <span class="bar bar--middle"></span>
@@ -205,174 +199,121 @@
     </div>
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-
-    <!-- 所有 JS 内联，直接控制 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== 汉堡菜单 ==========
-            var menuBtn = document.getElementById('menu-btn');
-            var menu = document.getElementById('menu');
-            var menuClose = document.getElementById('menu-close');
-            var menuBackdrop = document.getElementById('menu-backdrop');
-            var menuLinks = document.querySelectorAll('.menu__link');
+            // 用 try-catch 包裹，防止一段错误导致全挂
+            try {
+                var menuBtn = document.getElementById('menu-btn');
+                var menu = document.getElementById('menu');
+                var menuClose = document.getElementById('menu-close');
+                var menuBackdrop = document.getElementById('menu-backdrop');
+                var menuLinks = document.querySelectorAll('.menu__link');
 
-            // 点击汉堡：切换菜单开合
-            menuBtn.addEventListener('click', function() {
-                var isOpen = menu.classList.contains('is-open');
-                if (isOpen) {
-                    menu.classList.remove('is-open');
-                    menuBtn.classList.remove('active');
-                } else {
-                    menu.classList.add('is-open');
-                    menuBtn.classList.add('active');
-                }
-            });
+                menuBtn.addEventListener('click', function() {
+                    var isOpen = menu.classList.contains('is-open');
+                    if (isOpen) {
+                        menu.classList.remove('is-open');
+                        menuBtn.classList.remove('active');
+                    } else {
+                        menu.classList.add('is-open');
+                        menuBtn.classList.add('active');
+                    }
+                });
 
-            // 关闭按钮
-            menuClose.addEventListener('click', function() {
-                menu.classList.remove('is-open');
-                menuBtn.classList.remove('active');
-            });
-
-            // 背景
-            menuBackdrop.addEventListener('click', function() {
-                menu.classList.remove('is-open');
-                menuBtn.classList.remove('active');
-            });
-
-            // 链接
-            menuLinks.forEach(function(link) {
-                link.addEventListener('click', function() {
+                menuClose.addEventListener('click', function() {
                     menu.classList.remove('is-open');
                     menuBtn.classList.remove('active');
                 });
-            });
-
-            // Esc关闭
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                menuBackdrop.addEventListener('click', function() {
                     menu.classList.remove('is-open');
                     menuBtn.classList.remove('active');
-                }
-            });
-
-            // ========== 主题切换 ==========
-            var toggleBtn = document.getElementById('night-mode-toggle');
-            var blackLayer = document.getElementById('theme-bg-black');
-            if (toggleBtn && blackLayer) {
-                var isBlack = false;
-                toggleBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isBlack) {
-                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                        document.body.classList.remove('theme-black');
-                        isBlack = false;
-                    } else {
-                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                        void blackLayer.offsetWidth;
-                        blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                        document.body.classList.add('theme-black');
-                        isBlack = true;
+                });
+                menuLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        menu.classList.remove('is-open');
+                        menuBtn.classList.remove('active');
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                        menu.classList.remove('is-open');
+                        menuBtn.classList.remove('active');
                     }
                 });
-            }
+            } catch (e) { console.log(e); }
 
-            // ========== 卡片滚动动画（保持不变） ==========
-            var section = document.getElementById('cardsSection');
-            var card1 = document.getElementById('card1');
-            var card2 = document.getElementById('card2');
-            var card3 = document.getElementById('card3');
-            if (section && card1 && card2 && card3) {
-                var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
-                var lerp = function(a, b, t) { return a + (b - a) * t; };
-                var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
-
-                function makeInitials() {
-                    var vw = window.innerWidth;
-                    var vh = window.innerHeight;
-                    return {
-                        cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5,
-                        lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25,
-                        rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25
-                    };
+            // 主题切换
+            try {
+                var toggleBtn = document.getElementById('night-mode-toggle');
+                var blackLayer = document.getElementById('theme-bg-black');
+                if (toggleBtn && blackLayer) {
+                    var isBlack = false;
+                    toggleBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (isBlack) {
+                            blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                            document.body.classList.remove('theme-black');
+                            isBlack = false;
+                        } else {
+                            blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                            void blackLayer.offsetWidth;
+                            blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
+                            document.body.classList.add('theme-black');
+                            isBlack = true;
+                        }
+                    });
                 }
+            } catch (e) { console.log(e); }
 
-                var current = makeInitials();
-                var target = makeInitials();
-                var running = false;
-
-                function updateTargets() {
-                    var rect = section.getBoundingClientRect();
-                    var vw = window.innerWidth;
-                    var vh = window.innerHeight;
-                    var sectionCenter = rect.top + rect.height * 0.5;
-                    var offset = sectionCenter - vh * 0.5;
-                    var startDistance = vh * 0.85;
-                    var progress = clamp(1 - offset / startDistance, 0, 1);
-                    var t = easeOutCubic(progress);
-                    var distance = vw * 0.28;
-                    var ini = makeInitials();
-
-                    target.cX = 0;
-                    target.cY = lerp(ini.cY, 0, t);
-                    target.cR = 0;
-                    target.cS = lerp(ini.cS, 1, t);
-                    target.cO = lerp(ini.cO, 1, t);
-
-                    target.lX = lerp(ini.lX, -distance, t);
-                    target.lY = lerp(ini.lY, 0, t);
-                    target.lR = lerp(ini.lR, -6, t);
-                    target.lS = lerp(ini.lS, 1, t);
-                    target.lO = lerp(ini.lO, 1, t);
-
-                    target.rX = lerp(ini.rX, distance, t);
-                    target.rY = lerp(ini.rY, 0, t);
-                    target.rR = lerp(ini.rR, 6, t);
-                    target.rS = lerp(ini.rS, 1, t);
-                    target.rO = lerp(ini.rO, 1, t);
-                }
-
-                function apply() {
-                    card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
-                    card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
-                    card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
-
-                    card1.style.opacity = current.lO;
-                    card2.style.opacity = current.cO;
-                    card3.style.opacity = current.rO;
-                }
-
-                function frame() {
-                    updateTargets();
-                    var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
-                    var delta = 0;
-                    for (var i = 0; i < keys.length; i++) {
-                        var k = keys[i];
-                        var old = current[k];
-                        current[k] = lerp(old, target[k], 0.09);
-                        delta += Math.abs(current[k] - old);
+            // 卡片动画
+            try {
+                var section = document.getElementById('cardsSection');
+                var card1 = document.getElementById('card1');
+                var card2 = document.getElementById('card2');
+                var card3 = document.getElementById('card3');
+                if (section && card1 && card2 && card3) {
+                    var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
+                    var lerp = function(a, b, t) { return a + (b - a) * t; };
+                    var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
+                    function makeInitials() {
+                        var vw = window.innerWidth, vh = window.innerHeight;
+                        return { cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 };
                     }
-                    apply();
-                    if (delta > 0.001) {
-                        requestAnimationFrame(frame);
-                    } else {
-                        running = false;
+                    var current = makeInitials(), target = makeInitials(), running = false;
+                    function updateTargets() {
+                        var rect = section.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+                        var offset = (rect.top + rect.height * 0.5) - vh * 0.5;
+                        var progress = clamp(1 - offset / (vh * 0.85), 0, 1), t = easeOutCubic(progress), distance = vw * 0.28, ini = makeInitials();
+                        target.cX = 0; target.cY = lerp(ini.cY, 0, t); target.cR = 0; target.cS = lerp(ini.cS, 1, t); target.cO = lerp(ini.cO, 1, t);
+                        target.lX = lerp(ini.lX, -distance, t); target.lY = lerp(ini.lY, 0, t); target.lR = lerp(ini.lR, -6, t); target.lS = lerp(ini.lS, 1, t); target.lO = lerp(ini.lO, 1, t);
+                        target.rX = lerp(ini.rX, distance, t); target.rY = lerp(ini.rY, 0, t); target.rR = lerp(ini.rR, 6, t); target.rS = lerp(ini.rS, 1, t); target.rO = lerp(ini.rO, 1, t);
                     }
-                }
-
-                function start() {
-                    if (!running) {
-                        running = true;
-                        requestAnimationFrame(frame);
+                    function apply() {
+                        card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
+                        card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
+                        card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
+                        card1.style.opacity = current.lO; card2.style.opacity = current.cO; card3.style.opacity = current.rO;
                     }
+                    function frame() {
+                        updateTargets();
+                        var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
+                        var delta = 0;
+                        for (var i = 0; i < keys.length; i++) {
+                            var k = keys[i], old = current[k];
+                            current[k] = lerp(old, target[k], 0.09);
+                            delta += Math.abs(current[k] - old);
+                        }
+                        apply();
+                        if (delta > 0.001) requestAnimationFrame(frame);
+                        else running = false;
+                    }
+                    function start() { if (!running) { running = true; requestAnimationFrame(frame); } }
+                    window.addEventListener('scroll', start, { passive: true });
+                    window.addEventListener('resize', start);
+                    start();
                 }
-
-                window.addEventListener('scroll', start, { passive: true });
-                window.addEventListener('resize', start);
-                start();
-            }
+            } catch (e) { console.log(e); }
         });
     </script>
 </body>
