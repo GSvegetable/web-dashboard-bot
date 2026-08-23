@@ -28,7 +28,7 @@
             display: none !important; opacity: 0 !important; pointer-events: none !important;
         }
 
-        /* 黑色底层（第一张图） */
+        /* 黑色底层（第一张图）—— 永远保持模糊 */
         #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -36,12 +36,7 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             z-index: 0; pointer-events: none;
-            transition: filter 0.3s ease; /* 模糊过渡 */
-        }
-
-        /* 当黑色主题激活时，给黑色背景加高斯模糊 */
-        body.black-theme #theme-bg-black {
-            filter: blur(10px);
+            filter: blur(5px); /* ✅ 模糊值已调小，且永远生效 */
         }
 
         /* 白色上层（第二张图），默认覆盖全屏 */
@@ -89,7 +84,7 @@
     </style>
 </head>
 <body>
-    <!-- 背景层：黑色在底，白色在上 -->
+    <!-- 背景层：黑色在底（模糊），白色在上（清晰） -->
     <div id="theme-bg-black"></div>
     <div id="theme-bg-white"></div>
 
@@ -204,7 +199,7 @@
             updateCards();
         })();
 
-        // ✅ 主题切换（保持不变，增加 body 类控制模糊）
+        // ✅ 主题切换（保持不变，但去掉了body类控制）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const whiteLayer = document.getElementById('theme-bg-white');
@@ -220,8 +215,8 @@
                 // 切换状态
                 isWhiteShown = !isWhiteShown;
 
-                // 同步 body 类，控制黑色背景模糊
-                document.body.classList.toggle('black-theme', !isWhiteShown);
+                // ✅ 不需要再同步body类了，模糊效果写死在黑色层上
+                // document.body.classList.toggle('black-theme', !isWhiteShown); // 已删除
 
                 // 切换白色层的类名，触发 CSS 动画
                 if (isWhiteShown) {
