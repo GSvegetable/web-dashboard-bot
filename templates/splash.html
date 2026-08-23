@@ -7,9 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
+    <!-- 这里的 terranova.css 是外部文件，必须保留加载，但我们用 !important 覆盖掉它的颜色 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
+        /* 定义主题变量：白色主题文字黑色，黑色主题文字白色 */
+        :root {
+            --text-color: #000000; /* 默认黑色 */
+            --border-color: rgba(0,0,0,0.3); /* 默认边框 */
+            --line-color: #000000; /* 线条 */
+        }
+        body.theme-black {
+            --text-color: #ffffff; /* 黑色主题白色 */
+            --border-color: rgba(255,255,255,0.3);
+            --line-color: #ffffff;
+        }
+
         * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #ffffff !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
@@ -25,7 +38,7 @@
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
         /* 月亮按钮（左上角） */
-        #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.5); color: #222; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
+        #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(255,255,255,0.5); color: var(--text-color); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
         #night-mode-toggle:active { background: rgba(255,255,255,0.8); }
 
         /* 卡片区（上移） */
@@ -46,42 +59,25 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* ✅ 纯文字用图片填充 */
+        /* ✅ 核心修复：强制所有文字、图标、线条使用主题变量，彻底覆盖 terranova.css 里的黑色硬编码 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
-        .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title {
-            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); 
-            background-size: cover; background-position: center; background-attachment: fixed;
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent; color: transparent;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: background-image 0.3s ease;
+        .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title,
+        .menu__close, .menu__link, .card__head, .card__index {
+            color: var(--text-color) !important;
         }
-        /* 黑色主题时文字改用浅色图片 */
-        body.theme-black .lede__title,
-        body.theme-black .lede__body,
-        body.theme-black .chamfer__label,
-        body.theme-black .nav__label,
-        body.theme-black .nav__dot,
-        body.theme-black .menu__linkText,
-        body.theme-black .menu__mail,
-        body.theme-black .finding__title,
-        body.theme-black .finding__text,
-        body.theme-black .card__title {
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); 
-        }
-
-        /* ✅ SVG 图标、边框、线条用纯色控制 */
-        .nav, .chamfer, .card, .menu { color: #222; }
-        body.theme-black .nav, body.theme-black .chamfer, body.theme-black .card, body.theme-black .menu { color: #fff; }
+        .nav__dot { background: var(--text-color) !important; }
         
-        /* 强制覆盖：确保SVG使用当前颜色 */
-        .nav svg, .chamfer svg, .card svg, .menu svg { stroke: currentColor; fill: currentColor; }
-        
-        /* 🔥 关键修复：强制更新日志卡片底部的波浪线跟随主题颜色 */
-        .card__wave, .card__wave path {
-            stroke: currentColor !important;
+        /* SVG 图标和线条 */
+        .nav svg, .chamfer svg, .card svg, .menu svg, .card__wave path {
+            stroke: var(--line-color) !important;
             fill: none !important;
         }
+        .chamfer__glass { border-color: var(--border-color) !important; }
+        .card__head { border-bottom-color: var(--border-color) !important; }
+        .menu__panel { background: #f5f4f0 !important; }
+        
+        /* 黑色主题下特殊覆盖（可选） */
+        body.theme-black .chamfer__glass { border-color: var(--border-color) !important; background: rgba(255,255,255,0.1) !important; }
     </style>
 </head>
 <body>
