@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +16,7 @@
             min-height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            background: transparent !important; /* 关键：不要黑色底 */
+            background: transparent !important;
         }
         .hero { height: auto !important; min-height: 100vh !important; }
         video::-webkit-media-controls,
@@ -39,12 +39,24 @@
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover;
             background-position: center;
-            background-color: #333333; /* 兜底：即使图片加载慢，也是深灰色而不是全黑 */
+            background-color: #333333;
             z-index: 0;
             pointer-events: none;
-            display: block; /* 默认显示 */
+            display: block;
         }
-        /* 保证内容在背景之上 */
+        /* 圆形扩散层 */
+        #theme-ring {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            clip-path: circle(0% at 50% 50%);
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
+            background-size: cover;
+            background-position: center;
+            display: none;
+        }
         .hero, .nav, .cards-section, .menu {
             position: relative;
             z-index: 1;
@@ -88,6 +100,9 @@
 
     <!-- 主题背景层（默认海浪图） -->
     <div id="theme-bg"></div>
+    
+    <!-- 新增：用于扩散动画的圆形覆盖层 -->
+    <div id="theme-ring"></div>
 
     <!-- 主内容 -->
     <main class="hero">
@@ -220,6 +235,9 @@
         </svg>
     </button>
 
+    <!-- 引入 GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
     <!-- 原有脚本（菜单等） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
@@ -263,23 +281,51 @@
             updateCards();
         })();
 
-        // 🌙 主题切换（在海浪图和另一张图之间直接切换）
+        // ✅ 主题切换：圆形扩散动画（与原版一致）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
-            if (!toggleBtn || !themeBg) return;
-            
+            const themeRing = document.getElementById('theme-ring');
+            if (!toggleBtn || !themeBg || !themeRing) return;
+
             // 定义两张背景图的 URL
             const IMG_1 = "{{ url_for('static', filename='IMG_20260823_040708.png') }}";
             const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
-            
+
             let isFirstImage = true; // 当前是否显示第一张（海浪图）
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // 获取按钮位置（作为扩散圆心）
+                const rect = toggleBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+
+                // 切换状态，设置圆环要显示的下一张图片
                 isFirstImage = !isFirstImage;
-                themeBg.style.backgroundImage = `url('${isFirstImage ? IMG_1 : IMG_2}')`;
+                const nextBg = isFirstImage ? IMG_1 : IMG_2;
+
+                // 初始化圆环
+                gsap.set(themeRing, {
+                    width: '100vw',
+                    height: '100vh',
+                    clipPath: `circle(0% at ${x}px ${y}px)`,
+                    backgroundImage: `url('${nextBg}')`,
+                    display: 'block'
+                });
+
+                // 圆环从 0 扩散到 150% 覆盖全屏
+                gsap.to(themeRing, {
+                    clipPath: `circle(150% at ${x}px ${y}px)`,
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    onComplete: function() {
+                        themeBg.style.backgroundImage = `url('${nextBg}')`;
+                        gsap.set(themeRing, { display: 'none' });
+                    }
+                });
             });
         })();
     </script>
