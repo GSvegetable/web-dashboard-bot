@@ -24,13 +24,12 @@
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
-        /* 月亮按钮 */
+        /* 月亮按钮（左上角） */
         #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区 */
+        /* 卡片区（上移） */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
-
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
         .card-item { 
             position: absolute; left: 50%; top: 50%; 
@@ -134,7 +133,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 丝滑滚动动画（核心修复：使用 requestAnimationFrame 插值，杜绝一帧一帧跳）
+        // ✅ 绝对线性滚动跟随动画（消除“爆开”感）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -146,43 +145,25 @@
             window.addEventListener('resize', () => { vw = window.innerWidth; });
             const distance = () => vw * 0.3;
 
-            let targetProgress = 0;  // 滚动位置对应的目标进度
-            let currentProgress = 0; // 当前进度（用于平滑插值）
-
-            function updateTarget() {
+            // 每一帧都直接读取最新滚动位置，计算进度，直接应用
+            function renderLoop() {
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                // 线性进度计算：0（卡片在屏幕底部）到 1（卡片在屏幕顶部）
-                let raw = (vh - rect.top) / (vh + 220);
-                targetProgress = Math.max(0, Math.min(1, raw));
-            }
+                // 线性进度：0（卡片在屏幕底部）到 1（卡片在屏幕顶部）
+                let progress = (vh - rect.top) / (vh + 220);
+                progress = Math.max(0, Math.min(1, progress));
 
-            window.addEventListener('scroll', updateTarget, { passive: true });
-            window.addEventListener('resize', () => {
-                updateTarget();
-                vw = window.innerWidth;
-            });
-            window.addEventListener('load', updateTarget);
-            updateTarget();
+                // 中间卡片位置：初始在底部，随滚动线性滑到中心
+                let midY = (1 - progress) * vh * 0.8;
 
-            // 渲染循环：每帧向目标逼近，实现丝滑跟随
-            function renderLoop() {
-                // 每次逼近 15% 距离，60fps 下非常顺滑
-                currentProgress += (targetProgress - currentProgress) * 0.15;
-                if (Math.abs(currentProgress - targetProgress) < 0.001) currentProgress = targetProgress;
+                // 左右卡片展开：随着滚动线性拉开，旋转角度和偏移线性归零
+                let sideOffset = progress * distance();
+                let rotateL = -8 * (1 - progress);
+                let rotateR = 8 * (1 - progress);
+                let offsetL = -20 * (1 - progress);
+                let offsetR = 20 * (1 - progress);
 
-                // 中间卡片位置：初始在底部，随滚动滑到中心
-                let vh = window.innerHeight;
-                let midY = (1 - currentProgress) * vh * 0.8;
-
-                // 左右卡片展开：随着滚动逐渐拉开，且旋转角度逐渐归零
-                let sideOffset = currentProgress * distance();
-                let rotateL = -8 * (1 - currentProgress);
-                let rotateR = 8 * (1 - currentProgress);
-                let offsetL = -20 * (1 - currentProgress);
-                let offsetR = 20 * (1 - currentProgress);
-
-                // 应用 transform
+                // 应用 transform（GPU 加速）
                 card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px + ${offsetL}px), -50%, 0) rotate(${rotateL}deg)`;
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
                 card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px + ${offsetR}px), -50%, 0) rotate(${rotateR}deg)`;
@@ -192,7 +173,7 @@
             requestAnimationFrame(renderLoop);
         })();
 
-        // 主题切换（优化响应速度）
+        // 主题切换（保持现状）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
