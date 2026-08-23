@@ -27,7 +27,7 @@
         }
         .bg-video { pointer-events: none !important; }
 
-        /* 基础背景层（存储当前图片） */
+        /* 基础背景层 */
         #theme-bg {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -37,7 +37,7 @@
             z-index: 0; pointer-events: none;
         }
 
-        /* 过渡层：始终显示，用clip-path控制可见性 */
+        /* 过渡层 */
         #theme-ring {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -53,20 +53,19 @@
         /* 🌙 月亮按钮：移到左上角 */
         #night-mode-toggle {
             position: fixed;
-            top: 30px;
-            left: 30px;
+            top: 24px;
+            left: 24px;
             width: 36px; height: 36px;
             border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.6);
             background: rgba(0,0,0,0.3);
             color: white;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            z-index: 9999;
+            cursor: pointer; z-index: 9999;
             outline: none !important;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            transform: none; /* 去掉之前的居中 transform */
+            transform: none !important; /* 去掉之前的居中位移 */
         }
         #night-mode-toggle.disabled { pointer-events: none; opacity: 0.5; }
 
@@ -154,6 +153,7 @@
         </div>
     </div>
 
+    <!-- 🌙 月亮按钮：左上角 -->
     <button id="night-mode-toggle" title="切换主题背景"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
