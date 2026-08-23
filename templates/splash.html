@@ -281,7 +281,7 @@
             updateCards();
         })();
 
-        // ✅ 主题切换：圆形扩散动画（与原版一致）
+        // ✅ 主题切换：圆形扩散动画（完美双向）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
@@ -307,14 +307,17 @@
                 isFirstImage = !isFirstImage;
                 const nextBg = isFirstImage ? IMG_1 : IMG_2;
 
-                // 初始化圆环
+                // ✅ 核心修复：必须先重置 clipPath 和 display，确保第二次点击动画也正常！
                 gsap.set(themeRing, {
                     width: '100vw',
                     height: '100vh',
+                    display: 'block',
                     clipPath: `circle(0% at ${x}px ${y}px)`,
-                    backgroundImage: `url('${nextBg}')`,
-                    display: 'block'
+                    backgroundImage: `url('${nextBg}')`
                 });
+
+                // 强制重绘，确保 clipPath 已重置
+                void themeRing.offsetWidth;
 
                 // 圆环从 0 扩散到 150% 覆盖全屏
                 gsap.to(themeRing, {
