@@ -10,50 +10,39 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 基础设置 */
-        html, body {
-            height: auto !important; min-height: 100% !important;
-            overflow-y: auto !important; overflow-x: hidden !important;
-            background: #1a1a1a !important;
-        }
+        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
         /* 隐藏视频控件 */
-        video::-webkit-media-controls,
-        video::-webkit-media-controls-enclosure,
-        video::-webkit-media-controls-panel,
-        video::-webkit-media-controls-play-button,
-        video::-webkit-media-controls-start-playback-button,
-        video::-webkit-media-controls-overlay-play-button {
-            display: none !important; opacity: 0 !important; pointer-events: none !important;
-        }
+        video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 黑色底层（第一张图）—— 永远保持模糊 */
+        /* 黑色底层：永远模糊，默认隐藏（0%） */
         #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
+            filter: blur(5px);
             z-index: 0; pointer-events: none;
-            filter: blur(5px); /* ✅ 模糊值已调小，且永远生效 */
+            clip-path: circle(0% at 48px 48px); /* 初始：中心点 */
+            transition: clip-path 0.8s ease-in-out;
         }
 
-        /* 白色上层（第二张图），默认覆盖全屏 */
+        /* 白色底层：清晰，默认覆盖全屏（150%） */
         #theme-bg-white {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
             background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
             background-size: cover; background-position: center;
-            background-color: #1a1a1a;
+            background-color: #fff;
             z-index: 1; pointer-events: none;
-            clip-path: circle(150% at 48px 48px);
+            clip-path: circle(150% at 48px 48px); /* 初始：全屏 */
             transition: clip-path 0.8s ease-in-out;
         }
-        /* 黑色主题时白色层收缩到0 */
-        #theme-bg-white.show-black { clip-path: circle(0% at 48px 48px); }
 
-        /* 内容层在背景之上 */
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 2; }
 
         /* 月亮按钮（左上角） */
@@ -64,13 +53,10 @@
             background: rgba(0,0,0,0.3);
             color: white; display: flex; align-items: center; justify-content: center;
             cursor: pointer; z-index: 9999;
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            outline: none !important; -webkit-tap-highlight-color: transparent; user-select: none;
         }
-        #night-mode-toggle.disabled { pointer-events: none; opacity: 0.5; }
 
-        /* 卡片样式（保持不变） */
+        /* 卡片样式保持不变 */
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 2; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
         .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
@@ -84,11 +70,9 @@
     </style>
 </head>
 <body>
-    <!-- 背景层：黑色在底（模糊），白色在上（清晰） -->
     <div id="theme-bg-black"></div>
     <div id="theme-bg-white"></div>
 
-    <!-- 主内容 -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -172,7 +156,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 卡片滚动动画（保持不变）
+        // 三卡片滚动动画
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -199,33 +183,45 @@
             updateCards();
         })();
 
-        // ✅ 主题切换（保持不变，但去掉了body类控制）
+        // ✅ 终极方案：新层扩散，模糊永久生效
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
+            const blackLayer = document.getElementById('theme-bg-black');
             const whiteLayer = document.getElementById('theme-bg-white');
-            if (!toggleBtn || !whiteLayer) return;
+            if (!toggleBtn || !blackLayer || !whiteLayer) return;
 
-            // 初始状态：白色层覆盖全屏（显示白色主题）
-            let isWhiteShown = true;
+            // 初始状态：白色主题（白色层全屏，黑色层隐藏）
+            let isWhiteTheme = true;
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // 切换状态
-                isWhiteShown = !isWhiteShown;
+                if (isWhiteTheme) {
+                    // 切黑色：黑色层扩散，模糊生效！
+                    blackLayer.style.zIndex = 2; // 提升层级，盖住白色
+                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    void blackLayer.offsetWidth; // 强制重绘
+                    blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
 
-                // ✅ 不需要再同步body类了，模糊效果写死在黑色层上
-                // document.body.classList.toggle('black-theme', !isWhiteShown); // 已删除
-
-                // 切换白色层的类名，触发 CSS 动画
-                if (isWhiteShown) {
-                    whiteLayer.classList.remove('show-black');
-                    void whiteLayer.offsetWidth; // 强制重绘
-                    // 移除类名即回到默认的150%状态（白色全屏）
+                    // 动画后白色层完全隐藏
+                    setTimeout(() => {
+                        whiteLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    }, 850);
                 } else {
-                    whiteLayer.classList.add('show-black');
+                    // 切白色：白色层扩散
+                    whiteLayer.style.zIndex = 2;
+                    whiteLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    void whiteLayer.offsetWidth;
+                    whiteLayer.style.clipPath = 'circle(150% at 48px 48px)';
+
+                    // 动画后黑色层完全隐藏
+                    setTimeout(() => {
+                        blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
+                    }, 850);
                 }
+
+                isWhiteTheme = !isWhiteTheme;
             });
         })();
     </script>
