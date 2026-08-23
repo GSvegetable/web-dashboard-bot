@@ -46,13 +46,17 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* ✅ 统一颜色控制：白色主题下为深色，黑色主题下为浅色 */
+        /* ✅ 纯文字用图片填充：设置、Login、Start listening、更新日志、主副标题 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
-        .menu__linkText, .menu__mail, .finding__title, .finding__text,
-        .card__title {
-            color: #222222 !important;
-            transition: color 0.3s ease;
+        .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title {
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background-image 0.3s ease;
         }
+        /* 黑色主题时文字改用浅色图片 */
         body.theme-black .lede__title,
         body.theme-black .lede__body,
         body.theme-black .chamfer__label,
@@ -63,23 +67,23 @@
         body.theme-black .finding__title,
         body.theme-black .finding__text,
         body.theme-black .card__title {
-            color: #ffffff !important;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); 
         }
 
-        /* 控制所有 SVG 图标和线条的颜色（三条杠、箭头、波浪线、外框） */
-        .nav__item svg.icon,
-        .chamfer__outline,
-        .chamfer svg.icon,
-        .card__wave path {
-            stroke: #222222 !important;
-            fill: none !important;
-            transition: stroke 0.3s ease;
+        /* ✅ SVG 图标、边框、线条用纯色控制：白色主题下是黑色，黑色主题下是白色 */
+        .nav, .chamfer, .card, .menu {
+            color: #222;
         }
-        body.theme-black .nav__item svg.icon,
-        body.theme-black .chamfer__outline,
-        body.theme-black .chamfer svg.icon,
-        body.theme-black .card__wave path {
-            stroke: #ffffff !important;
+        body.theme-black .nav,
+        body.theme-black .chamfer,
+        body.theme-black .card,
+        body.theme-black .menu {
+            color: #fff;
+        }
+        /* 确保SVG正确使用当前颜色 */
+        .nav svg, .chamfer svg, .card svg, .menu svg {
+            stroke: currentColor;
+            fill: currentColor;
         }
     </style>
 </head>
@@ -124,7 +128,7 @@
             <aside class="card group" data-glass-card>
                 <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
                 <div class="card__frost" aria-hidden="true"></div>
-                <div class="card__head"><h2 class="card__title">更新日志</h2></div>
+                <div class="card__head"><h2 class="card__title">更新日志</h2><span class="card__index"></span></div>
                 <div class="card__body">
                     <div class="finding"><h3 class="finding__title">Canopy Pulse Analysis 09.17</h3><p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p></div>
                     <div class="finding"><h3 class="finding__title">Watershed Harmonic Index 11.06</h3><p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p></div>
