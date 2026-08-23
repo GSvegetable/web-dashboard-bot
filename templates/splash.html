@@ -18,23 +18,22 @@
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 白色底层 */
+        /* 白色底层（永远在下） */
         #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #fff; z-index: 1; pointer-events: none; }
-        /* 黑色底层（带模糊） */
+        /* 黑色底层（永远在上，用clip-path控制） */
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
-        /* 月亮按钮 */
+        /* 月亮按钮（左上角） */
         #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
         /* 卡片区域（上移） */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
 
+        /* 卡片绝对定位，初始重叠在中心，带轻微旋转和偏移 */
         .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 220px; margin: 0 auto; }
-
-        /* 卡片基础样式 + 立体阴影 */
         .card-item { 
             position: absolute; left: 50%; top: 50%; 
             width: calc(30% - 10px); 
@@ -48,15 +47,15 @@
             border: 1px solid rgba(255,255,255,0.15);
             will-change: transform;
             transform: translate3d(-50%, -50%, 0);
-            /* 升级为三层阴影，立体感更强 */
             box-shadow: 
                 0 4px 8px rgba(0,0,0,0.3),
                 0 12px 24px rgba(0,0,0,0.4),
                 0 24px 48px rgba(0,0,0,0.5);
         }
-        .card-left { z-index: 1; }
-        .card-center { z-index: 3; }
-        .card-right { z-index: 2; }
+        /* 左右卡片初始歪着，露出边角 */
+        .card-left { z-index: 1; transform: translate3d(-50%, -50%, 0) rotate(-8deg) translateX(-20px); }
+        .card-center { z-index: 3; transform: translate3d(-50%, -50%, 0); }
+        .card-right { z-index: 2; transform: translate3d(-50%, -50%, 0) rotate(8deg) translateX(20px); }
 
         .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
         .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -152,7 +151,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 丝滑卡片动画（提升平滑度：降低插值系数）
+        // ✅ 边滑动边展开：进度完全线性跟随滚动位置
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -164,48 +163,34 @@
             window.addEventListener('resize', () => { vw = window.innerWidth; });
             const distance = () => vw * 0.3;
 
-            let currentProgress = 0;
-            let targetProgress = 0;
-            let scrollTimeout;
-
-            function updateAnimation() {
+            function updateCards() {
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                let raw = (vh - rect.top) / vh;
-                raw = Math.max(0, Math.min(1, raw));
-                targetProgress = raw;
-            }
 
-            window.addEventListener('scroll', () => {
-                updateAnimation();
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    if (targetProgress >= 0.25 && targetProgress < 0.75) {
-                        targetProgress = targetProgress >= 0.5 ? 1 : 0;
-                    } else if (targetProgress < 0.25) {
-                        targetProgress = 0;
-                    } else if (targetProgress >= 0.75) {
-                        targetProgress = 1;
-                    }
-                }, 50);
-            }, { passive: true });
+                // 线性进度：卡片从屏幕底部到顶部，0% → 100%
+                let progress = (vh - rect.top) / (vh + 220);
+                progress = Math.max(0, Math.min(1, progress));
 
-            function renderLoop() {
-                // 平滑系数从0.2降低到0.12，过渡更舒缓
-                currentProgress += (targetProgress - currentProgress) * 0.12;
+                // 中间卡片初始在底部，随进度滑到中心
+                let midY = (1 - progress) * vh * 0.8;
 
-                let vh = window.innerHeight;
-                let midY = (1 - Math.min(1, currentProgress / 0.5)) * vh;
-                let sideOffset = Math.max(0, (currentProgress - 0.5) / 0.5) * distance();
+                // 左右卡片随进度逐渐拉开
+                let sideOffset = progress * distance();
+                let rotateL = -8 * (1 - progress);
+                let rotateR = 8 * (1 - progress);
+                let offsetL = -20 * (1 - progress);
+                let offsetR = 20 * (1 - progress);
 
+                // 应用 transform，使用 GPU 加速
+                card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px + ${offsetL}px), -50%, 0) rotate(${rotateL}deg)`;
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
-                card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px), -50%, 0)`;
-                card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px), -50%, 0)`;
-
-                requestAnimationFrame(renderLoop);
+                card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px + ${offsetR}px), -50%, 0) rotate(${rotateR}deg)`;
             }
 
-            requestAnimationFrame(renderLoop);
+            window.addEventListener('scroll', updateCards, { passive: true });
+            window.addEventListener('resize', updateCards);
+            window.addEventListener('load', updateCards);
+            updateCards();
         })();
 
         // 主题切换
