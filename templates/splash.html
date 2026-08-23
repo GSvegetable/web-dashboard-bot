@@ -139,21 +139,18 @@
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
             <nav class="menu__nav">
-                <!-- 创作：未指定，保留 # -->
                 <a href="#" class="menu__link"><span class="menu__linkText">创作</span></a>
-                <!-- 社区：跳转到社区页面 -->
                 <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
-                <!-- 终端：未指定，保留 # -->
                 <a href="#" class="menu__link"><span class="menu__linkText">终端</span></a>
-                <!-- 日志改为设置，跳转到设置页面 -->
                 <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
-                <!-- 联系：跳转到 Telegram -->
-                <a href="https://t.me/gsyxyc" class="menu__link"><span class="menu__linkText">联系</span></a>
+                <!-- 联系改为 Agent，此处暂时保留 #，后文可扩展链接 -->
+                <a href="#" class="menu__link"><span class="menu__linkText">Agent</span></a>
             </nav>
-            <div class="menu__foot">
+            <!-- 点击整体跳转到 Telegram -->
+            <a href="https://t.me/gsyxyc" class="menu__foot" style="text-decoration: none; color: inherit; display: block;">
                 <span class="menu__footLabel">联系我们</span>
-                <a class="menu__mail" href="https://t.me/gsyxyc">宫水.com @gsyxyc</a>
-            </div>
+                <span class="menu__mail">宫水.com @gsyxyc</span>
+            </a>
         </div>
     </div>
 
@@ -162,7 +159,6 @@
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toast 提示
             var toast = document.getElementById('toast');
             var toastTimer = null;
             function showToast(msg) {
@@ -176,7 +172,6 @@
                 showToast(isButton ? '我点击的是按钮' : '你点击的是空白');
             });
 
-            // 汉堡菜单
             var checkbox = document.getElementById('checkbox');
             var menu = document.getElementById('menu');
             var menuBackdrop = document.getElementById('menu-backdrop');
@@ -199,13 +194,11 @@
                 }
             });
 
-            // 主题切换
             var toggleBtn = document.getElementById('night-mode-toggle');
             var blackLayer = document.getElementById('theme-bg-black');
             if (toggleBtn && blackLayer) {
                 var isBlack = false;
                 var btnX = 0, btnY = 0;
-
                 function updateBtnPos() {
                     var rect = toggleBtn.getBoundingClientRect();
                     btnX = rect.left + rect.width / 2;
@@ -237,7 +230,6 @@
                 });
             }
 
-            // 卡片动画
             var section = document.getElementById('cardsSection');
             var card1 = document.getElementById('card1');
             var card2 = document.getElementById('card2');
