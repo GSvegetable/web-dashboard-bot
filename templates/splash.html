@@ -53,9 +53,9 @@
                 0 24px 48px rgba(0,0,0,0.5);
         }
         /* 左右卡片初始歪着，露出边角 */
-        .card-left { z-index: 1; transform: translate3d(-50%, -50%, 0) rotate(-8deg) translateX(-20px); }
-        .card-center { z-index: 3; transform: translate3d(-50%, -50%, 0); }
-        .card-right { z-index: 2; transform: translate3d(-50%, -50%, 0) rotate(8deg) translateX(20px); }
+        .card-left { z-index: 1; }
+        .card-center { z-index: 3; }
+        .card-right { z-index: 2; }
 
         .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
         .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
@@ -152,45 +152,72 @@
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
         // ✅ 边滑动边展开：进度完全线性跟随滚动位置
-        (function() {
+        (function () {
             const section = document.getElementById('cardsSection');
+            const grid = document.getElementById('cardsGrid');
             const card1 = document.getElementById('card1');
             const card2 = document.getElementById('card2');
             const card3 = document.getElementById('card3');
-            if (!section || !card1 || !card2 || !card3) return;
 
-            let vw = window.innerWidth;
-            window.addEventListener('resize', () => { vw = window.innerWidth; });
-            const distance = () => vw * 0.3;
+            if (!section || !grid || !card1 || !card2 || !card3) return;
+
+            let vh = window.innerHeight;
+            let gridWidth = grid.offsetWidth;
+            let cardWidth = card1.offsetWidth;
+            let ticking = false;
+
+            function updateMetrics() {
+                vh = window.innerHeight;
+                gridWidth = grid.offsetWidth || section.clientWidth || 1000;
+                cardWidth = card1.offsetWidth || 280;
+                updateCards();
+            }
 
             function updateCards() {
                 const rect = section.getBoundingClientRect();
-                const vh = window.innerHeight;
 
-                // 线性进度：卡片从屏幕底部到顶部，0% → 100%
+                // 线性进度：0 = 完全合并，1 = 完全展开
                 let progress = (vh - rect.top) / (vh + 220);
                 progress = Math.max(0, Math.min(1, progress));
 
-                // 中间卡片初始在底部，随进度滑到中心
-                let midY = (1 - progress) * vh * 0.8;
+                // 展开距离：让左右卡片展开后正好并排，不会拉得过大
+                const distance = Math.max(
+                    0,
+                    Math.min(
+                        gridWidth * 0.3,
+                        cardWidth + 12,
+                        (gridWidth - cardWidth) / 2
+                    )
+                );
 
-                // 左右卡片随进度逐渐拉开
-                let sideOffset = progress * distance();
-                let rotateL = -8 * (1 - progress);
-                let rotateR = 8 * (1 - progress);
-                let offsetL = -20 * (1 - progress);
-                let offsetR = 20 * (1 - progress);
+                // 中间卡片初始只轻微下沉，避免从屏幕外突然跳进来
+                const midOffset = (1 - progress) * 60;
 
-                // 应用 transform，使用 GPU 加速
+                const sideOffset = progress * distance;
+                const rotateL = -8 * (1 - progress);
+                const rotateR = 8 * (1 - progress);
+                const offsetL = -20 * (1 - progress);
+                const offsetR = 20 * (1 - progress);
+
                 card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px + ${offsetL}px), -50%, 0) rotate(${rotateL}deg)`;
-                card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
+                card2.style.transform = `translate3d(-50%, calc(-50% + ${midOffset}px), 0)`;
                 card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px + ${offsetR}px), -50%, 0) rotate(${rotateR}deg)`;
+
+                ticking = false;
             }
 
-            window.addEventListener('scroll', updateCards, { passive: true });
-            window.addEventListener('resize', updateCards);
-            window.addEventListener('load', updateCards);
-            updateCards();
+            function requestUpdate() {
+                if (!ticking) {
+                    window.requestAnimationFrame(updateCards);
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', requestUpdate, { passive: true });
+            window.addEventListener('resize', updateMetrics);
+            window.addEventListener('load', updateMetrics);
+
+            updateMetrics();
         })();
 
         // 主题切换
