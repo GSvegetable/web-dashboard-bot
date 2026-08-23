@@ -10,17 +10,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 基础滚动修复，背景兜底为深灰色（防止图片加载失败全黑） */
         html, body {
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
+            height: auto !important; min-height: 100% !important;
+            overflow-y: auto !important; overflow-x: hidden !important;
             background: #1a1a1a !important;
         }
         .hero { height: auto !important; min-height: 100vh !important; }
 
-        /* 隐藏视频原生控件（防止干扰） */
         video::-webkit-media-controls,
         video::-webkit-media-controls-enclosure,
         video::-webkit-media-controls-panel,
@@ -41,7 +37,7 @@
             z-index: 0; pointer-events: none;
         }
 
-        /* 过渡层（只用于动画，默认隐藏） */
+        /* 过渡层：始终显示，用clip-path控制可见性 */
         #theme-ring {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -49,31 +45,21 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             clip-path: circle(0% at 50% 50%);
-            transition: clip-path 0.8s ease-in-out; /* 0.8秒 */
-            display: none; /* 默认隐藏，只有动画时显示 */
-        }
-        /* 扩散状态：覆盖全屏 */
-        #theme-ring.active { clip-path: circle(150% at 50% 50%); }
-
-        /* 内容层保持在背景上方 */
-        .hero, .nav, .cards-section, .menu {
-            position: relative; z-index: 1;
+            transition: clip-path 0.8s ease-in-out;
         }
 
-        /* 月亮按钮（小尺寸，底部居中） */
+        .hero, .nav, .cards-section, .menu { position: relative; z-index: 1; }
+
+        /* 月亮按钮 */
         #night-mode-toggle {
             position: fixed; bottom: 40px; left: 50%;
             transform: translateX(-50%);
-            width: 36px; height: 36px;
-            border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.6);
             background: rgba(0,0,0,0.3);
-            color: white;
-            display: flex; align-items: center; justify-content: center;
+            color: white; display: flex; align-items: center; justify-content: center;
             cursor: pointer; z-index: 9999;
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            outline: none !important; -webkit-tap-highlight-color: transparent; user-select: none;
         }
         #night-mode-toggle.disabled { pointer-events: none; opacity: 0.5; }
 
@@ -91,11 +77,10 @@
     </style>
 </head>
 <body>
-    <!-- 两层背景：基础层 + 过渡层 -->
     <div id="theme-bg"></div>
     <div id="theme-ring"></div>
 
-    <!-- 主内容（原样保留） -->
+    <!-- 主内容 -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -206,7 +191,7 @@
             updateCards();
         })();
 
-        // ✅ 终极可靠的主题切换（禁止重复点击，单向执行动画）
+        // ✅ 终极修复：方向+位置+动画稳定
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
@@ -223,35 +208,40 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                // 禁止动画进行中再次点击
                 if (isAnimating) return;
                 isAnimating = true;
                 toggleBtn.classList.add('disabled');
 
+                // 获取按钮位置（原点）
+                const rect = toggleBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+
                 isFirstImage = !isFirstImage;
                 const nextBg = isFirstImage ? IMG_1 : IMG_2;
 
-                // 1. 设置过渡层背景为目标图片
+                // 设置过渡层背景
                 themeRing.style.backgroundImage = `url('${nextBg}')`;
 
-                // 2. 从0%开始（扩散），强制重绘
-                themeRing.classList.remove('active');
-                themeRing.style.display = 'block';
-                void themeRing.offsetWidth;
+                if (isFirstImage) {
+                    // 切回第一张图（黑色）：黑从边缘向中心收缩
+                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                    void themeRing.offsetWidth; // 强制重绘
+                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                } else {
+                    // 切换到第二张图（白色）：白从中心向外扩散
+                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                    void themeRing.offsetWidth;
+                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                }
 
-                // 3. 触发扩散动画
-                requestAnimationFrame(() => {
-                    themeRing.classList.add('active');
-                });
-
-                // 4. 动画结束后（0.8秒），无缝更新底层背景并隐藏过渡层
+                // 等待动画结束后更新底层并重置过渡层
                 setTimeout(() => {
                     themeBg.style.backgroundImage = `url('${nextBg}')`;
-                    themeRing.classList.remove('active');
-                    themeRing.style.display = 'none';
+                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`; // 隐藏圆环
                     isAnimating = false;
                     toggleBtn.classList.remove('disabled');
-                }, 850); // 与 CSS 0.8s 一致，稍加缓冲
+                }, 850);
             });
         })();
     </script>
