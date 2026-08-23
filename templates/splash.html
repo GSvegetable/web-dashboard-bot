@@ -18,7 +18,7 @@
             user-select: none !important;
         }
 
-        /* 页面基础设置 */
+        /* 页面基础 */
         html, body {
             height: auto !important;
             min-height: 100% !important;
@@ -42,7 +42,7 @@
             pointer-events: none !important;
         }
 
-        /* 两层背景（用于主题切换） */
+        /* 两层背景，使用 opacity 过渡，消除闪烁 */
         #theme-bg-white, #theme-bg-black {
             position: fixed;
             top: 0;
@@ -53,19 +53,17 @@
             background-position: center;
             z-index: 1;
             pointer-events: none;
+            transition: opacity 1s ease; /* 1秒淡入淡出 */
         }
         #theme-bg-white {
             background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
             background-color: #ffffff;
-            z-index: 1;
+            opacity: 1;
         }
         #theme-bg-black {
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-color: #000000;
-            filter: blur(8px);
-            z-index: 2;
-            clip-path: circle(0% at 50% 50%);
-            transition: clip-path 3.5s ease;
+            opacity: 0;
         }
 
         /* 内容层 */
@@ -115,9 +113,7 @@
         /* 登录按钮 */
         .nav__label { font-size: 0.875rem; }
 
-        /* ==========================================
-           新汉堡菜单（JulanDeAlb 版）
-           ========================================== */
+        /* 汉堡菜单（JulanDeAlb） */
         .hamburger {
             cursor: pointer;
             position: fixed;
@@ -163,10 +159,77 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* 侧边菜单 */
-        .menu__panel { background: #1a1a1a !important; }
-        .menu__link { border-bottom-color: rgba(255,255,255,0.1) !important; }
-        .menu__footLabel { color: rgba(255,255,255,0.5) !important; }
+        /* 侧边菜单（确保样式完整，不依赖外部CSS） */
+        .menu {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            visibility: hidden;
+            pointer-events: none;
+            transition: visibility 0s linear 500ms;
+        }
+        .menu.is-open {
+            visibility: visible;
+            pointer-events: auto;
+            transition-delay: 0s;
+        }
+        .menu__backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 500ms;
+        }
+        .menu.is-open .menu__backdrop { opacity: 1; }
+        .menu__panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 1.5rem 2rem;
+            background: #1a1a1a;
+            transform: translateX(-100%);
+            transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .menu.is-open .menu__panel { transform: translateX(0); }
+        .menu__nav { margin-top: 80px; display: flex; flex-direction: column; }
+        .menu__link {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 500ms, transform 500ms;
+        }
+        .menu.is-open .menu__link {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .menu.is-open .menu__link:nth-child(1) { transition-delay: 100ms; }
+        .menu.is-open .menu__link:nth-child(2) { transition-delay: 150ms; }
+        .menu.is-open .menu__link:nth-child(3) { transition-delay: 200ms; }
+        .menu.is-open .menu__link:nth-child(4) { transition-delay: 250ms; }
+        .menu.is-open .menu__link:nth-child(5) { transition-delay: 300ms; }
+        .menu__foot {
+            margin-top: auto;
+            padding: 1.5rem 0 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 500ms, transform 500ms;
+        }
+        .menu.is-open .menu__foot { opacity: 1; transform: translateY(0); transition-delay: 400ms; }
+        .menu__footLabel { display: block; margin-bottom: 0.75rem; font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+        .menu__mail { font-size: 0.875rem; color: #ffffff; text-decoration: none; }
+        .menu__mail:hover { text-decoration: underline; }
 
         /* Toast */
         #toast {
@@ -193,9 +256,9 @@
     <div id="theme-bg-white"></div>
     <div id="theme-bg-black"></div>
 
-    <!-- 新汉堡菜单（JulanDeAlb） -->
+    <!-- 新汉堡菜单 -->
     <label class="hamburger">
-        <input type="checkbox" id="checkbox">
+        <input type="checkbox" id="menu-toggle">
         <svg viewBox="0 0 32 32">
             <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
             <path class="line" d="M7 16 27 16"></path>
@@ -296,57 +359,59 @@
                 showToast(isButton ? '我点击的是按钮' : '你点击的是空白');
             });
 
-            // 汉堡菜单（监听 checkbox change 控制侧边栏）
-            var checkbox = document.getElementById('checkbox');
+            // 汉堡菜单（id为menu-toggle）
+            var menuToggle = document.getElementById('menu-toggle');
             var menu = document.getElementById('menu');
             var menuBackdrop = document.getElementById('menu-backdrop');
             var menuLinks = document.querySelectorAll('.menu__link');
-            checkbox.addEventListener('change', function() {
-                if (this.checked) { menu.classList.add('is-open'); }
-                else { menu.classList.remove('is-open'); }
+
+            menuToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    menu.classList.add('is-open');
+                } else {
+                    menu.classList.remove('is-open');
+                }
             });
+
             menuBackdrop.addEventListener('click', function() {
-                checkbox.checked = false; menu.classList.remove('is-open');
+                menuToggle.checked = false;
+                menu.classList.remove('is-open');
             });
             menuLinks.forEach(function(link) {
                 link.addEventListener('click', function() {
-                    checkbox.checked = false; menu.classList.remove('is-open');
+                    menuToggle.checked = false;
+                    menu.classList.remove('is-open');
                 });
             });
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                    checkbox.checked = false; menu.classList.remove('is-open');
+                    menuToggle.checked = false;
+                    menu.classList.remove('is-open');
                 }
             });
 
-            // 主题切换（clip-path 动画，3.5秒，圆心为按钮位置）
+            // 主题切换（使用opacity淡入淡出，稳定不闪烁）
             var toggleBtn = document.getElementById('night-mode-toggle');
+            var whiteLayer = document.getElementById('theme-bg-white');
             var blackLayer = document.getElementById('theme-bg-black');
-            if (toggleBtn && blackLayer) {
+            if (toggleBtn && whiteLayer && blackLayer) {
                 var isBlack = false;
                 toggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    var rect = toggleBtn.getBoundingClientRect();
-                    var x = rect.left + rect.width / 2;
-                    var y = rect.top + rect.height / 2;
-
                     isBlack = !isBlack;
                     document.body.classList.toggle('theme-black', isBlack);
-
                     if (isBlack) {
-                        blackLayer.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-                        void blackLayer.offsetWidth;
-                        blackLayer.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                        blackLayer.style.opacity = '1';
+                        whiteLayer.style.opacity = '0';
                     } else {
-                        blackLayer.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-                        void blackLayer.offsetWidth;
-                        blackLayer.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                        blackLayer.style.opacity = '0';
+                        whiteLayer.style.opacity = '1';
                     }
                 });
             }
 
-            // 卡片动画
+            // 卡片动画（保持原逻辑）
             var section = document.getElementById('cardsSection');
             var card1 = document.getElementById('card1');
             var card2 = document.getElementById('card2');
