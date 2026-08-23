@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
+        /* 基础设置 */
         html, body {
             height: auto !important; min-height: 100% !important;
             overflow-y: auto !important; overflow-x: hidden !important;
@@ -17,6 +18,7 @@
         }
         .hero { height: auto !important; min-height: 100vh !important; }
 
+        /* 隐藏视频控件 */
         video::-webkit-media-controls,
         video::-webkit-media-controls-enclosure,
         video::-webkit-media-controls-panel,
@@ -25,10 +27,9 @@
         video::-webkit-media-controls-overlay-play-button {
             display: none !important; opacity: 0 !important; pointer-events: none !important;
         }
-        .bg-video { pointer-events: none !important; }
 
-        /* 基础背景层 */
-        #theme-bg {
+        /* 黑色底层（第一张图） */
+        #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
@@ -37,40 +38,40 @@
             z-index: 0; pointer-events: none;
         }
 
-        /* 过渡层 */
-        #theme-ring {
+        /* 白色上层（第二张图），默认覆盖全屏 */
+        #theme-bg-white {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
-            pointer-events: none; z-index: 0;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
-            clip-path: circle(0% at 50% 50%);
+            z-index: 1; pointer-events: none;
+            /* 关键：圆心固定在按钮位置（左上角），默认全屏覆盖 */
+            clip-path: circle(150% at 48px 48px);
             transition: clip-path 0.8s ease-in-out;
         }
+        /* 激活状态：完全隐藏（覆盖面积0） */
+        #theme-bg-white.show-black { clip-path: circle(0% at 48px 48px); }
 
-        .hero, .nav, .cards-section, .menu { position: relative; z-index: 1; }
+        /* 内容层在背景之上 */
+        .hero, .nav, .cards-section, .menu { position: relative; z-index: 2; }
 
-        /* 🌙 月亮按钮：移到左上角 */
+        /* 月亮按钮（左上角） */
         #night-mode-toggle {
-            position: fixed;
-            top: 24px;
-            left: 24px;
-            width: 36px; height: 36px;
-            border-radius: 50%;
+            position: fixed; top: 24px; left: 24px;
+            width: 36px; height: 36px; border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.6);
             background: rgba(0,0,0,0.3);
-            color: white;
-            display: flex; align-items: center; justify-content: center;
+            color: white; display: flex; align-items: center; justify-content: center;
             cursor: pointer; z-index: 9999;
             outline: none !important;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            transform: none !important; /* 去掉之前的居中位移 */
         }
         #night-mode-toggle.disabled { pointer-events: none; opacity: 0.5; }
 
-        /* 卡片样式 */
-        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 1; }
+        /* 卡片样式（保持不变） */
+        .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 2; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
         .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
         .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
@@ -83,8 +84,9 @@
     </style>
 </head>
 <body>
-    <div id="theme-bg"></div>
-    <div id="theme-ring"></div>
+    <!-- 背景层：黑色在底，白色在上 -->
+    <div id="theme-bg-black"></div>
+    <div id="theme-bg-white"></div>
 
     <!-- 主内容 -->
     <main class="hero">
@@ -153,7 +155,6 @@
         </div>
     </div>
 
-    <!-- 🌙 月亮按钮：左上角 -->
     <button id="night-mode-toggle" title="切换主题背景"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
@@ -171,7 +172,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 三卡片滚动动画
+        // 卡片滚动动画（保持不变）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -198,57 +199,32 @@
             updateCards();
         })();
 
-        // ✅ 终极修复：方向+位置+动画稳定
+        // ✅ 终极稳定切换：纯CSS类名切换，不再用JS计算坐标
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
-            const themeBg = document.getElementById('theme-bg');
-            const themeRing = document.getElementById('theme-ring');
-            if (!toggleBtn || !themeBg || !themeRing) return;
+            const whiteLayer = document.getElementById('theme-bg-white');
+            if (!toggleBtn || !whiteLayer) return;
 
-            const IMG_1 = "{{ url_for('static', filename='IMG_20260823_040708.png') }}";
-            const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
-
-            let isFirstImage = true;
-            let isAnimating = false;
+            // 初始状态：白色层覆盖全屏（显示白色主题）
+            let isWhiteShown = true;
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (isAnimating) return;
-                isAnimating = true;
-                toggleBtn.classList.add('disabled');
+                // 切换状态
+                isWhiteShown = !isWhiteShown;
 
-                // 获取按钮位置（原点）
-                const rect = toggleBtn.getBoundingClientRect();
-                const x = rect.left + rect.width / 2;
-                const y = rect.top + rect.height / 2;
-
-                isFirstImage = !isFirstImage;
-                const nextBg = isFirstImage ? IMG_1 : IMG_2;
-
-                // 设置过渡层背景
-                themeRing.style.backgroundImage = `url('${nextBg}')`;
-
-                if (isFirstImage) {
-                    // 切回第一张图（黑色）：黑从边缘向中心收缩
-                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
-                    void themeRing.offsetWidth; // 强制重绘
-                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
+                // 关键：切换类名，触发CSS动画
+                if (isWhiteShown) {
+                    // 显示白色：白色层从0%扩散到150%
+                    whiteLayer.classList.remove('show-black');
+                    void whiteLayer.offsetWidth; // 强制重绘
+                    // 移除类名即回到默认的150%状态
                 } else {
-                    // 切换到第二张图（白色）：白从中心向外扩散
-                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`;
-                    void themeRing.offsetWidth;
-                    themeRing.style.clipPath = `circle(150% at ${x}px ${y}px)`;
+                    // 显示黑色：白色层从150%收缩到0%
+                    whiteLayer.classList.add('show-black');
                 }
-
-                // 等待动画结束后更新底层并重置过渡层
-                setTimeout(() => {
-                    themeBg.style.backgroundImage = `url('${nextBg}')`;
-                    themeRing.style.clipPath = `circle(0% at ${x}px ${y}px)`; // 隐藏圆环
-                    isAnimating = false;
-                    toggleBtn.classList.remove('disabled');
-                }, 850);
             });
         })();
     </script>
