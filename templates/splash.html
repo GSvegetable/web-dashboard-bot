@@ -24,7 +24,7 @@
 
         * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #ffffff !important; }
-        .hero { height: auto !important; min-height: 100vh !important; **pointer-events: auto !important;** }
+        .hero { height: auto !important; min-height: 100vh !important; pointer-events: auto !important; }
 
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
@@ -34,7 +34,7 @@
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         /* 强制开启导航栏点击 */
-        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 1.25rem; **pointer-events: auto !important;** }
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 1.25rem; pointer-events: auto !important; }
         .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
 
         /* 月亮按钮 */
@@ -54,7 +54,7 @@
 
         .nav__label { color: var(--text-color) !important; }
 
-        /* 汉堡菜单（普通按钮） */
+        /* 汉堡菜单 */
         .menu-btn {
             position: relative;
             width: 40px;
@@ -66,7 +66,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 0;
-            pointer-events: auto !important; /* 关键：让按钮可点击 */
+            pointer-events: auto !important;
         }
         .menu-btn .bar {
             display: block;
@@ -112,6 +112,28 @@
         .chamfer__glass { border-color: var(--border-color) !important; }
         .card__head { border-bottom-color: var(--border-color) !important; }
         .menu__panel { background: #f5f4f0 !important; }
+
+        /* ===== 新增：底部提示 Toast 样式 ===== */
+        #toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 99999;
+            transition: bottom 0.3s ease-out;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #toast.show {
+            bottom: 40px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -127,13 +149,11 @@
         </div>
 
         <nav class="nav">
-            <!-- 汉堡菜单按钮 -->
             <button class="menu-btn" id="menu-btn" aria-label="打开菜单">
                 <span class="bar bar--top"></span>
                 <span class="bar bar--middle"></span>
                 <span class="bar bar--bottom"></span>
             </button>
-
             <div class="nav__right">
                 <button id="night-mode-toggle" title="切换主题背景">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -198,10 +218,37 @@
         </div>
     </div>
 
+    <!-- 底部提示 Toast -->
+    <div id="toast"></div>
+
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 用 try-catch 包裹，防止一段错误导致全挂
+            /* ====== 新增：全局点击判断 & 底部提示 ====== */
+            var toast = document.getElementById('toast');
+            var toastTimer = null;
+
+            function showToast(msg) {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            document.addEventListener('click', function(e) {
+                // 判断是否点击了“按钮”（包含菜单按钮、月亮、登录、菜单链接等）
+                var isButton = e.target.closest('button, a, .nav__item, #night-mode-toggle, .menu-btn');
+                if (isButton) {
+                    showToast('我点击的是按钮');
+                } else {
+                    // 点击空白区域
+                    showToast('你点击的是空白');
+                }
+            });
+
+            /* ====== 原有功能：汉堡菜单、主题切换、卡片动画 ====== */
             try {
                 var menuBtn = document.getElementById('menu-btn');
                 var menu = document.getElementById('menu');
@@ -242,7 +289,6 @@
                 });
             } catch (e) { console.log(e); }
 
-            // 主题切换
             try {
                 var toggleBtn = document.getElementById('night-mode-toggle');
                 var blackLayer = document.getElementById('theme-bg-black');
@@ -266,7 +312,6 @@
                 }
             } catch (e) { console.log(e); }
 
-            // 卡片动画
             try {
                 var section = document.getElementById('cardsSection');
                 var card1 = document.getElementById('card1');
