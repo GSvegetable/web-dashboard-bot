@@ -133,7 +133,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // ✅ 绝对线性滚动跟随动画（消除“爆开”感）
+        // 极致线性滚动跟随动画（只监听scroll，实时更新transform，绝对流畅无卡顿）
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -145,10 +145,11 @@
             window.addEventListener('resize', () => { vw = window.innerWidth; });
             const distance = () => vw * 0.3;
 
-            // 每一帧都直接读取最新滚动位置，计算进度，直接应用
-            function renderLoop() {
+            function updateCards() {
+                // 读取最新的布局信息，浏览器已优化此操作
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
+
                 // 线性进度：0（卡片在屏幕底部）到 1（卡片在屏幕顶部）
                 let progress = (vh - rect.top) / (vh + 220);
                 progress = Math.max(0, Math.min(1, progress));
@@ -156,21 +157,24 @@
                 // 中间卡片位置：初始在底部，随滚动线性滑到中心
                 let midY = (1 - progress) * vh * 0.8;
 
-                // 左右卡片展开：随着滚动线性拉开，旋转角度和偏移线性归零
+                // 左右卡片展开：线性拉开，旋转角度和偏移线性归零
                 let sideOffset = progress * distance();
                 let rotateL = -8 * (1 - progress);
                 let rotateR = 8 * (1 - progress);
                 let offsetL = -20 * (1 - progress);
                 let offsetR = 20 * (1 - progress);
 
-                // 应用 transform（GPU 加速）
+                // 应用 transform（GPU 加速，不阻塞主线程）
                 card1.style.transform = `translate3d(calc(-50% - ${sideOffset}px + ${offsetL}px), -50%, 0) rotate(${rotateL}deg)`;
                 card2.style.transform = `translate3d(-50%, calc(-50% + ${midY}px), 0)`;
                 card3.style.transform = `translate3d(calc(-50% + ${sideOffset}px + ${offsetR}px), -50%, 0) rotate(${rotateR}deg)`;
-
-                requestAnimationFrame(renderLoop);
             }
-            requestAnimationFrame(renderLoop);
+
+            // 在滚动事件中直接更新，惯性滚动也会持续触发
+            window.addEventListener('scroll', updateCards, { passive: true });
+            window.addEventListener('resize', updateCards);
+            window.addEventListener('load', updateCards);
+            updateCards(); // 初始化
         })();
 
         // 主题切换（保持现状）
