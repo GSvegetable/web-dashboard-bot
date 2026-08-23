@@ -1,14 +1,23 @@
 <style>
-    /* 全局背景：更改为新图片 IMG_20260823_231613.png */
+    /* 全局背景：新图片 + 高斯模糊，仅模糊背景，不模糊内容 */
     body {
+        position: relative;
+        background-color: #000; /* 兜底背景色 */
+    }
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
         background-image: url("{{ url_for('static', filename='IMG_20260823_231613.png') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        filter: blur(10px); /* 添加高斯模糊 */
+        z-index: -1;
+        pointer-events: none;
     }
 
-    /* 原有样式保持不变 */
+    /* 以下为原有样式，保持不变 */
     #configPanel { top: max(24px, env(safe-area-inset-top)) !important; }
     .glass-panel { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); border-radius: 28px; position: relative; }
     
