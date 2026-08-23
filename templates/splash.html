@@ -53,15 +53,13 @@
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* 登录文字（去掉黑点） */
+        /* 登录文字 */
         .nav__label { color: var(--text-color) !important; }
 
         /* ==========================================
-           汉堡菜单（直接使用你给的源码，一字不改）
+           汉堡菜单（完全使用你提供的代码）
            ========================================== */
-        #checkbox {
-            display: none;
-        }
+        #checkbox { display: none; }
         .toggle {
             position: relative;
             width: 40px;
@@ -81,39 +79,12 @@
             opacity: 1;
             transition: none 0.35s cubic-bezier(.5,-0.35,.35,1.5) 0s;
         }
-        .bar--top {
-            bottom: calc(50% + 11px + 4px/ 2);
-            transition-property: bottom,margin,transform;
-            transition-delay: calc(0s + 0.35s),0s,0s;
-        }
-        .bar--middle {
-            top: calc(50% - 4px/ 2);
-            transition-property: top,opacity;
-            transition-duration: 0.35s,0s;
-            transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
-        }
-        .bar--bottom {
-            top: calc(50% + 11px + 4px/ 2);
-            transition-property: top,transform;
-            transition-delay: 0s;
-        }
-        #checkbox:checked + .toggle .bar--top {
-            bottom: calc(50% - 11px - 4px);
-            margin-bottom: calc(11px + 4px/ 2);
-            transform: rotate(45deg);
-            transition-delay: calc(0s + 0.35s * .3),calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
-        }
-        #checkbox:checked + .toggle .bar--middle {
-            top: calc(50% + 11px);
-            opacity: 0;
-            transition-duration: 0.35s,0s;
-            transition-delay: 0s,calc(0s + 0.35s);
-        }
-        #checkbox:checked + .toggle .bar--bottom {
-            top: calc(50% - 4px/ 2);
-            transform: rotate(-45deg);
-            transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3);
-        }
+        .bar--top { bottom: calc(50% + 11px + 4px/ 2); transition-property: bottom,margin,transform; transition-delay: calc(0s + 0.35s),0s,0s; }
+        .bar--middle { top: calc(50% - 4px/ 2); transition-property: top,opacity; transition-duration: 0.35s,0s; transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
+        .bar--bottom { top: calc(50% + 11px + 4px/ 2); transition-property: top,transform; transition-delay: 0s; }
+        #checkbox:checked + .toggle .bar--top { bottom: calc(50% - 11px - 4px); margin-bottom: calc(11px + 4px/ 2); transform: rotate(45deg); transition-delay: calc(0s + 0.35s * .3),calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
+        #checkbox:checked + .toggle .bar--middle { top: calc(50% + 11px); opacity: 0; transition-duration: 0.35s,0s; transition-delay: 0s,calc(0s + 0.35s); }
+        #checkbox:checked + .toggle .bar--bottom { top: calc(50% - 4px/ 2); transform: rotate(-45deg); transition-delay: calc(0s + 0.35s * 1.3),calc(0s + 0.35s * 1.3); }
         /* ==========================================
            汉堡菜单 CSS 结束
            ========================================== */
@@ -163,7 +134,7 @@
         </div>
 
         <nav class="nav">
-            <!-- 你的汉堡菜单源码 -->
+            <!-- 汉堡菜单 -->
             <div id="menuToggle">
                 <input id="checkbox" type="checkbox">
                 <label class="toggle" for="checkbox">
@@ -237,172 +208,8 @@
         </div>
     </div>
 
+    <!-- 外部JS（加载顺序在最后，保证DOM已就绪） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-    <script>
-        // ✅ 汉堡菜单绑定（必须放在最前面，防止任何报错中断）
-        const checkbox = document.getElementById('checkbox');
-        const menu = document.getElementById('menu');
-        const menuClose = document.getElementById('menu-close');
-        const menuBackdrop = document.getElementById('menu-backdrop');
-        const menuLinks = document.querySelectorAll('.menu__link');
-
-        // 点击汉堡，展开/收起
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                menu.classList.add('is-open');
-            } else {
-                menu.classList.remove('is-open');
-            }
-        });
-
-        // 点击关闭按钮：取消选中并关闭
-        menuClose.addEventListener('click', function() {
-            checkbox.checked = false;
-            menu.classList.remove('is-open');
-        });
-
-        // 点击背景：取消选中并关闭
-        menuBackdrop.addEventListener('click', function() {
-            checkbox.checked = false;
-            menu.classList.remove('is-open');
-        });
-
-        // 点击链接：取消选中并关闭
-        menuLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                checkbox.checked = false;
-                menu.classList.remove('is-open');
-            });
-        });
-
-        // 按Esc关闭
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                checkbox.checked = false;
-                menu.classList.remove('is-open');
-            }
-        });
-
-        // 三张卡片的丝滑滚动动画
-        (function() {
-            const section = document.getElementById('cardsSection');
-            const card1 = document.getElementById('card1');
-            const card2 = document.getElementById('card2');
-            const card3 = document.getElementById('card3');
-            if (!section || !card1 || !card2 || !card3) return;
-
-            const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-            const lerp = (a, b, t) => a + (b - a) * t;
-            const easeOutCubic = (x) => 1 - Math.pow(1 - x, 3);
-
-            function makeInitials() {
-                const vw = window.innerWidth;
-                const vh = window.innerHeight;
-                return {
-                    cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5,
-                    lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25,
-                    rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25
-                };
-            }
-
-            let current = makeInitials();
-            let target = makeInitials();
-            let running = false;
-
-            function updateTargets() {
-                const rect = section.getBoundingClientRect();
-                const vw = window.innerWidth;
-                const vh = window.innerHeight;
-                const sectionCenter = rect.top + rect.height * 0.5;
-                const offset = sectionCenter - vh * 0.5;
-                const startDistance = vh * 0.85;
-                const progress = clamp(1 - offset / startDistance, 0, 1);
-                const t = easeOutCubic(progress);
-                const distance = vw * 0.28;
-                const ini = makeInitials();
-
-                target.cX = 0;
-                target.cY = lerp(ini.cY, 0, t);
-                target.cR = 0;
-                target.cS = lerp(ini.cS, 1, t);
-                target.cO = lerp(ini.cO, 1, t);
-
-                target.lX = lerp(ini.lX, -distance, t);
-                target.lY = lerp(ini.lY, 0, t);
-                target.lR = lerp(ini.lR, -6, t);
-                target.lS = lerp(ini.lS, 1, t);
-                target.lO = lerp(ini.lO, 1, t);
-
-                target.rX = lerp(ini.rX, distance, t);
-                target.rY = lerp(ini.rY, 0, t);
-                target.rR = lerp(ini.rR, 6, t);
-                target.rS = lerp(ini.rS, 1, t);
-                target.rO = lerp(ini.rO, 1, t);
-            }
-
-            function apply() {
-                card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
-                card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
-                card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
-
-                card1.style.opacity = current.lO;
-                card2.style.opacity = current.cO;
-                card3.style.opacity = current.rO;
-            }
-
-            function frame() {
-                updateTargets();
-                const keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
-                let delta = 0;
-                for (const k of keys) {
-                    const old = current[k];
-                    current[k] = lerp(old, target[k], 0.09);
-                    delta += Math.abs(current[k] - old);
-                }
-                apply();
-                if (delta > 0.001) {
-                    requestAnimationFrame(frame);
-                } else {
-                    running = false;
-                }
-            }
-
-            function start() {
-                if (!running) {
-                    running = true;
-                    requestAnimationFrame(frame);
-                }
-            }
-
-            window.addEventListener('scroll', start, { passive: true });
-            window.addEventListener('resize', start);
-            start();
-        })();
-
-        // 主题切换
-        (function() {
-            const toggleBtn = document.getElementById('night-mode-toggle');
-            const blackLayer = document.getElementById('theme-bg-black');
-            if (!toggleBtn || !blackLayer) return;
-
-            let isBlack = false;
-            toggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (isBlack) {
-                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    document.body.classList.remove('theme-black');
-                    isBlack = false;
-                } else {
-                    blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    void blackLayer.offsetWidth;
-                    blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
-                    document.body.classList.add('theme-black');
-                    isBlack = true;
-                }
-            });
-        })();
-    </script>
+    <script src="{{ url_for('static', filename='js/splash.js') }}"></script>
 </body>
 </html>
