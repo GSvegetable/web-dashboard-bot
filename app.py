@@ -2,10 +2,11 @@ import os
 import logging
 from datetime import datetime, timedelta
 
-# 🚨 终极权限修复：强行指定工作目录和Gunicorn PID路径，绝不让它去碰 /root！
-# 1. 确保程序的运行目录始终在项目根目录
+# ==========================================
+# 强制指定 Gunicorn PID 路径为 /tmp，彻底避免 /root 权限问题
+# ==========================================
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# 2. 强制将Gunicorn的PID文件放到 /tmp（有权限），绝不触发 Permission denied
+# 强制覆盖任何可能的 PID 配置，确保写入 /tmp（普通用户可写）
 os.environ["GUNICORN_CMD_ARGS"] = "--pid /tmp/gunicorn.pid"
 
 from flask import Flask, request
@@ -40,7 +41,8 @@ with app.app_context():
     except Exception as e:
         try:
             db.session.rollback()
-        except: pass
+        except:
+            pass
         logging.error(f"建表报错: {e}")
 
 login_manager = LoginManager()
@@ -66,8 +68,8 @@ def log_visit():
     except Exception as e:
         try:
             db.session.rollback()
-        except: pass
-        # 不再打印权限错误，直接跳过
+        except:
+            pass
         pass
 
 app.register_blueprint(main_bp)
