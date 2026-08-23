@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 全局去除点击反馈 */
         * {
             -webkit-tap-highlight-color: transparent !important;
             -webkit-touch-callout: none !important;
@@ -19,12 +18,22 @@
         html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
         .hero { height: auto !important; min-height: 100vh !important; }
 
-        /* 隐藏视频控件 */
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 黑色底层（模糊，隐藏） */
+        /* 白色底层：永远在最下层，永远全屏 */
+        #theme-bg-white {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            background-size: cover; background-position: center;
+            background-color: #fff;
+            z-index: 1; /* 永远在下层 */
+            pointer-events: none;
+        }
+
+        /* 黑色底层：永远在最上层，用clip-path控制显示范围 */
         #theme-bg-black {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -32,23 +41,10 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             filter: blur(5px);
-            z-index: 1; /* 初始在下层 */
+            z-index: 2; /* 永远在最上层 */
             pointer-events: none;
-            clip-path: circle(0% at 48px 48px);
-            transition: clip-path 0.6s ease-in-out, z-index 0s;
-        }
-
-        /* 白色底层（清晰，永远全屏） */
-        #theme-bg-white {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
-            background-size: cover; background-position: center;
-            background-color: #fff;
-            z-index: 2; /* 初始在上层 */
-            pointer-events: none;
-            clip-path: circle(150% at 48px 48px); /* 永远全屏 */
-            transition: z-index 0s;
+            clip-path: circle(0% at 48px 48px); /* 初始隐藏 */
+            transition: clip-path 0.6s ease-in-out; /* 动画时长 */
         }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
@@ -61,19 +57,17 @@
             background: rgba(0,0,0,0.3);
             color: white; display: flex; align-items: center; justify-content: center;
             cursor: pointer; z-index: 9999;
-            outline: none !important;
-            -webkit-tap-highlight-color: transparent !important;
-            user-select: none !important;
-            touch-action: manipulation;
+            outline: none !important; -webkit-tap-highlight-color: transparent !important;
+            user-select: none !important; touch-action: manipulation;
         }
         #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
 
-        /* 卡片区域（靠上） */
+        /* 卡片区域（往上提） */
         .cards-section {
-            min-height: 60vh;
+            min-height: 80vh;
             display: flex; align-items: center; justify-content: center;
-            padding: 20px 40px 80px;
-            margin-top: -10vh; /* 微微上移 */
+            padding: 40px 40px 100px;
+            margin-top: -10vh;
             position: relative; z-index: 3;
         }
         .cards-grid {
@@ -81,23 +75,17 @@
             gap: 32px; max-width: 1100px; width: 100%;
         }
         .card-item {
-            position: relative;
-            border-radius: 32px;
-            padding: 24px;
-            height: 180px;
-            overflow: hidden;
+            position: relative; border-radius: 32px; padding: 24px;
+            height: 180px; overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(8px);
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.15);
-            opacity: 1; /* 始终可见 */
-            will-change: transform;
+            opacity: 1; will-change: transform;
         }
         .card-item::before {
             content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
             background-size: cover; background-position: center;
-            filter: blur(8px) brightness(0.7);
-            transform: scale(1.1); z-index: 0;
+            filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0;
         }
         .card-content {
             position: relative; z-index: 1; height: 100%;
@@ -108,8 +96,8 @@
     </style>
 </head>
 <body>
-    <div id="theme-bg-black"></div>
     <div id="theme-bg-white"></div>
+    <div id="theme-bg-black"></div>
 
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
@@ -195,7 +183,7 @@
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) setMenu(false); });
 
-        // 三卡片滚动动画：从中间向两侧线性展开，始终可见
+        // 卡片动画：初始重叠（只显示中间一张），滚动到中下方开始展开，顶部完全展开
         (function() {
             const section = document.getElementById('cardsSection');
             const card1 = document.getElementById('card1');
@@ -210,11 +198,11 @@
                 if (!section) return;
                 const rect = section.getBoundingClientRect();
                 const vh = window.innerHeight;
-                // 线性进度：卡片区域进入视口时开始
-                let progress = (vh - rect.top) / (vh * 0.8);
+                // 当卡片顶部到达屏幕60%高度时开始，到达顶部时结束
+                let progress = (vh * 0.6 - rect.top) / (vh * 0.6);
                 progress = Math.max(0, Math.min(1, progress));
 
-                // 始终控制 transform，不控制 opacity
+                // 左右两张卡片从中间往两边移动，中间卡片不动
                 card1.style.transform = `translateX(${-distance() * progress}px)`;
                 card2.style.transform = `translateX(0px)`;
                 card3.style.transform = `translateX(${distance() * progress}px)`;
@@ -226,37 +214,27 @@
             updateCards();
         })();
 
-        // 主题切换：白层固定，黑层切换，支持中途反向
+        // 主题切换：白色层永远在底，黑色层永远在顶，只控制黑色层的clip-path，支持中途反向
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const blackLayer = document.getElementById('theme-bg-black');
-            const whiteLayer = document.getElementById('theme-bg-white');
-            if (!toggleBtn || !blackLayer || !whiteLayer) return;
+            if (!toggleBtn || !blackLayer) return;
 
-            // 当前是否显示黑色主题
-            let isBlack = false;
+            let isBlack = false; // 当前是否显示黑色主题
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
                 if (isBlack) {
-                    // 当前是黑，要切白（收回）
-                    // 黑色层收缩回 0%（从当前值平滑过渡）
+                    // 收起黑色层（收回动画，从150%到0%，白色层露出来）
                     blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
-                    // 黑色层降级，白色层升级
-                    blackLayer.style.zIndex = 1;
-                    whiteLayer.style.zIndex = 2;
                     isBlack = false;
                 } else {
-                    // 当前是白，要切黑（扩散）
-                    // 先把黑色层设为 0，强制重绘
+                    // 展开黑色层（扩散动画，从0%到150%）
+                    // 强制重绘，确保从0%开始
                     blackLayer.style.clipPath = 'circle(0% at 48px 48px)';
                     void blackLayer.offsetWidth;
-                    // 黑色层升级，白色层降级
-                    blackLayer.style.zIndex = 2;
-                    whiteLayer.style.zIndex = 1;
-                    // 黑色层扩散到全屏
                     blackLayer.style.clipPath = 'circle(150% at 48px 48px)';
                     isBlack = true;
                 }
