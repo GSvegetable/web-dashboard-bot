@@ -1,16 +1,30 @@
-<!-- 音乐设置面板：播放器 -->
+<!-- 音乐设置面板：复用原 music_card 组件 -->
 <h1 class="text-2xl font-semibold text-[#f0f6fc] mb-1">音乐</h1>
 
-<div class="mt-6 flex flex-col gap-6">
-    <div class="animate-item delay-2 w-full bg-[#161b22] border border-[#30363d] rounded-lg p-6 flex flex-col items-center gap-4">
-        <img src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" class="w-32 h-32 rounded-lg object-cover" />
+<div class="mt-6 flex flex-col items-center gap-4">
+    <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 w-full max-w-md flex flex-col items-center gap-4">
+        <!-- 专辑封面 -->
+        <img id="album-cover-img" src="{{ url_for('static', filename='mmexport1785973035076.jpg') }}" class="w-32 h-32 rounded-lg object-cover" crossorigin="anonymous">
+        
+        <!-- 音频源 -->
+        <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop crossorigin="anonymous"></audio>
+        
+        <!-- 曲目信息 -->
         <div class="text-center">
             <div class="text-lg font-semibold text-[#f0f6fc]">你的名字</div>
             <div class="text-sm text-[#8b949e]">纯音乐</div>
         </div>
-        <div class="flex items-center gap-4">
-            <button id="play-pause-btn" class="gh-edit-btn">播放</button>
-        </div>
+
+        <!-- 播放按钮 -->
+        <button id="play-pause-btn" class="gh-edit-btn w-32 justify-center">
+            <svg class="icon-circle" viewBox="0 0 32 32" width="20" height="20">
+                <defs><linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a" /><stop offset="100%" stop-color="#93c5fd" /></linearGradient></defs>
+                <circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <span class="ml-2">播放</span>
+        </button>
+
+        <!-- 进度条 -->
         <div class="w-full">
             <input type="range" id="music-progress" value="0" min="0" max="100" class="w-full">
         </div>
@@ -21,7 +35,6 @@
     </div>
 </div>
 
-<!-- 音乐播放器逻辑（如果主文件中未包含，可在此处添加） -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('bg-audio');
@@ -46,10 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
         playBtn.addEventListener('click', () => {
             if (audio.paused) {
                 audio.play();
-                playBtn.textContent = '暂停';
+                playBtn.innerHTML = '<svg class="icon-square" viewBox="0 0 32 32" width="20" height="20"><rect x="2" y="2" width="28" height="28" rx="6" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" /></svg><span class="ml-2">暂停</span>';
             } else {
                 audio.pause();
-                playBtn.textContent = '播放';
+                playBtn.innerHTML = '<svg class="icon-circle" viewBox="0 0 32 32" width="20" height="20"><circle cx="16" cy="16" r="14" fill="none" stroke="url(#blueGradient)" stroke-width="4" stroke-linecap="round" /></svg><span class="ml-2">播放</span>';
             }
         });
         progress.addEventListener('input', () => {
