@@ -7,11 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
-    <!-- 外部核心样式，必须保留 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 主题变量：白底黑字，黑底白字 */
         :root {
             --text-color: #000000;
             --border-color: rgba(0,0,0,0.3);
@@ -31,17 +29,16 @@
         video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
-        /* 背景层 */
         #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #ffffff; z-index: 1; pointer-events: none; }
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
-        /* 导航栏布局：左侧汉堡菜单，右侧月亮+登录 */
-        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; }
-        .nav__right { display: flex; align-items: center; gap: 1rem; }
+        /* 导航栏调整：右边元素上移并往中间靠 */
+        .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem 1rem 1.25rem; }
+        .nav__right { display: flex; align-items: center; gap: 1.2rem; margin-top: -10px; margin-right: 15px; }
 
-        /* 月亮按钮（改为普通导航元素） */
+        /* 月亮按钮（普通导航元素） */
         #night-mode-toggle {
             background: none;
             border: none;
@@ -55,20 +52,10 @@
             -webkit-tap-highlight-color: transparent !important;
         }
 
-        /* 登录红点：红色 + 匀速闪烁 */
-        .nav__dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 9999px;
-            background: #ff0000 !important;
-            animation: blink 2s linear infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
+        /* 登录文字（已删除黑色小圆点） */
+        .nav__label { color: var(--text-color) !important; }
 
-        /* 汉堡菜单样式（从 Uiverse 原样复制，保留紫色） */
+        /* 汉堡菜单样式（Uiverse原版） */
         #checkbox { display: none; }
         .toggle {
             position: relative;
@@ -113,13 +100,12 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* 强制文字颜色跟随主题（覆盖 terranova.css） */
+        /* 强制文字颜色跟随主题 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
         .menu__linkText, .menu__mail, .finding__title, .finding__text, .card__title,
         .menu__close, .menu__link, .card__head, .card__index {
             color: var(--text-color) !important;
         }
-        .nav__dot { background: var(--text-color) !important; }
         .nav svg, .chamfer svg, .card svg, .menu svg, .card__wave path {
             stroke: var(--line-color) !important;
             fill: none !important;
@@ -143,7 +129,6 @@
 
         <!-- 导航栏：左侧汉堡菜单，右侧月亮+登录 -->
         <nav class="nav">
-            <!-- 汉堡菜单（替换原设置按钮） -->
             <div id="menuToggle">
                 <input id="checkbox" type="checkbox">
                 <label class="toggle" for="checkbox">
@@ -153,15 +138,14 @@
                 </label>
             </div>
 
-            <!-- 右侧：月亮 + 登录（带红色闪烁点） -->
             <div class="nav__right">
                 <button id="night-mode-toggle" title="切换主题背景">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                     </svg>
                 </button>
+                <!-- 黑色小圆点已删除，只剩 Login 文字 -->
                 <a href="#" class="nav__item">
-                    <span class="nav__dot" aria-hidden="true"></span>
                     <span class="nav__label">Login</span>
                 </a>
             </div>
@@ -221,7 +205,7 @@
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
-        // 菜单逻辑（与checkbox联动）
+        // 菜单逻辑（修复：移除了对不存在元素的引用，避免报错）
         const menu = document.getElementById('menu');
         const menuToggleCheckbox = document.getElementById('checkbox');
         const menuCloseBtn = document.getElementById('menu-close');
@@ -230,21 +214,21 @@
 
         function setMenu(open) {
             menu.classList.toggle('is-open', open);
-            if (!open) {
-                menuToggleCheckbox.checked = false; // 关闭菜单时取消选中
-            }
+            if (!open) menuToggleCheckbox.checked = false; // 关闭菜单时取消选中
         }
 
         // 汉堡菜单开关
-        menuToggleCheckbox.addEventListener('change', () => {
-            if (menuToggleCheckbox.checked) setMenu(true);
-            else setMenu(false);
-        });
+        if (menuToggleCheckbox) {
+            menuToggleCheckbox.addEventListener('change', () => {
+                if (menuToggleCheckbox.checked) setMenu(true);
+                else setMenu(false);
+            });
+        }
 
         // 关闭按钮
-        menuCloseBtn.addEventListener('click', () => setMenu(false));
+        if (menuCloseBtn) menuCloseBtn.addEventListener('click', () => setMenu(false));
         // 背景关闭
-        menuBackdrop.addEventListener('click', () => setMenu(false));
+        if (menuBackdrop) menuBackdrop.addEventListener('click', () => setMenu(false));
         // 链接关闭
         menuLinks.forEach(link => link.addEventListener('click', () => setMenu(false)));
         // Esc关闭
