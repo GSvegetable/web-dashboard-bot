@@ -31,7 +31,7 @@
         }
         .bg-video { pointer-events: none !important; }
 
-        /* 基础背景层（默认显示海浪图） */
+        /* 基础背景层（存储当前图片） */
         #theme-bg {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -41,7 +41,7 @@
             z-index: 0; pointer-events: none;
         }
 
-        /* 扩散圆环层（用于动画，初始完全隐藏） */
+        /* 过渡层（只用于动画，默认隐藏） */
         #theme-ring {
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
@@ -49,9 +49,10 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             clip-path: circle(0% at 50% 50%);
-            transition: clip-path 0.8s ease-in-out; /* 0.8秒过渡 */
+            transition: clip-path 0.8s ease-in-out; /* 0.8秒 */
+            display: none; /* 默认隐藏，只有动画时显示 */
         }
-        /* 激活状态（扩散到全屏） */
+        /* 扩散状态：覆盖全屏 */
         #theme-ring.active { clip-path: circle(150% at 50% 50%); }
 
         /* 内容层保持在背景上方 */
@@ -74,6 +75,7 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
+        #night-mode-toggle.disabled { pointer-events: none; opacity: 0.5; }
 
         /* 卡片样式 */
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 1; }
@@ -89,7 +91,7 @@
     </style>
 </head>
 <body>
-    <!-- 两层背景：基础层 + 扩散圆环层 -->
+    <!-- 两层背景：基础层 + 过渡层 -->
     <div id="theme-bg"></div>
     <div id="theme-ring"></div>
 
@@ -204,7 +206,7 @@
             updateCards();
         })();
 
-        // ✅ 扩散/收回动画切换（绝对可靠，双向生效）
+        // ✅ 终极可靠的主题切换（禁止重复点击，单向执行动画）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
@@ -215,34 +217,41 @@
             const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
 
             let isFirstImage = true;
+            let isAnimating = false;
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
+                // 禁止动画进行中再次点击
+                if (isAnimating) return;
+                isAnimating = true;
+                toggleBtn.classList.add('disabled');
+
                 isFirstImage = !isFirstImage;
                 const nextBg = isFirstImage ? IMG_1 : IMG_2;
 
-                // 设置圆环层背景为新图片
+                // 1. 设置过渡层背景为目标图片
                 themeRing.style.backgroundImage = `url('${nextBg}')`;
 
-                if (isFirstImage) {
-                    // 扩散动画：从0 → 150%
-                    themeRing.classList.remove('active');
-                    void themeRing.offsetWidth; // 强制重绘，确保初始状态生效
-                    themeRing.classList.add('active');
-                } else {
-                    // 收回动画：从150% → 0%
-                    themeRing.classList.add('active');
-                    void themeRing.offsetWidth; // 强制重绘，确保初始状态生效
-                    themeRing.classList.remove('active');
-                }
+                // 2. 从0%开始（扩散），强制重绘
+                themeRing.classList.remove('active');
+                themeRing.style.display = 'block';
+                void themeRing.offsetWidth;
 
-                // 动画结束后，更新基础背景并隐藏圆环层
+                // 3. 触发扩散动画
+                requestAnimationFrame(() => {
+                    themeRing.classList.add('active');
+                });
+
+                // 4. 动画结束后（0.8秒），无缝更新底层背景并隐藏过渡层
                 setTimeout(() => {
                     themeBg.style.backgroundImage = `url('${nextBg}')`;
                     themeRing.classList.remove('active');
-                }, 850); // 与 CSS 0.8s 动画时长一致，稍加缓冲
+                    themeRing.style.display = 'none';
+                    isAnimating = false;
+                    toggleBtn.classList.remove('disabled');
+                }, 850); // 与 CSS 0.8s 一致，稍加缓冲
             });
         })();
     </script>
