@@ -9,18 +9,29 @@
     <link rel="stylesheet" href="https://db.onlinewebfonts.com/c/0e6de1ec911a2e267ff136bbdd384a44?family=Helvetica+Neue+Light" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
+    <!-- 修复滚动、隐藏视频控件、删除黑底 -->
     <style>
-        /* 基础滚动修复 */
         html, body {
             height: auto !important;
             min-height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            background: #1a1a1a !important; /* 兜底深灰色 */
+            background: transparent !important;
         }
         .hero { height: auto !important; min-height: 100vh !important; }
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-start-playback-button,
+        video::-webkit-media-controls-overlay-play-button {
+            display: none !important; opacity: 0 !important; pointer-events: none !important;
+        }
+        .bg-video { pointer-events: none !important; }
+    </style>
 
-        /* 背景层（默认海浪图） */
+    <!-- 主题背景层（默认海浪图，加兜底色） -->
+    <style>
         #theme-bg {
             position: fixed;
             top: 0; left: 0;
@@ -28,32 +39,29 @@
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover;
             background-position: center;
-            background-color: #1a1a1a;
+            background-color: #333333;
             z-index: 0;
             pointer-events: none;
+            display: block;
         }
-
-        /* 背景层2（切换目标，默认隐藏） */
-        #theme-bg2 {
+        /* 圆形扩散层 */
+        #theme-ring {
             position: fixed;
             top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            clip-path: circle(0% at 50% 50%);
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-size: cover;
             background-position: center;
-            background-color: #1a1a1a;
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0;
+            display: none;
         }
-
-        /* 内容层保持在背景上方 */
         .hero, .nav, .cards-section, .menu {
             position: relative;
             z-index: 1;
         }
-
-        /* 月亮按钮（小尺寸） */
+        /* 月亮按钮 */
         #night-mode-toggle {
             position: fixed;
             bottom: 40px;
@@ -71,8 +79,10 @@
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
+    </style>
 
-        /* 卡片样式 */
+    <!-- 卡片样式（内联） -->
+    <style>
         .cards-section { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 40px; position: relative; z-index: 1; }
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 1100px; width: 100%; }
         .card-item { position: relative; border-radius: 20px; padding: 32px; height: 260px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.4); opacity: 0; background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); transition: transform 0.8s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease; }
@@ -86,66 +96,124 @@
     </style>
 </head>
 <body>
-    <!-- 两层背景图片：默认显示第一张，切换时第二张淡入/淡出 -->
-    <div id="theme-bg"></div>
-    <div id="theme-bg2"></div>
+    <!-- 背景视频（已移除，用图片代替） -->
 
-    <!-- 主内容（原样保留） -->
+    <!-- 主题背景层（默认海浪图） -->
+    <div id="theme-bg"></div>
+    
+    <!-- 新增：用于扩散动画的圆形覆盖层 -->
+    <div id="theme-ring"></div>
+
+    <!-- 主内容 -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
-            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
         </div>
         <div class="rule rule--right" aria-hidden="true">
-            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
+            <span class="rule__seg rule__seg--end"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--mid"></span>
+            <span class="rule__plus">+</span>
+            <span class="rule__seg rule__seg--end"></span>
         </div>
 
         <nav class="nav">
             <button id="menu-open" class="nav__item" aria-expanded="false" aria-controls="menu">
                 <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
                 </svg>
                 <span class="nav__label nav__label--menu">Menu</span>
             </button>
-            <a href="#" class="nav__item"><span class="nav__dot" aria-hidden="true"></span><span class="nav__label">Book a call</span></a>
+            <a href="#" class="nav__item">
+                <span class="nav__dot" aria-hidden="true"></span>
+                <span class="nav__label">Book a call</span>
+            </a>
         </nav>
 
         <div class="hero-bottom">
             <div class="lede">
                 <h1 class="lede__title">Signals from<br />the Deep Green</h1>
-                <p class="lede__body">An open research collective mapping, decoding, and archiving the silent vibrations that bind our planet's ecological networks.</p>
+                <p class="lede__body">
+                    An open research collective mapping, decoding, and archiving the silent
+                    vibrations that bind our planet's ecological networks.
+                </p>
                 <a class="chamfer" href="#">
                     <span class="chamfer__glass" aria-hidden="true"></span>
-                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true"><polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>
+                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true">
+                        <polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                    </svg>
                     <span class="chamfer__label">Start listening</span>
-                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
                 </a>
             </div>
 
             <aside class="card group" data-glass-card>
                 <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
                 <div class="card__frost" aria-hidden="true"></div>
-                <div class="card__head"><h2 class="card__title">Latest findings</h2><span class="card__index">//02</span></div>
-                <div class="card__body">
-                    <div class="finding"><h3 class="finding__title">Canopy Pulse Analysis 09.17</h3><p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p></div>
-                    <div class="finding"><h3 class="finding__title">Watershed Harmonic Index 11.06</h3><p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p></div>
+                <div class="card__head">
+                    <h2 class="card__title">Latest findings</h2>
+                    <span class="card__index">//02</span>
                 </div>
-                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true"><path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28" stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" /></svg>
+                <div class="card__body">
+                    <div class="finding">
+                        <h3 class="finding__title">Canopy Pulse Analysis 09.17</h3>
+                        <p class="finding__text">Identified harmonic oscillation links between root mycelia networks and surrounding atmospheric moisture.</p>
+                    </div>
+                    <div class="finding">
+                        <h3 class="finding__title">Watershed Harmonic Index 11.06</h3>
+                        <p class="finding__text">Forecasting framework for ecosystem regeneration spanning six continents using over 2,400 sensor arrays.</p>
+                    </div>
+                </div>
+                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true">
+                    <path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28" stroke="black" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                </svg>
             </aside>
         </div>
     </main>
 
+    <!-- 三卡片区域 -->
     <section class="cards-section" id="cardsSection">
         <div class="cards-grid">
-            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
-            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
-            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');">
+                <div class="card-content">
+                    <h3>一键部署</h3>
+                    <p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p>
+                </div>
+            </div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');">
+                <div class="card-content">
+                    <h3>功能扩展</h3>
+                    <p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p>
+                </div>
+            </div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');">
+                <div class="card-content">
+                    <h3>安全托管</h3>
+                    <p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p>
+                </div>
+            </div>
         </div>
     </section>
 
+    <!-- Menu -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
-            <button id="menu-close" class="menu__close" aria-label="Close menu"><svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg><span>Close</span></button>
+            <button id="menu-close" class="menu__close" aria-label="Close menu">
+                <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                </svg>
+                <span>Close</span>
+            </button>
             <nav class="menu__nav">
                 <a href="#" class="menu__link"><span class="menu__linkText">About</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
                 <a href="#" class="menu__link"><span class="menu__linkText">Research</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
@@ -153,12 +221,24 @@
                 <a href="#" class="menu__link"><span class="menu__linkText">Journal</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
                 <a href="#" class="menu__link"><span class="menu__linkText">Contact</span><svg class="menu__arrow icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg></a>
             </nav>
-            <div class="menu__foot"><span class="menu__footLabel">Get in touch</span><a class="menu__mail" href="mailto:hello@terranova.earth">hello@terranova.earth</a></div>
+            <div class="menu__foot">
+                <span class="menu__footLabel">Get in touch</span>
+                <a class="menu__mail" href="mailto:hello@terranova.earth">hello@terranova.earth</a>
+            </div>
         </div>
     </div>
 
-    <button id="night-mode-toggle" title="切换主题背景"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+    <!-- 月亮按钮 -->
+    <button id="night-mode-toggle" title="切换主题背景">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+    </button>
 
+    <!-- 引入 GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- 原有脚本（菜单等） -->
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         // 菜单逻辑
@@ -201,31 +281,51 @@
             updateCards();
         })();
 
-        // ✅ 图片切换（纯 DOM 切换，绝无扩散失败问题）
+        // ✅ 主题切换：圆形扩散动画（与原版一致）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const themeBg = document.getElementById('theme-bg');
-            const themeBg2 = document.getElementById('theme-bg2');
-            if (!toggleBtn || !themeBg || !themeBg2) return;
+            const themeRing = document.getElementById('theme-ring');
+            if (!toggleBtn || !themeBg || !themeRing) return;
 
-            // 初始状态：第一张图显示，第二张图隐藏
-            let isFirstImage = true;
+            // 定义两张背景图的 URL
+            const IMG_1 = "{{ url_for('static', filename='IMG_20260823_040708.png') }}";
+            const IMG_2 = "{{ url_for('static', filename='IMG_20260823_035229.png') }}";
+
+            let isFirstImage = true; // 当前是否显示第一张（海浪图）
 
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                isFirstImage = !isFirstImage;
+                // 获取按钮位置（作为扩散圆心）
+                const rect = toggleBtn.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
 
-                if (isFirstImage) {
-                    // 显示第一张，隐藏第二张
-                    themeBg.style.opacity = '1';
-                    themeBg2.style.opacity = '0';
-                } else {
-                    // 显示第二张，隐藏第一张
-                    themeBg.style.opacity = '0';
-                    themeBg2.style.opacity = '1';
-                }
+                // 切换状态，设置圆环要显示的下一张图片
+                isFirstImage = !isFirstImage;
+                const nextBg = isFirstImage ? IMG_1 : IMG_2;
+
+                // 初始化圆环
+                gsap.set(themeRing, {
+                    width: '100vw',
+                    height: '100vh',
+                    clipPath: `circle(0% at ${x}px ${y}px)`,
+                    backgroundImage: `url('${nextBg}')`,
+                    display: 'block'
+                });
+
+                // 圆环从 0 扩散到 150% 覆盖全屏
+                gsap.to(themeRing, {
+                    clipPath: `circle(150% at ${x}px ${y}px)`,
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    onComplete: function() {
+                        themeBg.style.backgroundImage = `url('${nextBg}')`;
+                        gsap.set(themeRing, { display: 'none' });
+                    }
+                });
             });
         })();
     </script>
