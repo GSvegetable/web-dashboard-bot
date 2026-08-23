@@ -67,7 +67,7 @@
         }
 
         /* 内容层 */
-        .hero, .nav, .cards-section, .menu, #toast {
+        .hero, .nav, .cards-section, .menu {
             position: relative;
             z-index: 3;
         }
@@ -93,6 +93,7 @@
 
         /* ==========================================
            新主题切换按钮（Uiverse ArturCodeCraft版）
+           纯源码，只缩为原尺寸一半（65px→32.5px）
            ========================================== */
         .background {
             border-radius: 16px;
@@ -101,8 +102,8 @@
             mix-blend-mode: luminosity;
             box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.20);
             backdrop-filter: blur(15px);
-            width: 50px;   /* 缩小尺寸 */
-            height: 50px;  /* 缩小尺寸 */
+            width: 32.5px;
+            height: 32.5px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -110,8 +111,8 @@
         }
 
         .change-theme__icon {
-            width: 24px;
-            height: 24px;
+            width: 16px;
+            height: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -298,7 +299,7 @@
                 <a href="#" class="nav__item" onclick="window.openLoginModal(); return false;">
                     <span class="nav__label">Login</span>
                 </a>
-                <!-- 新主题切换按钮（带id，用于JS绑定） -->
+                <!-- 新主题切换按钮（严格使用源码，尺寸缩小一半） -->
                 <div class="background" id="theme-toggle-btn">
                     <button class="change-theme__icon">
                         <div class="icon-sun">
