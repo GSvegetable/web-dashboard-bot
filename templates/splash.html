@@ -11,7 +11,13 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
-        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #1a1a1a !important; }
+        
+        /* ✅ 修正：默认背景设为纯白，避免图片没加载时变成深色 */
+        html, body { 
+            height: auto !important; min-height: 100% !important; 
+            overflow-y: auto !important; overflow-x: hidden !important; 
+            background: #ffffff !important; 
+        }
         .hero { height: auto !important; min-height: 100vh !important; }
 
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
@@ -19,14 +25,14 @@
         video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
 
         /* 背景层 */
-        #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #fff; z-index: 1; pointer-events: none; }
+        #theme-bg-white { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}'); background-size: cover; background-position: center; background-color: #ffffff; z-index: 1; pointer-events: none; }
         #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-size: cover; background-position: center; background-color: #1a1a1a; filter: blur(5px); z-index: 2; pointer-events: none; clip-path: circle(0% at 48px 48px); transition: clip-path 0.6s ease-in-out; }
 
         .hero, .nav, .cards-section, .menu { position: relative; z-index: 3; }
 
         /* 月亮按钮（左上角） */
-        #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); background: rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
-        #night-mode-toggle:active { background: rgba(0,0,0,0.3); }
+        #night-mode-toggle { position: fixed; top: 24px; left: 24px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.2); background: rgba(255,255,255,0.5); color: #222; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 9999; outline: none !important; -webkit-tap-highlight-color: transparent !important; user-select: none !important; touch-action: manipulation; }
+        #night-mode-toggle:active { background: rgba(255,255,255,0.8); }
 
         /* 卡片区（上移） */
         .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
@@ -46,7 +52,7 @@
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.9); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* ✅ 文字颜色反转规则：默认黑色，黑色主题下变白色 */
+        /* ✅ 文字颜色反转规则：默认纯黑，黑色主题下变纯白 */
         .lede__title, .lede__body, .chamfer__label, .nav__label, .nav__dot, 
         .menu__linkText, .menu__mail, .finding__title, .finding__text {
             color: #222222 !important; /* 默认白色背景下的深色文字 */
@@ -189,6 +195,7 @@
                 const vw = window.innerWidth;
                 const vh = window.innerHeight;
 
+                // 根据 section 中心与视口中心的距离计算进度
                 const sectionCenter = rect.top + rect.height * 0.5;
                 const offset = sectionCenter - vh * 0.5;
                 const startDistance = vh * 0.85;
@@ -198,18 +205,21 @@
                 const distance = vw * 0.28;
                 const ini = makeInitials();
 
+                // 中间卡片：从下方滑入
                 target.cX = 0;
                 target.cY = lerp(ini.cY, 0, t);
                 target.cR = 0;
                 target.cS = lerp(ini.cS, 1, t);
                 target.cO = lerp(ini.cO, 1, t);
 
+                // 左侧卡片：从左侧滑入
                 target.lX = lerp(ini.lX, -distance, t);
                 target.lY = lerp(ini.lY, 0, t);
                 target.lR = lerp(ini.lR, -6, t);
                 target.lS = lerp(ini.lS, 1, t);
                 target.lO = lerp(ini.lO, 1, t);
 
+                // 右侧卡片：从右侧滑入
                 target.rX = lerp(ini.rX, distance, t);
                 target.rY = lerp(ini.rY, 0, t);
                 target.rR = lerp(ini.rR, 6, t);
