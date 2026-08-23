@@ -36,6 +36,12 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             z-index: 0; pointer-events: none;
+            transition: filter 0.3s ease; /* 模糊过渡 */
+        }
+
+        /* 当黑色主题激活时，给黑色背景加高斯模糊 */
+        body.black-theme #theme-bg-black {
+            filter: blur(10px);
         }
 
         /* 白色上层（第二张图），默认覆盖全屏 */
@@ -46,11 +52,10 @@
             background-size: cover; background-position: center;
             background-color: #1a1a1a;
             z-index: 1; pointer-events: none;
-            /* 关键：圆心固定在按钮位置（左上角），默认全屏覆盖 */
             clip-path: circle(150% at 48px 48px);
             transition: clip-path 0.8s ease-in-out;
         }
-        /* 激活状态：完全隐藏（覆盖面积0） */
+        /* 黑色主题时白色层收缩到0 */
         #theme-bg-white.show-black { clip-path: circle(0% at 48px 48px); }
 
         /* 内容层在背景之上 */
@@ -199,7 +204,7 @@
             updateCards();
         })();
 
-        // ✅ 终极稳定切换：纯CSS类名切换，不再用JS计算坐标
+        // ✅ 主题切换（保持不变，增加 body 类控制模糊）
         (function() {
             const toggleBtn = document.getElementById('night-mode-toggle');
             const whiteLayer = document.getElementById('theme-bg-white');
@@ -215,14 +220,15 @@
                 // 切换状态
                 isWhiteShown = !isWhiteShown;
 
-                // 关键：切换类名，触发CSS动画
+                // 同步 body 类，控制黑色背景模糊
+                document.body.classList.toggle('black-theme', !isWhiteShown);
+
+                // 切换白色层的类名，触发 CSS 动画
                 if (isWhiteShown) {
-                    // 显示白色：白色层从0%扩散到150%
                     whiteLayer.classList.remove('show-black');
                     void whiteLayer.offsetWidth; // 强制重绘
-                    // 移除类名即回到默认的150%状态
+                    // 移除类名即回到默认的150%状态（白色全屏）
                 } else {
-                    // 显示黑色：白色层从150%收缩到0%
                     whiteLayer.classList.add('show-black');
                 }
             });
