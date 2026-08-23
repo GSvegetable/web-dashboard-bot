@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <style>
-        /* 复用之前的样式，保持不变 */
         .bg-container { position: absolute; inset: 0; width: 100%; height: 100%; background: radial-gradient(circle, #777777 2px, transparent 2px), radial-gradient(circle, #eaeaea 10px, transparent 32px), linear-gradient(-45deg, #eaeaea 0%, transparent 49%, transparent 50%, transparent 51%, #eaeaea 100%), linear-gradient(45deg, #eaeaea 0%, transparent 49%, #777777 50%, transparent 51%, #eaeaea 100%), linear-gradient(-45deg, transparent 49%, #777777 50%, transparent 51%); background-size: 8rem 8rem; background-repeat: repeat; }
         .bg-paper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; filter: url(#void-texture); background: linear-gradient(to bottom, rgba(194, 167, 87, 0.241) 0%, rgba(162, 125, 55, 0.255) 100%); background-size: cover; }
         body { background: transparent !important; }
@@ -38,7 +37,7 @@
     </style>
 </head>
 <body>
-    <!-- 背景层不变 -->
+    <!-- 背景纹理 -->
     <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;">
         <div class="bg-container"></div>
         <div class="bg-paper">
@@ -58,11 +57,11 @@
         </div>
     </div>
 
-    <!-- 音频元素放在主框架中，供音乐面板使用 -->
+    <!-- 音频元素（供音乐面板使用） -->
     <audio id="bg-audio" src="{{ url_for('static', filename='5_6311840232614403295.mp3') }}" preload="auto" loop></audio>
 
     <div class="max-w-7xl mx-auto p-6 sm:p-8 flex settings-container gap-12 animate-item settings-content-wrapper">
-        <!-- 左侧导航 -->
+        <!-- 左侧导航（保留全部选项） -->
         <aside class="w-64 flex-shrink-0 settings-sidebar animate-item delay-1">
             <div class="flex items-center gap-3 pb-4 mb-2 border-b border-[#30363d]">
                 <div class="w-10 h-10 rounded-full bg-[#afb8c1] flex items-center justify-center flex-shrink-0 text-[#0d1117] font-bold text-lg">
@@ -75,14 +74,33 @@
             </div>
 
             <nav class="flex flex-col gap-1" id="sidebarNav">
-                <!-- 第三项 AI -->
-                <div class="gh-sidebar-item" data-target="ai"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>AI</div>
-                <!-- 第六项 音乐 -->
-                <div class="gh-sidebar-item" data-target="music"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>音乐</div>
-                <!-- 其他原有项不变 -->
+                <!-- ✅ 第1项：个人资料 -->
                 <div class="gh-sidebar-item" data-target="profile"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a2.5 2.5 0 110 5 2.5 2.5 0 010-5zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>个人资料</div>
+                
+                <!-- ✅ 第2项：星星 -->
                 <div class="gh-sidebar-item" data-target="stars"><svg viewBox="0 0 16 16"><path d="M8 .5a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.624a.75.75 0 0 1 .416-1.279l4.21-.611L7.327.918A.75.75 0 0 1 8 .5z"/></svg>星星</div>
-                <!-- ... 其余项保留 -->
+                
+                <!-- ✅ 第3项：AI（原“外观”） -->
+                <div class="gh-sidebar-item" data-target="ai"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>AI</div>
+                
+                <!-- 以下全部保留，点击显示施工中 -->
+                <div class="gh-sidebar-item" data-target="accessibility"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>无障碍设置</div>
+                <div class="gh-sidebar-item" data-target="notifications"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>通知</div>
+                
+                <!-- ✅ 第6项：音乐（原“账单与许可”） -->
+                <div class="gh-sidebar-item" data-target="music"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>音乐</div>
+                
+                <div class="gh-sidebar-item" data-target="email"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>邮箱</div>
+                <div class="gh-sidebar-item" data-target="password"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>密码和身份验证</div>
+                <div class="gh-sidebar-item" data-target="sessions"><svg viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5c0 1.86.98 3.5 2.42 4.47A7.5 7.5 0 00.5 17h15a7.5 7.5 0 00-5.42-7.03c1.44-.97 2.42-2.61 2.42-4.47A4.5 4.5 0 008 1z"/></svg>会话</div>
+                <div class="gh-sidebar-item" data-target="keys"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zM6.5 12.5v-9l5 4.5-5 4.5z"/></svg>SSH 和 GPG 密钥</div>
+                <div class="gh-sidebar-item" data-target="credentials"><svg viewBox="0 0 16 16"><path d="M8 16a8 8 0 100-16 8 8 0 000 16zM4.75 10.5v-5h1v5h-1zm2.5-4.5h1v5h-1V6zm2.5 2h1v3h-1V8z"/></svg>凭据</div>
+                <div class="gh-sidebar-item" data-target="organizations"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>组织</div>
+                <div class="gh-sidebar-item" data-target="enterprises"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>企业</div>
+                <div class="gh-sidebar-item" data-target="moderation"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>审核</div>
+                <div class="gh-sidebar-item" data-target="repositories"><svg viewBox="0 0 16 16"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a3 3 0 110 6 3 3 0 010-6zm0 12c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>仓库</div>
+                <div class="gh-sidebar-item" data-target="codespaces"><svg viewBox="0 0 16 16"><path d="M1.5 5h13v9H1.5V5zM0 4.5A1.5 1.5 0 011.5 3h13A1.5 1.5 0 0116 4.5v10a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 010 14.5v-10zM4 1.5h8V.5a.5.5 0 00-.5-.5h-7a.5.5 0 00-.5.5v1z"/></svg>Codespaces</div>
+                <div class="gh-sidebar-item" data-target="packages"><svg viewBox="0 0 16 16"><path d="M11.5 4h-.5V2.5A2.5 2.5 0 008.5 0h-1A2.5 2.5 0 005 2.5V4h-.5A1.5 1.5 0 003 5.5v9A1.5 1.5 0 004.5 16h7a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0011.5 4zM7 2.5A1.5 1.5 0 018.5 1h1A1.5 1.5 0 0111 2.5V4H7V2.5z"/></svg>软件包</div>
             </nav>
         </aside>
 
@@ -94,14 +112,15 @@
             <div id="panel-stars" class="panel-content hidden animate-item delay-1">
                 {% include 'settings/xingxing.html' %}
             </div>
-            <!-- AI面板：引用 ai.html -->
+            <!-- ✅ AI面板 -->
             <div id="panel-ai" class="panel-content hidden animate-item delay-1">
                 {% include 'settings/ai.html' %}
             </div>
-            <!-- 音乐面板：引用 yinyue.html -->
+            <!-- ✅ 音乐面板 -->
             <div id="panel-music" class="panel-content hidden animate-item delay-1">
                 {% include 'settings/yinyue.html' %}
             </div>
+            <!-- 其他占位（保留“正在建设中”） -->
             <div id="panel-empty" class="panel-content hidden animate-item delay-1 flex items-center justify-center h-64 text-gray-400 text-lg flex-col">
                 <span class="text-4xl mb-2">🚧</span>
                 <span>此页面正在建设中，敬请期待...</span>
@@ -109,7 +128,7 @@
         </main>
     </div>
 
-    <!-- 头像裁剪弹窗（保持不变） -->
+    <!-- 头像裁剪弹窗 -->
     <div id="avatarModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center">
         <div class="bg-[#161b22] border border-[#30363d] rounded-lg p-6 w-full max-w-lg shadow-2xl">
             <h3 class="text-lg font-semibold text-white mb-4">编辑头像</h3>
@@ -149,8 +168,6 @@
                     }
                 });
             });
-
-            // 音乐播放器逻辑（在 yinyue.html 中已定义，这里可省略或保留）
         });
     </script>
 </body>
