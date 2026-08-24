@@ -10,22 +10,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/terranova.css') }}" />
 
     <style>
-        /* 与之前版本相同，省略以节省篇幅，但必须保持原样 */
         * { color: #ffffff !important; -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important; user-select: none !important; }
-        html, body {
-            height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important;
-            background: #000000 !important;
-            touch-action: pan-y !important; -webkit-overflow-scrolling: touch !important;
-            content-visibility: auto !important; contain-intrinsic-size: 100vh !important; overscroll-behavior-y: contain !important;
-        }
+        html, body { height: auto !important; min-height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; background: #000000 !important; touch-action: pan-y !important; -webkit-overflow-scrolling: touch !important; content-visibility: auto !important; contain-intrinsic-size: 100vh !important; overscroll-behavior-y: contain !important; }
         .hero { height: auto !important; min-height: 100vh !important; pointer-events: auto !important; }
-        video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel,
-        video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button,
-        video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        #theme-bg-white, #theme-bg-black {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-size: cover; background-position: center;
-            z-index: 1; pointer-events: none; transition: opacity 1s ease; transform: translateZ(0); will-change: opacity;
-        }
+        video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel, video::-webkit-media-controls-play-button, video::-webkit-media-controls-start-playback-button, video::-webkit-media-controls-overlay-play-button { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+        #theme-bg-white, #theme-bg-black { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-size: cover; background-position: center; z-index: 1; pointer-events: none; transition: opacity 1s ease; transform: translateZ(0); will-change: opacity; }
         #theme-bg-white { background-image: url('{{ url_for('static', filename='IMG_20250824_162613.jpg') }}'); background-color: #ffffff; opacity: 1; }
         #theme-bg-black { background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}'); background-color: #000000; opacity: 0; }
         .hero, .cards-section, .menu { position: relative; z-index: 3; }
@@ -72,11 +61,9 @@
     </style>
 </head>
 <body>
-    <!-- 背景层 -->
     <div id="theme-bg-white"></div>
     <div id="theme-bg-black"></div>
 
-    <!-- 汉堡菜单 -->
     <label class="hamburger">
         <input type="checkbox" id="menu-toggle">
         <svg viewBox="0 0 32 32">
@@ -85,7 +72,6 @@
         </svg>
     </label>
 
-    <!-- 右上角按钮 -->
     <div class="top-right">
         <a href="#" class="login-btn" onclick="window.openLoginModal(); return false;">Login</a>
         <div class="theme-toggle" id="theme-toggle-btn" title="切换主题背景">
@@ -93,7 +79,6 @@
         </div>
     </div>
 
-    <!-- 主内容 -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -141,7 +126,6 @@
         </div>
     </section>
 
-    <!-- 侧边菜单 -->
     <div class="menu" id="menu">
         <div class="menu__backdrop" id="menu-backdrop"></div>
         <div class="menu__panel">
@@ -159,55 +143,68 @@
         </div>
     </div>
 
-    <!-- 登录卡片 -->
     {% include 'components/auth_card.html' %}
 
     <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== 自动滚动 ==========
-            var isAutoScrolling = false;
+            // ========== 自动滚动（绝对可靠版） ==========
+            var hasAutoScrolled = false;
             var scrollTimer;
 
-            function startAutoScroll() {
-                isAutoScrolling = true;
-                var targetY = document.body.scrollHeight * 0.55; // 滚到页面约55%处，三张卡片即将可见
-                window.scrollTo({ top: targetY, behavior: 'smooth' });
-                // 设置一个超时，如果超过3秒还没完成就停止
-                scrollTimer = setTimeout(function() {
-                    isAutoScrolling = false;
-                }, 3000);
+            function smoothScrollTo(targetY, duration) {
+                var startY = window.pageYOffset;
+                var diff = targetY - startY;
+                var startTime = null;
+
+                function step(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    var progress = Math.min((timestamp - startTime) / duration, 1);
+                    window.scrollTo(0, startY + diff * progress);
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    }
+                }
+                requestAnimationFrame(step);
             }
 
-            // 如果用户开始滑动（滚轮或触摸），取消自动滚动
+            function startAutoScroll() {
+                if (hasAutoScrolled) return;
+                var cardsSection = document.getElementById('cardsSection');
+                if (!cardsSection) return;
+                var targetY = cardsSection.offsetTop - 100; // 滚到卡片区域上方100px处
+                targetY = Math.max(0, targetY);
+                hasAutoScrolled = true;
+                smoothScrollTo(targetY, 1500); // 1.5秒滚过去
+            }
+
+            // 如果用户开始滑动，取消自动滚动
             window.addEventListener('wheel', function() {
-                if (isAutoScrolling) {
-                    isAutoScrolling = false;
+                if (!hasAutoScrolled) {
+                    hasAutoScrolled = true;
                     clearTimeout(scrollTimer);
                 }
             }, { passive: true });
 
             window.addEventListener('touchmove', function() {
-                if (isAutoScrolling) {
-                    isAutoScrolling = false;
+                if (!hasAutoScrolled) {
+                    hasAutoScrolled = true;
                     clearTimeout(scrollTimer);
                 }
             }, { passive: true });
 
-            // 延迟执行，等页面初始动画播放后再滚
-            setTimeout(startAutoScroll, 800);
+            // 延迟执行，等页面动画播放后再滚（900ms）
+            scrollTimer = setTimeout(startAutoScroll, 900);
 
             // ========== 汉堡菜单 ==========
             var menuToggle = document.getElementById('menu-toggle');
             var menu = document.getElementById('menu');
             var menuBackdrop = document.getElementById('menu-backdrop');
             var menuLinks = document.querySelectorAll('.menu__link');
-
             menuToggle.addEventListener('change', function() {
                 if (this.checked) { menu.classList.add('is-open'); }
                 else { menu.classList.remove('is-open'); }
             });
-
             menuBackdrop.addEventListener('click', function() {
                 menuToggle.checked = false; menu.classList.remove('is-open');
             });
