@@ -17,7 +17,7 @@
             user-select: none !important;
         }
 
-        /* 彻底优化滚动：纯CSS动画，无JS滚动监听 */
+        /* 核心修复：所有固定定位元素强制提升到合成层，避免页面顶部重绘 */
         html, body {
             height: auto !important;
             min-height: 100% !important;
@@ -26,6 +26,9 @@
             background: #000000 !important;
             touch-action: pan-y !important;
             -webkit-overflow-scrolling: touch !important;
+            /* 让浏览器跳过屏幕外内容的渲染，大幅提升滚动性能 */
+            content-visibility: auto !important;
+            contain-intrinsic-size: 100vh !important;
             overscroll-behavior-y: contain !important;
         }
 
@@ -44,6 +47,7 @@
             pointer-events: none !important;
         }
 
+        /* 背景层：永不参与文档流，与滚动完全分离 */
         #theme-bg-white, #theme-bg-black {
             position: fixed;
             top: 0;
@@ -55,6 +59,7 @@
             z-index: 1;
             pointer-events: none;
             transition: opacity 1s ease;
+            /* 强制提升合成层，防止滚动重绘 */
             transform: translateZ(0);
             will-change: opacity;
         }
@@ -74,6 +79,7 @@
             z-index: 3;
         }
 
+        /* 右上角固定按钮组：强制合成层 */
         .top-right {
             position: fixed !important;
             top: 24px !important;
@@ -115,7 +121,7 @@
             fill: white;
         }
 
-        /* 汉堡菜单：固定+合成层 */
+        /* 汉堡菜单：强制固定和合成层 */
         .hamburger {
             cursor: pointer;
             position: fixed !important;
@@ -153,76 +159,24 @@
             stroke-dashoffset: -32.42;
         }
 
-        /* 卡片区域：占位高度，避免出现跳变 */
-        .cards-section {
-            min-height: 60vh; /* 缩小，更紧凑 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            position: relative;
-            z-index: 3;
-        }
-        .cards-grid {
-            position: relative;
-            width: 100%;
-            max-width: 1100px;
-            height: 240px;
-            margin: 0 auto;
-        }
-
-        /* 三卡片动画：初始状态全部居中重叠，中间卡片在最上 */
-        .card-item {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: calc(30% - 10px);
-            max-width: 320px;
-            height: 180px;
-            border-radius: 32px;
-            padding: 24px;
-            overflow: hidden;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.2);
-            will-change: transform, opacity;
-            backface-visibility: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 12px 24px rgba(0,0,0,0.4), 0 24px 48px rgba(0,0,0,0.5);
-            opacity: 0;
-        }
-        .card-left { z-index: 1; transform: translate(-50%, -50%); }
-        .card-center { z-index: 3; transform: translate(-50%, -50%); }
-        .card-right { z-index: 2; transform: translate(-50%, -50%); }
+        /* 卡片区域 */
+        .cards-section { min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 40px 40px 100px; margin-top: -20vh; position: relative; z-index: 3; }
+        .cards-grid { position: relative; width: 100%; max-width: 1100px; height: 260px; margin: 0 auto; }
+        .card-item { position: absolute; left: 50%; top: 50%; width: calc(30% - 10px); max-width: 320px; height: 180px; border-radius: 32px; padding: 24px; overflow: hidden; background: rgba(255,255,255,0.1); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); will-change: transform, opacity; backface-visibility: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 12px 24px rgba(0,0,0,0.4), 0 24px 48px rgba(0,0,0,0.5); opacity: 0; }
+        .card-left { z-index: 1; } .card-center { z-index: 3; } .card-right { z-index: 2; }
         .card-item::before { content: ''; position: absolute; top:0; left:0; right:0; bottom:0; background-size: cover; background-position: center; filter: blur(8px) brightness(0.7); transform: scale(1.1); z-index: 0; }
         .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
 
-        /* 动画触发后的状态（由IntersectionObserver添加类） */
-        .cards-grid.is-visible .card-item {
-            opacity: 1;
-            transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1), opacity 1s ease;
-        }
-        .cards-grid.is-visible .card-center {
-            transform: translate(-50%, -50%);
-        }
-        .cards-grid.is-visible .card-left {
-            transform: translate(calc(-50% - 100px), -50%);
-        }
-        .cards-grid.is-visible .card-right {
-            transform: translate(calc(-50% + 100px), -50%);
-        }
-
-        /* 更新日志动画 */
         .card.group {
-            animation: fade-slide-up-card 1.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+            animation: fade-slide-up-card 2.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
         }
         @keyframes fade-slide-up-card {
             0% { opacity: 0; transform: translateY(100px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 侧边菜单 */
         .menu {
             position: fixed;
             inset: 0;
@@ -424,23 +378,75 @@
                 });
             }
 
-            /* ==========================================
-               🔥 彻底解决卡顿：IntersectionObserver 触发动画
-               滚动时不执行任何 JS，动画由浏览器原生驱动
-               ========================================== */
-            var cardsGrid = document.getElementById('cardsGrid');
-            if (cardsGrid) {
-                var observer = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(entry) {
-                        if (entry.isIntersecting) {
-                            cardsGrid.classList.add('is-visible');
-                            // 触发一次后停止观察，动画只播放一次
-                            observer.unobserve(cardsGrid);
-                        }
-                    });
-                }, { threshold: 0.2 }); // 卡片区域20%可见时触发
+            /* 性能优化：scroll事件只更新目标，rAF只做插值 */
+            var section = document.getElementById('cardsSection');
+            var card1 = document.getElementById('card1');
+            var card2 = document.getElementById('card2');
+            var card3 = document.getElementById('card3');
 
-                observer.observe(cardsGrid);
+            if (section && card1 && card2 && card3) {
+                var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
+                var lerp = function(a, b, t) { return a + (b - a) * t; };
+                var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
+
+                function makeInitials() {
+                    var vw = window.innerWidth, vh = window.innerHeight;
+                    return { cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 };
+                }
+
+                var current = makeInitials();
+                var target = makeInitials();
+                var running = false;
+                var vw = window.innerWidth, vh = window.innerHeight;
+
+                window.addEventListener('resize', function() {
+                    vw = window.innerWidth; vh = window.innerHeight;
+                });
+
+                var updateTargets = function() {
+                    var rect = section.getBoundingClientRect();
+                    var offset = (rect.top + rect.height * 0.5) - vh * 0.5;
+                    var progress = clamp(1 - offset / (vh * 0.85), 0, 1);
+                    var t = easeOutCubic(progress);
+                    var distance = vw * 0.28;
+                    var ini = makeInitials();
+
+                    target.cX = 0; target.cY = lerp(ini.cY, 0, t); target.cR = 0; target.cS = lerp(ini.cS, 1, t); target.cO = lerp(ini.cO, 1, t);
+                    target.lX = lerp(ini.lX, -distance, t); target.lY = lerp(ini.lY, 0, t); target.lR = lerp(ini.lR, -6, t); target.lS = lerp(ini.lS, 1, t); target.lO = lerp(ini.lO, 1, t);
+                    target.rX = lerp(ini.rX, distance, t); target.rY = lerp(ini.rY, 0, t); target.rR = lerp(ini.rR, 6, t); target.rS = lerp(ini.rS, 1, t); target.rO = lerp(ini.rO, 1, t);
+                };
+
+                var apply = function() {
+                    card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
+                    card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
+                    card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
+                    card1.style.opacity = current.lO; card2.style.opacity = current.cO; card3.style.opacity = current.rO;
+                };
+
+                var frame = function() {
+                    var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
+                    var delta = 0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var k = keys[i], old = current[k];
+                        current[k] = lerp(old, target[k], 0.09);
+                        delta += Math.abs(current[k] - old);
+                    }
+                    apply();
+                    if (delta > 0.001) { requestAnimationFrame(frame); }
+                    else { running = false; }
+                };
+
+                var start = function() {
+                    if (!running) { running = true; requestAnimationFrame(frame); }
+                };
+
+                window.addEventListener('scroll', function() {
+                    updateTargets();
+                    start();
+                }, { passive: true });
+
+                updateTargets();
+                start();
             }
         });
     </script>
