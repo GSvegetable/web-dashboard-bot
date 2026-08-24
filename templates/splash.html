@@ -55,8 +55,9 @@
             pointer-events: none;
             transition: opacity 1s ease;
         }
+        /* ✅ 白天主题（默认进入网站）设置为新图片 */
         #theme-bg-white {
-            background-image: url('{{ url_for('static', filename='IMG_20260823_035229.png') }}');
+            background-image: url('{{ url_for('static', filename='IMG_20250824_162613.jpg') }}');
             background-color: #ffffff;
             opacity: 1;
         }
@@ -139,7 +140,6 @@
             opacity: 0;
         }
 
-        /* 当 body 有 theme-black 类时，切换图标显示 */
         body.theme-black .icon-sun {
             transform: rotate(-45deg) scale(0.8);
             opacity: 0;
@@ -299,7 +299,6 @@
                 <a href="#" class="nav__item" onclick="window.openLoginModal(); return false;">
                     <span class="nav__label">Login</span>
                 </a>
-                <!-- 新主题切换按钮（严格使用源码，尺寸缩小一半） -->
                 <div class="background" id="theme-toggle-btn">
                     <button class="change-theme__icon">
                         <div class="icon-sun">
@@ -406,7 +405,7 @@
                 }
             });
 
-            // 主题切换（新按钮ID绑定）
+            // 主题切换
             var toggleBtn = document.getElementById('theme-toggle-btn');
             var whiteLayer = document.getElementById('theme-bg-white');
             var blackLayer = document.getElementById('theme-bg-black');
