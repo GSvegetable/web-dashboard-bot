@@ -194,3 +194,243 @@
             left: 0;
             display: flex;
             flex-direction: column;
+            width: 380px;
+            max-width: 100%;
+            height: 100%;
+            padding: 1.5rem 2rem;
+            background: #1a1a1a;
+            transform: translateX(-100%);
+            transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .menu.is-open .menu__panel { transform: translateX(0); }
+        .menu__nav { margin-top: 80px; display: flex; flex-direction: column; }
+        .menu__link {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #ffffff;
+            text-decoration: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 500ms, transform 500ms;
+        }
+        .menu.is-open .menu__link {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .menu.is-open .menu__link:nth-child(1) { transition-delay: 100ms; }
+        .menu.is-open .menu__link:nth-child(2) { transition-delay: 150ms; }
+        .menu.is-open .menu__link:nth-child(3) { transition-delay: 200ms; }
+        .menu.is-open .menu__link:nth-child(4) { transition-delay: 250ms; }
+        .menu.is-open .menu__link:nth-child(5) { transition-delay: 300ms; }
+        .menu__foot {
+            margin-top: auto;
+            padding: 1.5rem 0 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 500ms, transform 500ms;
+        }
+        .menu.is-open .menu__foot { opacity: 1; transform: translateY(0); transition-delay: 400ms; }
+        .menu__footLabel { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin: 0; }
+        .menu__mail { font-size: 0.875rem; color: #ffffff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <!-- 背景层 -->
+    <div id="theme-bg-white"></div>
+    <div id="theme-bg-black"></div>
+
+    <!-- 汉堡菜单 -->
+    <label class="hamburger">
+        <input type="checkbox" id="menu-toggle">
+        <svg viewBox="0 0 32 32">
+            <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+            <path class="line" d="M7 16 27 16"></path>
+        </svg>
+    </label>
+
+    <!-- 右上角按钮组 -->
+    <div class="top-right">
+        <a href="#" class="login-btn" onclick="window.openLoginModal(); return false;">Login</a>
+        <div class="theme-toggle" id="theme-toggle-btn" title="切换主题背景">
+            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="hero">
+        <div class="rule rule--left" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
+        </div>
+        <div class="rule rule--right" aria-hidden="true">
+            <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
+        </div>
+
+        <div class="hero-bottom">
+            <div class="lede">
+                <h1 class="lede__title">Explore More<br />Open Source Bots</h1>
+                <p class="lede__body">专注电报机器人搭建部署<br />从开源社区中直接获取源代码</p>
+                <a class="chamfer" href="/warehouse">
+                    <span class="chamfer__glass" aria-hidden="true"></span>
+                    <svg class="chamfer__outline" viewBox="0 0 260 48" preserveAspectRatio="none" aria-hidden="true"><polygon points="14,0 260,0 260,34 246,48 0,48 0,14" fill="none" stroke="currentColor" stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>
+                    <span class="chamfer__label">开始搭建</span>
+                    <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                </a>
+            </div>
+
+            <aside class="card group" data-glass-card>
+                <div id="dup-video-container"><canvas id="dup-image"></canvas></div>
+                <div class="card__frost" aria-hidden="true"></div>
+                <div class="card__head"><h2 class="card__title">更新日志</h2><span class="card__index"></span></div>
+                <div class="card__body">
+                    <div class="finding">
+                        <h3 class="finding__title">2026年8月重大更新</h3>
+                        <p class="finding__text">新增AI深度思考模式，优化沙盒环境，提升开发效率。</p>
+                    </div>
+                    <div class="finding">
+                        <h3 class="finding__title">社区功能全新上线</h3>
+                        <p class="finding__text">支持代码分享、项目托管，连接全球开发者。</p>
+                    </div>
+                </div>
+                <svg class="card__wave" viewBox="0 0 220 50" fill="none" aria-hidden="true"><path d="M0 30 C10 30 12 45 18 45 C24 45 26 10 34 10 C42 10 44 40 52 40 C60 40 62 5 70 5 C78 5 80 42 88 42 C96 42 98 15 106 15 C114 15 116 38 124 38 C132 38 134 20 142 20 C150 20 152 35 160 35 C168 35 170 22 178 22 C186 22 188 32 196 32 C204 32 210 28 220 28" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" /></svg>
+            </aside>
+        </div>
+    </main>
+
+    <section class="cards-section" id="cardsSection">
+        <div class="cards-grid" id="cardsGrid">
+            <div class="card-item card-left" id="card1" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011449.png') }}');"><div class="card-content"><h3>一键部署</h3><p>无需编写代码，几分钟内完成Telegram机器人部署，自动处理服务器配置。</p></div></div>
+            <div class="card-item card-center" id="card2" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011541.png') }}');"><div class="card-content"><h3>功能扩展</h3><p>轻松添加自动回复、按钮菜单、支付系统、社区功能，让机器人更具商业价值。</p></div></div>
+            <div class="card-item card-right" id="card3" style="background-image: url('{{ url_for('static', filename='IMG_20260823_011604.png') }}');"><div class="card-content"><h3>安全托管</h3><p>专业级服务器托管，实时监控，数据加密，确保机器人24小时稳定运行。</p></div></div>
+        </div>
+    </section>
+
+    <!-- 侧边菜单 -->
+    <div class="menu" id="menu">
+        <div class="menu__backdrop" id="menu-backdrop"></div>
+        <div class="menu__panel">
+            <nav class="menu__nav">
+                <a href="#" class="menu__link"><span class="menu__linkText">创作</span></a>
+                <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">终端</span></a>
+                <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Agent</span></a>
+            </nav>
+            <a href="https://t.me/gsyxyc" class="menu__foot" style="text-decoration: none; color: inherit; display: block;">
+                <span class="menu__footLabel">联系我们</span>
+                <span class="menu__mail">宫水.com @gsyxyc</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 登录卡片 -->
+    {% include 'components/auth_card.html' %}
+
+    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var menuToggle = document.getElementById('menu-toggle');
+            var menu = document.getElementById('menu');
+            var menuBackdrop = document.getElementById('menu-backdrop');
+            var menuLinks = document.querySelectorAll('.menu__link');
+
+            menuToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    menu.classList.add('is-open');
+                } else {
+                    menu.classList.remove('is-open');
+                }
+            });
+
+            menuBackdrop.addEventListener('click', function() {
+                menuToggle.checked = false;
+                menu.classList.remove('is-open');
+            });
+            menuLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    menuToggle.checked = false;
+                    menu.classList.remove('is-open');
+                });
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                    menuToggle.checked = false;
+                    menu.classList.remove('is-open');
+                }
+            });
+
+            var toggleBtn = document.getElementById('theme-toggle-btn');
+            var whiteLayer = document.getElementById('theme-bg-white');
+            var blackLayer = document.getElementById('theme-bg-black');
+            if (toggleBtn && whiteLayer && blackLayer) {
+                var isBlack = false;
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isBlack = !isBlack;
+                    document.body.classList.toggle('theme-black', isBlack);
+                    if (isBlack) {
+                        blackLayer.style.opacity = '1';
+                        whiteLayer.style.opacity = '0';
+                    } else {
+                        blackLayer.style.opacity = '0';
+                        whiteLayer.style.opacity = '1';
+                    }
+                });
+            }
+
+            var section = document.getElementById('cardsSection');
+            var card1 = document.getElementById('card1');
+            var card2 = document.getElementById('card2');
+            var card3 = document.getElementById('card3');
+            if (section && card1 && card2 && card3) {
+                var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
+                var lerp = function(a, b, t) { return a + (b - a) * t; };
+                var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
+                function makeInitials() {
+                    var vw = window.innerWidth, vh = window.innerHeight;
+                    return { cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 };
+                }
+                var current = makeInitials(), target = makeInitials(), running = false;
+                function updateTargets() {
+                    var rect = section.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+                    var offset = (rect.top + rect.height * 0.5) - vh * 0.5;
+                    var progress = clamp(1 - offset / (vh * 0.85), 0, 1), t = easeOutCubic(progress), distance = vw * 0.28, ini = makeInitials();
+                    target.cX = 0; target.cY = lerp(ini.cY, 0, t); target.cR = 0; target.cS = lerp(ini.cS, 1, t); target.cO = lerp(ini.cO, 1, t);
+                    target.lX = lerp(ini.lX, -distance, t); target.lY = lerp(ini.lY, 0, t); target.lR = lerp(ini.lR, -6, t); target.lS = lerp(ini.lS, 1, t); target.lO = lerp(ini.lO, 1, t);
+                    target.rX = lerp(ini.rX, distance, t); target.rY = lerp(ini.rY, 0, t); target.rR = lerp(ini.rR, 6, t); target.rS = lerp(ini.rS, 1, t); target.rO = lerp(ini.rO, 1, t);
+                }
+                function apply() {
+                    card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
+                    card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
+                    card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
+                    card1.style.opacity = current.lO; card2.style.opacity = current.cO; card3.style.opacity = current.rO;
+                }
+                function frame() {
+                    updateTargets();
+                    var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
+                    var delta = 0;
+                    for (var i = 0; i < keys.length; i++) {
+                        var k = keys[i], old = current[k];
+                        current[k] = lerp(old, target[k], 0.09);
+                        delta += Math.abs(current[k] - old);
+                    }
+                    apply();
+                    if (delta > 0.001) requestAnimationFrame(frame);
+                    else running = false;
+                }
+                function start() { if (!running) { running = true; requestAnimationFrame(frame); } }
+                window.addEventListener('scroll', start, { passive: true });
+                window.addEventListener('resize', start);
+                start();
+            }
+        });
+    </script>
+</body>
+</html>
