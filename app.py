@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 # 强制指定 Gunicorn PID 路径为 /tmp，彻底避免 /root 权限问题
 # ==========================================
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# 强制覆盖任何可能的 PID 配置，确保写入 /tmp（普通用户可写）
 os.environ["GUNICORN_CMD_ARGS"] = "--pid /tmp/gunicorn.pid"
 
 from flask import Flask, request
