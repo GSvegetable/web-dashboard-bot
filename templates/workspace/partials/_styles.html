@@ -1,204 +1,77 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>宫水大世界 机器人仓库 － Professional Telegram bot development services</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
+<style>
+    /* 工作台背景：新图片 + 轻微模糊，仅模糊背景，不模糊内容 */
+    body {
+        position: relative;
+        background-color: #000; /* 兜底背景色 */
+    }
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("{{ url_for('static', filename='IMG_20260823_231613.png') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(5px); /* 已从10px降为5px，轻微模糊 */
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    /* 以下为原有样式，保持不变 */
+    #configPanel { top: max(24px, env(safe-area-inset-top)) !important; }
+    .glass-panel { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); border-radius: 28px; position: relative; }
     
-    <!-- 引入背景样式（确保背景是模糊图片，不包含其他内容） -->
-    {% include 'workspace/partials/_styles.html' %}
-</head>
-<body class="workspace-container">
-    <!-- 右上角固定按钮（Login和主题切换） -->
-    <div class="top-right">
-        <a href="#" class="login-btn" onclick="window.openLoginModal(); return false;">Login</a>
-        <div class="theme-toggle" id="theme-toggle-btn" title="切换主题背景">
-            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </div>
-    </div>
+    .canvas-node { position: absolute; padding: 12px 16px; background: rgba(30, 30, 30, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #e5e7eb; cursor: grab; min-width: 120px; max-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); user-select: none; transition: box-shadow 0.2s; }
+    .canvas-node:active { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.8); }
+    .canvas-node .node-handle { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 10px; color: rgba(255,255,255,0.4); }
+    .canvas-node .node-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .canvas-node .node-body { font-size: 12px; color: rgba(255,255,255,0.8); }
 
-    <!-- 汉堡菜单（固定左上角） -->
-    <label class="hamburger">
-        <input type="checkbox" id="menu-toggle">
-        <svg viewBox="0 0 32 32">
-            <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
-            <path class="line" d="M7 16 27 16"></path>
-        </svg>
-    </label>
+    .canvas-node.bot-node {
+        min-width: 170px !important;
+        max-width: 210px !important;
+        padding: 24px 16px 16px 16px !important;
+        border-radius: 20px !important;
+        background: rgba(20, 20, 25, 0.9) !important;
+        border-color: rgba(245, 230, 207, 0.15) !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+        cursor: grab !important;
+    }
+    .canvas-node.bot-node:active { cursor: grabbing !important; transform: scale(0.98) !important; }
 
-    <!-- 侧边菜单（仅包含仓库相关导航） -->
-    <div class="menu" id="menu">
-        <div class="menu__backdrop" id="menu-backdrop"></div>
-        <div class="menu__panel">
-            <nav class="menu__nav">
-                <a href="/" class="menu__link"><span class="menu__linkText">首页</span></a>
-                <a href="/warehouse" class="menu__link"><span class="menu__linkText">仓库</span></a>
-                <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
-                <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
-                <a href="#" class="menu__link"><span class="menu__linkText">Agent</span></a>
-            </nav>
-            <a href="https://t.me/gsyxyc" class="menu__foot" style="text-decoration: none; color: inherit; display: block;">
-                <span class="menu__footLabel">联系我们</span>
-                <span class="menu__mail">宫水.com @gsyxyc</span>
-            </a>
-        </div>
-    </div>
+    .preview-box { position: fixed; bottom: 24px; right: 24px; width: min(320px, calc(100vw - 32px)); height: min(480px, calc(100vh - 48px)); background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.8); display: flex; flex-direction: column; overflow: hidden; transform: translateY(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .preview-box.open { transform: translateY(0); opacity: 1; }
+    .preview-header { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between;}
+    .preview-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .preview-msg-bot { align-self: flex-start; background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 12px 12px 12px 4px; font-size: 13px; color: #fff; max-width: 80%; }
+    .preview-msg-user { align-self: flex-end; background: #493F36; padding: 8px 12px; border-radius: 12px 12px 4px 12px; font-size: 13px; color: #fff; max-width: 80%; }
+    .preview-input-bar { padding: 12px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px; }
+    .preview-input-bar input { flex: 1; background: rgba(0,0,0,0.3); border: none; padding: 8px 12px; border-radius: 8px; color: #fff; outline: none; font-size: 13px; }
+    .preview-input-bar button { background: #493F36; border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
 
-    <!-- 仓库主内容：左侧配置面板 + 中央画布 + 右侧预览 -->
-    <div class="flex w-screen h-screen">
-        {% include 'workspace/partials/_config_panel.html' %}
-        {% include 'workspace/partials/_canvas.html' %}
-        {% include 'workspace/partials/_preview.html' %}
-    </div>
+    #ctxMenu { display: flex; flex-direction: column; width: 200px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 6px 6px 6px 14px; position: fixed; z-index: 9999; opacity: 0; transform: scale(0.95); transition: opacity 0.15s ease, transform 0.15s ease; pointer-events: none; box-shadow: 0 12px 36px rgba(0,0,0,0.8); }
+    #ctxMenu.open { opacity: 1; transform: scale(1); pointer-events: auto; }
+    #ctxMenu .value { background-color: transparent; border: none; padding: 10px 10px 10px 12px; color: #e5e7eb; display: flex; position: relative; gap: 5px; cursor: pointer; border-radius: 8px; align-items: center; font-size: 12px; transition: background 0.15s ease, color 0.15s ease; width: 100%; }
+    #ctxMenu .value:not(:active):hover, #ctxMenu .value:focus { background-color: rgba(255, 255, 255, 0.06); }
+    #ctxMenu .value:focus, #ctxMenu .value:active { background-color: rgba(255, 255, 255, 0.10); outline: none; }
+    #ctxMenu .value::before { content: ""; position: absolute; top: 8px; left: -14px; width: 4px; height: 60%; background-color: #493F36; border-radius: 2px; opacity: 0; transition: opacity 0.15s ease; }
+    #ctxMenu .value:focus::before, #ctxMenu .value:active::before, #ctxMenu .value.active::before { opacity: 1; }
+    #ctxMenu .value svg, #ctxMenu .value .btn-text { pointer-events: none; }
+    #ctxMenu .value svg { width: 16px; height: 16px; }
+    #ctxMenu .value path { fill: #8b949e; }
+    #ctxMenu .value:hover path { fill: #f0f6fc; }
+    #ctxMenu:hover > .value:not(.active):not(:hover) { transition: all 0.15s ease; filter: blur(1px); transform: scale(0.95,0.95); }
 
-    <!-- 底部添加机器人弹窗（来自原工作台，完全保留） -->
-    <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
-        <div id="modalBlurLayer" style="position: absolute; inset: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); clip-path: circle(0% at 50% 50%); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: auto;"></div>
-        <div class="w-full h-full flex items-center justify-center pointer-events-none">
-            <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);">
-                <div class="rounded-3xl p-6" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255,255,255,0.35); box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), inset 1px 0 1px rgba(255,255,255,0.15), inset -1px 0 1px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.35);">
-                    <div class="w-full flex flex-col gap-4">
-                        <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
-                            <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label class="text-white/70 text-sm font-medium tracking-wide">机器人 Token</label>
-                            <input id="addPanelTokenInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
-                        </div>
-                        <div class="mt-2 pt-2 border-t border-white/5 flex flex-col gap-2">
-                            <button onclick="submitBindBot()" class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-white text-sm font-medium transition active:scale-95">绑定</button>
-                        </div>
-                        <div id="bindStatusMsg" class="text-xs text-center text-gray-400 hidden"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 引入登录卡片（仅用于右上角登录按钮，不会影响仓库内容） -->
-    {% include 'components/auth_card.html' %}
-
-    <!-- 引入外部脚本（工作台逻辑 + 玻璃卡片特效） -->
-    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
-    <script>
-        // 汉堡菜单逻辑
-        var menuToggle = document.getElementById('menu-toggle');
-        var menu = document.getElementById('menu');
-        var menuBackdrop = document.getElementById('menu-backdrop');
-        var menuLinks = document.querySelectorAll('.menu__link');
-        menuToggle.addEventListener('change', function() {
-            if (this.checked) { menu.classList.add('is-open'); }
-            else { menu.classList.remove('is-open'); }
-        });
-        menuBackdrop.addEventListener('click', function() {
-            menuToggle.checked = false; menu.classList.remove('is-open');
-        });
-        menuLinks.forEach(function(link) {
-            link.addEventListener('click', function() {
-                menuToggle.checked = false; menu.classList.remove('is-open');
-            });
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
-                menuToggle.checked = false; menu.classList.remove('is-open');
-            }
-        });
-
-        // 主题切换（透明度过渡）
-        var toggleBtn = document.getElementById('theme-toggle-btn');
-        var whiteLayer = document.getElementById('theme-bg-white');
-        var blackLayer = document.getElementById('theme-bg-black');
-        if (toggleBtn && whiteLayer && blackLayer) {
-            var isBlack = false;
-            toggleBtn.addEventListener('click', function(e) {
-                e.preventDefault(); e.stopPropagation();
-                isBlack = !isBlack;
-                document.body.classList.toggle('theme-black', isBlack);
-                if (isBlack) { blackLayer.style.opacity = '1'; whiteLayer.style.opacity = '0'; }
-                else { blackLayer.style.opacity = '0'; whiteLayer.style.opacity = '1'; }
-            });
-        }
-
-        // 弹窗开关逻辑（从工作台复制过来）
-        window.showAddBotModal = function() {
-            var mainPanel = document.getElementById('configPanel');
-            var modal = document.getElementById('customAddPanelModal');
-            var wrapper = document.getElementById('modalWrapper');
-            var blurLayer = document.getElementById('modalBlurLayer');
-            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
-            mainPanel.classList.add('hide-for-modal');
-            modal.classList.remove('hidden');
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-            setTimeout(() => {
-                wrapper.style.transform = 'translateY(0)';
-                wrapper.style.opacity = '1';
-                blurLayer.style.clipPath = 'circle(75% at 50% 50%)';
-            }, 200);
-        };
-        window.closeAddBotModal = function() {
-            var mainPanel = document.getElementById('configPanel');
-            var modal = document.getElementById('customAddPanelModal');
-            var wrapper = document.getElementById('modalWrapper');
-            var blurLayer = document.getElementById('modalBlurLayer');
-            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
-            mainPanel.style.zIndex = '10000';
-            mainPanel.classList.remove('hide-for-modal');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                mainPanel.style.zIndex = '';
-            }, 800);
-        };
-        document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
-            var wrapper = document.getElementById('modalWrapper');
-            if (!wrapper.contains(e.target)) { window.closeAddBotModal(); }
-        });
-
-        // 提交绑定逻辑
-        window.submitBindBot = function() {
-            var userIdInput = document.getElementById('addPanelUserIdInput');
-            var tokenInput = document.getElementById('addPanelTokenInput');
-            var statusMsg = document.getElementById('bindStatusMsg');
-            var userId = userIdInput.value.trim();
-            var token = tokenInput.value.trim();
-            if (!userId || !token) {
-                statusMsg.innerText = '❌ 请填写完整';
-                statusMsg.className = 'text-xs text-center text-red-400';
-                return;
-            }
-            statusMsg.classList.remove('hidden');
-            statusMsg.innerText = '正在绑定...';
-            statusMsg.className = 'text-xs text-center text-yellow-400';
-            fetch('/api/send_bind_request', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ user_id: userId, token: token })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) {
-                    statusMsg.innerText = '✅ 绑定成功！';
-                    statusMsg.className = 'text-xs text-center text-green-400';
-                    setTimeout(() => { window.location.href = '/workspace'; }, 1500);
-                } else {
-                    statusMsg.innerText = '❌ ' + data.msg;
-                    statusMsg.className = 'text-xs text-center text-red-400';
-                }
-            })
-            .catch(() => {
-                statusMsg.innerText = '❌ 网络异常';
-                statusMsg.className = 'text-xs text-center text-red-400';
-            });
-        };
-    </script>
-</body>
-</html>
+    #customLoader { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; position: relative; vertical-align: middle;}
+    #customLoader .gegga { width: 0; }
+    #customLoader .snurra { width: 100%; height: 100%; filter: url(#gegga); }
+    #customLoader .skugga { width: 100%; height: 100%; filter: blur(5px); opacity: 0.3; position: absolute; top: 3px; left: 3px; transform: none; }
+    #customLoader .stopp1 { stop-color: #f700a8; }
+    #customLoader .stopp2 { stop-color: #ff8000; }
+    #customLoader .halvan { animation: Snurra1 10s infinite linear; stroke-dasharray: 180 800; fill: none; stroke: url(#gradient); stroke-width: 23; stroke-linecap: round; }
+    #customLoader .strecken { animation: Snurra1 3s infinite linear; stroke-dasharray: 26 54; fill: none; stroke: url(#gradient); stroke-width: 23; stroke-linecap: round; }
+    @keyframes Snurra1 { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -403px; } }
+</style>
