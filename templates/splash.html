@@ -92,13 +92,13 @@
             cursor: pointer;
         }
 
-        /* 主题切换按钮（自制版） */
+        /* 主题切换按钮（缩小版，永远月亮） */
         .theme-toggle {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 28px;
+            height: 28px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -109,20 +109,17 @@
             transform: scale(1.1);
         }
         .theme-toggle svg {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             fill: white;
         }
-        .theme-toggle .icon-sun { display: none; }
-        body.theme-black .theme-toggle .icon-moon { display: none; }
-        body.theme-black .theme-toggle .icon-sun { display: block; }
 
-        /* 汉堡菜单（固定在左上角） */
+        /* 汉堡菜单（缩小版） */
         .hamburger {
             cursor: pointer;
             position: fixed;
-            top: 16px;
-            left: 20px;
+            top: 18px;
+            left: 18px;
             z-index: 100000;
             pointer-events: auto;
         }
@@ -130,7 +127,7 @@
             display: none;
         }
         .hamburger svg {
-            height: 3em;
+            height: 2.5em; /* 缩小 */
             transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
         }
         .line {
@@ -162,6 +159,21 @@
         .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
         .card-content h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.6); }
         .card-content p { font-size: 14px; line-height: 1.7; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+
+        /* 更新日志卡片动画覆盖（放慢拉长） */
+        .card.group {
+            animation: fade-slide-up-card 2.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+        }
+        @keyframes fade-slide-up-card {
+            0% {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* 侧边菜单（固定宽度380px） */
         .menu {
@@ -244,7 +256,7 @@
     <div id="theme-bg-white"></div>
     <div id="theme-bg-black"></div>
 
-    <!-- 汉堡菜单（固定在左上角） -->
+    <!-- 汉堡菜单（缩小版） -->
     <label class="hamburger">
         <input type="checkbox" id="menu-toggle">
         <svg viewBox="0 0 32 32">
@@ -257,12 +269,11 @@
     <div class="top-right">
         <a href="#" class="login-btn" onclick="window.openLoginModal(); return false;">Login</a>
         <div class="theme-toggle" id="theme-toggle-btn" title="切换主题背景">
-            <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 18v-6m0 0V6m0 6h6m-6 0H6m13.5-2.5L14 10m-2 5l4.5 4.5M10 10l-4.5-4.5M10 10l4.5 4.5M10 10L5.5 5.5"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </div>
     </div>
 
-    <!-- 主内容区（不再包含导航栏，导航已固定） -->
+    <!-- 主内容区 -->
     <main class="hero">
         <div class="rule rule--left" aria-hidden="true">
             <span class="rule__seg rule__seg--end"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--mid"></span><span class="rule__plus">+</span><span class="rule__seg rule__seg--end"></span>
@@ -288,7 +299,6 @@
                 <div class="card__frost" aria-hidden="true"></div>
                 <div class="card__head"><h2 class="card__title">更新日志</h2><span class="card__index"></span></div>
                 <div class="card__body">
-                    <!-- 更新为中文内容 -->
                     <div class="finding">
                         <h3 class="finding__title">2026年8月重大更新</h3>
                         <p class="finding__text">新增AI深度思考模式，优化沙盒环境，提升开发效率。</p>
