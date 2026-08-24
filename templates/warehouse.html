@@ -3,39 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>开发工作台 - gsbot</title>
+    <title>宫水大世界 机器人仓库 － Professional Telegram bot development services</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workspace.css') }}">
+    
+    <!-- 引入背景样式（确保背景是模糊图片，不包含其他内容） -->
     {% include 'workspace/partials/_styles.html' %}
 </head>
-<body>
-    {% include 'workspace/partials/_top_btns.html' %}
+<body class="workspace-container">
+    <!-- 右上角固定按钮（Login和主题切换） -->
+    <div class="top-right">
+        <a href="#" class="login-btn" onclick="window.openLoginModal(); return false;">Login</a>
+        <div class="theme-toggle" id="theme-toggle-btn" title="切换主题背景">
+            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+    </div>
 
+    <!-- 汉堡菜单（固定左上角） -->
+    <label class="hamburger">
+        <input type="checkbox" id="menu-toggle">
+        <svg viewBox="0 0 32 32">
+            <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+            <path class="line" d="M7 16 27 16"></path>
+        </svg>
+    </label>
+
+    <!-- 侧边菜单（仅包含仓库相关导航） -->
+    <div class="menu" id="menu">
+        <div class="menu__backdrop" id="menu-backdrop"></div>
+        <div class="menu__panel">
+            <nav class="menu__nav">
+                <a href="/" class="menu__link"><span class="menu__linkText">首页</span></a>
+                <a href="/warehouse" class="menu__link"><span class="menu__linkText">仓库</span></a>
+                <a href="/community" class="menu__link"><span class="menu__linkText">社区</span></a>
+                <a href="/settings" class="menu__link"><span class="menu__linkText">设置</span></a>
+                <a href="#" class="menu__link"><span class="menu__linkText">Agent</span></a>
+            </nav>
+            <a href="https://t.me/gsyxyc" class="menu__foot" style="text-decoration: none; color: inherit; display: block;">
+                <span class="menu__footLabel">联系我们</span>
+                <span class="menu__mail">宫水.com @gsyxyc</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 仓库主内容：左侧配置面板 + 中央画布 + 右侧预览 -->
     <div class="flex w-screen h-screen">
         {% include 'workspace/partials/_config_panel.html' %}
         {% include 'workspace/partials/_canvas.html' %}
         {% include 'workspace/partials/_preview.html' %}
     </div>
 
-    {% include 'workspace/partials/_ctx_menu.html' %}
-    {% include 'components/agent_action_panel.html' %}
-    {% include 'workspace/partials/_scripts.html' %}
-    
-    <!-- ✅ 弹窗容器（主背景） -->
+    <!-- 底部添加机器人弹窗（来自原工作台，完全保留） -->
     <div id="customAddPanelModal" class="fixed inset-0 z-[9999] hidden" style="background: transparent;">
-        
-        <!-- ✅ 模糊层：从中心圆形向外扩散，占满全屏 -->
         <div id="modalBlurLayer" style="position: absolute; inset: 0; background: transparent; backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%); clip-path: circle(0% at 50% 50%); transition: clip-path 0.8s cubic-bezier(0.22, 1, 0.36, 1); pointer-events: auto;"></div>
-
-        <!-- ✅ 卡片容器 -->
         <div class="w-full h-full flex items-center justify-center pointer-events-none">
             <div id="modalWrapper" class="w-[400px] max-w-[90vw] pointer-events-auto" style="transform: translateY(100vh); opacity: 0; will-change: transform, opacity; transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);">
-                <!-- 透明玻璃质感卡片 -->
                 <div class="rounded-3xl p-6" style="background: rgba(255,255,255,0.12); backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); border: 1px solid rgba(255,255,255,0.35); box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), inset 1px 0 1px rgba(255,255,255,0.15), inset -1px 0 1px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.35);">
                     <div class="w-full flex flex-col gap-4">
                         <h3 class="text-xl font-bold text-white">添加机器人</h3>
-                        
                         <div class="flex flex-col gap-1">
                             <label class="text-white/70 text-sm font-medium tracking-wide">你的 Telegram ID (纯数字)</label>
                             <input id="addPanelUserIdInput" type="text" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 transition-all" />
@@ -54,26 +80,104 @@
         </div>
     </div>
 
-    <!-- ✅ 提交绑定逻辑 -->
-    <script>
-        window.submitBindBot = function() {
-            const userIdInput = document.getElementById('addPanelUserIdInput');
-            const tokenInput = document.getElementById('addPanelTokenInput');
-            const statusMsg = document.getElementById('bindStatusMsg');
-            
-            const userId = userIdInput.value.trim();
-            const token = tokenInput.value.trim();
+    <!-- 引入登录卡片（仅用于右上角登录按钮，不会影响仓库内容） -->
+    {% include 'components/auth_card.html' %}
 
+    <!-- 引入外部脚本（工作台逻辑 + 玻璃卡片特效） -->
+    <script type="module" src="{{ url_for('static', filename='js/glass-card.js') }}"></script>
+    <script>
+        // 汉堡菜单逻辑
+        var menuToggle = document.getElementById('menu-toggle');
+        var menu = document.getElementById('menu');
+        var menuBackdrop = document.getElementById('menu-backdrop');
+        var menuLinks = document.querySelectorAll('.menu__link');
+        menuToggle.addEventListener('change', function() {
+            if (this.checked) { menu.classList.add('is-open'); }
+            else { menu.classList.remove('is-open'); }
+        });
+        menuBackdrop.addEventListener('click', function() {
+            menuToggle.checked = false; menu.classList.remove('is-open');
+        });
+        menuLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                menuToggle.checked = false; menu.classList.remove('is-open');
+            });
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+                menuToggle.checked = false; menu.classList.remove('is-open');
+            }
+        });
+
+        // 主题切换（透明度过渡）
+        var toggleBtn = document.getElementById('theme-toggle-btn');
+        var whiteLayer = document.getElementById('theme-bg-white');
+        var blackLayer = document.getElementById('theme-bg-black');
+        if (toggleBtn && whiteLayer && blackLayer) {
+            var isBlack = false;
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault(); e.stopPropagation();
+                isBlack = !isBlack;
+                document.body.classList.toggle('theme-black', isBlack);
+                if (isBlack) { blackLayer.style.opacity = '1'; whiteLayer.style.opacity = '0'; }
+                else { blackLayer.style.opacity = '0'; whiteLayer.style.opacity = '1'; }
+            });
+        }
+
+        // 弹窗开关逻辑（从工作台复制过来）
+        window.showAddBotModal = function() {
+            var mainPanel = document.getElementById('configPanel');
+            var modal = document.getElementById('customAddPanelModal');
+            var wrapper = document.getElementById('modalWrapper');
+            var blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+            mainPanel.classList.add('hide-for-modal');
+            modal.classList.remove('hidden');
+            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+            setTimeout(() => {
+                wrapper.style.transform = 'translateY(0)';
+                wrapper.style.opacity = '1';
+                blurLayer.style.clipPath = 'circle(75% at 50% 50%)';
+            }, 200);
+        };
+        window.closeAddBotModal = function() {
+            var mainPanel = document.getElementById('configPanel');
+            var modal = document.getElementById('customAddPanelModal');
+            var wrapper = document.getElementById('modalWrapper');
+            var blurLayer = document.getElementById('modalBlurLayer');
+            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
+            wrapper.style.transform = 'translateY(100vh)';
+            wrapper.style.opacity = '0';
+            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
+            mainPanel.style.zIndex = '10000';
+            mainPanel.classList.remove('hide-for-modal');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                mainPanel.style.zIndex = '';
+            }, 800);
+        };
+        document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
+            var wrapper = document.getElementById('modalWrapper');
+            if (!wrapper.contains(e.target)) { window.closeAddBotModal(); }
+        });
+
+        // 提交绑定逻辑
+        window.submitBindBot = function() {
+            var userIdInput = document.getElementById('addPanelUserIdInput');
+            var tokenInput = document.getElementById('addPanelTokenInput');
+            var statusMsg = document.getElementById('bindStatusMsg');
+            var userId = userIdInput.value.trim();
+            var token = tokenInput.value.trim();
             if (!userId || !token) {
                 statusMsg.innerText = '❌ 请填写完整';
                 statusMsg.className = 'text-xs text-center text-red-400';
                 return;
             }
-
             statusMsg.classList.remove('hidden');
             statusMsg.innerText = '正在绑定...';
             statusMsg.className = 'text-xs text-center text-yellow-400';
-
             fetch('/api/send_bind_request', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -95,67 +199,6 @@
                 statusMsg.className = 'text-xs text-center text-red-400';
             });
         };
-    </script>
-
-    <!-- ✅ 核心动画逻辑：从中间展开，且点击外部关闭 -->
-    <script>
-        window.showAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            const blurLayer = document.getElementById('modalBlurLayer');
-            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
-
-            // 主面板滑出
-            mainPanel.classList.add('hide-for-modal');
-            modal.classList.remove('hidden');
-            
-            // 重置动画
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-
-            setTimeout(() => {
-                // 卡片从底部上滑
-                wrapper.style.transform = 'translateY(0)';
-                wrapper.style.opacity = '1';
-                
-                // 模糊从中间向四周扩散
-                blurLayer.style.clipPath = 'circle(75% at 50% 50%)'; 
-            }, 200);
-        };
-
-        window.closeAddBotModal = function() {
-            const mainPanel = document.getElementById('configPanel');
-            const modal = document.getElementById('customAddPanelModal');
-            const wrapper = document.getElementById('modalWrapper');
-            const blurLayer = document.getElementById('modalBlurLayer');
-            if (!mainPanel || !modal || !wrapper || !blurLayer) return;
-
-            // 卡片下滑
-            wrapper.style.transform = 'translateY(100vh)';
-            wrapper.style.opacity = '0';
-            
-            // 模糊收缩
-            blurLayer.style.clipPath = 'circle(0% at 50% 50%)';
-
-            // ✅ 核心修改：立即让主面板弹上来（提升 z-index 盖住模糊层）
-            mainPanel.style.zIndex = '10000'; // 临时提升层级
-            mainPanel.classList.remove('hide-for-modal');
-
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                mainPanel.style.zIndex = ''; // 恢复原 z-index
-            }, 800);
-        };
-
-        // 点击卡片外部任意区域（包含模糊层）都能关闭
-        document.getElementById('customAddPanelModal').addEventListener('click', function(e) {
-            const wrapper = document.getElementById('modalWrapper');
-            if (!wrapper.contains(e.target)) {
-                window.closeAddBotModal();
-            }
-        });
     </script>
 </body>
 </html>
