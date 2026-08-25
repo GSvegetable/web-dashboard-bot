@@ -10,15 +10,13 @@ const ctx = canvas.getContext('2d', { willReadFrequently: false });
 // size those bands fall outside the card and only clean refraction shows.
 const DUP_PIXEL_RATIO = 1;
 
-// 防抖和节流控制
-let resizeTimeout = null;
-let lastFrameTime = 0;
-const frameInterval = 1000 / 60; // 60fps
+// 缓存viewport尺寸，避免频繁读取
+let cachedVw = document.documentElement.clientWidth;
+let cachedVh = document.documentElement.clientHeight;
 
 function resizeDuplicate() {
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
-    const dpr = DUP_PIXEL_RATIO;
 
     const currentWidth = canvas.width;
     const currentHeight = canvas.height;
@@ -26,25 +24,24 @@ function resizeDuplicate() {
     if (currentWidth !== vw || currentHeight !== vh) {
         canvas.width = vw;
         canvas.height = vh;
+        cachedVw = vw;
+        cachedVh = vh;
     }
 }
 
 let animationFrameId = null;
-let isFrameScheduled = false;
+let lastFrameTime = 0;
+const frameInterval = 16.67; // ~60fps
 
 function frame() {
     const now = performance.now();
     
-    // 节流帧渲染
+    // 严格的帧率控制
     if (now - lastFrameTime < frameInterval) {
-        if (!isFrameScheduled) {
-            isFrameScheduled = true;
-            animationFrameId = requestAnimationFrame(frame);
-        }
+        animationFrameId = requestAnimationFrame(frame);
         return;
     }
     lastFrameTime = now;
-    isFrameScheduled = false;
 
     if (!card || !video) {
         animationFrameId = requestAnimationFrame(frame);
@@ -59,16 +56,23 @@ function frame() {
         return;
     }
 
+    // 关键优化：使用缓存的viewport尺寸，减少DOM查询
+    let vw = cachedVw;
+    let vh = cachedVh;
+
     const rect = card.getBoundingClientRect();
-    const vw = document.documentElement.clientWidth;
-    const vh = document.documentElement.clientHeight;
+    
+    // 只在卡片在视口内时才更新
+    if (rect.bottom < 0 || rect.top > vh) {
+        // 卡片不在视口内，跳过绘制
+        animationFrameId = requestAnimationFrame(frame);
+        return;
+    }
 
     container.style.left = `${-rect.left}px`;
     container.style.top = `${-rect.top}px`;
     container.style.width = `${vw}px`;
     container.style.height = `${vh}px`;
-
-    resizeDuplicate();
 
     try {
         // Reproduce CSS object-fit: cover for the video frame
@@ -78,6 +82,8 @@ function frame() {
         const sx = (video.videoWidth - sw) / 2;
         const sy = (video.videoHeight - sh) / 2;
 
+        // 使用 clearRect 前检查是否真的需要重绘
+        ctx.clearRect(0, 0, vw, vh);
         ctx.drawImage(video, sx, sy, sw, sh, 0, 0, vw, vh);
     } catch (e) {
         // A frame may not be decodable yet; skip this cycle silently
@@ -86,21 +92,20 @@ function frame() {
     animationFrameId = requestAnimationFrame(frame);
 }
 
-// 优化的窗口大小改变处理
+// 使用被动监听器和防抖处理窗口大小改变
+let resizeTimeout = null;
 function handleResize() {
+    cachedVw = document.documentElement.clientWidth;
+    cachedVh = document.documentElement.clientHeight;
+    
     if (resizeTimeout) clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
         resizeDuplicate();
-        if (!isFrameScheduled) {
-            isFrameScheduled = true;
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            animationFrameId = requestAnimationFrame(frame);
-        }
     }, 100);
 }
 
-// 优化滑动性能：减少事件监听器
 window.addEventListener('resize', handleResize, { passive: true });
 
-// 启动动画循环
+// 初始化
+resizeDuplicate();
 frame();
