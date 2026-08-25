@@ -11,10 +11,8 @@
 
     <style>
         * {
-            color: #ffffff !important;
             -webkit-tap-highlight-color: transparent !important;
             -webkit-touch-callout: none !important;
-            user-select: none !important;
         }
 
         html, body {
@@ -23,17 +21,15 @@
             overflow-y: auto !important;
             overflow-x: hidden !important;
             background: #000000 !important;
-            /* 修复滑动卡顿：允许垂直滑动，不拦截触摸 */
             touch-action: pan-y !important;
-            -webkit-font-smoothing: antialiased;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
+            color: #ffffff !important;
+            user-select: none !important;
         }
+
         .hero {
             height: auto !important;
             min-height: 100vh !important;
             pointer-events: auto !important;
-            will-change: auto;
         }
 
         video::-webkit-media-controls, video::-webkit-media-controls-enclosure,
@@ -45,6 +41,7 @@
             pointer-events: none !important;
         }
 
+        /* 背景层 - 使用最简单的淡入淡出 */
         #theme-bg-white, #theme-bg-black {
             position: fixed;
             top: 0;
@@ -54,31 +51,41 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            z-index: 1;
+            z-index: 0;
             pointer-events: none;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
+
         #theme-bg-white {
             background-image: url('{{ url_for('static', filename='IMG_20250824_162613.jpg') }}');
             background-color: #ffffff;
             opacity: 1;
-            transition: opacity 0.6s ease-out;
         }
+
         #theme-bg-black {
             background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
             background-color: #000000;
             opacity: 0;
-            transition: opacity 0.6s ease-out;
         }
 
-        /* 主题切换涟漪效果 */
+        /* 涟漪效果 - 从按钮位置扩散 */
         #theme-ripple {
             position: fixed;
-            pointer-events: none;
-            z-index: 0;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
             border-radius: 50%;
-            opacity: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                transform: scale(0);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .hero, .cards-section, .menu {
@@ -105,7 +112,6 @@
             cursor: pointer;
         }
 
-        /* 主题切换按钮（缩小，月亮固定） */
         .theme-toggle {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.3);
@@ -116,15 +122,14 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.3s ease;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
             position: relative;
             z-index: 10001;
         }
+
         .theme-toggle:hover {
             transform: scale(1.1);
         }
+
         .theme-toggle svg {
             width: 16px;
             height: 16px;
@@ -140,15 +145,16 @@
             z-index: 100000;
             pointer-events: auto;
         }
+
         .hamburger input {
             display: none;
         }
+
         .hamburger svg {
             height: 2.5em;
             transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
+
         .line {
             fill: none;
             stroke: white;
@@ -158,12 +164,15 @@
             transition: stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
                         stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .line-top-bottom {
             stroke-dasharray: 12 63;
         }
+
         .hamburger input:checked + svg {
             transform: rotate(-45deg);
         }
+
         .hamburger input:checked + svg .line-top-bottom {
             stroke-dasharray: 20 300;
             stroke-dashoffset: -32.42;
@@ -179,17 +188,16 @@
             margin-top: -20vh; 
             position: relative; 
             z-index: 3;
-            will-change: scroll-position;
         }
+
         .cards-grid { 
             position: relative; 
             width: 100%; 
             max-width: 1100px; 
             height: 260px; 
             margin: 0 auto;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
+
         .card-item { 
             position: absolute; 
             left: 50%; 
@@ -202,25 +210,26 @@
             overflow: hidden; 
             background: rgba(255, 255, 255, 0.08);
             transform: translate3d(0, 0, 0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
             will-change: transform, opacity;
         }
-        .card-left { z-index: 1; } .card-center { z-index: 3; } .card-right { z-index: 2; }
+
+        .card-left { z-index: 1; } 
+        .card-center { z-index: 3; } 
+        .card-right { z-index: 2; }
+
         .card-item::before { 
             content: ''; 
             position: absolute; 
-            top:0; 
-            left:0; 
-            right:0; 
-            bottom:0; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
             background-size: cover; 
             background-position: center; 
             filter: blur(8px) brightness(0.7); 
             transform: scale(1.1);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
+
         .card-content { 
             position: relative; 
             z-index: 1; 
@@ -229,43 +238,47 @@
             flex-direction: column; 
             justify-content: flex-end; 
         }
+
         .card-content h3 { 
             font-size: 20px; 
             font-weight: 700; 
             margin-bottom: 10px; 
             text-shadow: 0 2px 10px rgba(0,0,0,0.6); 
+            color: white;
         }
+
         .card-content p { 
             font-size: 14px; 
             line-height: 1.7; 
-            text-shadow: 0 1px 6px rgba(0,0,0,0.6); 
+            text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+            color: white;
         }
 
-        /* 更新日志动画（放慢拉长） */
         .card.group {
             animation: fade-slide-up-card 2.5s cubic-bezier(0.16, 1, 0.3, 1) both !important;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
+
         @keyframes fade-slide-up-card {
             0% { opacity: 0; transform: translateY(100px); }
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 侧边菜单（关闭时不拦截触摸，解决卡顿） */
+        /* 侧边菜单 */
         .menu {
             position: fixed;
             inset: 0;
             z-index: 50;
             visibility: hidden;
-            pointer-events: none; /* 关键：关闭时完全不拦截 */
+            pointer-events: none;
             transition: visibility 0s linear 500ms;
         }
+
         .menu.is-open {
             visibility: visible;
             pointer-events: auto;
             transition-delay: 0s;
         }
+
         .menu__backdrop {
             position: absolute;
             inset: 0;
@@ -273,10 +286,12 @@
             backdrop-filter: blur(4px);
             opacity: 0;
             transition: opacity 500ms;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
-        .menu.is-open .menu__backdrop { opacity: 1; }
+
+        .menu.is-open .menu__backdrop { 
+            opacity: 1; 
+        }
+
         .menu__panel {
             position: absolute;
             top: 0;
@@ -290,11 +305,18 @@
             background: #1a1a1a;
             transform: translateX(-100%);
             transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
         }
-        .menu.is-open .menu__panel { transform: translateX(0); }
-        .menu__nav { margin-top: 80px; display: flex; flex-direction: column; }
+
+        .menu.is-open .menu__panel { 
+            transform: translateX(0); 
+        }
+
+        .menu__nav { 
+            margin-top: 80px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
         .menu__link {
             display: flex;
             align-items: center;
@@ -307,15 +329,18 @@
             transform: translateY(20px);
             transition: opacity 500ms, transform 500ms;
         }
+
         .menu.is-open .menu__link {
             opacity: 1;
             transform: translateY(0);
         }
+
         .menu.is-open .menu__link:nth-child(1) { transition-delay: 100ms; }
         .menu.is-open .menu__link:nth-child(2) { transition-delay: 150ms; }
         .menu.is-open .menu__link:nth-child(3) { transition-delay: 200ms; }
         .menu.is-open .menu__link:nth-child(4) { transition-delay: 250ms; }
         .menu.is-open .menu__link:nth-child(5) { transition-delay: 300ms; }
+
         .menu__foot {
             margin-top: auto;
             padding: 1.5rem 0 2rem;
@@ -327,20 +352,23 @@
             transform: translateY(20px);
             transition: opacity 500ms, transform 500ms;
         }
-        .menu.is-open .menu__foot { opacity: 1; transform: translateY(0); transition-delay: 400ms; }
-        .menu__footLabel { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin: 0; }
-        .menu__mail { font-size: 0.875rem; color: #ffffff; text-decoration: none; }
 
-        /* 涟漪扩散动画 */
-        @keyframes ripple-expand {
-            0% {
-                transform: scale(0);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 0;
-            }
+        .menu.is-open .menu__foot { 
+            opacity: 1; 
+            transform: translateY(0); 
+            transition-delay: 400ms; 
+        }
+
+        .menu__footLabel { 
+            font-size: 0.75rem; 
+            color: rgba(255,255,255,0.5); 
+            margin: 0; 
+        }
+
+        .menu__mail { 
+            font-size: 0.875rem; 
+            color: #ffffff; 
+            text-decoration: none; 
         }
     </style>
 </head>
@@ -457,12 +485,14 @@
                 menuToggle.checked = false;
                 menu.classList.remove('is-open');
             });
+
             menuLinks.forEach(function(link) {
                 link.addEventListener('click', function() {
                     menuToggle.checked = false;
                     menu.classList.remove('is-open');
                 });
             });
+
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && menu.classList.contains('is-open')) {
                     menuToggle.checked = false;
@@ -482,39 +512,40 @@
                     e.preventDefault();
                     e.stopPropagation();
                     isBlack = !isBlack;
-                    document.body.classList.toggle('theme-black', isBlack);
                     
-                    // 获取按钮位置
+                    // 获取按钮的准确位置（中心点）
                     var rect = toggleBtn.getBoundingClientRect();
-                    var x = rect.left + rect.width / 2;
-                    var y = rect.top + rect.height / 2;
+                    var centerX = rect.left + rect.width / 2;
+                    var centerY = rect.top + rect.height / 2;
                     
-                    // 计算涟漪所需的最大半径
+                    // 计算涟漪扩散所需的最大半径（到屏幕四角最远点）
                     var maxDist = Math.hypot(
-                        Math.max(x, window.innerWidth - x),
-                        Math.max(y, window.innerHeight - y)
+                        Math.max(centerX, window.innerWidth - centerX),
+                        Math.max(centerY, window.innerHeight - centerY)
                     );
                     
-                    // 设置涟漪初始位置和大小
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
+                    // 设置涟漪起始位置和样式
+                    ripple.style.left = centerX + 'px';
+                    ripple.style.top = centerY + 'px';
+                    ripple.style.backgroundColor = isBlack ? '#000000' : '#ffffff';
                     ripple.style.width = '0px';
                     ripple.style.height = '0px';
-                    ripple.style.backgroundColor = isBlack ? '#000000' : '#ffffff';
-                    ripple.style.animation = 'none';
                     ripple.style.marginLeft = '0px';
                     ripple.style.marginTop = '0px';
+                    ripple.style.animation = 'none';
+                    ripple.style.opacity = '1';
                     
-                    // 触发重排，让动画重新开始
+                    // 强制重排以重新开始动画
                     void ripple.offsetWidth;
                     
-                    ripple.style.animation = `ripple-expand 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards`;
+                    // 启动涟漪扩散动画
                     ripple.style.width = (maxDist * 2) + 'px';
                     ripple.style.height = (maxDist * 2) + 'px';
                     ripple.style.marginLeft = -(maxDist) + 'px';
                     ripple.style.marginTop = -(maxDist) + 'px';
+                    ripple.style.animation = `ripple-expand 0.8s ease-out forwards`;
                     
-                    // 背景色也进行过渡
+                    // 同时淡出当前背景，淡入新背景
                     if (isBlack) {
                         blackLayer.style.opacity = '1';
                         whiteLayer.style.opacity = '0';
@@ -522,6 +553,8 @@
                         blackLayer.style.opacity = '0';
                         whiteLayer.style.opacity = '1';
                     }
+                    
+                    document.body.classList.toggle('theme-black', isBlack);
                 });
             }
 
@@ -530,29 +563,44 @@
             var card1 = document.getElementById('card1');
             var card2 = document.getElementById('card2');
             var card3 = document.getElementById('card3');
+            
             if (section && card1 && card2 && card3) {
                 var clamp = function(v, min, max) { return Math.max(min, Math.min(max, v)); };
                 var lerp = function(a, b, t) { return a + (b - a) * t; };
                 var easeOutCubic = function(x) { return 1 - Math.pow(1 - x, 3); };
+                
                 function makeInitials() {
                     var vw = window.innerWidth, vh = window.innerHeight;
-                    return { cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 };
+                    return { 
+                        cX: 0, cY: vh * 0.55, cR: 0, cS: 0.82, cO: 0.5, 
+                        lX: -vw * 0.45, lY: vh * 0.22, lR: -18, lS: 0.72, lO: 0.25, 
+                        rX: vw * 0.45, rY: vh * 0.22, rR: 18, rS: 0.72, rO: 0.25 
+                    };
                 }
+                
                 var current = makeInitials(), target = makeInitials(), running = false;
+                
                 function updateTargets() {
-                    var rect = section.getBoundingClientRect(), vw = window.innerWidth, vh = window.innerHeight;
+                    var rect = section.getBoundingClientRect();
+                    var vw = window.innerWidth, vh = window.innerHeight;
                     var offset = (rect.top + rect.height * 0.5) - vh * 0.5;
-                    var progress = clamp(1 - offset / (vh * 0.85), 0, 1), t = easeOutCubic(progress), distance = vw * 0.28, ini = makeInitials();
+                    var progress = clamp(1 - offset / (vh * 0.85), 0, 1);
+                    var t = easeOutCubic(progress);
+                    var distance = vw * 0.28;
+                    var ini = makeInitials();
+                    
                     target.cX = 0; target.cY = lerp(ini.cY, 0, t); target.cR = 0; target.cS = lerp(ini.cS, 1, t); target.cO = lerp(ini.cO, 1, t);
                     target.lX = lerp(ini.lX, -distance, t); target.lY = lerp(ini.lY, 0, t); target.lR = lerp(ini.lR, -6, t); target.lS = lerp(ini.lS, 1, t); target.lO = lerp(ini.lO, 1, t);
                     target.rX = lerp(ini.rX, distance, t); target.rY = lerp(ini.rY, 0, t); target.rR = lerp(ini.rR, 6, t); target.rS = lerp(ini.rS, 1, t); target.rO = lerp(ini.rO, 1, t);
                 }
+                
                 function apply() {
                     card1.style.transform = `translate3d(${current.lX}px, ${current.lY}px, 0) translate(-50%, -50%) rotate(${current.lR}deg) scale(${current.lS})`;
                     card2.style.transform = `translate3d(${current.cX}px, ${current.cY}px, 0) translate(-50%, -50%) rotate(${current.cR}deg) scale(${current.cS})`;
                     card3.style.transform = `translate3d(${current.rX}px, ${current.rY}px, 0) translate(-50%, -50%) rotate(${current.rR}deg) scale(${current.rS})`;
                     card1.style.opacity = current.lO; card2.style.opacity = current.cO; card3.style.opacity = current.rO;
                 }
+                
                 function frame() {
                     updateTargets();
                     var keys = ['cX','cY','cR','cS','cO','lX','lY','lR','lS','lO','rX','rY','rR','rS','rO'];
@@ -566,6 +614,7 @@
                     if (delta > 0.001) requestAnimationFrame(frame);
                     else running = false;
                 }
+                
                 function start() { if (!running) { running = true; requestAnimationFrame(frame); } }
                 window.addEventListener('scroll', start, { passive: true });
                 window.addEventListener('resize', start, { passive: true });
