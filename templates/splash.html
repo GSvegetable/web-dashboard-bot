@@ -79,7 +79,7 @@
             opacity: 0;
         }
 
-        /* 新主题背景（圆形遮罩扩散） */
+        /* 新主题背景（圆形遮罩扩散） - 从按钮位置出发 */
         #theme-new-bg {
             position: fixed;
             top: 0;
@@ -519,7 +519,7 @@
                 }
             });
 
-            // 卡片式主题切换：圆形扩散效果
+            // 卡片式主题切换：从按钮位置精确扩散的圆形
             var toggleBtn = document.getElementById('theme-toggle-btn');
             var whiteBg = document.getElementById('theme-bg-white');
             var blackBg = document.getElementById('theme-bg-black');
@@ -532,15 +532,19 @@
                     e.stopPropagation();
                     isBlack = !isBlack;
                     
-                    // 获取按钮中心位置
+                    // 精确获取按钮位置（相对于视口）
                     var rect = toggleBtn.getBoundingClientRect();
-                    var centerX = rect.left + rect.width / 2;
-                    var centerY = rect.top + rect.height / 2;
+                    var btnCenterX = rect.left + rect.width / 2;
+                    var btnCenterY = rect.top + rect.height / 2;
+                    
+                    // 转换为百分比位置（相对于视口）
+                    var percentX = (btnCenterX / window.innerWidth) * 100;
+                    var percentY = (btnCenterY / window.innerHeight) * 100;
                     
                     // 计算最大扩散半径
                     var maxDist = Math.hypot(
-                        Math.max(centerX, window.innerWidth - centerX),
-                        Math.max(centerY, window.innerHeight - centerY)
+                        Math.max(btnCenterX, window.innerWidth - btnCenterX),
+                        Math.max(btnCenterY, window.innerHeight - btnCenterY)
                     );
                     
                     // 设置新背景样式
@@ -552,8 +556,8 @@
                             blackBg.style.opacity = '1';
                             whiteBg.style.opacity = '0';
                             newBg.style.opacity = '0';
-                            newBg.style.clipPath = 'circle(0px at 50% 50%)';
-                        }, 800);
+                            newBg.style.clipPath = `circle(0px at ${percentX}% ${percentY}%)`;
+                        }, 1600);
                     } else {
                         newBg.classList.remove('black');
                         newBg.classList.add('white');
@@ -562,18 +566,19 @@
                             whiteBg.style.opacity = '1';
                             blackBg.style.opacity = '0';
                             newBg.style.opacity = '0';
-                            newBg.style.clipPath = 'circle(0px at 50% 50%)';
-                        }, 800);
+                            newBg.style.clipPath = `circle(0px at ${percentX}% ${percentY}%)`;
+                        }, 1600);
                     }
                     
-                    // 启动圆形扩散动画
+                    // 启动圆形扩散动画（从按钮位置开始）
                     newBg.style.opacity = '1';
-                    newBg.style.clipPath = `circle(0px at ${centerX}px ${centerY}px)`;
+                    newBg.style.clipPath = `circle(0px at ${percentX}% ${percentY}%)`;
+                    newBg.style.transition = 'none';
                     
-                    // 触发动画
+                    // 触发动画（1.6秒：两倍的0.8秒）
                     setTimeout(() => {
-                        newBg.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-                        newBg.style.clipPath = `circle(${maxDist}px at ${centerX}px ${centerY}px)`;
+                        newBg.style.transition = `clip-path 1.6s cubic-bezier(0.4, 0, 0.2, 1)`;
+                        newBg.style.clipPath = `circle(${maxDist}px at ${percentX}% ${percentY}%)`;
                     }, 10);
                     
                     document.body.classList.toggle('theme-black', isBlack);
