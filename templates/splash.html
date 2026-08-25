@@ -41,7 +41,19 @@
             pointer-events: none !important;
         }
 
-        /* 背景层 - 使用最简单的淡入淡出 */
+        /* 背景层容器 */
+        #bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* 旧主题背景（始终显示在后面） */
         #theme-bg-white, #theme-bg-black {
             position: fixed;
             top: 0;
@@ -67,25 +79,30 @@
             opacity: 0;
         }
 
-        /* 涟漪效果 - 从按钮位置扩散 */
-        #theme-ripple {
+        /* 新主题背景（圆形遮罩扩散） */
+        #theme-new-bg {
             position: fixed;
             top: 0;
             left: 0;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             z-index: 1;
             pointer-events: none;
+            clip-path: circle(0px at 50% 50%);
+            opacity: 0;
         }
 
-        @keyframes ripple-expand {
-            0% {
-                transform: scale(0);
-            }
-            100% {
-                transform: scale(1);
-            }
+        #theme-new-bg.white {
+            background-image: url('{{ url_for('static', filename='IMG_20250824_162613.jpg') }}');
+            background-color: #ffffff;
+        }
+
+        #theme-new-bg.black {
+            background-image: url('{{ url_for('static', filename='IMG_20260823_040708.png') }}');
+            background-color: #000000;
         }
 
         .hero, .cards-section, .menu {
@@ -124,6 +141,7 @@
             cursor: pointer;
             position: relative;
             z-index: 10001;
+            transition: transform 0.3s ease;
         }
 
         .theme-toggle:hover {
@@ -373,11 +391,12 @@
     </style>
 </head>
 <body>
-    <!-- 背景层 -->
-    <div id="theme-bg-white"></div>
-    <div id="theme-bg-black"></div>
-    <!-- 涟漪效果 -->
-    <div id="theme-ripple"></div>
+    <!-- 背景层容器 -->
+    <div id="bg-container">
+        <div id="theme-bg-white"></div>
+        <div id="theme-bg-black"></div>
+        <div id="theme-new-bg"></div>
+    </div>
 
     <!-- 汉堡菜单 -->
     <label class="hamburger">
@@ -500,59 +519,62 @@
                 }
             });
 
-            // 主题切换：从按钮位置扩散的涟漪效果
+            // 卡片式主题切换：圆形扩散效果
             var toggleBtn = document.getElementById('theme-toggle-btn');
-            var whiteLayer = document.getElementById('theme-bg-white');
-            var blackLayer = document.getElementById('theme-bg-black');
-            var ripple = document.getElementById('theme-ripple');
+            var whiteBg = document.getElementById('theme-bg-white');
+            var blackBg = document.getElementById('theme-bg-black');
+            var newBg = document.getElementById('theme-new-bg');
             
-            if (toggleBtn && whiteLayer && blackLayer && ripple) {
+            if (toggleBtn && whiteBg && blackBg && newBg) {
                 var isBlack = false;
                 toggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     isBlack = !isBlack;
                     
-                    // 获取按钮的准确位置（中心点）
+                    // 获取按钮中心位置
                     var rect = toggleBtn.getBoundingClientRect();
                     var centerX = rect.left + rect.width / 2;
                     var centerY = rect.top + rect.height / 2;
                     
-                    // 计算涟漪扩散所需的最大半径（到屏幕四角最远点）
+                    // 计算最大扩散半径
                     var maxDist = Math.hypot(
                         Math.max(centerX, window.innerWidth - centerX),
                         Math.max(centerY, window.innerHeight - centerY)
                     );
                     
-                    // 设置涟漪起始位置和样式
-                    ripple.style.left = centerX + 'px';
-                    ripple.style.top = centerY + 'px';
-                    ripple.style.backgroundColor = isBlack ? '#000000' : '#ffffff';
-                    ripple.style.width = '0px';
-                    ripple.style.height = '0px';
-                    ripple.style.marginLeft = '0px';
-                    ripple.style.marginTop = '0px';
-                    ripple.style.animation = 'none';
-                    ripple.style.opacity = '1';
-                    
-                    // 强制重排以重新开始动画
-                    void ripple.offsetWidth;
-                    
-                    // 启动涟漪扩散动画
-                    ripple.style.width = (maxDist * 2) + 'px';
-                    ripple.style.height = (maxDist * 2) + 'px';
-                    ripple.style.marginLeft = -(maxDist) + 'px';
-                    ripple.style.marginTop = -(maxDist) + 'px';
-                    ripple.style.animation = `ripple-expand 0.8s ease-out forwards`;
-                    
-                    // 同时淡出当前背景，淡入新背景
+                    // 设置新背景样式
                     if (isBlack) {
-                        blackLayer.style.opacity = '1';
-                        whiteLayer.style.opacity = '0';
+                        newBg.classList.remove('white');
+                        newBg.classList.add('black');
+                        // 最终状态：黑色主题全屏显示
+                        setTimeout(() => {
+                            blackBg.style.opacity = '1';
+                            whiteBg.style.opacity = '0';
+                            newBg.style.opacity = '0';
+                            newBg.style.clipPath = 'circle(0px at 50% 50%)';
+                        }, 800);
                     } else {
-                        blackLayer.style.opacity = '0';
-                        whiteLayer.style.opacity = '1';
+                        newBg.classList.remove('black');
+                        newBg.classList.add('white');
+                        // 最终状态：白色主题全屏显示
+                        setTimeout(() => {
+                            whiteBg.style.opacity = '1';
+                            blackBg.style.opacity = '0';
+                            newBg.style.opacity = '0';
+                            newBg.style.clipPath = 'circle(0px at 50% 50%)';
+                        }, 800);
                     }
+                    
+                    // 启动圆形扩散动画
+                    newBg.style.opacity = '1';
+                    newBg.style.clipPath = `circle(0px at ${centerX}px ${centerY}px)`;
+                    
+                    // 触发动画
+                    setTimeout(() => {
+                        newBg.style.transition = 'clip-path 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                        newBg.style.clipPath = `circle(${maxDist}px at ${centerX}px ${centerY}px)`;
+                    }, 10);
                     
                     document.body.classList.toggle('theme-black', isBlack);
                 });
